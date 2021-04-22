@@ -23,6 +23,7 @@ import java.io.Serializable;
 @DynamicUpdate
 public class Item extends BaseAuditableEntity implements ITenant, ICodeUnique, Serializable {
     private static final long serialVersionUID = -57036484686343107L;
+    public static final String FIELD_STRATEGY_ID = "strategyId";
     /**
      * 代码
      */

@@ -21,6 +21,7 @@ import java.io.Serializable;
 @DynamicUpdate
 public class CategoryDimension extends BaseAuditableEntity implements Serializable {
     private static final long serialVersionUID = -76720938483283048L;
+    public static final String FIELD_DIMENSION_CODE = "dimensionCode";
     /**
      * 预算类型id
      */
