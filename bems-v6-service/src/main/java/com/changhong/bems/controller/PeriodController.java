@@ -1,19 +1,24 @@
 package com.changhong.bems.controller;
 
 import com.changhong.bems.api.PeriodApi;
+import com.changhong.bems.dto.CreateCustomizePeriodRequest;
+import com.changhong.bems.dto.CreateNormalPeriodRequest;
 import com.changhong.bems.dto.PeriodDto;
+import com.changhong.bems.dto.PeriodType;
 import com.changhong.bems.entity.Period;
 import com.changhong.bems.service.PeriodService;
 import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
-import com.changhong.sei.core.dto.serach.PageResult;
-import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.service.BaseEntityService;
+import com.changhong.sei.util.EnumUtils;
+import com.changhong.sei.util.IdGenerator;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * 预算期间(Period)控制类
@@ -37,13 +42,56 @@ public class PeriodController extends BaseEntityController<Period, PeriodDto> im
     }
 
     /**
-     * 分页查询业务实体
+     * 按预算主体获取期间
      *
-     * @param search 查询参数
-     * @return 分页查询结果
+     * @param subjectId 预算主体id
+     * @param type      预算期间类型
+     * @return 期间清单
      */
     @Override
-    public ResultData<PageResult<PeriodDto>> findByPage(Search search) {
-        return convertToDtoPageResult(service.findByPage(search));
+    public ResultData<List<PeriodDto>> findBySubject(String subjectId, String type) {
+        return ResultData.success(convertToDtos(service.findBySubject(subjectId, EnumUtils.getEnum(PeriodType.class, type))));
+    }
+
+    /**
+     * 关闭预算期间
+     *
+     * @param ids 预算期间id
+     * @return 期间清单
+     */
+    @Override
+    public ResultData<Void> closePeriods(List<String> ids) {
+        return service.closePeriods(ids);
+    }
+
+    /**
+     * 创建标准期间
+     *
+     * @param request 预算主体id
+     * @return 期间清单
+     */
+    @Override
+    public ResultData<Void> createNormalPeriod(CreateNormalPeriodRequest request) {
+        return service.createNormalPeriod(request.getSubjectId(), request.getYear(), request.getPeriodTypes());
+    }
+
+    /**
+     * 创建/编辑自定义期间
+     *
+     * @param request 预算主体id
+     * @return 期间清单
+     */
+    @Override
+    public ResultData<Void> saveCustomizePeriod(CreateCustomizePeriodRequest request) {
+        Period period = new Period();
+        period.setId(request.getId());
+        period.setType(PeriodType.CUSTOMIZE);
+        period.setCode(String.valueOf(IdGenerator.nextId()));
+        period.setSubjectId(request.getSubjectId());
+        period.setName(request.getName());
+        period.setYear(request.getStartDate().getYear());
+        period.setStartDate(request.getStartDate());
+        period.setEndDate(request.getEndDate());
+        return service.saveCustomizePeriod(period);
     }
 }

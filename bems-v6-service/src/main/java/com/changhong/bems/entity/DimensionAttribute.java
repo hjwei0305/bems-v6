@@ -22,6 +22,10 @@ import java.io.Serializable;
 @DynamicUpdate
 public class DimensionAttribute extends BaseEntity implements ITenant, Serializable {
     private static final long serialVersionUID = -63903291983170191L;
+    public static final String FIELD_SUBJECT_ID = "subjectId";
+    public static final String FIELD_CATEGORY_ID = "categoryId";
+    public static final String FIELD_PERIOD = "period";
+    public static final String FIELD_ITEM = "item";
     /**
      * 预算主体id
      */

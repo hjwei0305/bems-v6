@@ -1,6 +1,9 @@
 package com.changhong.bems.controller;
 
 import com.changhong.bems.api.SubjectApi;
+import com.changhong.bems.dto.CorporationDto;
+import com.changhong.bems.dto.CurrencyDto;
+import com.changhong.bems.dto.OrganizationDto;
 import com.changhong.bems.dto.SubjectDto;
 import com.changhong.bems.entity.Subject;
 import com.changhong.bems.service.SubjectService;
@@ -14,6 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * 预算主体(Subject)控制类
@@ -45,5 +50,35 @@ public class SubjectController extends BaseEntityController<Subject, SubjectDto>
     @Override
     public ResultData<PageResult<SubjectDto>> findByPage(Search search) {
         return convertToDtoPageResult(service.findByPage(search));
+    }
+
+    /**
+     * 获取币种数据
+     *
+     * @return 查询结果
+     */
+    @Override
+    public ResultData<List<CurrencyDto>> findCurrencies() {
+        return service.findCurrencies();
+    }
+
+    /**
+     * 获取当前用户有权限的公司
+     *
+     * @return 当前用户有权限的公司
+     */
+    @Override
+    public ResultData<List<CorporationDto>> findUserAuthorizedCorporations() {
+        return service.findUserAuthorizedCorporations();
+    }
+
+    /**
+     * 获取组织机构树(不包含冻结)
+     *
+     * @return 组织机构树清单
+     */
+    @Override
+    public ResultData<List<OrganizationDto>> findOrgTree() {
+        return service.findOrgTree();
     }
 }

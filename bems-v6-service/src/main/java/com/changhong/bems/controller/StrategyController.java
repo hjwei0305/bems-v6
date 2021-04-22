@@ -49,16 +49,6 @@ public class StrategyController extends BaseEntityController<Strategy, StrategyD
     }
 
     /**
-     * 获取所有未冻结的业务实体
-     *
-     * @return 业务实体清单
-     */
-    @Override
-    public ResultData<List<StrategyDto>> findAllUnfrozen() {
-        return ResultData.success(convertToDtos(service.findAllUnfrozen()));
-    }
-
-    /**
      * 按分类查询策略
      *
      * @param category 分类

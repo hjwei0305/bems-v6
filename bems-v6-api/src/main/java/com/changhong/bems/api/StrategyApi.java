@@ -20,8 +20,17 @@ import java.util.List;
  */
 @Valid
 @FeignClient(name = "bems-v6", path = StrategyApi.PATH)
-public interface StrategyApi extends BaseEntityApi<StrategyDto>, FindAllApi<StrategyDto> {
+public interface StrategyApi extends BaseEntityApi<StrategyDto> {
     String PATH = "strategy";
+
+    /**
+     * 获取所有预算策略
+     *
+     * @return 业务实体清单
+     */
+    @GetMapping(path = "findAll")
+    @ApiOperation(value = "获取所有预算策略", notes = "获取所有预算策略")
+    ResultData<List<StrategyDto>> findAll();
 
     /**
      * 按分类查询策略

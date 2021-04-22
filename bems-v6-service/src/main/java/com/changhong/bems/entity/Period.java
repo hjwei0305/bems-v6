@@ -9,7 +9,6 @@ import org.hibernate.annotations.DynamicUpdate;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.Date;
 
 /**
  * 预算期间(Period)实体类
@@ -23,6 +22,11 @@ import java.util.Date;
 @DynamicUpdate
 public class Period extends BaseAuditableEntity implements ITenant, Serializable {
     private static final long serialVersionUID = 102445924899681422L;
+    public static final String FIELD_SUBJECT_ID = "subjectId";
+    public static final String FIELD_CODE = "code";
+    public static final String FIELD_TYPE = "type";
+    public static final String FIELD_YEAR = "year";
+    public static final String FIELD_CLOSED = "closed";
     /**
      * 预算主体id
      */
@@ -63,7 +67,7 @@ public class Period extends BaseAuditableEntity implements ITenant, Serializable
      * 是否已关闭
      */
     @Column(name = "is_closed")
-    private Boolean closed;
+    private Boolean closed = Boolean.FALSE;
     /**
      * 租户代码
      */
