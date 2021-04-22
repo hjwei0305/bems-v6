@@ -7,8 +7,8 @@ sei:
     description: '@project_description@'
   mock: # 本地调试的当前用户配置
     user:
-      tenant-code: global
-      account: sei
+      tenant-code: 10044
+      account: admin
 
 # spring配置
 spring:
