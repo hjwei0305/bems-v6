@@ -4,28 +4,33 @@ import com.changhong.sei.core.dto.BaseEntityDto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.NotBlank;
+
 /**
- * (Strategy)DTO类
+ * 预算策略(Strategy)DTO类
  *
  * @author sei
  * @since 2021-04-22 11:12:07
  */
-@ApiModel(description = "DTO")
+@ApiModel(description = "预算策略DTO")
 public class StrategyDto extends BaseEntityDto {
     private static final long serialVersionUID = -51089250630553840L;
     /**
      * 策略名称
      */
+    @NotBlank
     @ApiModelProperty(value = "策略名称")
     private String name;
     /**
      * 策略类路径
      */
+    @NotBlank
     @ApiModelProperty(value = "策略类路径")
     private String classPath;
     /**
      * 策略类别
      */
+    @NotBlank
     @ApiModelProperty(value = "策略类别")
     private StrategyCategory category;
 

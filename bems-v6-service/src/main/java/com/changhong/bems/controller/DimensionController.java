@@ -2,6 +2,7 @@ package com.changhong.bems.controller;
 
 import com.changhong.bems.api.DimensionApi;
 import com.changhong.bems.dto.DimensionDto;
+import com.changhong.bems.dto.KeyValueDto;
 import com.changhong.bems.entity.Dimension;
 import com.changhong.bems.service.DimensionService;
 import com.changhong.sei.core.controller.BaseEntityController;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 预算维度(Dimension)控制类
@@ -54,5 +56,15 @@ public class DimensionController extends BaseEntityController<Dimension, Dimensi
     @Override
     public ResultData<List<DimensionDto>> findAllUnfrozen() {
         return ResultData.success(convertToDtos(service.findAllUnfrozen()));
+    }
+
+    /**
+     * 获取所有预制的维度代码
+     *
+     * @return 策略清单
+     */
+    @Override
+    public ResultData<Set<KeyValueDto>> findAllCodes() {
+        return ResultData.success(service.findAllCodes());
     }
 }

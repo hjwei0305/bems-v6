@@ -1,6 +1,5 @@
 package com.changhong.bems.entity;
 
-import com.changhong.sei.core.entity.BaseAuditableEntity;
 import com.changhong.sei.core.entity.BaseEntity;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -36,7 +35,7 @@ public class DimensionAttribute extends BaseEntity implements Serializable {
      * 预算期间
      */
     @Column(name = "period_id")
-    private String periodId;
+    private String period;
     /**
      * 预算期间名称
      */
@@ -46,7 +45,7 @@ public class DimensionAttribute extends BaseEntity implements Serializable {
      * 预算科目
      */
     @Column(name = "item_id")
-    private String itemId;
+    private String item;
     /**
      * 预算科目名称
      */
@@ -145,12 +144,12 @@ public class DimensionAttribute extends BaseEntity implements Serializable {
         this.categoryId = categoryId;
     }
 
-    public String getPeriodId() {
-        return periodId;
+    public String getPeriod() {
+        return period;
     }
 
-    public void setPeriodId(String periodId) {
-        this.periodId = periodId;
+    public void setPeriod(String periodId) {
+        this.period = periodId;
     }
 
     public String getPeriodName() {
@@ -161,12 +160,12 @@ public class DimensionAttribute extends BaseEntity implements Serializable {
         this.periodName = periodName;
     }
 
-    public String getItemId() {
-        return itemId;
+    public String getItem() {
+        return item;
     }
 
-    public void setItemId(String itemId) {
-        this.itemId = itemId;
+    public void setItem(String itemId) {
+        this.item = itemId;
     }
 
     public String getItemName() {

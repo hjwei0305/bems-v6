@@ -9,7 +9,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 
 /**
- * (Strategy)实体类
+ * 预算策略(Strategy)实体类
  *
  * @author sei
  * @since 2021-04-22 11:12:01
@@ -20,6 +20,7 @@ import java.io.Serializable;
 @DynamicUpdate
 public class Strategy extends BaseAuditableEntity implements Serializable {
     private static final long serialVersionUID = -28243258893909771L;
+    public static final String FIELD_CATEGORY = "category";
     /**
      * 策略名称
      */
