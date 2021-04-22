@@ -37,7 +37,6 @@ public class CategoryDimension extends BaseAuditableEntity implements Serializab
     @Column(name = "rank")
     private Integer rank = 0;
 
-
     public String getCategoryId() {
         return categoryId;
     }

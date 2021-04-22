@@ -58,12 +58,6 @@ public class CategoryDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "允许结转")
     private Boolean roll;
-    /**
-     * 租户代码
-     */
-    @ApiModelProperty(value = "租户代码")
-    private String tenantCode;
-
 
     public String getName() {
         return name;
@@ -135,14 +129,6 @@ public class CategoryDto extends BaseEntityDto {
 
     public void setRoll(Boolean roll) {
         this.roll = roll;
-    }
-
-    public String getTenantCode() {
-        return tenantCode;
-    }
-
-    public void setTenantCode(String tenantCode) {
-        this.tenantCode = tenantCode;
     }
 
 }

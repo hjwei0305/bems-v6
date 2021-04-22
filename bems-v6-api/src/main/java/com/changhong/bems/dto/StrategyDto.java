@@ -34,7 +34,6 @@ public class StrategyDto extends BaseEntityDto {
     @ApiModelProperty(value = "策略类别")
     private StrategyCategory category;
 
-
     public String getName() {
         return name;
     }

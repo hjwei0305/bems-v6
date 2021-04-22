@@ -113,12 +113,6 @@ public class DimensionAttributeDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "自定义5名称")
     private String udf5Name;
-    /**
-     * 租户代码
-     */
-    @ApiModelProperty(value = "租户代码")
-    private String tenantCode;
-
 
     public String getSubjectId() {
         return subjectId;
@@ -279,13 +273,4 @@ public class DimensionAttributeDto extends BaseEntityDto {
     public void setUdf5Name(String udf5Name) {
         this.udf5Name = udf5Name;
     }
-
-    public String getTenantCode() {
-        return tenantCode;
-    }
-
-    public void setTenantCode(String tenantCode) {
-        this.tenantCode = tenantCode;
-    }
-
 }

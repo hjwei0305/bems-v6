@@ -3,6 +3,7 @@ package com.changhong.bems.entity;
 import com.changhong.bems.dto.CategoryType;
 import com.changhong.bems.dto.PeriodType;
 import com.changhong.sei.core.entity.BaseAuditableEntity;
+import com.changhong.sei.core.entity.ITenant;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -19,7 +20,7 @@ import java.io.Serializable;
 @Table(name = "category")
 @DynamicInsert
 @DynamicUpdate
-public class Category extends BaseAuditableEntity implements Serializable {
+public class Category extends BaseAuditableEntity implements ITenant, Serializable {
     private static final long serialVersionUID = -73245932408668629L;
     /**
      * 名称
@@ -147,10 +148,12 @@ public class Category extends BaseAuditableEntity implements Serializable {
         this.roll = roll;
     }
 
+    @Override
     public String getTenantCode() {
         return tenantCode;
     }
 
+    @Override
     public void setTenantCode(String tenantCode) {
         this.tenantCode = tenantCode;
     }

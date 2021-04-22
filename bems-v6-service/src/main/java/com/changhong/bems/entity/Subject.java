@@ -1,6 +1,7 @@
 package com.changhong.bems.entity;
 
 import com.changhong.sei.core.entity.BaseAuditableEntity;
+import com.changhong.sei.core.entity.ITenant;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -19,7 +20,7 @@ import java.io.Serializable;
 @Table(name = "subject")
 @DynamicInsert
 @DynamicUpdate
-public class Subject extends BaseAuditableEntity implements Serializable {
+public class Subject extends BaseAuditableEntity implements ITenant, Serializable {
     private static final long serialVersionUID = 851011858666429840L;
     /**
      * 主体名称
@@ -118,10 +119,12 @@ public class Subject extends BaseAuditableEntity implements Serializable {
         this.currencyName = currencyName;
     }
 
+    @Override
     public String getTenantCode() {
         return tenantCode;
     }
 
+    @Override
     public void setTenantCode(String tenantCode) {
         this.tenantCode = tenantCode;
     }

@@ -1,6 +1,7 @@
 package com.changhong.bems.entity;
 
 import com.changhong.sei.core.entity.BaseAuditableEntity;
+import com.changhong.sei.core.entity.ITenant;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -19,7 +20,7 @@ import java.io.Serializable;
 @Table(name = "dimension")
 @DynamicInsert
 @DynamicUpdate
-public class Dimension extends BaseAuditableEntity implements Serializable {
+public class Dimension extends BaseAuditableEntity implements ITenant, Serializable {
     private static final long serialVersionUID = -99493949797458960L;
     /**
      * 维度代码
@@ -51,7 +52,6 @@ public class Dimension extends BaseAuditableEntity implements Serializable {
      */
     @Column(name = "tenant_code")
     private String tenantCode;
-
 
     public String getCode() {
         return code;
@@ -93,10 +93,12 @@ public class Dimension extends BaseAuditableEntity implements Serializable {
         this.strategyName = strategyName;
     }
 
+    @Override
     public String getTenantCode() {
         return tenantCode;
     }
 
+    @Override
     public void setTenantCode(String tenantCode) {
         this.tenantCode = tenantCode;
     }

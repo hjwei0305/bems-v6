@@ -2,6 +2,8 @@ package com.changhong.bems.entity;
 
 import com.changhong.bems.dto.PeriodType;
 import com.changhong.sei.core.entity.BaseAuditableEntity;
+import com.changhong.sei.core.entity.ICodeUnique;
+import com.changhong.sei.core.entity.ITenant;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -20,7 +22,7 @@ import java.util.Date;
 @Table(name = "pool")
 @DynamicInsert
 @DynamicUpdate
-public class Pool extends BaseAuditableEntity implements Serializable {
+public class Pool extends BaseAuditableEntity implements ITenant, ICodeUnique, Serializable {
     private static final long serialVersionUID = 345291355065499642L;
     /**
      * 代码
@@ -109,11 +111,12 @@ public class Pool extends BaseAuditableEntity implements Serializable {
     @Column(name = "tenant_code")
     private String tenantCode;
 
-
+    @Override
     public String getCode() {
         return code;
     }
 
+    @Override
     public void setCode(String code) {
         this.code = code;
     }
@@ -238,10 +241,12 @@ public class Pool extends BaseAuditableEntity implements Serializable {
         this.balance = balance;
     }
 
+    @Override
     public String getTenantCode() {
         return tenantCode;
     }
 
+    @Override
     public void setTenantCode(String tenantCode) {
         this.tenantCode = tenantCode;
     }

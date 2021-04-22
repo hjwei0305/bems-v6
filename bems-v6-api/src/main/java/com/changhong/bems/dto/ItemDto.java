@@ -33,12 +33,6 @@ public class ItemDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "执行策略名称")
     private String strategyName;
-    /**
-     * 租户代码
-     */
-    @ApiModelProperty(value = "租户代码")
-    private String tenantCode;
-
 
     public String getCode() {
         return code;
@@ -70,14 +64,6 @@ public class ItemDto extends BaseEntityDto {
 
     public void setStrategyName(String strategyName) {
         this.strategyName = strategyName;
-    }
-
-    public String getTenantCode() {
-        return tenantCode;
-    }
-
-    public void setTenantCode(String tenantCode) {
-        this.tenantCode = tenantCode;
     }
 
 }

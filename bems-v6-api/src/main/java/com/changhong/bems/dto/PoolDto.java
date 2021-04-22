@@ -99,12 +99,6 @@ public class PoolDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "可用余额")
     private Double balance;
-    /**
-     * 租户代码
-     */
-    @ApiModelProperty(value = "租户代码")
-    private String tenantCode;
-
 
     public String getCode() {
         return code;
@@ -232,14 +226,6 @@ public class PoolDto extends BaseEntityDto {
 
     public void setBalance(Double balance) {
         this.balance = balance;
-    }
-
-    public String getTenantCode() {
-        return tenantCode;
-    }
-
-    public void setTenantCode(String tenantCode) {
-        this.tenantCode = tenantCode;
     }
 
 }

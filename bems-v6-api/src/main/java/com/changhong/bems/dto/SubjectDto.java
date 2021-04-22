@@ -48,12 +48,6 @@ public class SubjectDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "币种名称")
     private String currencyName;
-    /**
-     * 租户代码
-     */
-    @ApiModelProperty(value = "租户代码")
-    private String tenantCode;
-
 
     public String getName() {
         return name;
@@ -109,14 +103,6 @@ public class SubjectDto extends BaseEntityDto {
 
     public void setCurrencyName(String currencyName) {
         this.currencyName = currencyName;
-    }
-
-    public String getTenantCode() {
-        return tenantCode;
-    }
-
-    public void setTenantCode(String tenantCode) {
-        this.tenantCode = tenantCode;
     }
 
 }

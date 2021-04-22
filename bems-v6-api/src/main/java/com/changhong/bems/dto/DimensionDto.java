@@ -38,12 +38,6 @@ public class DimensionDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "维度策略名称")
     private String strategyName;
-    /**
-     * 租户代码
-     */
-    @ApiModelProperty(value = "租户代码")
-    private String tenantCode;
-
 
     public String getCode() {
         return code;
@@ -83,14 +77,6 @@ public class DimensionDto extends BaseEntityDto {
 
     public void setStrategyName(String strategyName) {
         this.strategyName = strategyName;
-    }
-
-    public String getTenantCode() {
-        return tenantCode;
-    }
-
-    public void setTenantCode(String tenantCode) {
-        this.tenantCode = tenantCode;
     }
 
 }
