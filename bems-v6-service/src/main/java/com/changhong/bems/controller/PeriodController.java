@@ -10,6 +10,7 @@ import com.changhong.bems.service.PeriodService;
 import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.service.BaseEntityService;
+import com.changhong.sei.core.service.bo.OperateResult;
 import com.changhong.sei.util.EnumUtils;
 import com.changhong.sei.util.IdGenerator;
 import io.swagger.annotations.Api;
@@ -54,6 +55,23 @@ public class PeriodController extends BaseEntityController<Period, PeriodDto> im
     }
 
     /**
+     * 通过预算期间id查询所有可用的预算期间
+     * 预算池溯源使用
+     * 预算期间：
+     * 1.自定义期间：以“=”匹配
+     * 2.非自定义期间：按枚举@see {@link PeriodType}向下匹配（年度 < 半年度 < 季度 < 月度）
+     * <p>
+     * 优先使用自定义 > 月度 > 季度 > 半年度 > 年度
+     *
+     * @param periodId 预算期间id
+     * @return 预算期间清单
+     */
+    @Override
+    public ResultData<List<PeriodDto>> findAvailablePeriods(String periodId) {
+        return ResultData.success(convertToDtos(service.findAvailablePeriods(periodId)));
+    }
+
+    /**
      * 关闭预算期间
      *
      * @param ids 预算期间id
@@ -62,6 +80,17 @@ public class PeriodController extends BaseEntityController<Period, PeriodDto> im
     @Override
     public ResultData<Void> closePeriods(List<String> ids) {
         return service.closePeriods(ids);
+    }
+
+    /**
+     * 关闭过期预算期间调度定时任务
+     * 定时任务执行，关闭过期预算期间
+     *
+     * @return 操作结果
+     */
+    @Override
+    public ResultData<Void> closingOverduePeriod() {
+        return service.closingOverduePeriod();
     }
 
     /**

@@ -21,9 +21,15 @@ import java.io.Serializable;
 @Table(name = "item")
 @DynamicInsert
 @DynamicUpdate
-public class Item extends BaseAuditableEntity implements ITenant, ICodeUnique, Serializable {
+public class Item extends BaseAuditableEntity implements ITenant, Serializable {
     private static final long serialVersionUID = -57036484686343107L;
+    public static final String FIELD_SUBJECT_ID = "subjectId";
     public static final String FIELD_STRATEGY_ID = "strategyId";
+    /**
+     * 预算主体id
+     */
+    @Column(name = "subject_id")
+    private String subjectId;
     /**
      * 代码
      */
@@ -50,12 +56,18 @@ public class Item extends BaseAuditableEntity implements ITenant, ICodeUnique, S
     @Column(name = "tenant_code")
     private String tenantCode;
 
-    @Override
+    public String getSubjectId() {
+        return subjectId;
+    }
+
+    public void setSubjectId(String subjectId) {
+        this.subjectId = subjectId;
+    }
+
     public String getCode() {
         return code;
     }
 
-    @Override
     public void setCode(String code) {
         this.code = code;
     }

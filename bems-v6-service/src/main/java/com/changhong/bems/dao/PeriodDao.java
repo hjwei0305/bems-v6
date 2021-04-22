@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -27,4 +29,13 @@ public interface PeriodDao extends BaseEntityDao<Period> {
     @Modifying
     @Query("update Period p set p.closed = true where p.id in :ids")
     int closedPeriod(@Param("ids") List<String> ids);
+
+    /**
+     * 关闭过期预算期间
+     *
+     * @param endDate 截止时间
+     */
+    @Modifying
+    @Query("update Period p set p.closed = true where p.closed = false and p.endDate < :endDate")
+    void closingOverduePeriod(@Param("endDate") LocalDate endDate);
 }

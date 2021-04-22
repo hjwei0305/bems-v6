@@ -27,6 +27,8 @@ public class Period extends BaseAuditableEntity implements ITenant, Serializable
     public static final String FIELD_TYPE = "type";
     public static final String FIELD_YEAR = "year";
     public static final String FIELD_CLOSED = "closed";
+    public static final String FIELD_START_DATE = "startDate";
+    public static final String FIELD_END_DATE = "endDate";
     /**
      * 预算主体id
      */

@@ -3,6 +3,7 @@ package com.changhong.bems.api;
 import com.changhong.bems.dto.CreateCustomizePeriodRequest;
 import com.changhong.bems.dto.CreateNormalPeriodRequest;
 import com.changhong.bems.dto.PeriodDto;
+import com.changhong.bems.dto.PeriodType;
 import com.changhong.sei.core.api.BaseEntityApi;
 import com.changhong.sei.core.dto.ResultData;
 import io.swagger.annotations.ApiOperation;
@@ -40,6 +41,22 @@ public interface PeriodApi extends BaseEntityApi<PeriodDto> {
                                               @RequestParam("type") String type);
 
     /**
+     * 通过预算期间id查询所有可用的预算期间
+     * 预算池溯源使用
+     * 预算期间：
+     * 1.自定义期间：以“=”匹配
+     * 2.非自定义期间：按枚举@see {@link PeriodType}向下匹配（年度 < 半年度 < 季度 < 月度）
+     * <p>
+     * 优先使用自定义 > 月度 > 季度 > 半年度 > 年度
+     *
+     * @param periodId 预算期间id
+     * @return 预算期间清单
+     */
+    @GetMapping(path = "findAvailablePeriods")
+    @ApiOperation(value = "通过预算期间id查询所有可用的预算期间", notes = "通过预算期间id查询所有可用的预算期间(预算池溯源使用)")
+    ResultData<List<PeriodDto>> findAvailablePeriods(@RequestParam("periodId") String periodId);
+
+    /**
      * 关闭预算期间
      *
      * @param ids 预算期间id
@@ -48,6 +65,16 @@ public interface PeriodApi extends BaseEntityApi<PeriodDto> {
     @PostMapping(path = "closePeriods", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "关闭预算期间", notes = "关闭预算期间")
     ResultData<Void> closePeriods(@RequestBody List<String> ids);
+
+    /**
+     * 关闭过期预算期间(调度定时任务)
+     * 定时任务执行，关闭过期预算期间
+     *
+     * @return 操作结果
+     */
+    @PostMapping(path = "closingOverduePeriod", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "定时任务执行，关闭过期预算期间", notes = "关闭过期预算期间(调度定时任务)")
+    ResultData<Void> closingOverduePeriod();
 
     /**
      * 创建标准期间

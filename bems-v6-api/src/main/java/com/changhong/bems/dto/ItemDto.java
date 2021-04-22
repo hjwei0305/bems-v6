@@ -12,7 +12,11 @@ import io.swagger.annotations.ApiModelProperty;
  */
 @ApiModel(description = "预算科目DTO")
 public class ItemDto extends BaseEntityDto {
-    private static final long serialVersionUID = -85112390830826629L;
+    private static final long serialVersionUID = -85112390830826629L;/**
+     * 预算主体id
+     */
+    @ApiModelProperty(value = "预算主体id")
+    private String subjectId;
     /**
      * 代码
      */
@@ -33,6 +37,14 @@ public class ItemDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "执行策略名称")
     private String strategyName;
+
+    public String getSubjectId() {
+        return subjectId;
+    }
+
+    public void setSubjectId(String subjectId) {
+        this.subjectId = subjectId;
+    }
 
     public String getCode() {
         return code;
