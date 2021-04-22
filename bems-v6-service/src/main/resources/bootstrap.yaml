@@ -1,0 +1,40 @@
+# 应用全局配置
+sei:
+  application:
+    env: DEV
+    code: bems-v6
+    version: '@project_version@'
+    description: '@project_description@'
+  mock: # 本地调试的当前用户配置
+    user:
+      tenant-code: global
+      account: sei
+
+# spring配置
+spring:
+  application:
+    name: ${sei.application.code}
+  cloud:
+    config:
+      # 配置中心地址
+      enabled: true
+      uri: http://sei.changhong.com/sei-manager/configserver
+      token: DEjjbZxTrSWNf
+      profile: ${sei.application.env}
+      name: ${spring.application.name}
+    zookeeper:
+      # zookeeper注册中心开关
+      enabled: true
+      # zk 地址
+      connect-string: 10.4.208.132:2181
+    consul:
+      # consul注册中心开关
+      enabled: false
+      host: 10.4.3.6
+      port: 8500
+      discovery:
+        # 注册到consul的服务名称
+        service-name: ${spring.application.name}
+#        healthCheckInterval: 15s
+#        health-check-url: http://${spring.cloud.client.ip-address}:${server.port}/actuator/health
+#        hostname: ${spring.application.name}.industry
