@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 /**
  * 预算策略(Strategy)DTO类
@@ -30,7 +31,7 @@ public class StrategyDto extends BaseEntityDto {
     /**
      * 策略类别
      */
-    @NotBlank
+    @NotNull
     @ApiModelProperty(value = "策略类别")
     private StrategyCategory category;
 

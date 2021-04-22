@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -64,7 +65,7 @@ public class DimensionService extends BaseEntityService<Dimension> {
      * @return 策略清单
      */
     public Set<KeyValueDto> findAllCodes() {
-        Set<KeyValueDto> set = new HashSet<>();
+        Set<KeyValueDto> set = new LinkedHashSet<>();
         set.add(new KeyValueDto("period", "预算期间"));
         set.add(new KeyValueDto("item", "预算科目"));
         set.add(new KeyValueDto("org", "组织机构"));

@@ -1,6 +1,7 @@
 package com.changhong.bems.entity;
 
 import com.changhong.sei.core.entity.BaseAuditableEntity;
+import com.changhong.sei.core.entity.BaseEntity;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -19,7 +20,7 @@ import java.io.Serializable;
 @Table(name = "category_dimension")
 @DynamicInsert
 @DynamicUpdate
-public class CategoryDimension extends BaseAuditableEntity implements Serializable {
+public class CategoryDimension extends BaseEntity implements Serializable {
     private static final long serialVersionUID = -76720938483283048L;
     public static final String FIELD_DIMENSION_CODE = "dimensionCode";
     /**
