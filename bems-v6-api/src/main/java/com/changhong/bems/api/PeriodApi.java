@@ -38,7 +38,7 @@ public interface PeriodApi extends BaseEntityApi<PeriodDto> {
     @GetMapping(path = "findBySubject")
     @ApiOperation(value = "按预算主体获取期间", notes = "按预算主体获取期间")
     ResultData<List<PeriodDto>> findBySubject(@RequestParam("subjectId") String subjectId,
-                                              @RequestParam("type") String type);
+                                              @RequestParam(name = "type", required = false) String type);
 
     /**
      * 通过预算期间id查询所有可用的预算期间
