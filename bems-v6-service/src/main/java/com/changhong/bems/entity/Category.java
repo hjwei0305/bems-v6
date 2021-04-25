@@ -1,6 +1,7 @@
 package com.changhong.bems.entity;
 
 import com.changhong.bems.dto.CategoryType;
+import com.changhong.bems.dto.OrderCategory;
 import com.changhong.bems.dto.PeriodType;
 import com.changhong.sei.core.entity.BaseAuditableEntity;
 import com.changhong.sei.core.entity.ITenant;
@@ -61,6 +62,12 @@ public class Category extends BaseAuditableEntity implements ITenant, Serializab
     @Column(name = "period_type")
     @Enumerated(EnumType.STRING)
     private PeriodType periodType;
+    /**
+     * 管理类型(订单类型)
+     */
+    @Column(name = "order_category")
+    @Enumerated(EnumType.STRING)
+    private OrderCategory orderCategory;
     /**
      * 允许使用(业务可用)
      */
@@ -132,6 +139,14 @@ public class Category extends BaseAuditableEntity implements ITenant, Serializab
 
     public void setPeriodType(PeriodType periodType) {
         this.periodType = periodType;
+    }
+
+    public OrderCategory getOrderCategory() {
+        return orderCategory;
+    }
+
+    public void setOrderCategory(OrderCategory orderCategory) {
+        this.orderCategory = orderCategory;
     }
 
     public Boolean getUse() {

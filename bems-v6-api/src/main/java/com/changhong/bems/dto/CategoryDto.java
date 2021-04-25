@@ -49,6 +49,11 @@ public class CategoryDto extends BaseEntityDto {
     @ApiModelProperty(value = "期间类型")
     private PeriodType periodType;
     /**
+     * 管理类型(订单类型)
+     */
+    @ApiModelProperty(value = "管理类型(订单类型)")
+    private OrderCategory orderCategory;
+    /**
      * 允许使用(业务可用)
      */
     @ApiModelProperty(value = "允许使用(业务可用)")
@@ -113,6 +118,14 @@ public class CategoryDto extends BaseEntityDto {
 
     public void setPeriodType(PeriodType periodType) {
         this.periodType = periodType;
+    }
+
+    public OrderCategory getOrderCategory() {
+        return orderCategory;
+    }
+
+    public void setOrderCategory(OrderCategory orderCategory) {
+        this.orderCategory = orderCategory;
     }
 
     public Boolean getUse() {
