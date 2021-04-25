@@ -10,6 +10,7 @@ import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
+import com.changhong.sei.core.dto.serach.SearchOrder;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
 import com.changhong.sei.util.EnumUtils;
@@ -147,7 +148,10 @@ public class PeriodService extends BaseEntityService<Period> {
     public List<Period> findBySubject(String subjectId, PeriodType type) {
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(Period.FIELD_SUBJECT_ID, subjectId));
-        search.addFilter(new SearchFilter(Period.FIELD_TYPE, type));
+        if (Objects.nonNull(type)) {
+            search.addFilter(new SearchFilter(Period.FIELD_TYPE, type));
+        }
+        search.addSortOrder(SearchOrder.asc(Period.CREATED_DATE));
         return dao.findByFilters(search);
     }
 
