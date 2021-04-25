@@ -32,7 +32,6 @@ public class CreateCategoryDto implements Serializable {
     /**
      * 预算主体id
      */
-    @NotBlank
     @ApiModelProperty(value = "预算主体id")
     private String subjectId;
     /**
