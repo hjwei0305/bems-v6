@@ -76,7 +76,6 @@ public class Period extends BaseAuditableEntity implements ITenant, Serializable
     @Column(name = "tenant_code")
     private String tenantCode;
 
-
     public String getSubjectId() {
         return subjectId;
     }

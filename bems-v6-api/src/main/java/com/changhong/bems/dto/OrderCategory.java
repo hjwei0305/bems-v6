@@ -11,12 +11,20 @@ import com.changhong.sei.annotation.Remark;
 public enum OrderCategory {
     /**
      * 下达注入
+     * 影响总额
      */
     @Remark("下达注入")
     INJECTION,
     /**
      * 下达调整
+     * 不影响总额
      */
     @Remark("下达调整")
-    ADJUSTMENT
+    ADJUSTMENT,
+    /**
+     * 分解调整
+     * 不影响总额
+     */
+    @Remark("分解调整")
+    SPLIT
 }

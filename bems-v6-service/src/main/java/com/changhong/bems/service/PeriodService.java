@@ -156,14 +156,15 @@ public class PeriodService extends BaseEntityService<Period> {
     }
 
     /**
-     * 关闭预算期间
+     * 设置预算期间状态
      *
-     * @param ids 预算期间id
+     * @param id     预算期间id
+     * @param status 预算期间状态
      * @return 期间清单
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> closePeriods(List<String> ids) {
-        dao.closedPeriod(ids);
+    public ResultData<Void> setPeriodStatus(String id, boolean status) {
+        dao.updateCloseStatus(id, status);
         return ResultData.success();
     }
 

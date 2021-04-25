@@ -10,7 +10,6 @@ import com.changhong.bems.service.PeriodService;
 import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.service.BaseEntityService;
-import com.changhong.sei.core.service.bo.OperateResult;
 import com.changhong.sei.util.EnumUtils;
 import com.changhong.sei.util.IdGenerator;
 import io.swagger.annotations.Api;
@@ -72,14 +71,15 @@ public class PeriodController extends BaseEntityController<Period, PeriodDto> im
     }
 
     /**
-     * 关闭预算期间
+     * 设置预算期间状态
      *
-     * @param ids 预算期间id
+     * @param id     预算期间id
+     * @param status 预算期间状态
      * @return 期间清单
      */
     @Override
-    public ResultData<Void> closePeriods(List<String> ids) {
-        return service.closePeriods(ids);
+    public ResultData<Void> setPeriodStatus(String id, boolean status) {
+        return service.setPeriodStatus(id, status);
     }
 
     /**

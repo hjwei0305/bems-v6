@@ -9,10 +9,7 @@ import com.changhong.sei.core.dto.ResultData;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -57,14 +54,15 @@ public interface PeriodApi extends BaseEntityApi<PeriodDto> {
     ResultData<List<PeriodDto>> findAvailablePeriods(@RequestParam("periodId") String periodId);
 
     /**
-     * 关闭预算期间
+     * 设置预算期间状态
      *
-     * @param ids 预算期间id
+     * @param id     预算期间id
+     * @param status 预算期间状态
      * @return 期间清单
      */
-    @PostMapping(path = "closePeriods", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "关闭预算期间", notes = "关闭预算期间")
-    ResultData<Void> closePeriods(@RequestBody List<String> ids);
+    @PostMapping(path = "setPeriodStatus/{id}/{status}")
+    @ApiOperation(value = "设置预算期间状态", notes = "设置预算期间状态, status为true:启用;为false:停用")
+    ResultData<Void> setPeriodStatus(@PathVariable("id") String id, @PathVariable("status") boolean status);
 
     /**
      * 关闭过期预算期间(调度定时任务)
@@ -72,7 +70,7 @@ public interface PeriodApi extends BaseEntityApi<PeriodDto> {
      *
      * @return 操作结果
      */
-    @PostMapping(path = "closingOverduePeriod", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "closingOverduePeriod")
     @ApiOperation(value = "定时任务执行，关闭过期预算期间", notes = "关闭过期预算期间(调度定时任务)")
     ResultData<Void> closingOverduePeriod();
 
