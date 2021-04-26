@@ -73,6 +73,11 @@ public class CategoryDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "参考id")
     private String referenceId;
+    /**
+     * 是否被引用
+     */
+    @ApiModelProperty(value = "是否被引用")
+    private Boolean referenced = Boolean.FALSE;
 
     public String getName() {
         return name;
@@ -152,5 +157,13 @@ public class CategoryDto extends BaseEntityDto {
 
     public void setReferenceId(String referenceId) {
         this.referenceId = referenceId;
+    }
+
+    public Boolean getReferenced() {
+        return referenced;
+    }
+
+    public void setReferenced(Boolean referenced) {
+        this.referenced = referenced;
     }
 }

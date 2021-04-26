@@ -118,11 +118,11 @@ public interface CategoryApi extends BaseEntityApi<CategoryDto> {
     /**
      * 解除预算类型与维度分配关系
      *
-     * @param ids 关系id清单
+     * @param request 分配请求
      * @return 分配结果
      */
     @PostMapping(path = "unassigne")
     @ApiOperation(value = "解除预算类型与维度分配关系", notes = "解除预算类型与维度分配关系")
-    ResultData<Void> unassigne(@RequestBody List<String> ids);
+    ResultData<Void> unassigne(@RequestBody @Valid AssigneDimensionRequest request);
 
 }

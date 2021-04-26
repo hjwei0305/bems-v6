@@ -85,6 +85,11 @@ public class CategoryService extends BaseEntityService<Category> {
             // 错误的预算类型分类
             return OperateResultWithData.operationFailure("category_00003");
         }
+        Category category = dao.findOne(entity.getId());
+        if (category.getReferenced()) {
+            // 预算类型已被使用,不允许修改
+            return OperateResultWithData.operationFailure("category_00006");
+        }
         return super.preUpdate(entity);
     }
 
@@ -95,6 +100,14 @@ public class CategoryService extends BaseEntityService<Category> {
      */
     @Override
     protected OperateResult preDelete(String id) {
+        Category category = dao.findOne(id);
+        if (Objects.isNull(category)) {
+            return OperateResult.operationFailure("category_00004", id);
+        }
+        if (category.getReferenced()) {
+            // 预算类型已被使用,不允许删除
+            return OperateResult.operationFailure("category_00001");
+        }
         Order order = orderService.findFirstByProperty(Order.FIELD_CATEGORY_ID, id);
         if (Objects.nonNull(order)) {
             // 已被使用,禁止删除!
@@ -233,6 +246,11 @@ public class CategoryService extends BaseEntityService<Category> {
      */
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> assigne(String categoryId, Set<String> dimensionCodes) {
+        Category category = dao.findOne(categoryId);
+        if (category.getReferenced()) {
+            // 预算类型已被使用,不允许修改
+            return ResultData.fail("category_00006");
+        }
         List<CategoryDimension> dimensionList = new ArrayList<>();
         CategoryDimension categoryDimension;
         for (String code : dimensionCodes) {
@@ -248,12 +266,20 @@ public class CategoryService extends BaseEntityService<Category> {
     /**
      * 解除预算类型与维度分配关系
      *
-     * @param ids 关系id清单
      * @return 分配结果
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> unassigne(List<String> ids) {
-        categoryDimensionService.delete(ids);
+    public ResultData<Void> unassigne(String categoryId, Set<String> dimensionCodes) {
+        Category category = dao.findOne(categoryId);
+        if (category.getReferenced()) {
+            // 预算类型已被使用,不允许修改
+            return ResultData.fail("category_00006");
+        }
+        List<CategoryDimension> dimensionList = categoryDimensionService.getCategoryDimensions(categoryId, dimensionCodes);
+        if (CollectionUtils.isNotEmpty(dimensionList)) {
+            Set<String> ids = dimensionList.stream().map(CategoryDimension::getId).collect(Collectors.toSet());
+            categoryDimensionService.delete(ids);
+        }
         return ResultData.success();
     }
 }

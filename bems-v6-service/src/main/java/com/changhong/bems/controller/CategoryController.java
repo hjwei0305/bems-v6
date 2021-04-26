@@ -160,7 +160,7 @@ public class CategoryController extends BaseEntityController<Category, CategoryD
      * @return 分配结果
      */
     @Override
-    public ResultData<Void> unassigne(List<String> ids) {
-        return service.unassigne(ids);
+    public ResultData<Void> unassigne(AssigneDimensionRequest request) {
+        return service.unassigne(request.getCategoryId(), request.getDimensionCodes());
     }
 }
