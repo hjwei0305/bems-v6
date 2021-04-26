@@ -24,4 +24,5 @@ public class CategoryDimensionService extends BaseEntityService<CategoryDimensio
         return dao;
     }
 
+
 }

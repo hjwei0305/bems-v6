@@ -3,6 +3,7 @@ package com.changhong.bems.controller;
 import com.changhong.bems.api.CategoryApi;
 import com.changhong.bems.dto.CategoryDto;
 import com.changhong.bems.dto.CreateCategoryDto;
+import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.dto.OrderCategory;
 import com.changhong.bems.entity.Category;
 import com.changhong.bems.service.CategoryService;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 预算类型(Category)控制类
@@ -115,5 +117,31 @@ public class CategoryController extends BaseEntityController<Category, CategoryD
     @Override
     public ResultData<Void> unfrozen(String id) {
         return service.frozen(id, Boolean.FALSE);
+    }
+
+    /**
+     * 获取未分配的预算维度
+     *
+     * @param categoryId 预算类型
+     * @return 子实体清单
+     */
+    @Override
+    public ResultData<List<DimensionDto>> getUnassigned(String categoryId) {
+        return ResultData.success(service.getUnassigned(categoryId)
+                .stream().map(d -> dtoModelMapper.map(d, DimensionDto.class))
+                .collect(Collectors.toList()));
+    }
+
+    /**
+     * 获取已分配的预算维度
+     *
+     * @param categoryId 预算类型
+     * @return 子实体清单
+     */
+    @Override
+    public ResultData<List<DimensionDto>> getAssigned(String categoryId) {
+        return ResultData.success(service.getUnassigned(categoryId)
+                .stream().map(d -> dtoModelMapper.map(d, DimensionDto.class))
+                .collect(Collectors.toList()));
     }
 }

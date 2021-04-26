@@ -2,9 +2,8 @@ package com.changhong.bems.service;
 
 import com.changhong.bems.dao.CategoryDao;
 import com.changhong.bems.dto.CategoryType;
-import com.changhong.bems.entity.Category;
-import com.changhong.bems.entity.Pool;
-import com.changhong.bems.entity.Subject;
+import com.changhong.bems.dto.DimensionDto;
+import com.changhong.bems.entity.*;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
@@ -38,6 +37,10 @@ public class CategoryService extends BaseEntityService<Category> {
     private SubjectService subjectService;
     @Autowired
     private PoolService poolService;
+    @Autowired
+    private CategoryDimensionService categoryDimensionService;
+    @Autowired
+    private DimensionService dimensionService;
 
     @Override
     protected BaseEntityDao<Category> getDao() {
@@ -193,5 +196,29 @@ public class CategoryService extends BaseEntityService<Category> {
         category.setFrozen(frozen);
         this.save(category);
         return ResultData.success();
+    }
+
+    /**
+     * 获取未分配的预算维度
+     *
+     * @param categoryId 预算类型
+     * @return 子实体清单
+     */
+    public List<Dimension> getUnassigned(String categoryId) {
+
+        return null;
+    }
+
+    /**
+     * 获取已分配的预算维度
+     *
+     * @param categoryId 预算类型
+     * @return 子实体清单
+     */
+    public List<Dimension> getAssigned(String categoryId) {
+        List<CategoryDimension> categoryDimensions = categoryDimensionService.findListByProperty(CategoryDimension.FIELD_CATEGORY_ID, categoryId);
+        Set<String> codes = categoryDimensions.stream().map(CategoryDimension::getDimensionCode).collect(Collectors.toSet());
+
+        return null;
     }
 }

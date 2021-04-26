@@ -40,17 +40,6 @@ public class CreateCategoryDto implements Serializable {
     @ApiModelProperty(value = "预算主体名称")
     private String subjectName;
     /**
-     * 管理策略id
-     */
-    @NotBlank
-    @ApiModelProperty(value = "管理策略id")
-    private String strategyId;
-    /**
-     * 管理策略名称
-     */
-    @ApiModelProperty(value = "管理策略名称")
-    private String strategyName;
-    /**
      * 期间类型
      */
     @NotNull
@@ -103,22 +92,6 @@ public class CreateCategoryDto implements Serializable {
 
     public void setSubjectName(String subjectName) {
         this.subjectName = subjectName;
-    }
-
-    public String getStrategyId() {
-        return strategyId;
-    }
-
-    public void setStrategyId(String strategyId) {
-        this.strategyId = strategyId;
-    }
-
-    public String getStrategyName() {
-        return strategyName;
-    }
-
-    public void setStrategyName(String strategyName) {
-        this.strategyName = strategyName;
     }
 
     public PeriodType getPeriodType() {

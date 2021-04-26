@@ -23,6 +23,7 @@ import java.io.Serializable;
 public class CategoryDimension extends BaseEntity implements Serializable {
     private static final long serialVersionUID = -76720938483283048L;
     public static final String FIELD_DIMENSION_CODE = "dimensionCode";
+    public static final String FIELD_CATEGORY_ID = "categoryId";
     /**
      * 预算类型id
      */

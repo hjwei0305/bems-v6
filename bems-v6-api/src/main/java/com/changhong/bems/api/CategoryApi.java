@@ -2,6 +2,7 @@ package com.changhong.bems.api;
 
 import com.changhong.bems.dto.CategoryDto;
 import com.changhong.bems.dto.CreateCategoryDto;
+import com.changhong.bems.dto.DimensionDto;
 import com.changhong.sei.core.api.BaseEntityApi;
 import com.changhong.sei.core.dto.ResultData;
 import io.swagger.annotations.ApiOperation;
@@ -82,5 +83,25 @@ public interface CategoryApi extends BaseEntityApi<CategoryDto> {
     @PostMapping(path = "unfrozen/{id}")
     @ApiOperation(value = "冻结预算类型", notes = "冻结预算类型")
     ResultData<Void> unfrozen(@PathVariable("id") String id);
+
+    /**
+     * 获取未分配的预算维度
+     *
+     * @param categoryId 预算类型
+     * @return 子实体清单
+     */
+    @GetMapping(path = "getUnassigned")
+    @ApiOperation(value = "获取未分配的预算维度", notes = "获取未分配的预算维度")
+    ResultData<List<DimensionDto>> getUnassigned(@RequestParam("categoryId") String categoryId);
+
+    /**
+     * 获取已分配的预算维度
+     *
+     * @param categoryId 预算类型
+     * @return 子实体清单
+     */
+    @GetMapping(path = "getAssigned")
+    @ApiOperation(value = "获取已分配的预算维度", notes = "获取已分配的预算维度")
+    ResultData<List<DimensionDto>> getAssigned(@RequestParam("categoryId") String categoryId);
 
 }
