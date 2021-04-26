@@ -63,6 +63,11 @@ public class CategoryDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "允许结转")
     private Boolean roll;
+    /**
+     * 是否冻结
+     */
+    @ApiModelProperty(value = "是否冻结")
+    private Boolean frozen;
 
     public String getName() {
         return name;
@@ -144,4 +149,11 @@ public class CategoryDto extends BaseEntityDto {
         this.roll = roll;
     }
 
+    public Boolean getFrozen() {
+        return frozen;
+    }
+
+    public void setFrozen(Boolean frozen) {
+        this.frozen = frozen;
+    }
 }

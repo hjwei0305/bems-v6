@@ -5,13 +5,17 @@ import com.changhong.bems.dto.CreateCategoryDto;
 import com.changhong.sei.core.api.BaseEntityApi;
 import com.changhong.sei.core.api.FindByPageApi;
 import com.changhong.sei.core.dto.ResultData;
+import com.changhong.sei.core.dto.serach.PageResult;
+import com.changhong.sei.core.dto.serach.Search;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * 预算类型(Category)API
@@ -21,7 +25,7 @@ import javax.validation.Valid;
  */
 @Valid
 @FeignClient(name = "bems-v6", path = CategoryApi.PATH)
-public interface CategoryApi extends BaseEntityApi<CategoryDto>, FindByPageApi<CategoryDto> {
+public interface CategoryApi extends BaseEntityApi<CategoryDto> {
     String PATH = "category";
 
     /**
@@ -33,4 +37,23 @@ public interface CategoryApi extends BaseEntityApi<CategoryDto>, FindByPageApi<C
     @PostMapping(path = "create", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "创建预算类型", notes = "创建预算类型")
     ResultData<Void> create(@RequestBody @Valid CreateCategoryDto dto);
+
+    /**
+     * 查询通用预算类型
+     *
+     * @return 查询结果
+     */
+    @PostMapping(path = "findGeneralByPage")
+    @ApiOperation(value = "查询通用预算类型", notes = "查询通用预算类型")
+    ResultData<List<CategoryDto>> findByGeneral();
+
+    /**
+     * 根据预算主体查询私有预算类型
+     *
+     * @param subjectId 预算主体id
+     * @return 分页查询结果
+     */
+    @PostMapping(path = "findPrivate", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "根据预算主体查询私有预算类型", notes = "根据预算主体查询私有预算类型")
+    ResultData<List<CategoryDto>> findPrivate(@RequestParam("subjectId") String subjectId);
 }

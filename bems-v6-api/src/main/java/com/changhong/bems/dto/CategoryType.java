@@ -17,8 +17,8 @@ public enum CategoryType {
     GENERAL,
 
     /**
-     * 自定义
+     * 私有
      */
-    @Remark("自定义")
-    CUSTOMIZE
+    @Remark("私有")
+    PRIVATE
 }

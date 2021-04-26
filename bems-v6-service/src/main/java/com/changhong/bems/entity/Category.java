@@ -4,6 +4,7 @@ import com.changhong.bems.dto.CategoryType;
 import com.changhong.bems.dto.OrderCategory;
 import com.changhong.bems.dto.PeriodType;
 import com.changhong.sei.core.entity.BaseAuditableEntity;
+import com.changhong.sei.core.entity.IFrozen;
 import com.changhong.sei.core.entity.ITenant;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -21,10 +22,11 @@ import java.io.Serializable;
 @Table(name = "category")
 @DynamicInsert
 @DynamicUpdate
-public class Category extends BaseAuditableEntity implements ITenant, Serializable {
+public class Category extends BaseAuditableEntity implements ITenant, IFrozen, Serializable {
     private static final long serialVersionUID = -73245932408668629L;
     public static final String FIELD_SUBJECT_ID = "subjectId";
     public static final String FIELD_STRATEGY_ID = "strategyId";
+    public static final String FIELD_TYPE = "type";
     /**
      * 名称
      */
@@ -78,6 +80,16 @@ public class Category extends BaseAuditableEntity implements ITenant, Serializab
      */
     @Column(name = "is_roll")
     private Boolean roll;
+    /**
+     * 是否冻结
+     */
+    @Column(name = "frozen")
+    private Boolean frozen = Boolean.FALSE;
+    /**
+     * 参考id
+     */
+    @Column(name = "reference_id")
+    private String referenceId;
     /**
      * 租户代码
      */
@@ -163,6 +175,24 @@ public class Category extends BaseAuditableEntity implements ITenant, Serializab
 
     public void setRoll(Boolean roll) {
         this.roll = roll;
+    }
+
+    @Override
+    public Boolean getFrozen() {
+        return frozen;
+    }
+
+    @Override
+    public void setFrozen(Boolean frozen) {
+        this.frozen = frozen;
+    }
+
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
     }
 
     @Override

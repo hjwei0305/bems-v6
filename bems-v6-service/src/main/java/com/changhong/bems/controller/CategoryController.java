@@ -8,8 +8,6 @@ import com.changhong.bems.entity.Category;
 import com.changhong.bems.service.CategoryService;
 import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
-import com.changhong.sei.core.dto.serach.PageResult;
-import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.service.BaseEntityService;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,17 +40,6 @@ public class CategoryController extends BaseEntityController<Category, CategoryD
     }
 
     /**
-     * 分页查询业务实体
-     *
-     * @param search 查询参数
-     * @return 分页查询结果
-     */
-    @Override
-    public ResultData<PageResult<CategoryDto>> findByPage(Search search) {
-        return convertToDtoPageResult(service.findByPage(search));
-    }
-
-    /**
      * 创建预算类型
      *
      * @param dto 业务实体DTO
@@ -73,5 +60,26 @@ public class CategoryController extends BaseEntityController<Category, CategoryD
         } catch (Exception e) {
             return ResultData.fail(e.getMessage());
         }
+    }
+
+    /**
+     * 查询通用预算类型
+     *
+     * @return 查询结果
+     */
+    @Override
+    public ResultData<List<CategoryDto>> findByGeneral() {
+        return ResultData.success(convertToDtos(service.findByGeneral()));
+    }
+
+    /**
+     * 根据预算主体查询私有预算类型
+     *
+     * @param subjectId 预算主体id
+     * @return 分页查询结果
+     */
+    @Override
+    public ResultData<List<CategoryDto>> findPrivate(String subjectId) {
+        return ResultData.success(convertToDtos(service.findPrivate(subjectId)));
     }
 }
