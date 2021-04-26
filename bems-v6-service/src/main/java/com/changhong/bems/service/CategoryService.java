@@ -259,7 +259,7 @@ public class CategoryService extends BaseEntityService<Category> {
         for (String code : dimensionCodes) {
             categoryDimension = new CategoryDimension();
             categoryDimension.setCategoryId(categoryId);
-            categoryDimension.setCategoryId(code);
+            categoryDimension.setDimensionCode(code);
             dimensionList.add(categoryDimension);
         }
         categoryDimensionService.save(dimensionList);
