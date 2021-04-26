@@ -68,6 +68,11 @@ public class CategoryDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "是否冻结")
     private Boolean frozen;
+    /**
+     * 参考id
+     */
+    @ApiModelProperty(value = "参考id")
+    private String referenceId;
 
     public String getName() {
         return name;
@@ -139,5 +144,13 @@ public class CategoryDto extends BaseEntityDto {
 
     public void setFrozen(Boolean frozen) {
         this.frozen = frozen;
+    }
+
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
     }
 }

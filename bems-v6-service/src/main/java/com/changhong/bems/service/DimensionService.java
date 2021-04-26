@@ -14,7 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +28,7 @@ import java.util.stream.Collectors;
  * @since 2021-04-22 12:54:23
  */
 @Service
-@CacheConfig(cacheNames = "bems-v6:dimension")
+@CacheConfig(cacheNames = DimensionService.CACHE_KEY)
 public class DimensionService extends BaseEntityService<Dimension> {
     @Autowired
     private DimensionDao dao;
@@ -37,6 +36,11 @@ public class DimensionService extends BaseEntityService<Dimension> {
     private CategoryDimensionService categoryDimensionService;
     @Autowired
     private CategoryService categoryService;
+
+    public static final String CACHE_KEY = "bems-v6:dimension";
+//    private static final String CACHE_KEY_ALL = "bems-v6:dimension:all";
+//    private static final String CACHE_KEY_CODE = "bems-v6:dimension:code";
+//    private static final String CACHE_KEY_CODES = "bems-v6:dimension:codes";
 
     @Override
     protected BaseEntityDao<Dimension> getDao() {
@@ -50,7 +54,7 @@ public class DimensionService extends BaseEntityService<Dimension> {
      * @return 返回操作结果对象
      */
     @Override
-    @CacheEvict
+    @CacheEvict(allEntries = true)
     @Transactional(rollbackFor = Exception.class)
     public OperateResult delete(String id) {
         Dimension dimension = dao.findOne(id);
@@ -74,7 +78,7 @@ public class DimensionService extends BaseEntityService<Dimension> {
      * 数据保存操作
      */
     @Override
-    @CachePut
+    @CacheEvict(allEntries = true)
     @Transactional(rollbackFor = Exception.class)
     public OperateResultWithData<Dimension> save(Dimension entity) {
         return super.save(entity);
@@ -84,7 +88,7 @@ public class DimensionService extends BaseEntityService<Dimension> {
      * 基于主键集合查询集合数据对象
      */
     @Override
-    @Cacheable
+    @Cacheable(key = "'all'")
     public List<Dimension> findAll() {
         return dao.findAll();
     }
@@ -92,7 +96,7 @@ public class DimensionService extends BaseEntityService<Dimension> {
     /**
      * 基于主键集合查询集合数据对象
      */
-    @Cacheable
+    @Cacheable(key = "#codes")
     public List<Dimension> findByCodes(Collection<String> codes) {
         List<Dimension> dimensions = findAll();
         if (CollectionUtils.isNotEmpty(codes)) {
@@ -108,7 +112,7 @@ public class DimensionService extends BaseEntityService<Dimension> {
      * @param code 预算代码
      * @return 预算维度对象
      */
-    @Cacheable
+    @Cacheable(key = "#code")
     public Dimension findByCode(String code) {
         List<Dimension> dimensions = findAll();
         return dimensions.stream().filter(d -> StringUtils.equals(code, d.getCode())).findFirst().orElse(null);
