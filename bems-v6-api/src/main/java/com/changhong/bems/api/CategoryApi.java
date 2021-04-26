@@ -38,7 +38,7 @@ public interface CategoryApi extends BaseEntityApi<CategoryDto> {
      *
      * @return 查询结果
      */
-    @GetMapping(path = "findGeneral")
+    @GetMapping(path = "findByGeneral")
     @ApiOperation(value = "查询通用预算类型", notes = "查询通用预算类型")
     ResultData<List<CategoryDto>> findByGeneral();
 
@@ -48,9 +48,9 @@ public interface CategoryApi extends BaseEntityApi<CategoryDto> {
      * @param subjectId 预算主体id
      * @return 分页查询结果
      */
-    @GetMapping(path = "findPrivate")
+    @GetMapping(path = "findBySubject")
     @ApiOperation(value = "根据预算主体查询私有预算类型", notes = "根据预算主体查询私有预算类型")
-    ResultData<List<CategoryDto>> findPrivate(@RequestParam("subjectId") String subjectId);
+    ResultData<List<CategoryDto>> findBySubject(@RequestParam("subjectId") String subjectId);
 
     /**
      * 创建预算类型

@@ -79,8 +79,8 @@ public class CategoryController extends BaseEntityController<Category, CategoryD
      * @return 分页查询结果
      */
     @Override
-    public ResultData<List<CategoryDto>> findPrivate(String subjectId) {
-        return ResultData.success(convertToDtos(service.findPrivate(subjectId)));
+    public ResultData<List<CategoryDto>> findBySubject(String subjectId) {
+        return ResultData.success(convertToDtos(service.findBySubject(subjectId)));
     }
 
     /**

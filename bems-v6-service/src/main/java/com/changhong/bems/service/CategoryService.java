@@ -116,7 +116,7 @@ public class CategoryService extends BaseEntityService<Category> {
      * @param subjectId 预算主体id
      * @return 分页查询结果
      */
-    public List<Category> findPrivate(String subjectId) {
+    public List<Category> findBySubject(String subjectId) {
         List<Category> categoryList = new ArrayList<>();
         List<Category> generalList = findByGeneral();
         List<Category> privateList = dao.findListByProperty(Category.FIELD_SUBJECT_ID, subjectId);
