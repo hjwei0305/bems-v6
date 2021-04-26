@@ -95,11 +95,11 @@ public class CategoryService extends BaseEntityService<Category> {
      */
     @Override
     protected OperateResult preDelete(String id) {
-        Pool pool = poolService.findFirstByProperty(Pool.ID, id);
-        if (Objects.nonNull(pool)) {
-            // 已被使用,禁止删除!
-            return OperateResult.operationFailure("category_00001");
-        }
+//        Pool pool = poolService.findFirstByProperty(Pool.ID, id);
+//        if (Objects.nonNull(pool)) {
+//            // 已被使用,禁止删除!
+//            return OperateResult.operationFailure("category_00001");
+//        }
         return OperateResult.operationSuccess();
     }
 
