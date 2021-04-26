@@ -33,11 +33,6 @@ public class PoolDto extends BaseEntityDto {
     @ApiModelProperty(value = "预算维度属性id")
     private String attributeId;
     /**
-     * 预算类型id
-     */
-    @ApiModelProperty(value = "预算类型id")
-    private String categoryId;
-    /**
      * 币种代码
      */
     @ApiModelProperty(value = "币种代码")
@@ -122,14 +117,6 @@ public class PoolDto extends BaseEntityDto {
 
     public void setAttributeId(String attributeId) {
         this.attributeId = attributeId;
-    }
-
-    public String getCategoryId() {
-        return categoryId;
-    }
-
-    public void setCategoryId(String categoryId) {
-        this.categoryId = categoryId;
     }
 
     public String getCurrencyCode() {

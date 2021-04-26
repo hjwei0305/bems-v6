@@ -23,7 +23,7 @@ import java.io.Serializable;
 public class DimensionAttribute extends BaseEntity implements ITenant, Serializable {
     private static final long serialVersionUID = -63903291983170191L;
     public static final String FIELD_SUBJECT_ID = "subjectId";
-    public static final String FIELD_CATEGORY_ID = "categoryId";
+    public static final String FIELD_ATTRIBUTE = "attribute";
     public static final String FIELD_PERIOD = "period";
     public static final String FIELD_ITEM = "item";
     /**
@@ -32,10 +32,11 @@ public class DimensionAttribute extends BaseEntity implements ITenant, Serializa
     @Column(name = "subject_id")
     private String subjectId;
     /**
-     * 预算类型id
+     * 属性
+     * 使用到的维度字段名,按asci码排序,逗号(,)分隔
      */
-    @Column(name = "category_id")
-    private String categoryId;
+    @Column(name = "attribute")
+    private String attribute;
     /**
      * 预算期间
      */
@@ -141,12 +142,12 @@ public class DimensionAttribute extends BaseEntity implements ITenant, Serializa
         this.subjectId = subjectId;
     }
 
-    public String getCategoryId() {
-        return categoryId;
+    public String getAttribute() {
+        return attribute;
     }
 
-    public void setCategoryId(String categoryId) {
-        this.categoryId = categoryId;
+    public void setAttribute(String attribute) {
+        this.attribute = attribute;
     }
 
     public String getPeriod() {

@@ -10,7 +10,6 @@ import org.hibernate.annotations.DynamicUpdate;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.Date;
 
 /**
  * 预算池(Pool)实体类
@@ -39,11 +38,6 @@ public class Pool extends BaseAuditableEntity implements ITenant, ICodeUnique, S
      */
     @Column(name = "attribute_id")
     private String attributeId;
-    /**
-     * 预算类型id
-     */
-    @Column(name = "category_id")
-    private String categoryId;
     /**
      * 币种代码
      */
@@ -135,14 +129,6 @@ public class Pool extends BaseAuditableEntity implements ITenant, ICodeUnique, S
 
     public void setAttributeId(String attributeId) {
         this.attributeId = attributeId;
-    }
-
-    public String getCategoryId() {
-        return categoryId;
-    }
-
-    public void setCategoryId(String categoryId) {
-        this.categoryId = categoryId;
     }
 
     public String getCurrencyCode() {

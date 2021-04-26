@@ -19,10 +19,10 @@ public class DimensionAttributeDto extends BaseEntityDto {
     @ApiModelProperty(value = "预算主体id")
     private String subjectId;
     /**
-     * 预算类型id
+     * 属性
      */
-    @ApiModelProperty(value = "预算类型id")
-    private String categoryId;
+    @ApiModelProperty(value = "属性")
+    private String attribute;
     /**
      * 预算期间
      */
@@ -122,12 +122,12 @@ public class DimensionAttributeDto extends BaseEntityDto {
         this.subjectId = subjectId;
     }
 
-    public String getCategoryId() {
-        return categoryId;
+    public String getAttribute() {
+        return attribute;
     }
 
-    public void setCategoryId(String categoryId) {
-        this.categoryId = categoryId;
+    public void setAttribute(String attribute) {
+        this.attribute = attribute;
     }
 
     public String getPeriodId() {
