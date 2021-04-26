@@ -139,7 +139,7 @@ public class CategoryService extends BaseEntityService<Category> {
     }
 
     /**
-     * 创建预算类型
+     * 引用通用预算类型
      *
      * @param subjectId 预算主体id
      * @param id        通用预算类型id
@@ -174,6 +174,24 @@ public class CategoryService extends BaseEntityService<Category> {
         privateCategory.setRoll(category.getRoll());
         privateCategory.setReferenceId(id);
         this.save(privateCategory);
+        return ResultData.success();
+    }
+
+    /**
+     * 冻结/解冻预算类型
+     *
+     * @param id 预算类型id
+     * @return 操作结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ResultData<Void> frozen(String id, boolean frozen) {
+        Category category = dao.findOne(id);
+        if (Objects.isNull(category)) {
+            // 预算类型不存在
+            return ResultData.fail(ContextUtil.getMessage("category_00004", id));
+        }
+        category.setFrozen(frozen);
+        this.save(category);
         return ResultData.success();
     }
 }

@@ -84,7 +84,7 @@ public class CategoryController extends BaseEntityController<Category, CategoryD
     }
 
     /**
-     * 创建预算类型
+     * 引用通用预算类型
      *
      * @param subjectId 预算主体id
      * @param id        通用预算类型id
@@ -93,5 +93,27 @@ public class CategoryController extends BaseEntityController<Category, CategoryD
     @Override
     public ResultData<Void> reference(String subjectId, String id) {
         return service.reference(subjectId, id);
+    }
+
+    /**
+     * 冻结预算类型
+     *
+     * @param id 预算类型id
+     * @return 操作结果
+     */
+    @Override
+    public ResultData<Void> frozen(String id) {
+        return service.frozen(id, Boolean.TRUE);
+    }
+
+    /**
+     * 解冻预算类型
+     *
+     * @param id 预算类型id
+     * @return 操作结果
+     */
+    @Override
+    public ResultData<Void> unfrozen(String id) {
+        return service.frozen(id, Boolean.FALSE);
     }
 }

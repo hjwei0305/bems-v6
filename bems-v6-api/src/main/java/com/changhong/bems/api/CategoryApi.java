@@ -53,14 +53,34 @@ public interface CategoryApi extends BaseEntityApi<CategoryDto> {
     ResultData<List<CategoryDto>> findBySubject(@RequestParam("subjectId") String subjectId);
 
     /**
-     * 创建预算类型
+     * 引用通用预算类型
      *
      * @param subjectId 预算主体id
      * @param id        通用预算类型id
      * @return 操作结果
      */
     @PostMapping(path = "reference/{subjectId}/{id}")
-    @ApiOperation(value = "创建预算类型", notes = "创建预算类型")
+    @ApiOperation(value = "引用通用预算类型", notes = "预算主体引用通用预算类型")
     ResultData<Void> reference(@PathVariable("subjectId") String subjectId, @PathVariable("id") String id);
+
+    /**
+     * 冻结预算类型
+     *
+     * @param id 预算类型id
+     * @return 操作结果
+     */
+    @PostMapping(path = "frozen/{id}")
+    @ApiOperation(value = "冻结预算类型", notes = "冻结预算类型")
+    ResultData<Void> frozen(@PathVariable("id") String id);
+
+    /**
+     * 解冻预算类型
+     *
+     * @param id 预算类型id
+     * @return 操作结果
+     */
+    @PostMapping(path = "unfrozen/{id}")
+    @ApiOperation(value = "冻结预算类型", notes = "冻结预算类型")
+    ResultData<Void> unfrozen(@PathVariable("id") String id);
 
 }
