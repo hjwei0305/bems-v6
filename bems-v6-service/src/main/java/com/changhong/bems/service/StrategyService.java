@@ -2,7 +2,6 @@ package com.changhong.bems.service;
 
 import com.changhong.bems.dao.StrategyDao;
 import com.changhong.bems.dto.StrategyCategory;
-import com.changhong.bems.entity.Category;
 import com.changhong.bems.entity.Dimension;
 import com.changhong.bems.entity.Item;
 import com.changhong.bems.entity.Strategy;
@@ -27,8 +26,8 @@ public class StrategyService extends BaseEntityService<Strategy> {
     private StrategyDao dao;
     @Autowired
     private DimensionService dimensionService;
-    @Autowired
-    private CategoryService categoryService;
+    //    @Autowired
+//    private CategoryService categoryService;
     @Autowired
     private ItemService itemService;
 
@@ -49,11 +48,11 @@ public class StrategyService extends BaseEntityService<Strategy> {
             // 策略已被维度[{0}]使用,禁止删除
             return OperateResult.operationFailure("strategy_00001", dimension.getName());
         }
-        Category category = categoryService.findFirstByProperty(Category.FIELD_STRATEGY_ID, id);
-        if (Objects.nonNull(category)) {
-            // 策略已被预算类型[{0}]使用,禁止删除
-            return OperateResult.operationFailure("strategy_00002", category.getName());
-        }
+//        Category category = categoryService.findFirstByProperty(Category.FIELD_STRATEGY_ID, id);
+//        if (Objects.nonNull(category)) {
+//            // 策略已被预算类型[{0}]使用,禁止删除
+//            return OperateResult.operationFailure("strategy_00002", category.getName());
+//        }
         Item item = itemService.findFirstByProperty(Item.FIELD_STRATEGY_ID, id);
         if (Objects.nonNull(item)) {
             // 策略已被预算科目[{0}]使用,禁止删除

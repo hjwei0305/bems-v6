@@ -25,7 +25,7 @@ import java.io.Serializable;
 public class Category extends BaseAuditableEntity implements ITenant, IFrozen, Serializable {
     private static final long serialVersionUID = -73245932408668629L;
     public static final String FIELD_SUBJECT_ID = "subjectId";
-    public static final String FIELD_STRATEGY_ID = "strategyId";
+//    public static final String FIELD_STRATEGY_ID = "strategyId";
     public static final String FIELD_TYPE = "type";
     /**
      * 名称
@@ -48,16 +48,16 @@ public class Category extends BaseAuditableEntity implements ITenant, IFrozen, S
      */
     @Column(name = "subject_name")
     private String subjectName;
-    /**
-     * 管理策略id
-     */
-    @Column(name = "strategy_id")
-    private String strategyId;
-    /**
-     * 管理策略名称
-     */
-    @Column(name = "strategy_name")
-    private String strategyName;
+//    /**
+//     * 管理策略id
+//     */
+//    @Column(name = "strategy_id")
+//    private String strategyId;
+//    /**
+//     * 管理策略名称
+//     */
+//    @Column(name = "strategy_name")
+//    private String strategyName;
     /**
      * 期间类型
      */
@@ -127,22 +127,6 @@ public class Category extends BaseAuditableEntity implements ITenant, IFrozen, S
 
     public void setSubjectName(String subjectName) {
         this.subjectName = subjectName;
-    }
-
-    public String getStrategyId() {
-        return strategyId;
-    }
-
-    public void setStrategyId(String strategyId) {
-        this.strategyId = strategyId;
-    }
-
-    public String getStrategyName() {
-        return strategyName;
-    }
-
-    public void setStrategyName(String strategyName) {
-        this.strategyName = strategyName;
     }
 
     public PeriodType getPeriodType() {
