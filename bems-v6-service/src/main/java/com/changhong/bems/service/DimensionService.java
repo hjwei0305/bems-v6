@@ -8,13 +8,19 @@ import com.changhong.bems.entity.Dimension;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
+import com.changhong.sei.core.service.bo.OperateResultWithData;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 预算维度(Dimension)业务逻辑实现类
@@ -23,6 +29,7 @@ import java.util.Set;
  * @since 2021-04-22 12:54:23
  */
 @Service
+@CacheConfig(cacheNames = "bems-v6:dimension")
 public class DimensionService extends BaseEntityService<Dimension> {
     @Autowired
     private DimensionDao dao;
@@ -37,12 +44,15 @@ public class DimensionService extends BaseEntityService<Dimension> {
     }
 
     /**
-     * 删除数据保存数据之前额外操作回调方法 子类根据需要覆写添加逻辑即可
+     * 主键删除
      *
-     * @param id 待删除数据对象主键
+     * @param id 主键
+     * @return 返回操作结果对象
      */
     @Override
-    protected OperateResult preDelete(String id) {
+    @CacheEvict
+    @Transactional(rollbackFor = Exception.class)
+    public OperateResult delete(String id) {
         Dimension dimension = dao.findOne(id);
         if (Objects.nonNull(dimension)) {
             CategoryDimension categoryDimension = categoryDimensionService.findFirstByProperty(CategoryDimension.FIELD_DIMENSION_CODE, dimension.getCode());
@@ -52,11 +62,56 @@ public class DimensionService extends BaseEntityService<Dimension> {
                 // 维度已被预算类型[{0}]使用,禁止删除
                 return OperateResult.operationFailure("dimension_00001", obj);
             }
+            dao.delete(dimension);
             return OperateResult.operationSuccess();
         } else {
             // 维度不存在!
             return OperateResult.operationFailure("dimension_00002");
         }
+    }
+
+    /**
+     * 数据保存操作
+     */
+    @Override
+    @CachePut
+    @Transactional(rollbackFor = Exception.class)
+    public OperateResultWithData<Dimension> save(Dimension entity) {
+        return super.save(entity);
+    }
+
+    /**
+     * 基于主键集合查询集合数据对象
+     */
+    @Override
+    @Cacheable
+    public List<Dimension> findAll() {
+        return dao.findAll();
+    }
+
+    /**
+     * 基于主键集合查询集合数据对象
+     */
+    @Cacheable
+    public List<Dimension> findByCodes(Collection<String> codes) {
+        List<Dimension> dimensions = findAll();
+        if (CollectionUtils.isNotEmpty(codes)) {
+            return dimensions.stream().filter(d -> codes.contains(d.getCode())).collect(Collectors.toList());
+        } else {
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * 根据维度代码获取预算维度对象
+     *
+     * @param code 预算代码
+     * @return 预算维度对象
+     */
+    @Cacheable
+    public Dimension findByCode(String code) {
+        List<Dimension> dimensions = findAll();
+        return dimensions.stream().filter(d -> StringUtils.equals(code, d.getCode())).findFirst().orElse(null);
     }
 
     /**

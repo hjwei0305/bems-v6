@@ -1,10 +1,7 @@
 package com.changhong.bems.controller;
 
 import com.changhong.bems.api.CategoryApi;
-import com.changhong.bems.dto.CategoryDto;
-import com.changhong.bems.dto.CreateCategoryDto;
-import com.changhong.bems.dto.DimensionDto;
-import com.changhong.bems.dto.OrderCategory;
+import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.Category;
 import com.changhong.bems.service.CategoryService;
 import com.changhong.sei.core.controller.BaseEntityController;
@@ -140,8 +137,30 @@ public class CategoryController extends BaseEntityController<Category, CategoryD
      */
     @Override
     public ResultData<List<DimensionDto>> getAssigned(String categoryId) {
-        return ResultData.success(service.getUnassigned(categoryId)
+        return ResultData.success(service.getAssigned(categoryId)
                 .stream().map(d -> dtoModelMapper.map(d, DimensionDto.class))
                 .collect(Collectors.toList()));
+    }
+
+    /**
+     * 为指定预算类型分配预算维度
+     *
+     * @param request 分配请求
+     * @return 分配结果
+     */
+    @Override
+    public ResultData<Void> assigne(AssigneDimensionRequest request) {
+        return service.assigne(request.getCategoryId(), request.getDimensionCodes());
+    }
+
+    /**
+     * 解除预算类型与维度分配关系
+     *
+     * @param ids 关系id清单
+     * @return 分配结果
+     */
+    @Override
+    public ResultData<Void> unassigne(List<String> ids) {
+        return service.unassigne(ids);
     }
 }

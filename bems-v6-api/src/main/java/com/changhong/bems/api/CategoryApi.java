@@ -1,5 +1,6 @@
 package com.changhong.bems.api;
 
+import com.changhong.bems.dto.AssigneDimensionRequest;
 import com.changhong.bems.dto.CategoryDto;
 import com.changhong.bems.dto.CreateCategoryDto;
 import com.changhong.bems.dto.DimensionDto;
@@ -103,5 +104,25 @@ public interface CategoryApi extends BaseEntityApi<CategoryDto> {
     @GetMapping(path = "getAssigned")
     @ApiOperation(value = "获取已分配的预算维度", notes = "获取已分配的预算维度")
     ResultData<List<DimensionDto>> getAssigned(@RequestParam("categoryId") String categoryId);
+
+    /**
+     * 为指定预算类型分配预算维度
+     *
+     * @param request 分配请求
+     * @return 分配结果
+     */
+    @PostMapping(path = "assigne")
+    @ApiOperation(value = "为指定预算类型分配预算维度", notes = "为指定预算类型分配预算维度")
+    ResultData<Void> assigne(@RequestBody @Valid AssigneDimensionRequest request);
+
+    /**
+     * 解除预算类型与维度分配关系
+     *
+     * @param ids 关系id清单
+     * @return 分配结果
+     */
+    @PostMapping(path = "unassigne")
+    @ApiOperation(value = "解除预算类型与维度分配关系", notes = "解除预算类型与维度分配关系")
+    ResultData<Void> unassigne(@RequestBody List<String> ids);
 
 }

@@ -2,7 +2,6 @@ package com.changhong.bems.service;
 
 import com.changhong.bems.dao.CategoryDao;
 import com.changhong.bems.dto.CategoryType;
-import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.entity.*;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
@@ -205,8 +204,14 @@ public class CategoryService extends BaseEntityService<Category> {
      * @return 子实体清单
      */
     public List<Dimension> getUnassigned(String categoryId) {
-
-        return null;
+        List<Dimension> dimensionList = dimensionService.findAll();
+        List<CategoryDimension> categoryDimensions = categoryDimensionService.findListByProperty(CategoryDimension.FIELD_CATEGORY_ID, categoryId);
+        if (CollectionUtils.isNotEmpty(categoryDimensions)) {
+            Set<String> codes = categoryDimensions.stream().map(CategoryDimension::getDimensionCode).collect(Collectors.toSet());
+            return dimensionList.stream().filter(d -> !codes.contains(d.getCode())).collect(Collectors.toList());
+        } else {
+            return dimensionList;
+        }
     }
 
     /**
@@ -218,7 +223,37 @@ public class CategoryService extends BaseEntityService<Category> {
     public List<Dimension> getAssigned(String categoryId) {
         List<CategoryDimension> categoryDimensions = categoryDimensionService.findListByProperty(CategoryDimension.FIELD_CATEGORY_ID, categoryId);
         Set<String> codes = categoryDimensions.stream().map(CategoryDimension::getDimensionCode).collect(Collectors.toSet());
+        return dimensionService.findByCodes(codes);
+    }
 
-        return null;
+    /**
+     * 为指定预算类型分配预算维度
+     *
+     * @return 分配结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ResultData<Void> assigne(String categoryId, Set<String> dimensionCodes) {
+        List<CategoryDimension> dimensionList = new ArrayList<>();
+        CategoryDimension categoryDimension;
+        for (String code : dimensionCodes) {
+            categoryDimension = new CategoryDimension();
+            categoryDimension.setCategoryId(categoryId);
+            categoryDimension.setCategoryId(code);
+            dimensionList.add(categoryDimension);
+        }
+        categoryDimensionService.save(dimensionList);
+        return ResultData.success();
+    }
+
+    /**
+     * 解除预算类型与维度分配关系
+     *
+     * @param ids 关系id清单
+     * @return 分配结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ResultData<Void> unassigne(List<String> ids) {
+        categoryDimensionService.delete(ids);
+        return ResultData.success();
     }
 }

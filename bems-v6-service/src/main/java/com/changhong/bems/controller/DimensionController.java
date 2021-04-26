@@ -49,16 +49,6 @@ public class DimensionController extends BaseEntityController<Dimension, Dimensi
     }
 
     /**
-     * 获取所有未冻结的业务实体
-     *
-     * @return 业务实体清单
-     */
-    @Override
-    public ResultData<List<DimensionDto>> findAllUnfrozen() {
-        return ResultData.success(convertToDtos(service.findAllUnfrozen()));
-    }
-
-    /**
      * 获取所有预制的维度代码
      *
      * @return 策略清单

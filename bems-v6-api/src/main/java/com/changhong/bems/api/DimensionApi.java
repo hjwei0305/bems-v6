@@ -24,7 +24,7 @@ import java.util.Set;
  */
 @Valid
 @FeignClient(name = "bems-v6", path = DimensionApi.PATH)
-public interface DimensionApi extends BaseEntityApi<DimensionDto>, FindAllApi<DimensionDto> {
+public interface DimensionApi extends BaseEntityApi<DimensionDto> {
     String PATH = "dimension";
 
     /**
@@ -35,4 +35,13 @@ public interface DimensionApi extends BaseEntityApi<DimensionDto>, FindAllApi<Di
     @GetMapping(path = "findAllCodes")
     @ApiOperation(value = "获取所有维度代码", notes = "获取所有预制的维度代码")
     ResultData<Set<KeyValueDto>> findAllCodes();
+
+    /**
+     * 获取所有业务实体
+     *
+     * @return 业务实体清单
+     */
+    @GetMapping(path = "findAll")
+    @ApiOperation(value = "获取所有业务实体", notes = "获取所有业务实体")
+    ResultData<List<DimensionDto>> findAll();
 }
