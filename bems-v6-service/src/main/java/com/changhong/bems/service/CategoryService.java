@@ -4,7 +4,10 @@ import com.changhong.bems.dao.CategoryDao;
 import com.changhong.bems.dto.CategoryType;
 import com.changhong.bems.entity.Category;
 import com.changhong.bems.entity.Pool;
+import com.changhong.bems.entity.Subject;
+import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
+import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
 import com.changhong.sei.core.service.bo.OperateResultWithData;
@@ -12,6 +15,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +35,8 @@ public class CategoryService extends BaseEntityService<Category> {
     @Autowired
     private CategoryDao dao;
     @Autowired
+    private SubjectService subjectService;
+    @Autowired
     private PoolService poolService;
 
     @Override
@@ -45,6 +51,17 @@ public class CategoryService extends BaseEntityService<Category> {
      */
     @Override
     protected OperateResultWithData<Category> preInsert(Category entity) {
+        if (CategoryType.GENERAL == entity.getType()) {
+            entity.setSubjectId(CategoryType.GENERAL.name());
+        } else if (CategoryType.PRIVATE == entity.getType()) {
+            if (StringUtils.isEmpty(entity.getSubjectId())) {
+                // 非通用预算类型,预算主体不能为空!
+                return OperateResultWithData.operationFailure("category_00002");
+            }
+        } else {
+            // 错误的预算类型分类
+            return OperateResultWithData.operationFailure("category_00003");
+        }
         return super.preInsert(entity);
     }
 
@@ -55,6 +72,17 @@ public class CategoryService extends BaseEntityService<Category> {
      */
     @Override
     protected OperateResultWithData<Category> preUpdate(Category entity) {
+        if (CategoryType.GENERAL == entity.getType()) {
+            entity.setSubjectId(CategoryType.GENERAL.name());
+        } else if (CategoryType.PRIVATE == entity.getType()) {
+            if (StringUtils.isEmpty(entity.getSubjectId())) {
+                // 非通用预算类型,预算主体不能为空!
+                return OperateResultWithData.operationFailure("category_00002");
+            }
+        } else {
+            // 错误的预算类型分类
+            return OperateResultWithData.operationFailure("category_00003");
+        }
         return super.preUpdate(entity);
     }
 
@@ -108,5 +136,44 @@ public class CategoryService extends BaseEntityService<Category> {
             categoryList.addAll(privateList);
         }
         return categoryList;
+    }
+
+    /**
+     * 创建预算类型
+     *
+     * @param subjectId 预算主体id
+     * @param id        通用预算类型id
+     * @return 操作结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ResultData<Void> reference(String subjectId, String id) {
+        Subject subject = subjectService.findOne(subjectId);
+        if (Objects.isNull(subject)) {
+            // 预算主体不存在
+            return ResultData.fail(ContextUtil.getMessage("subject_00003", subjectId));
+        }
+
+        Category category = dao.findOne(id);
+        if (Objects.isNull(category)) {
+            // 预算类型不存在
+            return ResultData.fail(ContextUtil.getMessage("category_00004", id));
+        } else {
+            if (CategoryType.GENERAL != category.getType()) {
+                // 不是通用预算类型
+                return ResultData.fail(ContextUtil.getMessage("category_00005", category.getName()));
+            }
+        }
+        Category privateCategory = new Category();
+        privateCategory.setName(category.getName());
+        privateCategory.setType(CategoryType.PRIVATE);
+        privateCategory.setSubjectId(subjectId);
+        privateCategory.setSubjectName(subject.getName());
+        privateCategory.setPeriodType(category.getPeriodType());
+        privateCategory.setOrderCategory(category.getOrderCategory());
+        privateCategory.setUse(category.getUse());
+        privateCategory.setRoll(category.getRoll());
+        privateCategory.setReferenceId(id);
+        this.save(privateCategory);
+        return ResultData.success();
     }
 }

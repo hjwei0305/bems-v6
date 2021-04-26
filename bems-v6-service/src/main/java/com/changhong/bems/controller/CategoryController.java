@@ -82,4 +82,16 @@ public class CategoryController extends BaseEntityController<Category, CategoryD
     public ResultData<List<CategoryDto>> findPrivate(String subjectId) {
         return ResultData.success(convertToDtos(service.findPrivate(subjectId)));
     }
+
+    /**
+     * 创建预算类型
+     *
+     * @param subjectId 预算主体id
+     * @param id        通用预算类型id
+     * @return 操作结果
+     */
+    @Override
+    public ResultData<Void> reference(String subjectId, String id) {
+        return service.reference(subjectId, id);
+    }
 }
