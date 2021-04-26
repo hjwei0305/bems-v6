@@ -156,7 +156,7 @@ public class CategoryController extends BaseEntityController<Category, CategoryD
     /**
      * 解除预算类型与维度分配关系
      *
-     * @param ids 关系id清单
+     * @param request 分配请求
      * @return 分配结果
      */
     @Override

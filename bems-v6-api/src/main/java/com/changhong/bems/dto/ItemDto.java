@@ -12,7 +12,13 @@ import io.swagger.annotations.ApiModelProperty;
  */
 @ApiModel(description = "预算科目DTO")
 public class ItemDto extends BaseEntityDto {
-    private static final long serialVersionUID = -85112390830826629L;/**
+    private static final long serialVersionUID = -85112390830826629L;
+    /**
+     * 类型分类
+     */
+    @ApiModelProperty(value = "类型分类")
+    private CategoryType type;
+    /**
      * 预算主体id
      */
     @ApiModelProperty(value = "预算主体id")
@@ -37,6 +43,24 @@ public class ItemDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "执行策略名称")
     private String strategyName;
+    /**
+     * 冻结
+     */
+    @ApiModelProperty(value = "是否冻结")
+    private Boolean frozen = Boolean.FALSE;
+    /**
+     * 参考id
+     */
+    @ApiModelProperty(value = "参考id")
+    private String referenceId;
+
+    public CategoryType getType() {
+        return type;
+    }
+
+    public void setType(CategoryType type) {
+        this.type = type;
+    }
 
     public String getSubjectId() {
         return subjectId;
@@ -78,4 +102,19 @@ public class ItemDto extends BaseEntityDto {
         this.strategyName = strategyName;
     }
 
+    public Boolean getFrozen() {
+        return frozen;
+    }
+
+    public void setFrozen(Boolean frozen) {
+        this.frozen = frozen;
+    }
+
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
 }

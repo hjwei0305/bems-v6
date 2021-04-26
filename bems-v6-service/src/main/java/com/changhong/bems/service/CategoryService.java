@@ -189,6 +189,9 @@ public class CategoryService extends BaseEntityService<Category> {
         privateCategory.setRoll(category.getRoll());
         privateCategory.setReferenceId(id);
         this.save(privateCategory);
+
+        category.setReferenced(Boolean.TRUE);
+        this.save(category);
         return ResultData.success();
     }
 
