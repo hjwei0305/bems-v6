@@ -39,7 +39,7 @@ public class CategoryDimensionService extends BaseEntityService<CategoryDimensio
     public List<CategoryDimension> getCategoryDimensions(String categoryId, Collection<String> codes) {
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(CategoryDimension.FIELD_CATEGORY_ID, categoryId));
-        search.addFilter(new SearchFilter(CategoryDimension.FIELD_DIMENSION_CODE, categoryId, SearchFilter.Operator.IN));
+        search.addFilter(new SearchFilter(CategoryDimension.FIELD_DIMENSION_CODE, codes, SearchFilter.Operator.IN));
         return findByFilters(search);
     }
 
