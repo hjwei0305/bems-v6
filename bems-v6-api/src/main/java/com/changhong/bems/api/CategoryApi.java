@@ -38,7 +38,7 @@ public interface CategoryApi extends BaseEntityApi<CategoryDto> {
      *
      * @return 查询结果
      */
-    @GetMapping(path = "findGeneralByPage")
+    @GetMapping(path = "findGeneral")
     @ApiOperation(value = "查询通用预算类型", notes = "查询通用预算类型")
     ResultData<List<CategoryDto>> findByGeneral();
 
