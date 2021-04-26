@@ -35,7 +35,7 @@ public class CategoryService extends BaseEntityService<Category> {
     @Autowired
     private SubjectService subjectService;
     @Autowired
-    private PoolService poolService;
+    private OrderService orderService;
     @Autowired
     private CategoryDimensionService categoryDimensionService;
     @Autowired
@@ -95,11 +95,11 @@ public class CategoryService extends BaseEntityService<Category> {
      */
     @Override
     protected OperateResult preDelete(String id) {
-//        Pool pool = poolService.findFirstByProperty(Pool.ID, id);
-//        if (Objects.nonNull(pool)) {
-//            // 已被使用,禁止删除!
-//            return OperateResult.operationFailure("category_00001");
-//        }
+        Order order = orderService.findFirstByProperty(Order.FIELD_CATEGORY_ID, id);
+        if (Objects.nonNull(order)) {
+            // 已被使用,禁止删除!
+            return OperateResult.operationFailure("category_00001");
+        }
         return OperateResult.operationSuccess();
     }
 
@@ -130,7 +130,7 @@ public class CategoryService extends BaseEntityService<Category> {
             if (CollectionUtils.isNotEmpty(generalList)) {
                 Set<String> ids = privateList.stream().map(Category::getReferenceId).filter(StringUtils::isNotBlank).collect(Collectors.toSet());
                 if (CollectionUtils.isNotEmpty(ids)) {
-                    categoryList.addAll(generalList.stream().filter(c -> ids.contains(c.getId())).collect(Collectors.toList()));
+                    categoryList.addAll(generalList.stream().filter(c -> !ids.contains(c.getId())).collect(Collectors.toList()));
                 } else {
                     categoryList.addAll(generalList);
                 }

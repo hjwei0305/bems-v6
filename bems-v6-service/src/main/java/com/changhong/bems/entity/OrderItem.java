@@ -22,6 +22,7 @@ import java.io.Serializable;
 @DynamicUpdate
 public class OrderItem extends BaseAuditableEntity implements ITenant, Serializable {
     private static final long serialVersionUID = -90286046160801596L;
+    public static final String FIELD_ITEM_ID = "itemId";
     /**
      * 预算申请单id
      */

@@ -22,6 +22,7 @@ import java.io.Serializable;
 @DynamicUpdate
 public class Order extends BaseAuditableEntity implements ITenant, Serializable {
     private static final long serialVersionUID = -36135917259025562L;
+    public static final String FIELD_CATEGORY_ID = "categoryId";
     /**
      * 申请单号
      */

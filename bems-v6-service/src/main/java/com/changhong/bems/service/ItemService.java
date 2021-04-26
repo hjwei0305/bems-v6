@@ -3,6 +3,7 @@ package com.changhong.bems.service;
 import com.changhong.bems.dao.ItemDao;
 import com.changhong.bems.entity.DimensionAttribute;
 import com.changhong.bems.entity.Item;
+import com.changhong.bems.entity.OrderItem;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
@@ -24,6 +25,8 @@ public class ItemService extends BaseEntityService<Item> {
     private ItemDao dao;
     @Autowired
     private DimensionAttributeService dimensionAttributeService;
+    @Autowired
+    private OrderItemService orderItemService;
 
     @Override
     protected BaseEntityDao<Item> getDao() {
@@ -40,9 +43,14 @@ public class ItemService extends BaseEntityService<Item> {
         DimensionAttribute attribute = dimensionAttributeService.findFirstByProperty(DimensionAttribute.FIELD_ITEM, id);
         if (Objects.nonNull(attribute)) {
             // 当前科目已被使用,禁止删除!
-            return OperateResult.operationFailure("item_00001", attribute);
+            return OperateResult.operationFailure("item_00001");
         }
-        // TODO 申请单行项,导入明细
+        OrderItem orderItem = orderItemService.findFirstByProperty(OrderItem.FIELD_ITEM_ID, id);
+        if (Objects.nonNull(orderItem)) {
+            // 当前科目已被使用,禁止删除!
+            return OperateResult.operationFailure("item_00001");
+        }
+        // TODO 导入明细
         return OperateResult.operationSuccess();
     }
 }
