@@ -2,7 +2,6 @@ package com.changhong.bems.controller;
 
 import com.changhong.bems.api.SubjectItemApi;
 import com.changhong.bems.dto.AssigneItemRequest;
-import com.changhong.bems.dto.ItemDto;
 import com.changhong.bems.dto.SubjectItemDto;
 import com.changhong.bems.entity.SubjectItem;
 import com.changhong.bems.service.SubjectItemService;
@@ -69,8 +68,8 @@ public class SubjectItemController extends BaseEntityController<SubjectItem, Sub
      * @return 子实体清单
      */
     @Override
-    public ResultData<List<ItemDto>> getUnassigned(String subjectId) {
-        return null;
+    public ResultData<PageResult<SubjectItemDto>> getUnassigned(String subjectId, Search search) {
+        return convertToDtoPageResult(service.getAssigned(subjectId, search));
     }
 
     /**
@@ -80,8 +79,8 @@ public class SubjectItemController extends BaseEntityController<SubjectItem, Sub
      * @return 子实体清单
      */
     @Override
-    public ResultData<List<ItemDto>> getAssigned(String subjectId) {
-        return null;
+    public ResultData<PageResult<SubjectItemDto>> getAssigned(String subjectId, Search search) {
+        return convertToDtoPageResult(service.getAssigned(subjectId, search));
     }
 
     /**
@@ -92,7 +91,7 @@ public class SubjectItemController extends BaseEntityController<SubjectItem, Sub
      */
     @Override
     public ResultData<Void> assigne(AssigneItemRequest request) {
-        return null;
+        return service.assigne(request.getSubjectId(), request.getItemCodes());
     }
 
     /**
@@ -103,17 +102,6 @@ public class SubjectItemController extends BaseEntityController<SubjectItem, Sub
      */
     @Override
     public ResultData<Void> unassigne(AssigneItemRequest request) {
-        return null;
-    }
-
-    /**
-     * 分页查询业务实体
-     *
-     * @param search 查询参数
-     * @return 分页查询结果
-     */
-    @Override
-    public ResultData<PageResult<SubjectItemDto>> findByPage(Search search) {
-        return convertToDtoPageResult(service.findByPage(search));
+        return service.unassigne(request.getSubjectId(), request.getItemCodes());
     }
 }

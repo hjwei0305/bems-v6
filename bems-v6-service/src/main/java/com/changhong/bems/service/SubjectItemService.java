@@ -2,18 +2,26 @@ package com.changhong.bems.service;
 
 import com.changhong.bems.dao.SubjectItemDao;
 import com.changhong.bems.entity.DimensionAttribute;
+import com.changhong.bems.entity.Item;
 import com.changhong.bems.entity.OrderDetail;
 import com.changhong.bems.entity.SubjectItem;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
+import com.changhong.sei.core.dto.serach.PageResult;
+import com.changhong.sei.core.dto.serach.Search;
+import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 预算主体科目(SubjectItem)业务逻辑实现类
@@ -31,6 +39,8 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
     private OrderDetailService orderItemService;
     @Autowired
     private SubjectService subjectService;
+    @Autowired
+    private ItemService itemService;
 
     @Override
     protected BaseEntityDao<SubjectItem> getDao() {
@@ -82,5 +92,76 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
         }
         this.save(items);
         return ResultData.success();
+    }
+
+    /**
+     * 获取未分配的预算科目
+     *
+     * @param subjectId 预算主体id
+     * @return 子实体清单
+     */
+    public PageResult<SubjectItem> getUnassigned(String subjectId, Search search) {
+        if (Objects.isNull(search)) {
+            search = Search.createSearch();
+        }
+        List<SubjectItem> subjectItems = findBySubject(subjectId);
+        if (CollectionUtils.isNotEmpty(subjectItems)) {
+            SearchFilter searchCode = search.getFilters().stream().filter(f -> StringUtils.equals(f.getFieldName(), Item.CODE_FIELD)).findAny().orElse(null);
+            if (Objects.nonNull(searchCode)) {
+                if (subjectItems.stream().anyMatch(i -> StringUtils.containsIgnoreCase(i.getCode(), String.valueOf(searchCode.getValue())))) {
+                    // todo
+                }
+            } else {
+                search.addFilter(new SearchFilter(Item.CODE_FIELD, subjectItems.stream().map(SubjectItem::getCode).collect(Collectors.toSet()), SearchFilter.Operator.NOTIN));
+            }
+        }
+
+        PageResult<Item> itemPageResult = itemService.findByPage(search);
+        PageResult<SubjectItem> pageResult = new PageResult<>(itemPageResult);
+        List<Item> itemList = itemPageResult.getRows();
+        List<SubjectItem> subjectItemList = itemList.stream().map(i -> {
+            SubjectItem item1 = new SubjectItem();
+            item1.setCode(i.getCode());
+            item1.setName(i.getName());
+            return item1;
+        }).collect(Collectors.toList());
+        pageResult.setRows(subjectItemList);
+        return pageResult;
+    }
+
+    /**
+     * 获取已分配的预算科目
+     *
+     * @param subjectId 预算主体id
+     * @return 子实体清单
+     */
+    public PageResult<SubjectItem> getAssigned(String subjectId, Search search) {
+        if (Objects.isNull(search)) {
+            search = Search.createSearch();
+        }
+        search.addFilter(new SearchFilter(SubjectItem.FIELD_SUBJECT_ID, subjectId));
+        return findByPage(search);
+    }
+
+    /**
+     * 为指定预算主体分配预算科目
+     *
+     * @param subjectId 预算主体id
+     * @param itemCodes 科目代码
+     * @return 分配结果
+     */
+    public ResultData<Void> assigne(String subjectId, Set<String> itemCodes) {
+        return null;
+    }
+
+    /**
+     * 解除预算主体与科目分配关系
+     *
+     * @param subjectId 预算主体id
+     * @param itemCodes 科目代码
+     * @return 分配结果
+     */
+    public ResultData<Void> unassigne(String subjectId, Set<String> itemCodes) {
+        return null;
     }
 }

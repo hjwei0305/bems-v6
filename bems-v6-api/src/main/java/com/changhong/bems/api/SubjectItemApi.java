@@ -1,13 +1,17 @@
 package com.changhong.bems.api;
 
-import com.changhong.bems.dto.*;
+import com.changhong.bems.dto.AssigneItemRequest;
+import com.changhong.bems.dto.SubjectItemDto;
 import com.changhong.sei.core.api.BaseEntityApi;
-import com.changhong.sei.core.api.FindByPageApi;
 import com.changhong.sei.core.dto.ResultData;
+import com.changhong.sei.core.dto.serach.PageResult;
+import com.changhong.sei.core.dto.serach.Search;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -20,7 +24,7 @@ import java.util.List;
  */
 @Valid
 @FeignClient(name = "bems-v6", path = SubjectItemApi.PATH)
-public interface SubjectItemApi extends BaseEntityApi<SubjectItemDto>, FindByPageApi<SubjectItemDto> {
+public interface SubjectItemApi extends BaseEntityApi<SubjectItemDto> {
     String PATH = "subjectItem";
 
     /**
@@ -29,7 +33,7 @@ public interface SubjectItemApi extends BaseEntityApi<SubjectItemDto>, FindByPag
      * @param ids 预算科目id
      * @return 操作结果
      */
-    @PostMapping(path = "frozen")
+    @PostMapping(path = "frozen", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "冻结预算科目", notes = "冻结预算科目")
     ResultData<Void> frozen(@RequestBody List<String> ids);
 
@@ -39,7 +43,7 @@ public interface SubjectItemApi extends BaseEntityApi<SubjectItemDto>, FindByPag
      * @param ids 预算科目id
      * @return 操作结果
      */
-    @PostMapping(path = "unfrozen")
+    @PostMapping(path = "unfrozen", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "冻结预算科目", notes = "冻结预算科目")
     ResultData<Void> unfrozen(@RequestBody List<String> ids);
 
@@ -49,9 +53,9 @@ public interface SubjectItemApi extends BaseEntityApi<SubjectItemDto>, FindByPag
      * @param subjectId 预算主体id
      * @return 子实体清单
      */
-    @GetMapping(path = "getUnassigned")
+    @PostMapping(path = "getUnassigned/{subjectId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "获取未分配的预算科目", notes = "获取未分配的预算科目")
-    ResultData<List<ItemDto>> getUnassigned(@RequestParam("subjectId") String subjectId);
+    ResultData<PageResult<SubjectItemDto>> getUnassigned(@PathVariable("subjectId") String subjectId, @RequestBody Search search);
 
     /**
      * 获取已分配的预算科目
@@ -59,9 +63,9 @@ public interface SubjectItemApi extends BaseEntityApi<SubjectItemDto>, FindByPag
      * @param subjectId 预算主体id
      * @return 子实体清单
      */
-    @GetMapping(path = "getAssigned")
+    @PostMapping(path = "getAssigned/{subjectId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "获取已分配的预算科目", notes = "获取已分配的预算科目")
-    ResultData<List<ItemDto>> getAssigned(@RequestParam("subjectId") String subjectId);
+    ResultData<PageResult<SubjectItemDto>> getAssigned(@PathVariable("subjectId") String subjectId, @RequestBody Search search);
 
     /**
      * 为指定预算主体分配预算科目
@@ -69,7 +73,7 @@ public interface SubjectItemApi extends BaseEntityApi<SubjectItemDto>, FindByPag
      * @param request 分配请求
      * @return 分配结果
      */
-    @PostMapping(path = "assigne")
+    @PostMapping(path = "assigne", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "为指定预算主体分配预算科目", notes = "为指定预算主体分配预算科目")
     ResultData<Void> assigne(@RequestBody @Valid AssigneItemRequest request);
 
@@ -79,7 +83,7 @@ public interface SubjectItemApi extends BaseEntityApi<SubjectItemDto>, FindByPag
      * @param request 分配请求
      * @return 分配结果
      */
-    @PostMapping(path = "unassigne")
+    @PostMapping(path = "unassigne", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "解除预算主体与科目分配关系", notes = "解除预算主体与科目分配关系")
     ResultData<Void> unassigne(@RequestBody @Valid AssigneItemRequest request);
 
