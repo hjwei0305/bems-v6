@@ -58,6 +58,16 @@ public class Subject extends BaseAuditableEntity implements ITenant, Serializabl
     @Column(name = "currency_name")
     private String currencyName;
     /**
+     * 执行策略id
+     */
+    @Column(name = "strategy_id")
+    private String strategyId;
+    /**
+     * 执行策略名称
+     */
+    @Column(name = "strategy_name")
+    private String strategyName;
+    /**
      * 租户代码
      */
     @Column(name = "tenant_code")
@@ -117,6 +127,22 @@ public class Subject extends BaseAuditableEntity implements ITenant, Serializabl
 
     public void setCurrencyName(String currencyName) {
         this.currencyName = currencyName;
+    }
+
+    public String getStrategyId() {
+        return strategyId;
+    }
+
+    public void setStrategyId(String strategyId) {
+        this.strategyId = strategyId;
+    }
+
+    public String getStrategyName() {
+        return strategyName;
+    }
+
+    public void setStrategyName(String strategyName) {
+        this.strategyName = strategyName;
     }
 
     @Override

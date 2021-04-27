@@ -3,6 +3,7 @@ package com.changhong.bems.entity;
 import com.changhong.bems.dto.OrderCategory;
 import com.changhong.bems.dto.OrderStatus;
 import com.changhong.sei.core.entity.BaseAuditableEntity;
+import com.changhong.sei.core.entity.ICodeUnique;
 import com.changhong.sei.core.entity.ITenant;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -20,8 +21,9 @@ import java.io.Serializable;
 @Table(name = "order_head")
 @DynamicInsert
 @DynamicUpdate
-public class Order extends BaseAuditableEntity implements ITenant, Serializable {
+public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, Serializable {
     private static final long serialVersionUID = -36135917259025562L;
+    public static final String FIELD_SUBJECT_ID = "subjectId";
     public static final String FIELD_CATEGORY_ID = "categoryId";
     /**
      * 申请单号
@@ -106,11 +108,12 @@ public class Order extends BaseAuditableEntity implements ITenant, Serializable 
     @Column(name = "tenant_code")
     private String tenantCode;
 
-
+    @Override
     public String getCode() {
         return code;
     }
 
+    @Override
     public void setCode(String code) {
         this.code = code;
     }

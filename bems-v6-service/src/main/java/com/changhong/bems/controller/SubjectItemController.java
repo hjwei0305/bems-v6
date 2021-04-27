@@ -1,11 +1,15 @@
 package com.changhong.bems.controller;
 
 import com.changhong.bems.api.SubjectItemApi;
+import com.changhong.bems.dto.AssigneItemRequest;
+import com.changhong.bems.dto.ItemDto;
 import com.changhong.bems.dto.SubjectItemDto;
 import com.changhong.bems.entity.SubjectItem;
 import com.changhong.bems.service.SubjectItemService;
 import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
+import com.changhong.sei.core.dto.serach.PageResult;
+import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.service.BaseEntityService;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,17 +41,6 @@ public class SubjectItemController extends BaseEntityController<SubjectItem, Sub
     }
 
     /**
-     * 根据预算主体查询私有预算科目
-     *
-     * @param subjectId 预算主体id
-     * @return 分页查询结果
-     */
-    @Override
-    public ResultData<List<SubjectItemDto>> findBySubject(String subjectId) {
-        return ResultData.success(convertToDtos(service.findBySubject(subjectId)));
-    }
-
-    /**
      * 冻结预算科目
      *
      * @param ids 预算类型id
@@ -69,4 +62,58 @@ public class SubjectItemController extends BaseEntityController<SubjectItem, Sub
         return service.frozen(ids, Boolean.FALSE);
     }
 
+    /**
+     * 获取未分配的预算科目
+     *
+     * @param subjectId 预算主体id
+     * @return 子实体清单
+     */
+    @Override
+    public ResultData<List<ItemDto>> getUnassigned(String subjectId) {
+        return null;
+    }
+
+    /**
+     * 获取已分配的预算科目
+     *
+     * @param subjectId 预算主体id
+     * @return 子实体清单
+     */
+    @Override
+    public ResultData<List<ItemDto>> getAssigned(String subjectId) {
+        return null;
+    }
+
+    /**
+     * 为指定预算主体分配预算科目
+     *
+     * @param request 分配请求
+     * @return 分配结果
+     */
+    @Override
+    public ResultData<Void> assigne(AssigneItemRequest request) {
+        return null;
+    }
+
+    /**
+     * 解除预算主体与科目分配关系
+     *
+     * @param request 分配请求
+     * @return 分配结果
+     */
+    @Override
+    public ResultData<Void> unassigne(AssigneItemRequest request) {
+        return null;
+    }
+
+    /**
+     * 分页查询业务实体
+     *
+     * @param search 查询参数
+     * @return 分页查询结果
+     */
+    @Override
+    public ResultData<PageResult<SubjectItemDto>> findByPage(Search search) {
+        return convertToDtoPageResult(service.findByPage(search));
+    }
 }
