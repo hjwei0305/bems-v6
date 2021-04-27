@@ -16,10 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -234,7 +231,12 @@ public class CategoryService extends BaseEntityService<Category> {
     public List<Dimension> getAssigned(String categoryId) {
         List<CategoryDimension> categoryDimensions = categoryDimensionService.getByCategoryId(categoryId);
         Set<String> codes = categoryDimensions.stream().map(CategoryDimension::getDimensionCode).collect(Collectors.toSet());
-        return dimensionService.findByCodes(codes);
+        List<Dimension> list = dimensionService.findByCodes(codes);
+        if (CollectionUtils.isNotEmpty(list)) {
+            // 必要维度排序在前
+            list.sort(Comparator.comparing(Dimension::getRequired).reversed());
+        }
+        return list;
     }
 
     /**
