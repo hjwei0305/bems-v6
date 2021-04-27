@@ -55,12 +55,12 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
         DimensionAttribute attribute = dimensionAttributeService.findFirstByProperty(DimensionAttribute.FIELD_ITEM, id);
         if (Objects.nonNull(attribute)) {
             // 当前科目已被使用,禁止删除!
-            return OperateResult.operationFailure("item_00001");
+            return OperateResult.operationFailure("subject_item_00001");
         }
         OrderDetail orderItem = orderItemService.findFirstByProperty(OrderDetail.FIELD_ITEM_ID, id);
         if (Objects.nonNull(orderItem)) {
             // 当前科目已被使用,禁止删除!
-            return OperateResult.operationFailure("item_00001");
+            return OperateResult.operationFailure("subject_item_00001");
         }
         // TODO 导入明细
         return OperateResult.operationSuccess();
@@ -157,6 +157,55 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
             subjectItems.add(subjectItem);
         }
         this.save(subjectItems);
+        return ResultData.success();
+    }
+
+    /**
+     * 检查是否可以参考引用
+     * 当主体不存在科目时才允许参考引用
+     *
+     * @param subjectId 预算主体id
+     * @return 检查结果
+     */
+    public boolean checkReference(String subjectId) {
+        SubjectItem subjectItem = dao.findFirstByProperty(SubjectItem.FIELD_SUBJECT_ID, subjectId);
+        return Objects.isNull(subjectItem);
+    }
+
+    /**
+     * 参考引用
+     * 当主体不存在科目时才允许参考引用
+     *
+     * @param currentId   当前预算主体id
+     * @param referenceId 参考预算主体id
+     * @return 检查结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ResultData<Void> reference(String currentId, String referenceId) {
+        if (checkReference(currentId)) {
+            // 预算主体[{0}]已存在科目,不允许再参考引用!
+            return ResultData.fail(ContextUtil.getMessage("subject_item_00002", currentId));
+        }
+        List<SubjectItem> subjectItems = findBySubject(referenceId);
+        if (CollectionUtils.isEmpty(subjectItems)) {
+            // 预算主体[{0}]还未维护科目!
+            return ResultData.fail(ContextUtil.getMessage("subject_item_00003", referenceId));
+        }
+        SubjectItem subjectItem;
+        List<SubjectItem> itemList = new ArrayList<>();
+        for (SubjectItem item : subjectItems) {
+            if (item.getFrozen()) {
+                continue;
+            }
+            subjectItem = new SubjectItem();
+            subjectItem.setSubjectId(currentId);
+            subjectItem.setCode(item.getCode());
+            subjectItem.setName(item.getName());
+            subjectItem.setStrategyId(item.getStrategyId());
+            subjectItem.setStrategyName(item.getStrategyName());
+            itemList.add(subjectItem);
+        }
+        this.save(itemList);
         return ResultData.success();
     }
 }

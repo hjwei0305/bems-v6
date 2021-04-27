@@ -1,6 +1,7 @@
 package com.changhong.bems.entity;
 
 import com.changhong.sei.core.entity.BaseAuditableEntity;
+import com.changhong.sei.core.entity.BaseEntity;
 import com.changhong.sei.core.entity.ITenant;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -20,7 +21,7 @@ import java.io.Serializable;
 @Table(name = "order_item")
 @DynamicInsert
 @DynamicUpdate
-public class OrderDetail extends BaseAuditableEntity implements ITenant, Serializable {
+public class OrderDetail extends BaseEntity implements ITenant, Serializable {
     private static final long serialVersionUID = -90286046160801596L;
     public static final String FIELD_ITEM_ID = "item";
     /**

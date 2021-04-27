@@ -9,9 +9,7 @@ import com.changhong.sei.core.dto.serach.Search;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -75,5 +73,28 @@ public interface SubjectItemApi extends BaseEntityApi<SubjectItemDto> {
     @PostMapping(path = "assigne", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "为指定预算主体分配预算科目", notes = "为指定预算主体分配预算科目")
     ResultData<Void> assigne(@RequestBody @Valid AssigneItemRequest request);
+
+    /**
+     * 检查是否可以参考引用
+     * 当主体不存在科目时才允许参考引用
+     *
+     * @param subjectId 预算主体id
+     * @return 检查结果
+     */
+    @GetMapping(path = "checkReference")
+    @ApiOperation(value = "检查参考引用", notes = "检查是否可以参考引用")
+    ResultData<Boolean> checkReference(@RequestParam("subjectId") String subjectId);
+
+    /**
+     * 参考引用
+     * 当主体不存在科目时才允许参考引用
+     *
+     * @param currentId   当前预算主体id
+     * @param referenceId 参考预算主体id
+     * @return 检查结果
+     */
+    @PostMapping(path = "reference")
+    @ApiOperation(value = "参考引用", notes = "参考引用预算主体科目")
+    ResultData<Void> reference(@RequestParam("currentId") String currentId, @RequestParam("referenceId") String referenceId);
 
 }

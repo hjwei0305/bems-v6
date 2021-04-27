@@ -93,4 +93,28 @@ public class SubjectItemController extends BaseEntityController<SubjectItem, Sub
         return service.assigne(request.getSubjectId(), request.getItemCodes());
     }
 
+    /**
+     * 检查是否可以参考引用
+     * 当主体不存在科目时才允许参考引用
+     *
+     * @param subjectId 预算主体id
+     * @return 检查结果
+     */
+    @Override
+    public ResultData<Boolean> checkReference(String subjectId) {
+        return ResultData.success(service.checkReference(subjectId));
+    }
+
+    /**
+     * 参考引用
+     * 当主体不存在科目时才允许参考引用
+     *
+     * @param currentId   当前预算主体id
+     * @param referenceId 参考预算主体id
+     * @return 检查结果
+     */
+    @Override
+    public ResultData<Void> reference(String currentId, String referenceId) {
+        return service.reference(currentId, referenceId);
+    }
 }

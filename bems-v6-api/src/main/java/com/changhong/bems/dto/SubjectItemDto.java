@@ -4,6 +4,8 @@ import com.changhong.sei.core.dto.BaseEntityDto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.NotBlank;
+
 /**
  * 预算科目(Item)DTO类
  *
@@ -17,11 +19,13 @@ public class SubjectItemDto extends BaseEntityDto {
     /**
      * 预算主体id
      */
+    @NotBlank
     @ApiModelProperty(value = "预算主体id")
     private String subjectId;
     /**
      * 代码
      */
+    @NotBlank
     @ApiModelProperty(value = "代码")
     private String code;
     /**
