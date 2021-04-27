@@ -7,6 +7,7 @@ import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.service.BaseEntityService;
+import com.changhong.sei.core.service.Validation;
 import com.changhong.sei.core.service.bo.OperateResult;
 import com.changhong.sei.core.service.bo.OperateResultWithData;
 import org.apache.commons.collections.CollectionUtils;
@@ -47,53 +48,6 @@ public class CategoryService extends BaseEntityService<Category> {
     }
 
     /**
-     * 创建数据保存数据之前额外操作回调方法 默认为空逻辑，子类根据需要覆写添加逻辑即可
-     *
-     * @param entity 待创建数据对象
-     */
-    @Override
-    protected OperateResultWithData<Category> preInsert(Category entity) {
-        if (CategoryType.GENERAL == entity.getType()) {
-            entity.setSubjectId(CategoryType.GENERAL.name());
-        } else if (CategoryType.PRIVATE == entity.getType()) {
-            if (StringUtils.isEmpty(entity.getSubjectId())) {
-                // 非通用预算类型,预算主体不能为空!
-                return OperateResultWithData.operationFailure("category_00002");
-            }
-        } else {
-            // 错误的预算类型分类
-            return OperateResultWithData.operationFailure("category_00003");
-        }
-        return super.preInsert(entity);
-    }
-
-    /**
-     * 更新数据保存数据之前额外操作回调方法 默认为空逻辑，子类根据需要覆写添加逻辑即可
-     *
-     * @param entity 待更新数据对象
-     */
-    @Override
-    protected OperateResultWithData<Category> preUpdate(Category entity) {
-        if (CategoryType.GENERAL == entity.getType()) {
-            entity.setSubjectId(CategoryType.GENERAL.name());
-        } else if (CategoryType.PRIVATE == entity.getType()) {
-            if (StringUtils.isEmpty(entity.getSubjectId())) {
-                // 非通用预算类型,预算主体不能为空!
-                return OperateResultWithData.operationFailure("category_00002");
-            }
-        } else {
-            // 错误的预算类型分类
-            return OperateResultWithData.operationFailure("category_00003");
-        }
-        Category category = dao.findOne(entity.getId());
-        if (category.getReferenced()) {
-            // 预算类型已被使用,不允许修改
-            return OperateResultWithData.operationFailure("category_00006");
-        }
-        return super.preUpdate(entity);
-    }
-
-    /**
      * 删除数据保存数据之前额外操作回调方法 子类根据需要覆写添加逻辑即可
      *
      * @param id 待删除数据对象主键
@@ -114,6 +68,47 @@ public class CategoryService extends BaseEntityService<Category> {
             return OperateResult.operationFailure("category_00001");
         }
         return OperateResult.operationSuccess();
+    }
+
+    /**
+     * 数据保存操作
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public OperateResultWithData<Category> save(Category entity) {
+        Validation.notNull(entity, "持久化对象不能为空");
+        if (CategoryType.GENERAL == entity.getType()) {
+            entity.setSubjectId(CategoryType.GENERAL.name());
+        } else if (CategoryType.PRIVATE == entity.getType()) {
+            if (StringUtils.isEmpty(entity.getSubjectId())) {
+                // 非通用预算类型,预算主体不能为空!
+                return OperateResultWithData.operationFailure("category_00002");
+            }
+        } else {
+            // 错误的预算类型分类
+            return OperateResultWithData.operationFailure("category_00003");
+        }
+
+        boolean isNew = isNew(entity);
+        if (isNew) {
+            // 创建前设置租户代码
+            if (StringUtils.isBlank(entity.getTenantCode())) {
+                entity.setTenantCode(ContextUtil.getTenantCode());
+            }
+        } else {
+            Category category = dao.findOne(entity.getId());
+            if (category.getReferenced()) {
+                // 预算类型已被使用,不允许修改
+                return OperateResultWithData.operationFailure("category_00006");
+            }
+        }
+        Category saveEntity = dao.save(entity);
+        if (isNew) {
+            categoryDimensionService.addRequiredDimension(entity.getId());
+            return OperateResultWithData.operationSuccessWithData(saveEntity, "core_service_00026");
+        } else {
+            return OperateResultWithData.operationSuccessWithData(saveEntity, "core_service_00027");
+        }
     }
 
     /**

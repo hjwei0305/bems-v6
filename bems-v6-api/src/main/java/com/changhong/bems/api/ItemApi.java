@@ -1,16 +1,12 @@
 package com.changhong.bems.api;
 
-import com.changhong.bems.dto.CategoryDto;
 import com.changhong.bems.dto.ItemDto;
 import com.changhong.sei.core.api.BaseEntityApi;
-import com.changhong.sei.core.api.FindByPageApi;
 import com.changhong.sei.core.dto.ResultData;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -23,7 +19,7 @@ import java.util.List;
  */
 @Valid
 @FeignClient(name = "bems-v6", path = ItemApi.PATH)
-public interface ItemApi extends BaseEntityApi<ItemDto>, FindByPageApi<ItemDto> {
+public interface ItemApi extends BaseEntityApi<ItemDto> {
     String PATH = "item";
 
     /**
@@ -49,31 +45,31 @@ public interface ItemApi extends BaseEntityApi<ItemDto>, FindByPageApi<ItemDto> 
      * 引用通用预算科目
      *
      * @param subjectId 预算主体id
-     * @param id        通用预算类型id
+     * @param ids       通用预算类型ids
      * @return 操作结果
      */
-    @PostMapping(path = "reference/{subjectId}/{id}")
+    @PostMapping(path = "reference/{subjectId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "引用通用预算科目", notes = "预算主体引用通用预算科目")
-    ResultData<Void> reference(@PathVariable("subjectId") String subjectId, @PathVariable("id") String id);
+    ResultData<Void> reference(@PathVariable("subjectId") String subjectId, @RequestBody List<String> ids);
 
     /**
      * 冻结预算科目
      *
-     * @param id 预算科目id
+     * @param ids 预算科目id
      * @return 操作结果
      */
-    @PostMapping(path = "frozen/{id}")
+    @PostMapping(path = "frozen")
     @ApiOperation(value = "冻结预算科目", notes = "冻结预算科目")
-    ResultData<Void> frozen(@PathVariable("id") String id);
+    ResultData<Void> frozen(@RequestBody List<String> ids);
 
     /**
      * 解冻预算科目
      *
-     * @param id 预算科目id
+     * @param ids 预算科目id
      * @return 操作结果
      */
-    @PostMapping(path = "unfrozen/{id}")
+    @PostMapping(path = "unfrozen")
     @ApiOperation(value = "冻结预算科目", notes = "冻结预算科目")
-    ResultData<Void> unfrozen(@PathVariable("id") String id);
+    ResultData<Void> unfrozen(@RequestBody List<String> ids);
 
 }

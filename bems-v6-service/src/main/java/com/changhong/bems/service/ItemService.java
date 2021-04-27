@@ -112,55 +112,47 @@ public class ItemService extends BaseEntityService<Item> {
      * 引用通用预算类型
      *
      * @param subjectId 预算主体id
-     * @param id        通用预算类型id
+     * @param ids       通用预算类型id
      * @return 操作结果
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> reference(String subjectId, String id) {
+    public ResultData<Void> reference(String subjectId, List<String> ids) {
         Subject subject = subjectService.findOne(subjectId);
         if (Objects.isNull(subject)) {
             // 预算主体不存在
             return ResultData.fail(ContextUtil.getMessage("subject_00003", subjectId));
         }
 
-        Item item = dao.findOne(id);
-        if (Objects.isNull(item)) {
-            // 预算科目不存在
-            return ResultData.fail(ContextUtil.getMessage("item_00002", id));
-        } else {
-            if (CategoryType.GENERAL != item.getType()) {
-                // 不是通用预算科目
-                return ResultData.fail(ContextUtil.getMessage("item_00003", item.getName()));
+        List<Item> items = dao.findAllById(ids);
+        for (Item item : items) {
+            if (CategoryType.GENERAL == item.getType()) {
+                Item privateItem = new Item();
+                privateItem.setType(CategoryType.PRIVATE);
+                privateItem.setSubjectId(subjectId);
+                privateItem.setCode(item.getCode());
+                privateItem.setName(item.getName());
+                privateItem.setStrategyId(item.getStrategyId());
+                privateItem.setStrategyName(item.getStrategyName());
+                privateItem.setReferenceId(item.getId());
+                this.save(privateItem);
             }
         }
-        Item privateItem = new Item();
-        privateItem.setCode(item.getCode());
-        privateItem.setName(item.getName());
-        privateItem.setStrategyId(item.getStrategyId());
-        privateItem.setStrategyName(item.getStrategyName());
-        privateItem.setType(CategoryType.PRIVATE);
-        privateItem.setSubjectId(subjectId);
-        privateItem.setReferenceId(id);
-        this.save(privateItem);
-
         return ResultData.success();
     }
 
     /**
      * 冻结/解冻预算类型
      *
-     * @param id 预算类型id
+     * @param ids 预算类型id
      * @return 操作结果
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> frozen(String id, boolean frozen) {
-        Item item = dao.findOne(id);
-        if (Objects.isNull(item)) {
-            // 预算科目不存在
-            return ResultData.fail(ContextUtil.getMessage("item_00002", id));
+    public ResultData<Void> frozen(List<String> ids, boolean frozen) {
+        List<Item> items = dao.findAllById(ids);
+        for (Item item : items) {
+            item.setFrozen(frozen);
         }
-        item.setFrozen(frozen);
-        this.save(item);
+        this.save(items);
         return ResultData.success();
     }
 }

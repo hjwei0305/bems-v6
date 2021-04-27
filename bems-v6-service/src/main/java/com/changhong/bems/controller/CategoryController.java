@@ -47,14 +47,12 @@ public class CategoryController extends BaseEntityController<Category, CategoryD
     @Override
     public ResultData<Void> create(CreateCategoryDto dto) {
         try {
-            List<Category> categoryList = new ArrayList<>();
             OrderCategory[] categories = dto.getOrderCategories();
             for (OrderCategory category : categories) {
                 Category entity = entityModelMapper.map(dto, Category.class);
                 entity.setOrderCategory(category);
-                categoryList.add(entity);
+                service.save(entity);
             }
-            service.save(categoryList);
             return ResultData.success();
         } catch (Exception e) {
             return ResultData.fail(e.getMessage());

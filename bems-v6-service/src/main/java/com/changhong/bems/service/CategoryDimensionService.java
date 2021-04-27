@@ -2,12 +2,14 @@ package com.changhong.bems.service;
 
 import com.changhong.bems.dao.CategoryDimensionDao;
 import com.changhong.bems.entity.CategoryDimension;
+import com.changhong.bems.entity.Dimension;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
@@ -23,10 +25,30 @@ import java.util.List;
 public class CategoryDimensionService extends BaseEntityService<CategoryDimension> {
     @Autowired
     private CategoryDimensionDao dao;
+    @Autowired
+    private DimensionService dimensionService;
 
     @Override
     protected BaseEntityDao<CategoryDimension> getDao() {
         return dao;
+    }
+
+    /**
+     * 添加必要维度
+     *
+     * @param categoryId 预算类型id
+     * @return 添加结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void addRequiredDimension(String categoryId) {
+        List<Dimension> dimensions = dimensionService.getRequired();
+        CategoryDimension categoryDimension;
+        for (Dimension dimension : dimensions) {
+            categoryDimension = new CategoryDimension();
+            categoryDimension.setCategoryId(categoryId);
+            categoryDimension.setDimensionCode(dimension.getCode());
+            this.save(categoryDimension);
+        }
     }
 
     /**

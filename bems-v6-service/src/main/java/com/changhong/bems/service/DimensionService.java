@@ -119,6 +119,14 @@ public class DimensionService extends BaseEntityService<Dimension> {
     }
 
     /**
+     * 获取必要维度清单
+     */
+    public List<Dimension> getRequired() {
+        List<Dimension> dimensions = findAll();
+        return dimensions.stream().filter(Dimension::getRequired).collect(Collectors.toList());
+    }
+
+    /**
      * 获取所有预制的维度代码
      *
      * @return 策略清单

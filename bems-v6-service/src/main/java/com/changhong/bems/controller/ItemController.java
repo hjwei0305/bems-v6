@@ -6,8 +6,6 @@ import com.changhong.bems.entity.Item;
 import com.changhong.bems.service.ItemService;
 import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
-import com.changhong.sei.core.dto.serach.PageResult;
-import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.service.BaseEntityService;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,17 +37,6 @@ public class ItemController extends BaseEntityController<Item, ItemDto> implemen
     }
 
     /**
-     * 分页查询业务实体
-     *
-     * @param search 查询参数
-     * @return 分页查询结果
-     */
-    @Override
-    public ResultData<PageResult<ItemDto>> findByPage(Search search) {
-        return convertToDtoPageResult(service.findByPage(search));
-    }
-
-    /**
      * 查询通用预算科目
      *
      * @return 查询结果
@@ -74,34 +61,34 @@ public class ItemController extends BaseEntityController<Item, ItemDto> implemen
      * 引用通用预算科目
      *
      * @param subjectId 预算主体id
-     * @param id        通用预算类型id
+     * @param ids       通用预算类型ids
      * @return 操作结果
      */
     @Override
-    public ResultData<Void> reference(String subjectId, String id) {
-        return service.reference(subjectId, id);
+    public ResultData<Void> reference(String subjectId, List<String> ids) {
+        return service.reference(subjectId, ids);
     }
 
     /**
      * 冻结预算科目
      *
-     * @param id 预算类型id
+     * @param ids 预算类型id
      * @return 操作结果
      */
     @Override
-    public ResultData<Void> frozen(String id) {
-        return service.frozen(id, Boolean.TRUE);
+    public ResultData<Void> frozen(List<String> ids) {
+        return service.frozen(ids, Boolean.TRUE);
     }
 
     /**
      * 解冻预算科目
      *
-     * @param id 预算类型id
+     * @param ids 预算类型id
      * @return 操作结果
      */
     @Override
-    public ResultData<Void> unfrozen(String id) {
-        return service.frozen(id, Boolean.FALSE);
+    public ResultData<Void> unfrozen(List<String> ids) {
+        return service.frozen(ids, Boolean.FALSE);
     }
 
 }

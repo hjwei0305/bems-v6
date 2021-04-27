@@ -2,6 +2,7 @@ package com.changhong.bems.entity;
 
 import com.changhong.sei.core.entity.BaseAuditableEntity;
 import com.changhong.sei.core.entity.ITenant;
+import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -53,6 +54,11 @@ public class Dimension extends BaseAuditableEntity implements ITenant, Serializa
      */
     @Column(name = "tenant_code")
     private String tenantCode;
+    /**
+     * 系统必要
+     */
+    @Column(name = "required")
+    private Boolean required = Boolean.FALSE;
 
     public String getCode() {
         return code;
@@ -92,6 +98,14 @@ public class Dimension extends BaseAuditableEntity implements ITenant, Serializa
 
     public void setStrategyName(String strategyName) {
         this.strategyName = strategyName;
+    }
+
+    public Boolean getRequired() {
+        return required;
+    }
+
+    public void setRequired(Boolean required) {
+        this.required = required;
     }
 
     @Override

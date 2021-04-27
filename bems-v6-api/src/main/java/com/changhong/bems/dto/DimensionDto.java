@@ -38,6 +38,11 @@ public class DimensionDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "维度策略名称")
     private String strategyName;
+    /**
+     * 系统必要
+     */
+    @ApiModelProperty(value = "系统必要")
+    private Boolean required = Boolean.FALSE;
 
     public String getCode() {
         return code;
@@ -79,4 +84,11 @@ public class DimensionDto extends BaseEntityDto {
         this.strategyName = strategyName;
     }
 
+    public Boolean getRequired() {
+        return required;
+    }
+
+    public void setRequired(Boolean required) {
+        this.required = required;
+    }
 }
