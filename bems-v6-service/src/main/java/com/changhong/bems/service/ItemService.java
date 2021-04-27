@@ -4,11 +4,16 @@ import com.changhong.bems.dao.ItemDao;
 import com.changhong.bems.entity.Item;
 import com.changhong.bems.entity.SubjectItem;
 import com.changhong.sei.core.dao.BaseEntityDao;
+import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -50,4 +55,13 @@ public class ItemService extends BaseEntityService<Item> {
         }
     }
 
+    /**
+     * 根据code获取预算科目
+     */
+    public List<Item> getItems(Collection<String> codes) {
+        if (CollectionUtils.isEmpty(codes)) {
+            return new ArrayList<>();
+        }
+        return dao.findByFilter(new SearchFilter(Item.CODE_FIELD, codes, SearchFilter.Operator.IN));
+    }
 }

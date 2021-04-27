@@ -77,14 +77,4 @@ public interface SubjectItemApi extends BaseEntityApi<SubjectItemDto> {
     @ApiOperation(value = "为指定预算主体分配预算科目", notes = "为指定预算主体分配预算科目")
     ResultData<Void> assigne(@RequestBody @Valid AssigneItemRequest request);
 
-    /**
-     * 解除预算主体与科目分配关系
-     *
-     * @param request 分配请求
-     * @return 分配结果
-     */
-    @PostMapping(path = "unassigne", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "解除预算主体与科目分配关系", notes = "解除预算主体与科目分配关系")
-    ResultData<Void> unassigne(@RequestBody @Valid AssigneItemRequest request);
-
 }

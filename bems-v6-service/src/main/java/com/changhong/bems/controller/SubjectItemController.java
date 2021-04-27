@@ -94,14 +94,4 @@ public class SubjectItemController extends BaseEntityController<SubjectItem, Sub
         return service.assigne(request.getSubjectId(), request.getItemCodes());
     }
 
-    /**
-     * 解除预算主体与科目分配关系
-     *
-     * @param request 分配请求
-     * @return 分配结果
-     */
-    @Override
-    public ResultData<Void> unassigne(AssigneItemRequest request) {
-        return service.unassigne(request.getSubjectId(), request.getItemCodes());
-    }
 }

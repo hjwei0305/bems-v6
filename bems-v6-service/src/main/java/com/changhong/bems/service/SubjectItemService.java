@@ -1,10 +1,8 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.dao.SubjectItemDao;
-import com.changhong.bems.entity.DimensionAttribute;
-import com.changhong.bems.entity.Item;
-import com.changhong.bems.entity.OrderDetail;
-import com.changhong.bems.entity.SubjectItem;
+import com.changhong.bems.entity.*;
+import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
@@ -18,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -150,18 +149,24 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
      * @param itemCodes 科目代码
      * @return 分配结果
      */
+    @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> assigne(String subjectId, Set<String> itemCodes) {
-        return null;
-    }
-
-    /**
-     * 解除预算主体与科目分配关系
-     *
-     * @param subjectId 预算主体id
-     * @param itemCodes 科目代码
-     * @return 分配结果
-     */
-    public ResultData<Void> unassigne(String subjectId, Set<String> itemCodes) {
-        return null;
+        Subject subject = subjectService.findOne(subjectId);
+        if (Objects.isNull(subject)) {
+            // 预算类型已被使用,不允许修改
+            return ResultData.fail(ContextUtil.getMessage("subject_00003", subjectId));
+        }
+        List<Item> itemList = itemService.getItems(itemCodes);
+        List<SubjectItem> subjectItems = new ArrayList<>();
+        SubjectItem subjectItem;
+        for (Item item : itemList) {
+            subjectItem = new SubjectItem();
+            subjectItem.setSubjectId(subjectId);
+            subjectItem.setCode(item.getCode());
+            subjectItem.setName(item.getName());
+            subjectItems.add(subjectItem);
+        }
+        this.save(subjectItems);
+        return ResultData.success();
     }
 }
