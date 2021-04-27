@@ -69,18 +69,17 @@ public class SubjectItemController extends BaseEntityController<SubjectItem, Sub
      */
     @Override
     public ResultData<PageResult<SubjectItemDto>> getUnassigned(String subjectId, Search search) {
-        return convertToDtoPageResult(service.getAssigned(subjectId, search));
+        return convertToDtoPageResult(service.getUnassigned(subjectId, search));
     }
 
     /**
      * 获取已分配的预算科目
      *
-     * @param subjectId 预算主体id
      * @return 子实体清单
      */
     @Override
-    public ResultData<PageResult<SubjectItemDto>> getAssigned(String subjectId, Search search) {
-        return convertToDtoPageResult(service.getAssigned(subjectId, search));
+    public ResultData<PageResult<SubjectItemDto>> getAssigned(Search search) {
+        return convertToDtoPageResult(service.getAssigned(search));
     }
 
     /**

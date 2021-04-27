@@ -60,12 +60,11 @@ public interface SubjectItemApi extends BaseEntityApi<SubjectItemDto> {
     /**
      * 获取已分配的预算科目
      *
-     * @param subjectId 预算主体id
      * @return 子实体清单
      */
-    @PostMapping(path = "getAssigned/{subjectId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "getAssigned", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "获取已分配的预算科目", notes = "获取已分配的预算科目")
-    ResultData<PageResult<SubjectItemDto>> getAssigned(@PathVariable("subjectId") String subjectId, @RequestBody Search search);
+    ResultData<PageResult<SubjectItemDto>> getAssigned(@RequestBody Search search);
 
     /**
      * 为指定预算主体分配预算科目

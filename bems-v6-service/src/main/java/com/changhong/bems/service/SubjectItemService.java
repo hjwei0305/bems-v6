@@ -131,14 +131,12 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
     /**
      * 获取已分配的预算科目
      *
-     * @param subjectId 预算主体id
      * @return 子实体清单
      */
-    public PageResult<SubjectItem> getAssigned(String subjectId, Search search) {
+    public PageResult<SubjectItem> getAssigned(Search search) {
         if (Objects.isNull(search)) {
             search = Search.createSearch();
         }
-        search.addFilter(new SearchFilter(SubjectItem.FIELD_SUBJECT_ID, subjectId));
         return findByPage(search);
     }
 
