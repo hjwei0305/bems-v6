@@ -11,7 +11,6 @@ import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -105,18 +104,7 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
         }
         List<SubjectItem> subjectItems = findBySubject(subjectId);
         if (CollectionUtils.isNotEmpty(subjectItems)) {
-            if (CollectionUtils.isNotEmpty(search.getFilters())) {
-                SearchFilter searchCode = search.getFilters().stream().filter(f -> StringUtils.equals(f.getFieldName(), Item.CODE_FIELD)).findAny().orElse(null);
-                if (Objects.nonNull(searchCode)) {
-                    if (subjectItems.stream().anyMatch(i -> StringUtils.containsIgnoreCase(i.getCode(), String.valueOf(searchCode.getValue())))) {
-                        // todo
-                    }
-                } else {
-                    search.addFilter(new SearchFilter(Item.CODE_FIELD, subjectItems.stream().map(SubjectItem::getCode).collect(Collectors.toSet()), SearchFilter.Operator.NOTIN));
-                }
-            } else {
-                search.addFilter(new SearchFilter(Item.CODE_FIELD, subjectItems.stream().map(SubjectItem::getCode).collect(Collectors.toSet()), SearchFilter.Operator.NOTIN));
-            }
+            search.addFilter(new SearchFilter(Item.CODE_FIELD, subjectItems.stream().map(SubjectItem::getCode).collect(Collectors.toSet()), SearchFilter.Operator.NOTIN));
         }
 
         PageResult<Item> itemPageResult = itemService.findByPage(search);
