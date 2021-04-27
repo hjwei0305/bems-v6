@@ -50,7 +50,7 @@ public class DimensionAttribute extends BaseEntity implements ITenant, Serializa
     /**
      * 预算科目
      */
-    @Column(name = "item_id")
+    @Column(name = "item_code")
     private String item;
     /**
      * 预算科目名称

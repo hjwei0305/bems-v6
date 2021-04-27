@@ -1,143 +1,159 @@
-package com.changhong.bems.dto;
+package com.changhong.bems.entity;
 
-import com.changhong.sei.core.dto.BaseEntityDto;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import com.changhong.sei.core.entity.BaseAuditableEntity;
+import com.changhong.sei.core.entity.ITenant;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import java.io.Serializable;
 
 /**
- * 预算维度属性(OrderItem)DTO类
+ * 预算行项(OrderDetail)实体类
  *
  * @author sei
- * @since 2021-04-25 15:14:00
+ * @since 2021-04-25 15:13:58
  */
-@ApiModel(description = "预算维度属性DTO")
-public class OrderItemDto extends BaseEntityDto {
-    private static final long serialVersionUID = 466264526815699224L;
+@Entity
+@Table(name = "order_item")
+@DynamicInsert
+@DynamicUpdate
+public class OrderDetail extends BaseAuditableEntity implements ITenant, Serializable {
+    private static final long serialVersionUID = -90286046160801596L;
+    public static final String FIELD_ITEM_ID = "itemId";
     /**
      * 预算申请单id
      */
-    @ApiModelProperty(value = "预算申请单id")
+    @Column(name = "order_id")
     private String orderId;
     /**
      * 行号
      */
-    @ApiModelProperty(value = "行号")
+    @Column(name = "line_number")
     private String lineNumber;
     /**
      * 金额
      */
-    @ApiModelProperty(value = "金额")
+    @Column(name = "amount")
     private Double amount = 0d;
     /**
      * 预算池编码
      */
-    @ApiModelProperty(value = "预算池编码")
+    @Column(name = "pool_code")
     private String poolCode;
     /**
      * 预算池金额
      */
-    @ApiModelProperty(value = "预算池金额")
+    @Column(name = "pool_amount")
     private Double poolAmount = 0d;
     /**
      * 来源预算池编码
      */
-    @ApiModelProperty(value = "来源预算池编码")
+    @Column(name = "origin_pool_code")
     private String originPoolCode;
     /**
      * 来源预算池金额
      */
-    @ApiModelProperty(value = "来源预算池金额")
+    @Column(name = "origin_pool_amount")
     private Double originPoolAmount = 0d;
     /**
      * 预算期间
      */
-    @ApiModelProperty(value = "预算期间")
+    @Column(name = "period_id")
     private String periodId;
     /**
      * 预算期间名称
      */
-    @ApiModelProperty(value = "预算期间名称")
+    @Column(name = "period_name")
     private String periodName;
     /**
      * 预算科目
      */
-    @ApiModelProperty(value = "预算科目")
-    private String itemId;
+    @Column(name = "item_code")
+    private String item;
     /**
      * 预算科目名称
      */
-    @ApiModelProperty(value = "预算科目名称")
+    @Column(name = "item_name")
     private String itemName;
     /**
      * 组织
      */
-    @ApiModelProperty(value = "组织")
+    @Column(name = "org")
     private String org;
     /**
      * 组织名称
      */
-    @ApiModelProperty(value = "组织名称")
+    @Column(name = "org_name")
     private String orgName;
     /**
      * 项目
      */
-    @ApiModelProperty(value = "项目")
+    @Column(name = "project")
     private String project;
     /**
      * 项目名称
      */
-    @ApiModelProperty(value = "项目名称")
+    @Column(name = "project_name")
     private String projectName;
     /**
      * 自定义1
      */
-    @ApiModelProperty(value = "自定义1")
+    @Column(name = "udf1")
     private String udf1;
     /**
      * 自定义1名称
      */
-    @ApiModelProperty(value = "自定义1名称")
+    @Column(name = "udf1_name")
     private String udf1Name;
     /**
      * 自定义2
      */
-    @ApiModelProperty(value = "自定义2")
+    @Column(name = "udf2")
     private String udf2;
     /**
      * 自定义2名称
      */
-    @ApiModelProperty(value = "自定义2名称")
+    @Column(name = "udf2_name")
     private String udf2Name;
     /**
      * 自定义3
      */
-    @ApiModelProperty(value = "自定义3")
+    @Column(name = "udf3")
     private String udf3;
     /**
      * 自定义3名称
      */
-    @ApiModelProperty(value = "自定义3名称")
+    @Column(name = "udf3_name")
     private String udf3Name;
     /**
      * 自定义4
      */
-    @ApiModelProperty(value = "自定义4")
+    @Column(name = "udf4")
     private String udf4;
     /**
      * 自定义4名称
      */
-    @ApiModelProperty(value = "自定义4名称")
+    @Column(name = "udf4_name")
     private String udf4Name;
     /**
      * 自定义5
      */
-    @ApiModelProperty(value = "自定义5")
+    @Column(name = "udf5")
     private String udf5;
     /**
      * 自定义5名称
      */
-    @ApiModelProperty(value = "自定义5名称")
+    @Column(name = "udf5_name")
     private String udf5Name;
+    /**
+     * 租户代码
+     */
+    @Column(name = "tenant_code")
+    private String tenantCode;
+
 
     public String getOrderId() {
         return orderId;
@@ -211,12 +227,12 @@ public class OrderItemDto extends BaseEntityDto {
         this.periodName = periodName;
     }
 
-    public String getItemId() {
-        return itemId;
+    public String getItem() {
+        return item;
     }
 
-    public void setItemId(String itemId) {
-        this.itemId = itemId;
+    public void setItem(String item) {
+        this.item = item;
     }
 
     public String getItemName() {
@@ -337,6 +353,16 @@ public class OrderItemDto extends BaseEntityDto {
 
     public void setUdf5Name(String udf5Name) {
         this.udf5Name = udf5Name;
+    }
+
+    @Override
+    public String getTenantCode() {
+        return tenantCode;
+    }
+
+    @Override
+    public void setTenantCode(String tenantCode) {
+        this.tenantCode = tenantCode;
     }
 
 }

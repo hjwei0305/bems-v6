@@ -37,7 +37,7 @@ public class DimensionAttributeDto extends BaseEntityDto {
      * 预算科目
      */
     @ApiModelProperty(value = "预算科目")
-    private String itemId;
+    private String item;
     /**
      * 预算科目名称
      */
@@ -146,12 +146,12 @@ public class DimensionAttributeDto extends BaseEntityDto {
         this.periodName = periodName;
     }
 
-    public String getItemId() {
-        return itemId;
+    public String getItem() {
+        return item;
     }
 
-    public void setItemId(String itemId) {
-        this.itemId = itemId;
+    public void setItem(String item) {
+        this.item = item;
     }
 
     public String getItemName() {

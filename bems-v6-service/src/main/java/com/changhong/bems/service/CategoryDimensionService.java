@@ -55,6 +55,20 @@ public class CategoryDimensionService extends BaseEntityService<CategoryDimensio
      * 根据预算类型id和维度代码获取分配关系
      *
      * @param categoryId 预算类型id
+     * @return 返回分配关系清单
+     */
+    public List<CategoryDimension> getByCategoryId(String categoryId) {
+        return dao.findListByProperty(CategoryDimension.FIELD_CATEGORY_ID, categoryId);
+    }
+
+    public CategoryDimension getByDimensionCode(String dimensionCode) {
+        return dao.findFirstByProperty(CategoryDimension.FIELD_DIMENSION_CODE, dimensionCode);
+    }
+
+    /**
+     * 根据预算类型id和维度代码获取分配关系
+     *
+     * @param categoryId 预算类型id
      * @param codes      预算维度代码
      * @return 返回分配关系清单
      */

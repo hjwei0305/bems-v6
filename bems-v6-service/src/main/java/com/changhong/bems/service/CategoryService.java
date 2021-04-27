@@ -216,7 +216,7 @@ public class CategoryService extends BaseEntityService<Category> {
      */
     public List<Dimension> getUnassigned(String categoryId) {
         List<Dimension> dimensionList = dimensionService.findAll();
-        List<CategoryDimension> categoryDimensions = categoryDimensionService.findListByProperty(CategoryDimension.FIELD_CATEGORY_ID, categoryId);
+        List<CategoryDimension> categoryDimensions = categoryDimensionService.getByCategoryId(categoryId);
         if (CollectionUtils.isNotEmpty(categoryDimensions)) {
             Set<String> codes = categoryDimensions.stream().map(CategoryDimension::getDimensionCode).collect(Collectors.toSet());
             return dimensionList.stream().filter(d -> !codes.contains(d.getCode())).collect(Collectors.toList());
@@ -232,7 +232,7 @@ public class CategoryService extends BaseEntityService<Category> {
      * @return 子实体清单
      */
     public List<Dimension> getAssigned(String categoryId) {
-        List<CategoryDimension> categoryDimensions = categoryDimensionService.findListByProperty(CategoryDimension.FIELD_CATEGORY_ID, categoryId);
+        List<CategoryDimension> categoryDimensions = categoryDimensionService.getByCategoryId(categoryId);
         Set<String> codes = categoryDimensions.stream().map(CategoryDimension::getDimensionCode).collect(Collectors.toSet());
         return dimensionService.findByCodes(codes);
     }

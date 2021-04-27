@@ -59,7 +59,7 @@ public class DimensionService extends BaseEntityService<Dimension> {
     public OperateResult delete(String id) {
         Dimension dimension = dao.findOne(id);
         if (Objects.nonNull(dimension)) {
-            CategoryDimension categoryDimension = categoryDimensionService.findFirstByProperty(CategoryDimension.FIELD_DIMENSION_CODE, dimension.getCode());
+            CategoryDimension categoryDimension = categoryDimensionService.getByDimensionCode(dimension.getCode());
             if (Objects.nonNull(categoryDimension)) {
                 Category category = categoryService.findOne(categoryDimension.getCategoryId());
                 String obj = Objects.isNull(category) ? categoryDimension.getCategoryId() : category.getName();

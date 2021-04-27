@@ -6,14 +6,14 @@ import com.changhong.bems.entity.Item;
 import com.changhong.bems.service.ItemService;
 import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
+import com.changhong.sei.core.dto.serach.PageResult;
+import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.service.BaseEntityService;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 /**
  * 预算科目(Item)控制类
@@ -37,58 +37,13 @@ public class ItemController extends BaseEntityController<Item, ItemDto> implemen
     }
 
     /**
-     * 查询通用预算科目
+     * 分页查询业务实体
      *
-     * @return 查询结果
-     */
-    @Override
-    public ResultData<List<ItemDto>> findByGeneral() {
-        return ResultData.success(convertToDtos(service.findByGeneral()));
-    }
-
-    /**
-     * 根据预算主体查询私有预算科目
-     *
-     * @param subjectId 预算主体id
+     * @param search 查询参数
      * @return 分页查询结果
      */
     @Override
-    public ResultData<List<ItemDto>> findBySubject(String subjectId) {
-        return ResultData.success(convertToDtos(service.findBySubject(subjectId)));
+    public ResultData<PageResult<ItemDto>> findByPage(Search search) {
+        return convertToDtoPageResult(service.findByPage(search));
     }
-
-    /**
-     * 引用通用预算科目
-     *
-     * @param subjectId 预算主体id
-     * @param ids       通用预算类型ids
-     * @return 操作结果
-     */
-    @Override
-    public ResultData<Void> reference(String subjectId, List<String> ids) {
-        return service.reference(subjectId, ids);
-    }
-
-    /**
-     * 冻结预算科目
-     *
-     * @param ids 预算类型id
-     * @return 操作结果
-     */
-    @Override
-    public ResultData<Void> frozen(List<String> ids) {
-        return service.frozen(ids, Boolean.TRUE);
-    }
-
-    /**
-     * 解冻预算科目
-     *
-     * @param ids 预算类型id
-     * @return 操作结果
-     */
-    @Override
-    public ResultData<Void> unfrozen(List<String> ids) {
-        return service.frozen(ids, Boolean.FALSE);
-    }
-
 }

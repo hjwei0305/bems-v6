@@ -5,9 +5,9 @@ import com.changhong.bems.dto.CorporationDto;
 import com.changhong.bems.dto.CurrencyDto;
 import com.changhong.bems.dto.OrganizationDto;
 import com.changhong.bems.entity.Category;
-import com.changhong.bems.entity.Item;
 import com.changhong.bems.entity.Period;
 import com.changhong.bems.entity.Subject;
+import com.changhong.bems.entity.SubjectItem;
 import com.changhong.bems.service.client.CorporationManager;
 import com.changhong.bems.service.client.CurrencyManager;
 import com.changhong.bems.service.client.OrganizationManager;
@@ -43,7 +43,7 @@ public class SubjectService extends BaseEntityService<Subject> {
     @Autowired
     private PeriodService periodService;
     @Autowired
-    private ItemService itemService;
+    private SubjectItemService subjectItemService;
 
     @Override
     protected BaseEntityDao<Subject> getDao() {
@@ -84,7 +84,7 @@ public class SubjectService extends BaseEntityService<Subject> {
      */
     @Override
     protected OperateResult preDelete(String id) {
-        Item item = itemService.findByProperty(Item.FIELD_SUBJECT_ID, id);
+        SubjectItem item = subjectItemService.findByProperty(SubjectItem.FIELD_SUBJECT_ID, id);
         if (Objects.nonNull(item)) {
             // 已被预算科目[{0}]使用,禁止删除!
             return OperateResult.operationFailure("subject_00004", item.getName());
