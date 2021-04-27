@@ -105,10 +105,14 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
         }
         List<SubjectItem> subjectItems = findBySubject(subjectId);
         if (CollectionUtils.isNotEmpty(subjectItems)) {
-            SearchFilter searchCode = search.getFilters().stream().filter(f -> StringUtils.equals(f.getFieldName(), Item.CODE_FIELD)).findAny().orElse(null);
-            if (Objects.nonNull(searchCode)) {
-                if (subjectItems.stream().anyMatch(i -> StringUtils.containsIgnoreCase(i.getCode(), String.valueOf(searchCode.getValue())))) {
-                    // todo
+            if (CollectionUtils.isNotEmpty(search.getFilters())) {
+                SearchFilter searchCode = search.getFilters().stream().filter(f -> StringUtils.equals(f.getFieldName(), Item.CODE_FIELD)).findAny().orElse(null);
+                if (Objects.nonNull(searchCode)) {
+                    if (subjectItems.stream().anyMatch(i -> StringUtils.containsIgnoreCase(i.getCode(), String.valueOf(searchCode.getValue())))) {
+                        // todo
+                    }
+                } else {
+                    search.addFilter(new SearchFilter(Item.CODE_FIELD, subjectItems.stream().map(SubjectItem::getCode).collect(Collectors.toSet()), SearchFilter.Operator.NOTIN));
                 }
             } else {
                 search.addFilter(new SearchFilter(Item.CODE_FIELD, subjectItems.stream().map(SubjectItem::getCode).collect(Collectors.toSet()), SearchFilter.Operator.NOTIN));
