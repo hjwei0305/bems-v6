@@ -17,7 +17,7 @@ import java.io.Serializable;
  * @since 2021-04-25 15:13:56
  */
 @Entity
-@Table(name = "order")
+@Table(name = "order_head")
 @DynamicInsert
 @DynamicUpdate
 public class Order extends BaseAuditableEntity implements ITenant, Serializable {
