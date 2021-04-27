@@ -167,9 +167,14 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
      * @param subjectId 预算主体id
      * @return 检查结果
      */
-    public boolean checkReference(String subjectId) {
+    public ResultData<Void> checkReference(String subjectId) {
         SubjectItem subjectItem = dao.findFirstByProperty(SubjectItem.FIELD_SUBJECT_ID, subjectId);
-        return Objects.isNull(subjectItem);
+        if (Objects.isNull(subjectItem)) {
+            return ResultData.success();
+        } else {
+            // 预算主体[{0}]已存在科目,不允许再参考引用!
+            return ResultData.fail(ContextUtil.getMessage("subject_item_00002"));
+        }
     }
 
     /**
@@ -182,9 +187,9 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
      */
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> reference(String currentId, String referenceId) {
-        if (checkReference(currentId)) {
-            // 预算主体[{0}]已存在科目,不允许再参考引用!
-            return ResultData.fail(ContextUtil.getMessage("subject_item_00002", currentId));
+        ResultData<Void> resultData = checkReference(currentId);
+        if (resultData.failed()) {
+            return resultData;
         }
         List<SubjectItem> subjectItems = findBySubject(referenceId);
         if (CollectionUtils.isEmpty(subjectItems)) {

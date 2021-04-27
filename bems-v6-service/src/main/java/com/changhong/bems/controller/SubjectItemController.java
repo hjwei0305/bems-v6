@@ -101,8 +101,8 @@ public class SubjectItemController extends BaseEntityController<SubjectItem, Sub
      * @return 检查结果
      */
     @Override
-    public ResultData<Boolean> checkReference(String subjectId) {
-        return ResultData.success(service.checkReference(subjectId));
+    public ResultData<Void> checkReference(String subjectId) {
+        return service.checkReference(subjectId);
     }
 
     /**

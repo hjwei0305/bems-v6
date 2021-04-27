@@ -83,7 +83,7 @@ public interface SubjectItemApi extends BaseEntityApi<SubjectItemDto> {
      */
     @GetMapping(path = "checkReference")
     @ApiOperation(value = "检查参考引用", notes = "检查是否可以参考引用")
-    ResultData<Boolean> checkReference(@RequestParam("subjectId") String subjectId);
+    ResultData<Void> checkReference(@RequestParam("subjectId") String subjectId);
 
     /**
      * 参考引用
