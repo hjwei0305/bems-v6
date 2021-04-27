@@ -22,7 +22,7 @@ import java.util.List;
  * @since 2021-04-22 12:54:30
  */
 @RestController
-@Api(value = "SubjectItemApi", tags = "预算科目服务")
+@Api(value = "SubjectItemApi", tags = "预算主体科目服务")
 @RequestMapping(path = SubjectItemApi.PATH, produces = MediaType.APPLICATION_JSON_VALUE)
 public class SubjectItemController extends BaseEntityController<SubjectItem, SubjectItemDto> implements SubjectItemApi {
     /**
