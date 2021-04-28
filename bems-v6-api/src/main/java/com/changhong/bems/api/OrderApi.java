@@ -10,10 +10,7 @@ import com.changhong.sei.core.dto.serach.Search;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -77,4 +74,14 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     @PostMapping(path = "getOrderItems/{orderId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "通过单据Id获取单据行项", notes = "通过单据Id分页获取单据行项")
     ResultData<PageResult<OrderDetailDto>> getOrderItems(@PathVariable("orderId") String orderId, @RequestBody Search search);
+
+    /**
+     * 通过单据Id清空单据行项
+     *
+     * @param orderId 单据Id
+     * @return 业务实体
+     */
+    @PostMapping(path = "clearOrderItems")
+    @ApiOperation(value = "通过单据Id清空单据行项", notes = "通过单据Id清空单据行项")
+    ResultData<Void> clearOrderItems(@RequestParam("orderId") String orderId);
 }

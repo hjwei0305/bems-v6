@@ -231,7 +231,7 @@ public class PeriodService extends BaseEntityService<Period> {
         if (Objects.nonNull(attribute)) {
             return false;
         }
-        OrderDetail orderItem = orderItemService.findFirstByProperty(OrderDetail.FIELD_ITEM_ID, id);
+        OrderDetail orderItem = orderItemService.findFirstByProperty(OrderDetail.FIELD_PERIOD_ID, id);
         if (Objects.nonNull(orderItem)) {
             return false;
         }

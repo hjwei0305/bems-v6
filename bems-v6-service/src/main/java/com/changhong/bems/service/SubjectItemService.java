@@ -46,24 +46,31 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
     }
 
     /**
-     * 删除数据保存数据之前额外操作回调方法 子类根据需要覆写添加逻辑即可
+     * 主键删除
      *
-     * @param id 待删除数据对象主键
+     * @param id 主键
+     * @return 返回操作结果对象
      */
     @Override
-    protected OperateResult preDelete(String id) {
-        DimensionAttribute attribute = dimensionAttributeService.findFirstByProperty(DimensionAttribute.FIELD_ITEM, id);
-        if (Objects.nonNull(attribute)) {
-            // 当前科目已被使用,禁止删除!
-            return OperateResult.operationFailure("subject_item_00001");
+    public OperateResult delete(String id) {
+        SubjectItem entity = findOne(id);
+        if (Objects.nonNull(entity)) {
+            DimensionAttribute attribute = dimensionAttributeService.findFirstByProperty(DimensionAttribute.FIELD_ITEM, id);
+            if (Objects.nonNull(attribute)) {
+                // 当前科目已被使用,禁止删除!
+                return OperateResult.operationFailure("subject_item_00001");
+            }
+            OrderDetail orderItem = orderItemService.findFirstByProperty(OrderDetail.FIELD_ITEM_CODE, entity.getCode());
+            if (Objects.nonNull(orderItem)) {
+                // 当前科目已被使用,禁止删除!
+                return OperateResult.operationFailure("subject_item_00001");
+            }
+
+            getDao().delete(entity);
+            return OperateResult.operationSuccess("core_service_00028");
+        } else {
+            return OperateResult.operationWarning("core_service_00029");
         }
-        OrderDetail orderItem = orderItemService.findFirstByProperty(OrderDetail.FIELD_ITEM_ID, id);
-        if (Objects.nonNull(orderItem)) {
-            // 当前科目已被使用,禁止删除!
-            return OperateResult.operationFailure("subject_item_00001");
-        }
-        // TODO 导入明细
-        return OperateResult.operationSuccess();
     }
 
     /**

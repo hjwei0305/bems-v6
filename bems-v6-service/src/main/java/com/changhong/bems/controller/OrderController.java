@@ -6,6 +6,7 @@ import com.changhong.bems.dto.OrderDetailDto;
 import com.changhong.bems.dto.OrderDto;
 import com.changhong.bems.dto.OrganizationDto;
 import com.changhong.bems.entity.Order;
+import com.changhong.bems.entity.OrderDetail;
 import com.changhong.bems.service.OrderService;
 import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 预算申请单(Order)控制类
@@ -105,12 +107,25 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      * 通过单据Id获取单据行项
      *
      * @param orderId 单据Id
-     * @param search
      * @return 业务实体
      */
     @Override
     public ResultData<PageResult<OrderDetailDto>> getOrderItems(String orderId, Search search) {
+        PageResult<OrderDetail> pageResult = service.getOrderItems(orderId, search);
+        PageResult<OrderDetailDto> result = new PageResult<>(pageResult);
+        List<OrderDetail> list = pageResult.getRows();
+        result.setRows(list.stream().map(d -> modelMapper.map(d, OrderDetailDto.class)).collect(Collectors.toList()));
+        return ResultData.success(result);
+    }
 
-        return ResultData.success();
+    /**
+     * 通过单据Id清空单据行项
+     *
+     * @param orderId 单据Id
+     * @return 业务实体
+     */
+    @Override
+    public ResultData<Void> clearOrderItems(String orderId) {
+        return service.clearOrderItems(orderId);
     }
 }
