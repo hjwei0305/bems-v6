@@ -25,6 +25,7 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
     private static final long serialVersionUID = -36135917259025562L;
     public static final String FIELD_SUBJECT_ID = "subjectId";
     public static final String FIELD_CATEGORY_ID = "categoryId";
+    public static final String FIELD_ORDER_CATEGORY = "orderCategory";
     /**
      * 申请单号
      */
