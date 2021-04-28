@@ -4,6 +4,7 @@ import com.changhong.bems.api.OrderApi;
 import com.changhong.bems.dto.OrderCategory;
 import com.changhong.bems.dto.OrderDetailDto;
 import com.changhong.bems.dto.OrderDto;
+import com.changhong.bems.dto.OrganizationDto;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.service.OrderService;
 import com.changhong.sei.core.controller.BaseEntityController;
@@ -19,6 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -42,6 +44,16 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     @Override
     public BaseEntityService<Order> getService() {
         return service;
+    }
+
+    /**
+     * 获取组织机构树(不包含冻结)
+     *
+     * @return 组织机构树清单
+     */
+    @Override
+    public ResultData<List<OrganizationDto>> findOrgTree() {
+        return service.findOrgTree();
     }
 
     /**
