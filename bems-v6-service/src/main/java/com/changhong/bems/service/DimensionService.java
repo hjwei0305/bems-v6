@@ -38,9 +38,6 @@ public class DimensionService extends BaseEntityService<Dimension> {
     private CategoryService categoryService;
 
     public static final String CACHE_KEY = "bems-v6:dimension";
-//    private static final String CACHE_KEY_ALL = "bems-v6:dimension:all";
-//    private static final String CACHE_KEY_CODE = "bems-v6:dimension:code";
-//    private static final String CACHE_KEY_CODES = "bems-v6:dimension:codes";
 
     @Override
     protected BaseEntityDao<Dimension> getDao() {
