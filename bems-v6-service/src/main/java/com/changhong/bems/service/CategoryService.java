@@ -2,6 +2,7 @@ package com.changhong.bems.service;
 
 import com.changhong.bems.dao.CategoryDao;
 import com.changhong.bems.dto.CategoryType;
+import com.changhong.bems.dto.OrderCategory;
 import com.changhong.bems.entity.*;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
@@ -281,5 +282,15 @@ public class CategoryService extends BaseEntityService<Category> {
             categoryDimensionService.delete(ids);
         }
         return ResultData.success();
+    }
+
+    /**
+     * 通过订单类型获取预算类型
+     *
+     * @param category 订单类型
+     * @return 业务实体
+     */
+    public List<Category> getByCategory(OrderCategory category) {
+        return dao.findListByProperty(Category.FIELD_ORDER_CATEGORY, category);
     }
 }

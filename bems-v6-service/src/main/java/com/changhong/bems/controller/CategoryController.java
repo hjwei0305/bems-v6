@@ -7,6 +7,7 @@ import com.changhong.bems.service.CategoryService;
 import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.service.BaseEntityService;
+import com.changhong.sei.util.EnumUtils;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -160,5 +161,16 @@ public class CategoryController extends BaseEntityController<Category, CategoryD
     @Override
     public ResultData<Void> unassigne(AssigneDimensionRequest request) {
         return service.unassigne(request.getCategoryId(), request.getDimensionCodes());
+    }
+
+    /**
+     * 通过订单类型获取预算类型
+     *
+     * @param category 订单类型
+     * @return 业务实体
+     */
+    @Override
+    public ResultData<List<CategoryDto>> getByCategory(String category) {
+        return ResultData.success(convertToDtos(service.getByCategory(EnumUtils.getEnum(OrderCategory.class, category))));
     }
 }

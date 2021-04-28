@@ -25,7 +25,7 @@ import java.io.Serializable;
 public class Category extends BaseAuditableEntity implements ITenant, IFrozen, Serializable {
     private static final long serialVersionUID = -73245932408668629L;
     public static final String FIELD_SUBJECT_ID = "subjectId";
-//    public static final String FIELD_STRATEGY_ID = "strategyId";
+    public static final String FIELD_ORDER_CATEGORY = "orderCategory";
     public static final String FIELD_TYPE = "type";
     /**
      * 名称
