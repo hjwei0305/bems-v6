@@ -6,6 +6,8 @@ import com.changhong.bems.dto.PeriodDto;
 import com.changhong.bems.dto.PeriodType;
 import com.changhong.sei.core.api.BaseEntityApi;
 import com.changhong.sei.core.dto.ResultData;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
@@ -32,6 +34,10 @@ public interface PeriodApi extends BaseEntityApi<PeriodDto> {
      * @param type      预算期间类型
      * @return 期间清单
      */
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "subjectId", value = "预算主体id", required = true),
+            @ApiImplicitParam(name = "type", value = "期间分类,可用值:ANNUAL,SEMIANNUAL,QUARTER,MONTHLY,CUSTOMIZE", required = true)
+    })
     @GetMapping(path = "findBySubject")
     @ApiOperation(value = "按预算主体获取期间", notes = "按预算主体获取期间")
     ResultData<List<PeriodDto>> findBySubject(@RequestParam("subjectId") String subjectId,
@@ -93,4 +99,20 @@ public interface PeriodApi extends BaseEntityApi<PeriodDto> {
     @PostMapping(path = "saveCustomizePeriod", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "创建/编辑自定义期间", notes = "创建/编辑自定义期间")
     ResultData<Void> saveCustomizePeriod(@RequestBody @Valid CreateCustomizePeriodRequest request);
+
+    /**
+     * 按预算主体和期间类型获取期间
+     *
+     * @param subjectId 预算主体id
+     * @param type      预算期间类型
+     * @return 期间清单
+     */
+    @GetMapping(path = "getPeriods")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "subjectId", value = "预算主体id", required = true),
+            @ApiImplicitParam(name = "type", value = "期间分类,可用值:ANNUAL,SEMIANNUAL,QUARTER,MONTHLY,CUSTOMIZE", required = true)
+    })
+    @ApiOperation(value = "按预算主体和期间类型获取期间(UI)", notes = "按预算主体和期间类型获取期间(维度组件专用)")
+    ResultData<List<PeriodDto>> getPeriods(@RequestParam("subjectId") String subjectId,
+                                           @RequestParam(name = "type") String type);
 }

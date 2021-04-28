@@ -95,6 +95,26 @@ public interface SubjectItemApi extends BaseEntityApi<SubjectItemDto> {
      */
     @PostMapping(path = "reference")
     @ApiOperation(value = "参考引用", notes = "参考引用预算主体科目")
-    ResultData<Void> reference(@RequestParam("currentId") String currentId, @RequestParam("referenceId") String referenceId);
+    ResultData<Void> reference(@RequestParam("currentId") String currentId,
+                               @RequestParam("referenceId") String referenceId);
+
+    /**
+     * 分页获取指定预算主体的科目(外部系统集成专用)
+     *
+     * @return 子实体清单
+     */
+    @PostMapping(path = "getBudgetItems/{subjectId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "分页获取指定预算主体的科目", notes = "分页获取指定预算主体的科目(外部系统集成专用)")
+    ResultData<PageResult<SubjectItemDto>> getBudgetItems(@PathVariable("subjectId") String subjectId,
+                                                          @RequestBody Search search);
+
+    /**
+     * 获取指定预算主体的科目(维度组件专用)
+     *
+     * @return 子实体清单
+     */
+    @PostMapping(path = "getBudgetItems", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "获取指定预算主体的科目(UI)", notes = "获取指定预算主体的科目(维度组件专用)")
+    ResultData<List<SubjectItemDto>> getBudgetItems(@RequestParam("subjectId") String subjectId);
 
 }

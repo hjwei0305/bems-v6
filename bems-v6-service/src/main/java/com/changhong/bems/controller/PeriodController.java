@@ -123,4 +123,16 @@ public class PeriodController extends BaseEntityController<Period, PeriodDto> im
         period.setEndDate(request.getEndDate());
         return service.saveCustomizePeriod(period);
     }
+
+    /**
+     * 按预算主体和期间类型获取期间
+     *
+     * @param subjectId 预算主体id
+     * @param type      预算期间类型
+     * @return 期间清单
+     */
+    @Override
+    public ResultData<List<PeriodDto>> getPeriods(String subjectId, String type) {
+        return ResultData.success(convertToDtos(service.findBySubjectUnclosed(subjectId, EnumUtils.getEnum(PeriodType.class, type))));
+    }
 }

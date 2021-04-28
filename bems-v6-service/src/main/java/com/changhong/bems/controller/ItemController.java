@@ -46,4 +46,15 @@ public class ItemController extends BaseEntityController<Item, ItemDto> implemen
     public ResultData<PageResult<ItemDto>> findByPage(Search search) {
         return convertToDtoPageResult(service.findByPage(search));
     }
+
+    /**
+     * 分页获取预算科目(外部系统集成专用)
+     *
+     * @param search 查询参数
+     * @return 分页查询结果
+     */
+    @Override
+    public ResultData<PageResult<ItemDto>> getBudgetItems(Search search) {
+        return convertToDtoPageResult(service.findByPage(search));
+    }
 }

@@ -77,6 +77,19 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
     }
 
     /**
+     * 根据预算主体查询私有预算主体科目(不包含冻结状态的)
+     *
+     * @param subjectId 预算主体id
+     * @return 分页查询结果
+     */
+    public List<SubjectItem> findBySubjectUnfrozen(String subjectId) {
+        Search search = Search.createSearch();
+        search.addFilter(new SearchFilter(SubjectItem.FIELD_SUBJECT_ID, subjectId));
+        search.addFilter(new SearchFilter(SubjectItem.FROZEN, Boolean.FALSE));
+        return findByFilters(search);
+    }
+
+    /**
      * 冻结/解冻预算类型
      *
      * @param ids 预算主体科目id

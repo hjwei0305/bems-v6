@@ -9,6 +9,7 @@ import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
+import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 预算科目(Item)控制类
@@ -116,5 +118,33 @@ public class SubjectItemController extends BaseEntityController<SubjectItem, Sub
     @Override
     public ResultData<Void> reference(String currentId, String referenceId) {
         return service.reference(currentId, referenceId);
+    }
+
+    /**
+     * 分页获取指定预算主体的科目(外部系统集成专用)
+     *
+     * @return 子实体清单
+     */
+    @Override
+    public ResultData<PageResult<SubjectItemDto>> getBudgetItems(String subjectId, Search search) {
+        if (Objects.isNull(search)) {
+            search = Search.createSearch();
+        }
+        // 指定预算主体
+        search.addFilter(new SearchFilter(SubjectItem.FIELD_SUBJECT_ID, subjectId));
+        // 未冻结
+        search.addFilter(new SearchFilter(SubjectItem.FROZEN, Boolean.FALSE));
+        return convertToDtoPageResult(service.findByPage(search));
+    }
+
+    /**
+     * 获取指定预算主体的科目(维度组件专用)
+     *
+     * @param subjectId 预算主体id
+     * @return 子实体清单
+     */
+    @Override
+    public ResultData<List<SubjectItemDto>> getBudgetItems(String subjectId) {
+        return ResultData.success(convertToDtos(service.findBySubjectUnfrozen(subjectId)));
     }
 }

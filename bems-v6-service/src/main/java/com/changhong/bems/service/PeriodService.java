@@ -159,6 +159,22 @@ public class PeriodService extends BaseEntityService<Period> {
     }
 
     /**
+     * 按预算主体获取期间(未关闭的)
+     *
+     * @param subjectId 预算主体id
+     * @param type      预算期间类型
+     * @return 期间清单
+     */
+    public List<Period> findBySubjectUnclosed(String subjectId, PeriodType type) {
+        Search search = Search.createSearch();
+        search.addFilter(new SearchFilter(Period.FIELD_SUBJECT_ID, subjectId));
+        search.addFilter(new SearchFilter(Period.FIELD_TYPE, type));
+        search.addFilter(new SearchFilter(Period.FIELD_CLOSED, Boolean.FALSE));
+        search.addSortOrder(SearchOrder.asc(Period.CREATED_DATE));
+        return dao.findByFilters(search);
+    }
+
+    /**
      * 设置预算期间状态
      *
      * @param id     预算期间id

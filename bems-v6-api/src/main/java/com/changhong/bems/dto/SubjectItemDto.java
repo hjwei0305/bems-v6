@@ -1,6 +1,5 @@
 package com.changhong.bems.dto;
 
-import com.changhong.sei.core.dto.BaseEntityDto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -13,7 +12,7 @@ import javax.validation.constraints.NotBlank;
  * @since 2021-04-22 12:54:30
  */
 @ApiModel(description = "预算主体科目DTO")
-public class SubjectItemDto extends BaseEntityDto {
+public class SubjectItemDto extends ItemDto {
     private static final long serialVersionUID = -85112390830826629L;
 
     /**
@@ -22,17 +21,6 @@ public class SubjectItemDto extends BaseEntityDto {
     @NotBlank
     @ApiModelProperty(value = "预算主体id")
     private String subjectId;
-    /**
-     * 代码
-     */
-    @NotBlank
-    @ApiModelProperty(value = "代码")
-    private String code;
-    /**
-     * 名称
-     */
-    @ApiModelProperty(value = "名称")
-    private String name;
     /**
      * 执行策略id
      */
@@ -55,22 +43,6 @@ public class SubjectItemDto extends BaseEntityDto {
 
     public void setSubjectId(String subjectId) {
         this.subjectId = subjectId;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public String getStrategyId() {
