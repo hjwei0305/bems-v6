@@ -73,4 +73,16 @@ public class OrderService extends BaseEntityService<Order> {
         orderDetailService.clearOrderItems(orderId);
         return ResultData.success();
     }
+
+    /**
+     * 通过单据Id检查预算主体和类型是否被修改
+     *
+     * @param orderId    单据Id
+     * @param subjectId  主体id
+     * @param categoryId 类型id
+     * @return 业务实体
+     */
+    public ResultData<Void> checkDimension(String orderId, String subjectId, String categoryId) {
+        return null;
+    }
 }

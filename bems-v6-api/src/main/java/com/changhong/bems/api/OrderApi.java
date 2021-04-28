@@ -84,4 +84,16 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     @PostMapping(path = "clearOrderItems")
     @ApiOperation(value = "通过单据Id清空单据行项", notes = "通过单据Id清空单据行项")
     ResultData<Void> clearOrderItems(@RequestParam("orderId") String orderId);
+
+    /**
+     * 通过单据Id检查预算主体和类型是否被修改
+     *
+     * @param orderId 单据Id
+     * @return 业务实体
+     */
+    @GetMapping(path = "checkDimension")
+    @ApiOperation(value = "检查预算主体和类型是否修改", notes = "通过单据Id检查预算主体和类型是否被修改")
+    ResultData<Void> checkDimension(@RequestParam("orderId") String orderId,
+                                    @RequestParam("subjectId") String subjectId,
+                                    @RequestParam("categoryId") String categoryId);
 }

@@ -128,4 +128,17 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     public ResultData<Void> clearOrderItems(String orderId) {
         return service.clearOrderItems(orderId);
     }
+
+    /**
+     * 通过单据Id检查预算主体和类型是否被修改
+     *
+     * @param orderId    单据Id
+     * @param subjectId  主体id
+     * @param categoryId 类型id
+     * @return 业务实体
+     */
+    @Override
+    public ResultData<Void> checkDimension(String orderId, String subjectId, String categoryId) {
+        return service.checkDimension(orderId, subjectId, categoryId);
+    }
 }
