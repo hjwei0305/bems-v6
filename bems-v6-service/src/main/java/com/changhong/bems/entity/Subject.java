@@ -1,6 +1,8 @@
 package com.changhong.bems.entity;
 
+import com.changhong.sei.core.dto.auth.IDataAuthEntity;
 import com.changhong.sei.core.entity.BaseAuditableEntity;
+import com.changhong.sei.core.entity.ICodeUnique;
 import com.changhong.sei.core.entity.ITenant;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -20,9 +22,14 @@ import java.io.Serializable;
 @Table(name = "subject")
 @DynamicInsert
 @DynamicUpdate
-public class Subject extends BaseAuditableEntity implements ITenant, Serializable {
+public class Subject extends BaseAuditableEntity implements ITenant, ICodeUnique, IDataAuthEntity, Serializable {
     private static final long serialVersionUID = 851011858666429840L;
     public static final String FIELD_STRATEGY_ID = "strategyId";
+    /**
+     * 主体代码
+     */
+    @Column(name = "code")
+    private String code;
     /**
      * 主体名称
      */
@@ -79,10 +86,22 @@ public class Subject extends BaseAuditableEntity implements ITenant, Serializabl
     @Column(name = "tenant_code")
     private String tenantCode;
 
+    @Override
+    public String getCode() {
+        return code;
+    }
+
+    @Override
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }

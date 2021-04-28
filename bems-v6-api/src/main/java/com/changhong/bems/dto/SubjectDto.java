@@ -14,6 +14,11 @@ import io.swagger.annotations.ApiModelProperty;
 public class SubjectDto extends BaseEntityDto {
     private static final long serialVersionUID = -52007275362348933L;
     /**
+     * 主体代码
+     */
+    @ApiModelProperty(value = "主体代码")
+    private String code;
+    /**
      * 主体名称
      */
     @ApiModelProperty(value = "主体名称")
@@ -63,6 +68,14 @@ public class SubjectDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "执行策略名称")
     private String strategyName;
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
 
     public String getName() {
         return name;
