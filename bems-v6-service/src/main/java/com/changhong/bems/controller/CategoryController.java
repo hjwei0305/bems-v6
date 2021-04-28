@@ -136,9 +136,7 @@ public class CategoryController extends BaseEntityController<Category, CategoryD
      */
     @Override
     public ResultData<List<DimensionDto>> getAssigned(String categoryId) {
-        return ResultData.success(service.getAssigned(categoryId)
-                .stream().map(d -> dtoModelMapper.map(d, DimensionDto.class))
-                .collect(Collectors.toList()));
+        return ResultData.success(service.getAssigned(categoryId));
     }
 
     /**

@@ -2,6 +2,7 @@ package com.changhong.bems.service;
 
 import com.changhong.bems.dao.CategoryDao;
 import com.changhong.bems.dto.CategoryType;
+import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.dto.OrderCategory;
 import com.changhong.bems.entity.*;
 import com.changhong.sei.core.context.ContextUtil;
@@ -229,14 +230,29 @@ public class CategoryService extends BaseEntityService<Category> {
      * @param categoryId 预算类型
      * @return 子实体清单
      */
-    public List<Dimension> getAssigned(String categoryId) {
+    public List<DimensionDto> getAssigned(String categoryId) {
         List<CategoryDimension> categoryDimensions = categoryDimensionService.getByCategoryId(categoryId);
-        Set<String> codes = categoryDimensions.stream().map(CategoryDimension::getDimensionCode).collect(Collectors.toSet());
-        List<Dimension> list = dimensionService.findByCodes(codes);
-        if (CollectionUtils.isNotEmpty(list)) {
-            // 必要维度排序在前
-            list.sort(Comparator.comparing(Dimension::getRequired).reversed());
+
+        DimensionDto dto;
+        List<Dimension> dimensionList = dimensionService.findAll();
+        Map<String, Dimension> dimensionMap = dimensionList.stream().collect(Collectors.toMap(Dimension::getCode, d -> d));
+        List<DimensionDto> list = new ArrayList<>();
+        for (CategoryDimension cd : categoryDimensions) {
+            Dimension dimension = dimensionMap.get(cd.getDimensionCode());
+            if (Objects.nonNull(dimension)) {
+                dto = new DimensionDto();
+                dto.setCode(dimension.getCode());
+                dto.setName(dimension.getName());
+                dto.setStrategyId(dimension.getStrategyId());
+                dto.setStrategyName(dimension.getStrategyName());
+                dto.setUiComponent(dimension.getUiComponent());
+                dto.setRequired(dimension.getRequired());
+                dto.setRank(cd.getRank());
+                list.add(dto);
+            }
         }
+        // 排序
+        list.sort(Comparator.comparing(DimensionDto::getRank));
         return list;
     }
 
