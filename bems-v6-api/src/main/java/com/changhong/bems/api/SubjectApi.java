@@ -5,6 +5,7 @@ import com.changhong.bems.dto.CurrencyDto;
 import com.changhong.bems.dto.OrganizationDto;
 import com.changhong.bems.dto.SubjectDto;
 import com.changhong.sei.core.api.BaseEntityApi;
+import com.changhong.sei.core.api.DataAuthEntityApi;
 import com.changhong.sei.core.api.FindByPageApi;
 import com.changhong.sei.core.dto.ResultData;
 import io.swagger.annotations.ApiOperation;
@@ -24,7 +25,7 @@ import java.util.List;
  */
 @Valid
 @FeignClient(name = "bems-v6", path = SubjectApi.PATH)
-public interface SubjectApi extends BaseEntityApi<SubjectDto>, FindByPageApi<SubjectDto> {
+public interface SubjectApi extends BaseEntityApi<SubjectDto>, FindByPageApi<SubjectDto>, DataAuthEntityApi<SubjectDto> {
     String PATH = "subject";
 
     /**
