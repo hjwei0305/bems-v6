@@ -68,6 +68,11 @@ public class SubjectDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "执行策略名称")
     private String strategyName;
+    /**
+     * 排序
+     */
+    @ApiModelProperty(value = "排序")
+    private Integer rank = 0;
 
     public String getCode() {
         return code;
@@ -155,5 +160,13 @@ public class SubjectDto extends BaseEntityDto {
 
     public void setStrategyName(String strategyName) {
         this.strategyName = strategyName;
+    }
+
+    public Integer getRank() {
+        return rank;
+    }
+
+    public void setRank(Integer rank) {
+        this.rank = rank;
     }
 }

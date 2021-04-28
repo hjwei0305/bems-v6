@@ -1,5 +1,6 @@
 package com.changhong.bems.entity;
 
+import com.changhong.sei.core.dto.IRank;
 import com.changhong.sei.core.dto.auth.IDataAuthEntity;
 import com.changhong.sei.core.entity.BaseAuditableEntity;
 import com.changhong.sei.core.entity.ICodeUnique;
@@ -22,7 +23,7 @@ import java.io.Serializable;
 @Table(name = "subject")
 @DynamicInsert
 @DynamicUpdate
-public class Subject extends BaseAuditableEntity implements ITenant, ICodeUnique, IDataAuthEntity, Serializable {
+public class Subject extends BaseAuditableEntity implements ITenant, IRank, ICodeUnique, IDataAuthEntity, Serializable {
     private static final long serialVersionUID = 851011858666429840L;
     public static final String FIELD_STRATEGY_ID = "strategyId";
     /**
@@ -80,6 +81,11 @@ public class Subject extends BaseAuditableEntity implements ITenant, ICodeUnique
      */
     @Column(name = "strategy_name")
     private String strategyName;
+    /**
+     * 排序
+     */
+    @Column(name = "rank")
+    private Integer rank = 0;
     /**
      * 租户代码
      */
@@ -176,6 +182,15 @@ public class Subject extends BaseAuditableEntity implements ITenant, ICodeUnique
 
     public void setStrategyName(String strategyName) {
         this.strategyName = strategyName;
+    }
+
+    @Override
+    public Integer getRank() {
+        return rank;
+    }
+
+    public void setRank(Integer rank) {
+        this.rank = rank;
     }
 
     @Override

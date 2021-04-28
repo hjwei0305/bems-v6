@@ -52,6 +52,7 @@ public class SubjectController extends BaseEntityController<Subject, SubjectDto>
     public ResultData<List<AuthEntityData>> getAuthEntityDataByIds(List<String> ids) {
         return ResultData.success(service.getAuthEntityDataByIds(ids));
     }
+
     /**
      * 获取当前用户有权限的业务实体清单
      *
@@ -62,6 +63,7 @@ public class SubjectController extends BaseEntityController<Subject, SubjectDto>
     public ResultData<List<SubjectDto>> getUserAuthorizedEntities(String featureCode) {
         return ResultData.success(convertToDtos(service.getUserAuthorizedEntities(featureCode)));
     }
+
     /**
      * 获取所有数据权限实体清单
      *
