@@ -39,6 +39,11 @@ public class Subject extends BaseAuditableEntity implements ITenant, Serializabl
     @Column(name = "corporation_name")
     private String corporationName;
     /**
+     * 组织id
+     */
+    @Column(name = "org_id")
+    private String orgId;
+    /**
      * 组织代码
      */
     @Column(name = "org_code")
@@ -96,6 +101,14 @@ public class Subject extends BaseAuditableEntity implements ITenant, Serializabl
 
     public void setCorporationName(String corporationName) {
         this.corporationName = corporationName;
+    }
+
+    public String getOrgId() {
+        return orgId;
+    }
+
+    public void setOrgId(String orgId) {
+        this.orgId = orgId;
     }
 
     public String getOrgCode() {

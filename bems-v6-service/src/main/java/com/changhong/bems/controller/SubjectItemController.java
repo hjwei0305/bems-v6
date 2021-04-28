@@ -136,15 +136,4 @@ public class SubjectItemController extends BaseEntityController<SubjectItem, Sub
         search.addFilter(new SearchFilter(SubjectItem.FROZEN, Boolean.FALSE));
         return convertToDtoPageResult(service.findByPage(search));
     }
-
-    /**
-     * 获取指定预算主体的科目(维度组件专用)
-     *
-     * @param subjectId 预算主体id
-     * @return 子实体清单
-     */
-    @Override
-    public ResultData<List<SubjectItemDto>> getBudgetItems(String subjectId) {
-        return ResultData.success(convertToDtos(service.findBySubjectUnfrozen(subjectId)));
-    }
 }

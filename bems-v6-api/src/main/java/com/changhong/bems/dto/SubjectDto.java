@@ -29,6 +29,11 @@ public class SubjectDto extends BaseEntityDto {
     @ApiModelProperty(value = "公司名称")
     private String corporationName;
     /**
+     * 组织ID
+     */
+    @ApiModelProperty(value = "组织ID")
+    private String orgId;
+    /**
      * 组织代码
      */
     @ApiModelProperty(value = "组织代码")
@@ -81,6 +86,14 @@ public class SubjectDto extends BaseEntityDto {
 
     public void setCorporationName(String corporationName) {
         this.corporationName = corporationName;
+    }
+
+    public String getOrgId() {
+        return orgId;
+    }
+
+    public void setOrgId(String orgId) {
+        this.orgId = orgId;
     }
 
     public String getOrgCode() {

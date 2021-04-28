@@ -11,6 +11,7 @@ import com.changhong.bems.entity.SubjectItem;
 import com.changhong.bems.service.client.CorporationManager;
 import com.changhong.bems.service.client.CurrencyManager;
 import com.changhong.bems.service.client.OrganizationManager;
+import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.service.BaseEntityService;
@@ -75,6 +76,20 @@ public class SubjectService extends BaseEntityService<Subject> {
      */
     public ResultData<List<OrganizationDto>> findOrgTree() {
         return organizationManager.findOrgTreeWithoutFrozen();
+    }
+
+    /**
+     * 获取组织机构树(不包含冻结)
+     *
+     * @return 组织机构树清单
+     */
+    public ResultData<OrganizationDto> getOrgTree(String subjectId) {
+        Subject subject = dao.findOne(subjectId);
+        if (Objects.isNull(subject)) {
+            // 未找到预算主体
+            return ResultData.fail(ContextUtil.getMessage("subject_item_00004", subjectId));
+        }
+        return organizationManager.getTree4Unfrozen(subject.getOrgId());
     }
 
     /**

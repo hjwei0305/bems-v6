@@ -100,19 +100,4 @@ public interface PeriodApi extends BaseEntityApi<PeriodDto> {
     @ApiOperation(value = "创建/编辑自定义期间", notes = "创建/编辑自定义期间")
     ResultData<Void> saveCustomizePeriod(@RequestBody @Valid CreateCustomizePeriodRequest request);
 
-    /**
-     * 按预算主体和期间类型获取期间
-     *
-     * @param subjectId 预算主体id
-     * @param type      预算期间类型
-     * @return 期间清单
-     */
-    @GetMapping(path = "getPeriods")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "subjectId", value = "预算主体id", required = true),
-            @ApiImplicitParam(name = "type", value = "期间分类,可用值:ANNUAL,SEMIANNUAL,QUARTER,MONTHLY,CUSTOMIZE", required = true)
-    })
-    @ApiOperation(value = "按预算主体和期间类型获取期间(UI)", notes = "按预算主体和期间类型获取期间(维度组件专用)")
-    ResultData<List<PeriodDto>> getPeriods(@RequestParam("subjectId") String subjectId,
-                                           @RequestParam(name = "type") String type);
 }

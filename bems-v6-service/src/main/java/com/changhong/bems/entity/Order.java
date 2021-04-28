@@ -41,6 +41,16 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
     @Column(name = "subject_name")
     private String subjectName;
     /**
+     * 币种代码
+     */
+    @Column(name = "currency_code")
+    private String currencyCode;
+    /**
+     * 币种名称
+     */
+    @Column(name = "currency_name")
+    private String currencyName;
+    /**
      * 预算类型id
      */
     @Column(name = "category_id")
@@ -62,6 +72,11 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
     @Column(name = "apply_amount")
     private Double applyAmount = 0d;
     /**
+     * 申请组织id
+     */
+    @Column(name = "apply_org_id")
+    private String applyOrgId;
+    /**
      * 申请组织代码
      */
     @Column(name = "apply_org_code")
@@ -81,6 +96,11 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
      */
     @Column(name = "apply_user_name")
     private String applyUserName;
+    /**
+     * 归口管理组织id
+     */
+    @Column(name = "manager_org_id")
+    private String managerOrgId;
     /**
      * 归口管理组织代码
      */
@@ -134,6 +154,22 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
         this.subjectName = subjectName;
     }
 
+    public String getCurrencyCode() {
+        return currencyCode;
+    }
+
+    public void setCurrencyCode(String currencyCode) {
+        this.currencyCode = currencyCode;
+    }
+
+    public String getCurrencyName() {
+        return currencyName;
+    }
+
+    public void setCurrencyName(String currencyName) {
+        this.currencyName = currencyName;
+    }
+
     public String getCategoryId() {
         return categoryId;
     }
@@ -166,6 +202,14 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
         this.applyAmount = applyAmount;
     }
 
+    public String getApplyOrgId() {
+        return applyOrgId;
+    }
+
+    public void setApplyOrgId(String applyOrgId) {
+        this.applyOrgId = applyOrgId;
+    }
+
     public String getApplyOrgCode() {
         return applyOrgCode;
     }
@@ -196,6 +240,14 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
 
     public void setApplyUserName(String applyUserName) {
         this.applyUserName = applyUserName;
+    }
+
+    public String getManagerOrgId() {
+        return managerOrgId;
+    }
+
+    public void setManagerOrgId(String managerOrgId) {
+        this.managerOrgId = managerOrgId;
     }
 
     public String getManagerOrgCode() {

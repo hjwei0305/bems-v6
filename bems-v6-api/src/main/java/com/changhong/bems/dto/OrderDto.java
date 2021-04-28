@@ -29,6 +29,16 @@ public class OrderDto extends BaseEntityDto {
     @ApiModelProperty(value = "预算主体名称")
     private String subjectName;
     /**
+     * 币种代码
+     */
+    @ApiModelProperty(value = "币种代码")
+    private String currencyCode;
+    /**
+     * 币种名称
+     */
+    @ApiModelProperty(value = "币种名称")
+    private String currencyName;
+    /**
      * 预算类型id
      */
     @ApiModelProperty(value = "预算类型id")
@@ -49,6 +59,11 @@ public class OrderDto extends BaseEntityDto {
     @ApiModelProperty(value = "申请金额")
     private Double applyAmount = 0d;
     /**
+     * 申请组织id
+     */
+    @ApiModelProperty(value = "申请组织id")
+    private String applyOrgId;
+    /**
      * 申请组织代码
      */
     @ApiModelProperty(value = "申请组织代码")
@@ -68,6 +83,11 @@ public class OrderDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "申请人名称")
     private String applyUserName;
+    /**
+     * 归口管理组织Id
+     */
+    @ApiModelProperty(value = "归口管理组织id")
+    private String managerOrgId;
     /**
      * 归口管理组织代码
      */
@@ -113,6 +133,22 @@ public class OrderDto extends BaseEntityDto {
         this.subjectName = subjectName;
     }
 
+    public String getCurrencyCode() {
+        return currencyCode;
+    }
+
+    public void setCurrencyCode(String currencyCode) {
+        this.currencyCode = currencyCode;
+    }
+
+    public String getCurrencyName() {
+        return currencyName;
+    }
+
+    public void setCurrencyName(String currencyName) {
+        this.currencyName = currencyName;
+    }
+
     public String getCategoryId() {
         return categoryId;
     }
@@ -145,6 +181,14 @@ public class OrderDto extends BaseEntityDto {
         this.applyAmount = applyAmount;
     }
 
+    public String getApplyOrgId() {
+        return applyOrgId;
+    }
+
+    public void setApplyOrgId(String applyOrgId) {
+        this.applyOrgId = applyOrgId;
+    }
+
     public String getApplyOrgCode() {
         return applyOrgCode;
     }
@@ -175,6 +219,14 @@ public class OrderDto extends BaseEntityDto {
 
     public void setApplyUserName(String applyUserName) {
         this.applyUserName = applyUserName;
+    }
+
+    public String getManagerOrgId() {
+        return managerOrgId;
+    }
+
+    public void setManagerOrgId(String managerOrgId) {
+        this.managerOrgId = managerOrgId;
     }
 
     public String getManagerOrgCode() {
