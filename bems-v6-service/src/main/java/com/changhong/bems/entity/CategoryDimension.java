@@ -1,5 +1,6 @@
 package com.changhong.bems.entity;
 
+import com.changhong.sei.core.dto.IRank;
 import com.changhong.sei.core.entity.BaseAuditableEntity;
 import com.changhong.sei.core.entity.BaseEntity;
 import org.hibernate.annotations.DynamicInsert;
@@ -20,7 +21,7 @@ import java.io.Serializable;
 @Table(name = "category_dimension")
 @DynamicInsert
 @DynamicUpdate
-public class CategoryDimension extends BaseEntity implements Serializable {
+public class CategoryDimension extends BaseEntity implements IRank, Serializable {
     private static final long serialVersionUID = -76720938483283048L;
     public static final String FIELD_DIMENSION_CODE = "dimensionCode";
     public static final String FIELD_CATEGORY_ID = "categoryId";
@@ -56,6 +57,7 @@ public class CategoryDimension extends BaseEntity implements Serializable {
         this.dimensionCode = dimensionCode;
     }
 
+    @Override
     public Integer getRank() {
         return rank;
     }

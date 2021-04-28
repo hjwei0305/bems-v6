@@ -47,6 +47,7 @@ public class CategoryDimensionService extends BaseEntityService<CategoryDimensio
             categoryDimension = new CategoryDimension();
             categoryDimension.setCategoryId(categoryId);
             categoryDimension.setDimensionCode(dimension.getCode());
+            categoryDimension.setRank(dimension.getRank());
             this.save(categoryDimension);
         }
     }

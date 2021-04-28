@@ -29,7 +29,6 @@ public class CategoryDimensionDto extends BaseEntityDto {
     @ApiModelProperty(value = "排序")
     private Integer rank = 0;
 
-
     public String getCategoryId() {
         return categoryId;
     }

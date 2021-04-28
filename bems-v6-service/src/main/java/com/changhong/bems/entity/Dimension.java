@@ -1,5 +1,6 @@
 package com.changhong.bems.entity;
 
+import com.changhong.sei.core.dto.IRank;
 import com.changhong.sei.core.entity.BaseAuditableEntity;
 import com.changhong.sei.core.entity.ICodeUnique;
 import com.changhong.sei.core.entity.ITenant;
@@ -21,7 +22,7 @@ import java.io.Serializable;
 @Table(name = "dimension")
 @DynamicInsert
 @DynamicUpdate
-public class Dimension extends BaseAuditableEntity implements ITenant, ICodeUnique, Serializable {
+public class Dimension extends BaseAuditableEntity implements ITenant, IRank, ICodeUnique, Serializable {
     private static final long serialVersionUID = -99493949797458960L;
     public static final String FIELD_STRATEGY_ID = "strategyId";
     /**
@@ -59,6 +60,11 @@ public class Dimension extends BaseAuditableEntity implements ITenant, ICodeUniq
      */
     @Column(name = "required")
     private Boolean required = Boolean.FALSE;
+    /**
+     * 排序
+     */
+    @Column(name = "rank")
+    private Integer rank = 0;
 
     @Override
     public String getCode() {
@@ -108,6 +114,15 @@ public class Dimension extends BaseAuditableEntity implements ITenant, ICodeUniq
 
     public void setRequired(Boolean required) {
         this.required = required;
+    }
+
+    @Override
+    public Integer getRank() {
+        return rank;
+    }
+
+    public void setRank(Integer rank) {
+        this.rank = rank;
     }
 
     @Override

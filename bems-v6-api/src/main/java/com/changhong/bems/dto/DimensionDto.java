@@ -43,6 +43,11 @@ public class DimensionDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "系统必要")
     private Boolean required = Boolean.FALSE;
+    /**
+     * 排序
+     */
+    @ApiModelProperty(value = "排序")
+    private Integer rank = 0;
 
     public String getCode() {
         return code;
@@ -90,5 +95,13 @@ public class DimensionDto extends BaseEntityDto {
 
     public void setRequired(Boolean required) {
         this.required = required;
+    }
+
+    public Integer getRank() {
+        return rank;
+    }
+
+    public void setRank(Integer rank) {
+        this.rank = rank;
     }
 }

@@ -250,14 +250,20 @@ public class CategoryService extends BaseEntityService<Category> {
         Category category = dao.findOne(categoryId);
         if (category.getReferenced()) {
             // 预算类型已被使用,不允许修改
-            return ResultData.fail("category_00006");
+            return ResultData.fail(ContextUtil.getMessage("category_00006"));
         }
         List<CategoryDimension> dimensionList = new ArrayList<>();
         CategoryDimension categoryDimension;
         for (String code : dimensionCodes) {
+            Dimension dimension = dimensionService.findByCode(code);
+            if (Objects.isNull(dimension)) {
+                // 维度不存在
+                return ResultData.fail(ContextUtil.getMessage("dimension_00002", code));
+            }
             categoryDimension = new CategoryDimension();
             categoryDimension.setCategoryId(categoryId);
-            categoryDimension.setDimensionCode(code);
+            categoryDimension.setDimensionCode(dimension.getCode());
+            categoryDimension.setRank(dimension.getRank());
             dimensionList.add(categoryDimension);
         }
         categoryDimensionService.save(dimensionList);

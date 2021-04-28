@@ -67,7 +67,7 @@ public class DimensionService extends BaseEntityService<Dimension> {
             return OperateResult.operationSuccess();
         } else {
             // 维度不存在!
-            return OperateResult.operationFailure("dimension_00002");
+            return OperateResult.operationFailure("dimension_00002", id);
         }
     }
 
