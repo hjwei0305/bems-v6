@@ -113,7 +113,7 @@ public class OrderService extends BaseEntityService<Order> {
      */
     @Transactional(rollbackFor = Exception.class)
     public ResultData<String> addOrderDetails(CreateOrderDto order) {
-        ResultData<String> resultData = checkDimension(order.getId(), order.getSubjectId(), order.getCategoryId());
+        ResultData<String> resultData = this.checkDimension(order.getId(), order.getSubjectId(), order.getCategoryId());
         if (resultData.failed()) {
             return resultData;
         }
@@ -121,4 +121,6 @@ public class OrderService extends BaseEntityService<Order> {
 
         return ResultData.success();
     }
+
+
 }

@@ -2,6 +2,7 @@ package com.changhong.bems.entity;
 
 import com.changhong.bems.dto.OrderCategory;
 import com.changhong.bems.dto.OrderStatus;
+import com.changhong.bems.dto.PeriodType;
 import com.changhong.sei.core.entity.BaseAuditableEntity;
 import com.changhong.sei.core.entity.ICodeUnique;
 import com.changhong.sei.core.entity.ITenant;
@@ -61,6 +62,12 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
      */
     @Column(name = "category_name")
     private String categoryName;
+    /**
+     * 期间分类
+     */
+    @Column(name = "period_category")
+    @Enumerated(EnumType.STRING)
+    private PeriodType periodType;
     /**
      * 订单类型
      */
@@ -185,6 +192,14 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
 
     public void setCategoryName(String categoryName) {
         this.categoryName = categoryName;
+    }
+
+    public PeriodType getPeriodType() {
+        return periodType;
+    }
+
+    public void setPeriodType(PeriodType periodType) {
+        this.periodType = periodType;
     }
 
     public OrderCategory getOrderCategory() {

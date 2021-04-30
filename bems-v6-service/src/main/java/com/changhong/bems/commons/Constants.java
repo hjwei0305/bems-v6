@@ -13,6 +13,8 @@ import java.util.Set;
  */
 public final class Constants {
 
+    public static final String NONE = "none";
+
     /**
      * 获取所有预制的维度代码
      *

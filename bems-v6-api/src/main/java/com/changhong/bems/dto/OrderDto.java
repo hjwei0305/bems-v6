@@ -49,6 +49,11 @@ public class OrderDto extends BaseEntityDto {
     @ApiModelProperty(value = "预算类型名称")
     private String categoryName;
     /**
+     * 期间分类
+     */
+    @ApiModelProperty(value = "期间分类")
+    private PeriodType periodType;
+    /**
      * 订单类型
      */
     @ApiModelProperty(value = "订单类型")
@@ -166,6 +171,14 @@ public class OrderDto extends BaseEntityDto {
 
     public void setCategoryName(String categoryName) {
         this.categoryName = categoryName;
+    }
+
+    public PeriodType getPeriodType() {
+        return periodType;
+    }
+
+    public void setPeriodType(PeriodType periodType) {
+        this.periodType = periodType;
     }
 
     public OrderCategory getOrderCategory() {

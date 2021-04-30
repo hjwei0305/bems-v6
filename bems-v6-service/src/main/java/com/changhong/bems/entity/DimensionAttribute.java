@@ -1,5 +1,6 @@
 package com.changhong.bems.entity;
 
+import com.changhong.bems.commons.Constants;
 import com.changhong.sei.core.entity.BaseEntity;
 import com.changhong.sei.core.entity.ITenant;
 import org.hibernate.annotations.DynamicInsert;
@@ -9,6 +10,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * 预算维度属性(DimensionAttribute)实体类
@@ -24,8 +26,16 @@ public class DimensionAttribute extends BaseEntity implements ITenant, Serializa
     private static final long serialVersionUID = -63903291983170191L;
     public static final String FIELD_SUBJECT_ID = "subjectId";
     public static final String FIELD_ATTRIBUTE = "attribute";
+    public static final String FIELD_ATTRIBUTE_HASH = "attributeHash";
     public static final String FIELD_PERIOD = "period";
     public static final String FIELD_ITEM = "item";
+    public static final String FIELD_ORG = "org";
+    public static final String FIELD_PROJECT = "project";
+    public static final String FIELD_UDF1 = "udf1";
+    public static final String FIELD_UDF2 = "udf2";
+    public static final String FIELD_UDF3 = "udf3";
+    public static final String FIELD_UDF4 = "udf4";
+    public static final String FIELD_UDF5 = "udf5";
     /**
      * 预算主体id
      */
@@ -38,10 +48,15 @@ public class DimensionAttribute extends BaseEntity implements ITenant, Serializa
     @Column(name = "attribute")
     private String attribute;
     /**
+     * 属性值hash
+     */
+    @Column(name = "attribute_hash")
+    private Long attributeHash = -1L;
+    /**
      * 预算期间
      */
     @Column(name = "period_id")
-    private String period;
+    private String period = Constants.NONE;
     /**
      * 预算期间名称
      */
@@ -51,7 +66,7 @@ public class DimensionAttribute extends BaseEntity implements ITenant, Serializa
      * 预算科目
      */
     @Column(name = "item_code")
-    private String item;
+    private String item = Constants.NONE;
     /**
      * 预算科目名称
      */
@@ -61,7 +76,7 @@ public class DimensionAttribute extends BaseEntity implements ITenant, Serializa
      * 组织
      */
     @Column(name = "org")
-    private String org;
+    private String org = Constants.NONE;
     /**
      * 组织名称
      */
@@ -71,7 +86,7 @@ public class DimensionAttribute extends BaseEntity implements ITenant, Serializa
      * 项目
      */
     @Column(name = "project")
-    private String project;
+    private String project = Constants.NONE;
     /**
      * 项目名称
      */
@@ -81,7 +96,7 @@ public class DimensionAttribute extends BaseEntity implements ITenant, Serializa
      * 自定义1
      */
     @Column(name = "udf1")
-    private String udf1;
+    private String udf1 = Constants.NONE;
     /**
      * 自定义1名称
      */
@@ -91,7 +106,7 @@ public class DimensionAttribute extends BaseEntity implements ITenant, Serializa
      * 自定义2
      */
     @Column(name = "udf2")
-    private String udf2;
+    private String udf2 = Constants.NONE;
     /**
      * 自定义2名称
      */
@@ -101,7 +116,7 @@ public class DimensionAttribute extends BaseEntity implements ITenant, Serializa
      * 自定义3
      */
     @Column(name = "udf3")
-    private String udf3;
+    private String udf3 = Constants.NONE;
     /**
      * 自定义3名称
      */
@@ -111,7 +126,7 @@ public class DimensionAttribute extends BaseEntity implements ITenant, Serializa
      * 自定义4
      */
     @Column(name = "udf4")
-    private String udf4;
+    private String udf4 = Constants.NONE;
     /**
      * 自定义4名称
      */
@@ -121,7 +136,7 @@ public class DimensionAttribute extends BaseEntity implements ITenant, Serializa
      * 自定义5
      */
     @Column(name = "udf5")
-    private String udf5;
+    private String udf5 = Constants.NONE;
     /**
      * 自定义5名称
      */
@@ -148,6 +163,14 @@ public class DimensionAttribute extends BaseEntity implements ITenant, Serializa
 
     public void setAttribute(String attribute) {
         this.attribute = attribute;
+    }
+
+    public Long getAttributeHash() {
+        return attributeHash;
+    }
+
+    public void setAttributeHash(Long attributeHash) {
+        this.attributeHash = attributeHash;
     }
 
     public String getPeriod() {
@@ -304,4 +327,23 @@ public class DimensionAttribute extends BaseEntity implements ITenant, Serializa
         this.tenantCode = tenantCode;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        DimensionAttribute attribute = (DimensionAttribute) o;
+        return Objects.equals(subjectId, attribute.subjectId) && Objects.equals(period, attribute.period) && Objects.equals(item, attribute.item) && Objects.equals(org, attribute.org) && Objects.equals(project, attribute.project) && Objects.equals(udf1, attribute.udf1) && Objects.equals(udf2, attribute.udf2) && Objects.equals(udf3, attribute.udf3) && Objects.equals(udf4, attribute.udf4) && Objects.equals(udf5, attribute.udf5);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), subjectId, period, item, org, project, udf1, udf2, udf3, udf4, udf5);
+    }
 }
