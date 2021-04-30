@@ -1,23 +1,22 @@
 package com.changhong.bems.dto;
 
-import com.changhong.sei.core.dto.BaseEntityDto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import java.io.Serializable;
+import java.util.Set;
+
 /**
- * 预算申请单(Order)DTO类
+ * 创建预算申请单(Order)DTO类
  *
  * @author sei
  * @since 2021-04-25 15:13:57
  */
-@ApiModel(description = "预算申请单DTO")
-public class OrderDto extends BaseEntityDto {
+@ApiModel(description = "创建预算申请单DTO")
+public class CreateOrderDto implements Serializable {
     private static final long serialVersionUID = 927785272928546873L;
-    /**
-     * 申请单号
-     */
-    @ApiModelProperty(value = "申请单号")
-    private String code;
     /**
      * 预算主体id
      */
@@ -54,11 +53,6 @@ public class OrderDto extends BaseEntityDto {
     @ApiModelProperty(value = "订单类型")
     private OrderCategory orderCategory;
     /**
-     * 申请金额
-     */
-    @ApiModelProperty(value = "申请金额")
-    private Double applyAmount = 0d;
-    /**
      * 申请组织id
      */
     @ApiModelProperty(value = "申请组织id")
@@ -73,16 +67,6 @@ public class OrderDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "申请组织名称")
     private String applyOrgName;
-    /**
-     * 申请人代码
-     */
-    @ApiModelProperty(value = "申请人代码")
-    private String applyUserAccount;
-    /**
-     * 申请人名称
-     */
-    @ApiModelProperty(value = "申请人名称")
-    private String applyUserName;
     /**
      * 归口管理组织Id
      */
@@ -104,21 +88,52 @@ public class OrderDto extends BaseEntityDto {
     @ApiModelProperty(value = "备注说明")
     private String remark;
     /**
-     * 状态
+     * 期间
      */
-    @ApiModelProperty(value = "状态")
-    private OrderStatus status;
-
-    @ApiModelProperty(value = "订单行项明细")
-    private OrderDetailDto orderDetails;
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
+    @NotEmpty
+    @ApiModelProperty(value = "期间")
+    private Set<OrderDimension> period;
+    /**
+     * 预算科目
+     */
+    @NotEmpty
+    @ApiModelProperty(value = "预算科目")
+    private Set<OrderDimension> item;
+    /**
+     * 组织
+     */
+    @ApiModelProperty(value = "组织")
+    private Set<OrderDimension> org;
+    /**
+     * 项目
+     */
+    @ApiModelProperty(value = "项目")
+    private Set<OrderDimension> project;
+    /**
+     * 自定义1
+     */
+    @ApiModelProperty(value = "自定义1")
+    private Set<OrderDimension> udf1;
+    /**
+     * 自定义2
+     */
+    @ApiModelProperty(value = "自定义2")
+    private Set<OrderDimension> udf2;
+    /**
+     * 自定义3
+     */
+    @ApiModelProperty(value = "自定义3")
+    private Set<OrderDimension> udf3;
+    /**
+     * 自定义4
+     */
+    @ApiModelProperty(value = "自定义4")
+    private Set<OrderDimension> udf4;
+    /**
+     * 自定义5
+     */
+    @ApiModelProperty(value = "自定义5")
+    private Set<OrderDimension> udf5;
 
     public String getSubjectId() {
         return subjectId;
@@ -176,14 +191,6 @@ public class OrderDto extends BaseEntityDto {
         this.orderCategory = orderCategory;
     }
 
-    public Double getApplyAmount() {
-        return applyAmount;
-    }
-
-    public void setApplyAmount(Double applyAmount) {
-        this.applyAmount = applyAmount;
-    }
-
     public String getApplyOrgId() {
         return applyOrgId;
     }
@@ -206,22 +213,6 @@ public class OrderDto extends BaseEntityDto {
 
     public void setApplyOrgName(String applyOrgName) {
         this.applyOrgName = applyOrgName;
-    }
-
-    public String getApplyUserAccount() {
-        return applyUserAccount;
-    }
-
-    public void setApplyUserAccount(String applyUserAccount) {
-        this.applyUserAccount = applyUserAccount;
-    }
-
-    public String getApplyUserName() {
-        return applyUserName;
-    }
-
-    public void setApplyUserName(String applyUserName) {
-        this.applyUserName = applyUserName;
     }
 
     public String getManagerOrgId() {
@@ -256,19 +247,75 @@ public class OrderDto extends BaseEntityDto {
         this.remark = remark;
     }
 
-    public OrderStatus getStatus() {
-        return status;
+    public Set<OrderDimension> getPeriod() {
+        return period;
     }
 
-    public void setStatus(OrderStatus status) {
-        this.status = status;
+    public void setPeriod(Set<OrderDimension> period) {
+        this.period = period;
     }
 
-    public OrderDetailDto getOrderDetails() {
-        return orderDetails;
+    public Set<OrderDimension> getItem() {
+        return item;
     }
 
-    public void setOrderDetails(OrderDetailDto orderDetails) {
-        this.orderDetails = orderDetails;
+    public void setItem(Set<OrderDimension> item) {
+        this.item = item;
+    }
+
+    public Set<OrderDimension> getOrg() {
+        return org;
+    }
+
+    public void setOrg(Set<OrderDimension> org) {
+        this.org = org;
+    }
+
+    public Set<OrderDimension> getProject() {
+        return project;
+    }
+
+    public void setProject(Set<OrderDimension> project) {
+        this.project = project;
+    }
+
+    public Set<OrderDimension> getUdf1() {
+        return udf1;
+    }
+
+    public void setUdf1(Set<OrderDimension> udf1) {
+        this.udf1 = udf1;
+    }
+
+    public Set<OrderDimension> getUdf2() {
+        return udf2;
+    }
+
+    public void setUdf2(Set<OrderDimension> udf2) {
+        this.udf2 = udf2;
+    }
+
+    public Set<OrderDimension> getUdf3() {
+        return udf3;
+    }
+
+    public void setUdf3(Set<OrderDimension> udf3) {
+        this.udf3 = udf3;
+    }
+
+    public Set<OrderDimension> getUdf4() {
+        return udf4;
+    }
+
+    public void setUdf4(Set<OrderDimension> udf4) {
+        this.udf4 = udf4;
+    }
+
+    public Set<OrderDimension> getUdf5() {
+        return udf5;
+    }
+
+    public void setUdf5(Set<OrderDimension> udf5) {
+        this.udf5 = udf5;
     }
 }

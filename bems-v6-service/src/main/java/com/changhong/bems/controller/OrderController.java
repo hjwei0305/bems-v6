@@ -1,10 +1,7 @@
 package com.changhong.bems.controller;
 
 import com.changhong.bems.api.OrderApi;
-import com.changhong.bems.dto.OrderCategory;
-import com.changhong.bems.dto.OrderDetailDto;
-import com.changhong.bems.dto.OrderDto;
-import com.changhong.bems.dto.OrganizationDto;
+import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
 import com.changhong.bems.service.OrderService;
@@ -140,5 +137,16 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     @Override
     public ResultData<Void> checkDimension(String orderId, String subjectId, String categoryId) {
         return service.checkDimension(orderId, subjectId, categoryId);
+    }
+
+    /**
+     * 添加预算申请单行项明细
+     *
+     * @param order 业务实体DTO
+     * @return 返回订单头id
+     */
+    @Override
+    public ResultData<String> addOrderDetails(CreateOrderDto order) {
+        return null;
     }
 }

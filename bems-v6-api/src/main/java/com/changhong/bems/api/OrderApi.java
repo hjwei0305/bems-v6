@@ -1,5 +1,6 @@
 package com.changhong.bems.api;
 
+import com.changhong.bems.dto.CreateOrderDto;
 import com.changhong.bems.dto.OrderDetailDto;
 import com.changhong.bems.dto.OrderDto;
 import com.changhong.bems.dto.OrganizationDto;
@@ -96,4 +97,14 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     ResultData<Void> checkDimension(@RequestParam("orderId") String orderId,
                                     @RequestParam("subjectId") String subjectId,
                                     @RequestParam("categoryId") String categoryId);
+
+    /**
+     * 添加预算申请单行项明细
+     *
+     * @param order 业务实体DTO
+     * @return 返回订单头id
+     */
+    @PostMapping(path = "createOrder", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "添加预算申请单行项明细", notes = "批量添加一个预算申请单行项明细")
+    ResultData<String> addOrderDetails(@RequestBody @Valid CreateOrderDto order);
 }

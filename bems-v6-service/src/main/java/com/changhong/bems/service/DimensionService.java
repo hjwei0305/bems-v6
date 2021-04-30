@@ -1,7 +1,6 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.dao.DimensionDao;
-import com.changhong.bems.dto.KeyValueDto;
 import com.changhong.bems.entity.Category;
 import com.changhong.bems.entity.CategoryDimension;
 import com.changhong.bems.entity.Dimension;
@@ -18,7 +17,10 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -121,24 +123,5 @@ public class DimensionService extends BaseEntityService<Dimension> {
     public List<Dimension> getRequired() {
         List<Dimension> dimensions = findAll();
         return dimensions.stream().filter(Dimension::getRequired).collect(Collectors.toList());
-    }
-
-    /**
-     * 获取所有预制的维度代码
-     *
-     * @return 策略清单
-     */
-    public Set<KeyValueDto> findAllCodes() {
-        Set<KeyValueDto> set = new LinkedHashSet<>();
-        set.add(new KeyValueDto("period", "预算期间"));
-        set.add(new KeyValueDto("item", "预算科目"));
-        set.add(new KeyValueDto("org", "组织机构"));
-        set.add(new KeyValueDto("project", "项目"));
-        set.add(new KeyValueDto("udf1", "自定义1"));
-        set.add(new KeyValueDto("udf2", "自定义2"));
-        set.add(new KeyValueDto("udf3", "自定义3"));
-        set.add(new KeyValueDto("udf4", "自定义4"));
-        set.add(new KeyValueDto("udf5", "自定义5"));
-        return set;
     }
 }

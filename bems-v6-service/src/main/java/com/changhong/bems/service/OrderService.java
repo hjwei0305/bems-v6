@@ -1,6 +1,7 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.dao.OrderDao;
+import com.changhong.bems.dto.CreateOrderDto;
 import com.changhong.bems.dto.OrganizationDto;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
@@ -91,6 +92,18 @@ public class OrderService extends BaseEntityService<Order> {
         5.存在数据则返回false,不允许修改;
         6.不存在数据则返回true
          */
+        return ResultData.success();
+    }
+
+    /**
+     * 添加预算申请单行项明细
+     *
+     * @param order 业务实体DTO
+     * @return 返回订单头id
+     */
+    public ResultData<String> addOrderDetails(CreateOrderDto order) {
+
+
         return ResultData.success();
     }
 }

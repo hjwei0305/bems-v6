@@ -1,6 +1,7 @@
 package com.changhong.bems.controller;
 
 import com.changhong.bems.api.DimensionApi;
+import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.dto.KeyValueDto;
 import com.changhong.bems.entity.Dimension;
@@ -55,6 +56,6 @@ public class DimensionController extends BaseEntityController<Dimension, Dimensi
      */
     @Override
     public ResultData<Set<KeyValueDto>> findAllCodes() {
-        return ResultData.success(service.findAllCodes());
+        return ResultData.success(Constants.getDimensionCodes());
     }
 }
