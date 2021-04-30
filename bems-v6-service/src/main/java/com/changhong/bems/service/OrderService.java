@@ -6,12 +6,14 @@ import com.changhong.bems.dto.OrganizationDto;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
 import com.changhong.bems.service.client.OrganizationManager;
+import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -83,16 +85,24 @@ public class OrderService extends BaseEntityService<Order> {
      * @param categoryId 类型id
      * @return 业务实体
      */
-    public ResultData<Void> checkDimension(String orderId, String subjectId, String categoryId) {
-        /*
-        1.通过orderid查询单据
-        2.通过单据保存的主体和类型进行比较,是否一致;
-        3.一致则返回true;不一致继续检查
-        4.检查行项是否存在数据;
-        5.存在数据则返回false,不允许修改;
-        6.不存在数据则返回true
-         */
-        return ResultData.success();
+    public ResultData<String> checkDimension(String orderId, String subjectId, String categoryId) {
+        // 通过orderId查询单据
+        Order order = dao.findOne(orderId);
+        if (Objects.nonNull(order)) {
+            OrderDetail detail = orderDetailService.findFirstByProperty(OrderDetail.FIELD_ORDER_ID, orderId);
+            if (Objects.nonNull(detail)) {
+                //通过单据保存的主体和类型进行比较,是否一致
+                if (!StringUtils.equals(subjectId, order.getSubjectId())) {
+                    // 预算主体不是[{0}]
+                    return ResultData.fail(ContextUtil.getMessage("order_00002", order.getSubjectName()));
+                }
+                if (!StringUtils.equals(categoryId, order.getCategoryId())) {
+                    // 预算类型不是[{0}]
+                    return ResultData.fail(ContextUtil.getMessage("order_00003", order.getCategoryName()));
+                }
+            }
+        }
+        return ResultData.success(orderId);
     }
 
     /**
@@ -101,7 +111,12 @@ public class OrderService extends BaseEntityService<Order> {
      * @param order 业务实体DTO
      * @return 返回订单头id
      */
+    @Transactional(rollbackFor = Exception.class)
     public ResultData<String> addOrderDetails(CreateOrderDto order) {
+        ResultData<String> resultData = checkDimension(order.getId(), order.getSubjectId(), order.getCategoryId());
+        if (resultData.failed()) {
+            return resultData;
+        }
 
 
         return ResultData.success();

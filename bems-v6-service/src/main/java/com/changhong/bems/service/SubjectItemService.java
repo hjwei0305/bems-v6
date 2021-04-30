@@ -1,7 +1,10 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.dao.SubjectItemDao;
-import com.changhong.bems.entity.*;
+import com.changhong.bems.entity.DimensionAttribute;
+import com.changhong.bems.entity.Item;
+import com.changhong.bems.entity.Subject;
+import com.changhong.bems.entity.SubjectItem;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
@@ -34,8 +37,6 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
     @Autowired
     private DimensionAttributeService dimensionAttributeService;
     @Autowired
-    private OrderDetailService orderItemService;
-    @Autowired
     private SubjectService subjectService;
     @Autowired
     private ItemService itemService;
@@ -57,11 +58,6 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
         if (Objects.nonNull(entity)) {
             DimensionAttribute attribute = dimensionAttributeService.findFirstByProperty(DimensionAttribute.FIELD_ITEM, id);
             if (Objects.nonNull(attribute)) {
-                // 当前科目已被使用,禁止删除!
-                return OperateResult.operationFailure("subject_item_00001");
-            }
-            OrderDetail orderItem = orderItemService.findFirstByProperty(OrderDetail.FIELD_ITEM_CODE, entity.getCode());
-            if (Objects.nonNull(orderItem)) {
                 // 当前科目已被使用,禁止删除!
                 return OperateResult.operationFailure("subject_item_00001");
             }

@@ -1,6 +1,5 @@
 package com.changhong.bems.entity;
 
-import com.changhong.sei.core.entity.BaseAuditableEntity;
 import com.changhong.sei.core.entity.BaseEntity;
 import com.changhong.sei.core.entity.ITenant;
 import org.hibernate.annotations.DynamicInsert;
@@ -18,14 +17,12 @@ import java.io.Serializable;
  * @since 2021-04-25 15:13:58
  */
 @Entity
-@Table(name = "order_item")
+@Table(name = "order_detail")
 @DynamicInsert
 @DynamicUpdate
 public class OrderDetail extends BaseEntity implements ITenant, Serializable {
     private static final long serialVersionUID = -90286046160801596L;
     public static final String FIELD_ORDER_ID = "orderId";
-    public static final String FIELD_PERIOD_ID = "periodId";
-    public static final String FIELD_ITEM_CODE = "item";
     /**
      * 预算申请单id
      */
@@ -65,7 +62,7 @@ public class OrderDetail extends BaseEntity implements ITenant, Serializable {
      * 预算期间
      */
     @Column(name = "period_id")
-    private String periodId;
+    private String period;
     /**
      * 预算期间名称
      */
@@ -214,12 +211,12 @@ public class OrderDetail extends BaseEntity implements ITenant, Serializable {
         this.originPoolAmount = originPoolAmount;
     }
 
-    public String getPeriodId() {
-        return periodId;
+    public String getPeriod() {
+        return period;
     }
 
-    public void setPeriodId(String periodId) {
-        this.periodId = periodId;
+    public void setPeriod(String period) {
+        this.period = period;
     }
 
     public String getPeriodName() {

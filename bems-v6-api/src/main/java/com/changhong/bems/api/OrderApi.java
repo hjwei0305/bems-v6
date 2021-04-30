@@ -94,7 +94,7 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
      */
     @GetMapping(path = "checkDimension")
     @ApiOperation(value = "检查预算主体和类型是否修改", notes = "通过单据Id检查预算主体和类型是否被修改")
-    ResultData<Void> checkDimension(@RequestParam("orderId") String orderId,
+    ResultData<String> checkDimension(@RequestParam("orderId") String orderId,
                                     @RequestParam("subjectId") String subjectId,
                                     @RequestParam("categoryId") String categoryId);
 

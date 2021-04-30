@@ -4,7 +4,6 @@ import com.changhong.bems.dao.PeriodDao;
 import com.changhong.bems.dto.PeriodCode;
 import com.changhong.bems.dto.PeriodType;
 import com.changhong.bems.entity.DimensionAttribute;
-import com.changhong.bems.entity.OrderDetail;
 import com.changhong.bems.entity.Period;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
@@ -36,8 +35,6 @@ public class PeriodService extends BaseEntityService<Period> {
     private PeriodDao dao;
     @Autowired
     private DimensionAttributeService dimensionAttributeService;
-    @Autowired
-    private OrderDetailService orderItemService;
 
     @Override
     protected BaseEntityDao<Period> getDao() {
@@ -228,15 +225,7 @@ public class PeriodService extends BaseEntityService<Period> {
      */
     private boolean checkCustomizePeriod(String id) {
         DimensionAttribute attribute = dimensionAttributeService.findFirstByProperty(DimensionAttribute.FIELD_PERIOD, id);
-        if (Objects.nonNull(attribute)) {
-            return false;
-        }
-        OrderDetail orderItem = orderItemService.findFirstByProperty(OrderDetail.FIELD_PERIOD_ID, id);
-        if (Objects.nonNull(orderItem)) {
-            return false;
-        }
-        // TODO 导入明细
-        return true;
+        return !Objects.nonNull(attribute);
     }
 
     /**
