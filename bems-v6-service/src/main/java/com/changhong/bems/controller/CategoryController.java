@@ -168,7 +168,7 @@ public class CategoryController extends BaseEntityController<Category, CategoryD
      * @return 业务实体
      */
     @Override
-    public ResultData<List<CategoryDto>> getByCategory(String category) {
-        return ResultData.success(convertToDtos(service.getByCategory(EnumUtils.getEnum(OrderCategory.class, category))));
+    public ResultData<List<CategoryDto>> getByCategory(String subjectId, String category) {
+        return ResultData.success(convertToDtos(service.getByCategory(subjectId, EnumUtils.getEnum(OrderCategory.class, category))));
     }
 }

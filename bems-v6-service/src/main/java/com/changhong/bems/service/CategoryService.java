@@ -8,6 +8,8 @@ import com.changhong.bems.entity.*;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
+import com.changhong.sei.core.dto.serach.Search;
+import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.Validation;
 import com.changhong.sei.core.service.bo.OperateResult;
@@ -314,5 +316,18 @@ public class CategoryService extends BaseEntityService<Category> {
      */
     public List<Category> getByCategory(OrderCategory category) {
         return dao.findListByProperty(Category.FIELD_ORDER_CATEGORY, category);
+    }
+
+    /**
+     * 通过订单类型获取预算类型
+     *
+     * @param category 订单类型
+     * @return 业务实体
+     */
+    public List<Category> getByCategory(String subjectId, OrderCategory category) {
+        Search search = Search.createSearch();
+        search.addFilter(new SearchFilter(Category.FIELD_SUBJECT_ID, subjectId));
+        search.addFilter(new SearchFilter(Category.FIELD_ORDER_CATEGORY, category));
+        return dao.findByFilters(search);
     }
 }

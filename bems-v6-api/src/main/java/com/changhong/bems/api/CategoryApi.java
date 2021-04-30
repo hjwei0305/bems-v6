@@ -7,6 +7,7 @@ import com.changhong.bems.dto.DimensionDto;
 import com.changhong.sei.core.api.BaseEntityApi;
 import com.changhong.sei.core.dto.ResultData;
 import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
@@ -133,7 +134,10 @@ public interface CategoryApi extends BaseEntityApi<CategoryDto> {
      * @return 业务实体
      */
     @GetMapping(path = "getByCategory")
-    @ApiImplicitParam(name = "category", value = "管理类型(订单类型),可用值:INJECTION,ADJUSTMENT,SPLIT")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "subjectId", value = "预算主体"),
+            @ApiImplicitParam(name = "category", value = "管理类型(订单类型),可用值:INJECTION,ADJUSTMENT,SPLIT")
+    })
     @ApiOperation(value = "通过订单类型获取预算类型", notes = "通过订单类型获取预算类型")
-    ResultData<List<CategoryDto>> getByCategory(@RequestParam("category") String category);
+    ResultData<List<CategoryDto>> getByCategory(@RequestParam("subjectId") String subjectId, @RequestParam("category") String category);
 }

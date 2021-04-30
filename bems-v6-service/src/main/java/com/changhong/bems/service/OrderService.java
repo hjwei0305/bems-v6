@@ -83,6 +83,14 @@ public class OrderService extends BaseEntityService<Order> {
      * @return 业务实体
      */
     public ResultData<Void> checkDimension(String orderId, String subjectId, String categoryId) {
+        /*
+        1.通过orderid查询单据
+        2.通过单据保存的主体和类型进行比较,是否一致;
+        3.一致则返回true;不一致继续检查
+        4.检查行项是否存在数据;
+        5.存在数据则返回false,不允许修改;
+        6.不存在数据则返回true
+         */
         return null;
     }
 }
