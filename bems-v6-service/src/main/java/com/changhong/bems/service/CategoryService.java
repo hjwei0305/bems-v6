@@ -314,20 +314,35 @@ public class CategoryService extends BaseEntityService<Category> {
      * @param category 订单类型
      * @return 业务实体
      */
-    public List<Category> getByCategory(OrderCategory category) {
-        return dao.findListByProperty(Category.FIELD_ORDER_CATEGORY, category);
-    }
-
-    /**
-     * 通过订单类型获取预算类型
-     *
-     * @param category 订单类型
-     * @return 业务实体
-     */
     public List<Category> getByCategory(String subjectId, OrderCategory category) {
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(Category.FIELD_SUBJECT_ID, subjectId));
         search.addFilter(new SearchFilter(Category.FIELD_ORDER_CATEGORY, category));
-        return dao.findByFilters(search);
+        search.addFilter(new SearchFilter(Category.FIELD_TYPE, CategoryType.PRIVATE));
+        search.addFilter(new SearchFilter(Category.FROZEN, Boolean.FALSE));
+        List<Category> privateList = dao.findByFilters(search);
+
+        search.clearAll();
+        search.addFilter(new SearchFilter(Category.FIELD_TYPE, CategoryType.GENERAL));
+        search.addFilter(new SearchFilter(Category.FIELD_ORDER_CATEGORY, category));
+        search.addFilter(new SearchFilter(Category.FROZEN, Boolean.FALSE));
+        List<Category> generalList = dao.findByFilters(search);
+        List<Category> categoryList = new ArrayList<>();
+        if (CollectionUtils.isEmpty(privateList)) {
+            if (CollectionUtils.isNotEmpty(generalList)) {
+                categoryList.addAll(generalList);
+            }
+        } else {
+            if (CollectionUtils.isNotEmpty(generalList)) {
+                Set<String> ids = privateList.stream().map(Category::getReferenceId).filter(StringUtils::isNotBlank).collect(Collectors.toSet());
+                if (CollectionUtils.isNotEmpty(ids)) {
+                    categoryList.addAll(generalList.stream().filter(c -> !ids.contains(c.getId())).collect(Collectors.toList()));
+                } else {
+                    categoryList.addAll(generalList);
+                }
+            }
+            categoryList.addAll(privateList);
+        }
+        return categoryList;
     }
 }
