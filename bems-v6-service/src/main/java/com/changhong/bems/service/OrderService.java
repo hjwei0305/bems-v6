@@ -91,6 +91,6 @@ public class OrderService extends BaseEntityService<Order> {
         5.存在数据则返回false,不允许修改;
         6.不存在数据则返回true
          */
-        return null;
+        return ResultData.success();
     }
 }
