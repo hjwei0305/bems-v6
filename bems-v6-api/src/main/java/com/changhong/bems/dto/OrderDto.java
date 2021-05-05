@@ -4,6 +4,8 @@ import com.changhong.sei.core.dto.BaseEntityDto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import java.util.List;
+
 /**
  * 预算申请单(Order)DTO类
  *
@@ -115,7 +117,7 @@ public class OrderDto extends BaseEntityDto {
     private OrderStatus status;
 
     @ApiModelProperty(value = "订单行项明细")
-    private OrderDetailDto orderDetails;
+    private List<OrderDetailDto> orderDetails;
 
     public String getCode() {
         return code;
@@ -277,11 +279,11 @@ public class OrderDto extends BaseEntityDto {
         this.status = status;
     }
 
-    public OrderDetailDto getOrderDetails() {
+    public List<OrderDetailDto> getOrderDetails() {
         return orderDetails;
     }
 
-    public void setOrderDetails(OrderDetailDto orderDetails) {
+    public void setOrderDetails(List<OrderDetailDto> orderDetails) {
         this.orderDetails = orderDetails;
     }
 }

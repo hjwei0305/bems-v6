@@ -17,6 +17,9 @@ import com.changhong.sei.core.service.bo.OperateResultWithData;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +34,7 @@ import java.util.stream.Collectors;
  * @since 2021-04-22 12:54:26
  */
 @Service
+@CacheConfig(cacheNames = CategoryService.CACHE_KEY)
 public class CategoryService extends BaseEntityService<Category> {
     @Autowired
     private CategoryDao dao;
@@ -43,18 +47,22 @@ public class CategoryService extends BaseEntityService<Category> {
     @Autowired
     private DimensionService dimensionService;
 
+    public static final String CACHE_KEY = "bems-v6:category:dimension";
+
     @Override
     protected BaseEntityDao<Category> getDao() {
         return dao;
     }
 
     /**
-     * 删除数据保存数据之前额外操作回调方法 子类根据需要覆写添加逻辑即可
+     * 主键删除
      *
-     * @param id 待删除数据对象主键
+     * @param id 主键
+     * @return 返回操作结果对象
      */
     @Override
-    protected OperateResult preDelete(String id) {
+    @Transactional(rollbackFor = Exception.class)
+    public OperateResult delete(String id) {
         Category category = dao.findOne(id);
         if (Objects.isNull(category)) {
             return OperateResult.operationFailure("category_00004", id);
@@ -68,7 +76,8 @@ public class CategoryService extends BaseEntityService<Category> {
             // 已被使用,禁止删除!
             return OperateResult.operationFailure("category_00001");
         }
-        return OperateResult.operationSuccess();
+        dao.delete(category);
+        return OperateResult.operationSuccess("core_service_00028");
     }
 
     /**
@@ -232,6 +241,7 @@ public class CategoryService extends BaseEntityService<Category> {
      * @param categoryId 预算类型
      * @return 子实体清单
      */
+    @Cacheable(key = "#categoryId")
     public List<DimensionDto> getAssigned(String categoryId) {
         List<CategoryDimension> categoryDimensions = categoryDimensionService.getByCategoryId(categoryId);
 
@@ -263,6 +273,7 @@ public class CategoryService extends BaseEntityService<Category> {
      *
      * @return 分配结果
      */
+    @CacheEvict(key = "#categoryId")
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> assigne(String categoryId, Set<String> dimensionCodes) {
         Category category = dao.findOne(categoryId);
@@ -293,6 +304,7 @@ public class CategoryService extends BaseEntityService<Category> {
      *
      * @return 分配结果
      */
+    @CacheEvict(key = "#categoryId")
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> unassigne(String categoryId, Set<String> dimensionCodes) {
         Category category = dao.findOne(categoryId);

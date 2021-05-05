@@ -16,7 +16,7 @@ import java.util.Set;
  * @since 2021-04-25 15:13:57
  */
 @ApiModel(description = "创建预算申请单DTO")
-public class CreateOrderDto extends BaseEntityDto implements Serializable {
+public class AddOrderDetail extends BaseEntityDto implements Serializable {
     private static final long serialVersionUID = 927785272928546873L;
     /**
      * 预算主体id

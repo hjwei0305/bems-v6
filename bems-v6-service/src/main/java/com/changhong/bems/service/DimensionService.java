@@ -95,7 +95,6 @@ public class DimensionService extends BaseEntityService<Dimension> {
     /**
      * 基于主键集合查询集合数据对象
      */
-    @Cacheable(key = "#codes")
     public List<Dimension> findByCodes(Collection<String> codes) {
         List<Dimension> dimensions = findAll();
         if (CollectionUtils.isNotEmpty(codes)) {

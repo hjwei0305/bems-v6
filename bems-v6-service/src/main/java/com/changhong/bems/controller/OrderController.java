@@ -12,6 +12,7 @@ import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
 import io.swagger.annotations.Api;
+import org.apache.commons.collections.CollectionUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -146,7 +147,24 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      * @return 返回订单头id
      */
     @Override
-    public ResultData<String> addOrderDetails(CreateOrderDto order) {
+    public ResultData<String> addOrderDetails(AddOrderDetail order) {
         return service.addOrderDetails(order);
+    }
+
+    /**
+     * 保存预算申请单
+     *
+     * @param request 业务实体DTO
+     * @return 返回订单头id
+     */
+    @Override
+    public ResultData<String> saveOrder(OrderDto request) {
+        Order order = convertToEntity(request);
+        List<OrderDetailDto> detailDtoList = request.getOrderDetails();
+        List<OrderDetail> details = null;
+        if (CollectionUtils.isNotEmpty(detailDtoList)) {
+            details = detailDtoList.stream().map(dto -> entityModelMapper.map(dto, OrderDetail.class)).collect(Collectors.toList());
+        }
+        return service.saveOrder(order, details);
     }
 }
