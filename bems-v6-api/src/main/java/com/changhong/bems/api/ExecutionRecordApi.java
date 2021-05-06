@@ -14,7 +14,7 @@ import javax.validation.Valid;
  */
 @Valid
 @FeignClient(name = "bems-v6", path = ExecutionRecordApi.PATH)
-public interface ExecutionRecordApi extends BaseEntityApi<ExecutionRecordDto> {
+public interface ExecutionRecordApi {
     String PATH = "executionRecord";
 
 }

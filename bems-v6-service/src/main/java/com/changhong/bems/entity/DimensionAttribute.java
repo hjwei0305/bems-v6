@@ -66,7 +66,9 @@ public class DimensionAttribute extends BaseAttribute implements ITenant, Serial
         this.attribute = attribute;
     }
 
+    @Override
     public Long getAttributeHash() {
+        attributeHash = super.getAttributeHash();
         return attributeHash;
     }
 

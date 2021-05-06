@@ -1,6 +1,7 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.dao.DimensionAttributeDao;
+import com.changhong.bems.entity.BaseAttribute;
 import com.changhong.bems.entity.DimensionAttribute;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
@@ -47,7 +48,7 @@ public class DimensionAttributeService extends BaseEntityService<DimensionAttrib
             return ResultData.fail(ContextUtil.getMessage("dimension_attribute_00001"));
         }
         String id;
-        DimensionAttribute attr = getAttribute(attribute);
+        DimensionAttribute attr = getAttribute(attribute.getSubjectId(), attribute);
         if (Objects.nonNull(attr)) {
             id = attr.getId();
         } else {
@@ -61,11 +62,9 @@ public class DimensionAttributeService extends BaseEntityService<DimensionAttrib
      * 按属性维度hash获取
      * 按维度属性值一一匹配
      */
-    public DimensionAttribute getAttribute(DimensionAttribute attribute) {
-        makeAttributeHash(attribute);
-
+    public DimensionAttribute getAttribute(String subjectId, BaseAttribute attribute) {
         Search search = Search.createSearch();
-        search.addFilter(new SearchFilter(DimensionAttribute.FIELD_SUBJECT_ID, attribute.getSubjectId()));
+        search.addFilter(new SearchFilter(DimensionAttribute.FIELD_SUBJECT_ID, subjectId));
         search.addFilter(new SearchFilter(DimensionAttribute.FIELD_ATTRIBUTE_HASH, attribute.getAttributeHash()));
         return dao.findOneByFilters(search);
     }
@@ -116,29 +115,6 @@ public class DimensionAttributeService extends BaseEntityService<DimensionAttrib
             search.addFilter(new SearchFilter(DimensionAttribute.FIELD_UDF5, attribute.getUdf5()));
         }
         return dao.findByFilters(search);
-    }
-
-    /**
-     * 计算维度属性hash值
-     */
-    public void makeAttributeHash(DimensionAttribute attribute) {
-        if (Objects.nonNull(attribute)) {
-            long result = 1;
-            result = 31 * result + attribute.getItem().hashCode();
-            result = 31 * result + attribute.getPeriod().hashCode();
-            result = 31 * result + attribute.getOrg().hashCode();
-            result = 31 * result + attribute.getProject().hashCode();
-
-            result = 31 * result + attribute.getUdf1().hashCode();
-            result = 31 * result + attribute.getUdf2().hashCode();
-            result = 31 * result + attribute.getUdf3().hashCode();
-            result = 31 * result + attribute.getUdf4().hashCode();
-            result = 31 * result + attribute.getUdf5().hashCode();
-            attribute.setAttributeHash(result);
-        } else {
-            // 预算维度属性不能为空
-            throw new ServiceException(ContextUtil.getMessage("dimension_attribute_00002"));
-        }
     }
 
 }

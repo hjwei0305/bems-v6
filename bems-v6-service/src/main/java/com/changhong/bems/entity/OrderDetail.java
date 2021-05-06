@@ -8,6 +8,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * 预算行项(OrderDetail)实体类
@@ -113,19 +114,9 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
         this.originPoolAmount = originPoolAmount;
     }
 
+    @Override
     public Long getAttributeHash() {
-        long result = 1;
-        result = 31 * result + this.getItem().hashCode();
-        result = 31 * result + this.getPeriod().hashCode();
-        result = 31 * result + this.getOrg().hashCode();
-        result = 31 * result + this.getProject().hashCode();
-
-        result = 31 * result + this.getUdf1().hashCode();
-        result = 31 * result + this.getUdf2().hashCode();
-        result = 31 * result + this.getUdf3().hashCode();
-        result = 31 * result + this.getUdf4().hashCode();
-        result = 31 * result + this.getUdf5().hashCode();
-        attributeHash = result;
+        attributeHash = super.getAttributeHash();
         return attributeHash;
     }
 
@@ -151,5 +142,25 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
             e.printStackTrace();
             return null;
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        OrderDetail detail = (OrderDetail) o;
+        return Objects.equals(orderId, detail.orderId) && Objects.equals(period, detail.period) && Objects.equals(item, detail.item) && Objects.equals(org, detail.org) && Objects.equals(project, detail.project) && Objects.equals(udf1, detail.udf1) && Objects.equals(udf2, detail.udf2) && Objects.equals(udf3, detail.udf3) && Objects.equals(udf4, detail.udf4) && Objects.equals(udf5, detail.udf5);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), orderId, period, item, org, project, udf1, udf2, udf3, udf4, udf5);
     }
 }

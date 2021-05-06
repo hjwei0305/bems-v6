@@ -264,4 +264,19 @@ public abstract class BaseAttribute extends BaseEntity implements ITenant, Seria
     public void setUdf5Name(String udf5Name) {
         this.udf5Name = udf5Name;
     }
+
+    public Long getAttributeHash() {
+        long result = 1;
+        result = 31 * result + this.getItem().hashCode();
+        result = 31 * result + this.getPeriod().hashCode();
+        result = 31 * result + this.getOrg().hashCode();
+        result = 31 * result + this.getProject().hashCode();
+
+        result = 31 * result + this.getUdf1().hashCode();
+        result = 31 * result + this.getUdf2().hashCode();
+        result = 31 * result + this.getUdf3().hashCode();
+        result = 31 * result + this.getUdf4().hashCode();
+        result = 31 * result + this.getUdf5().hashCode();
+        return result;
+    }
 }

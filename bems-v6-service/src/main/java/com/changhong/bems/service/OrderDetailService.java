@@ -467,6 +467,11 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         // 获取预算池及可用额度
         for (OrderDetail detail : details) {
             OrderStatistics statistics = (OrderStatistics) operations.get();
+            if (Objects.isNull(statistics)) {
+                statistics = new OrderStatistics(details.size(), LocalDateTime.now());
+            }
+
+
 
             result = this.save(detail);
             if (result.successful()) {
