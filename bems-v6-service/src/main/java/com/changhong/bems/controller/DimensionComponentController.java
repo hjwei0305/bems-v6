@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @Api(value = "DimensionComponentApi", tags = "预算维度UI组件服务")
-@RequestMapping(path = DimensionApi.PATH, produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = DimensionComponentApi.PATH, produces = MediaType.APPLICATION_JSON_VALUE)
 public class DimensionComponentController implements DimensionComponentApi {
     /**
      * 预算主体科目服务对象
