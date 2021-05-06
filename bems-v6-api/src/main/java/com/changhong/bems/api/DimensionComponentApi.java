@@ -31,7 +31,7 @@ public interface DimensionComponentApi {
      *
      * @return 子实体清单
      */
-    @GetMapping(path = "getBudgetItems", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "getBudgetItems")
     @ApiImplicitParam(name = "subjectId", value = "预算主体id", required = true)
     @ApiOperation(value = "获取预算科目", notes = "获取指定预算主体的科目(维度组件专用)")
     ResultData<List<SubjectItemDto>> getBudgetItems(@RequestParam("subjectId") String subjectId);
