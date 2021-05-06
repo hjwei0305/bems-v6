@@ -14,12 +14,14 @@ import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResultWithData;
+import com.changhong.sei.serial.sdk.SerialService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.util.List;
 import java.util.Objects;
@@ -41,6 +43,8 @@ public class OrderService extends BaseEntityService<Order> {
     private OrderDetailService orderDetailService;
     @Autowired
     private OrganizationManager organizationManager;
+    @Autowired(required = false)
+    private SerialService serialService;
 
     @Override
     protected BaseEntityDao<Order> getDao() {
@@ -126,12 +130,10 @@ public class OrderService extends BaseEntityService<Order> {
         }
         Order order = modelMapper.map(orderDto, Order.class);
         // 保存订单头
-        resultData = saveOrder(order, null);
+        resultData = this.saveOrder(order, null);
         if (resultData.successful()) {
-            // 订单id
-            String orderId = resultData.getData();
             // 异步生成订单行项
-            orderDetailService.batchAddOrderItems(orderId, order.getCategoryId(), orderDto);
+            orderDetailService.batchAddOrderItems(order, orderDto);
         }
         return resultData;
     }
@@ -144,16 +146,19 @@ public class OrderService extends BaseEntityService<Order> {
      */
     @Transactional(rollbackFor = Exception.class)
     public ResultData<String> saveOrder(Order order, List<OrderDetail> details) {
-        OperateResultWithData result = this.save(order);
+        if (StringUtils.isBlank(order.getCode())) {
+            order.setCode(serialService.getNumber(Order.class));
+        }
+        OperateResultWithData<Order> result = this.save(order);
         if (result.successful()) {
             String orderId = order.getId();
             if (CollectionUtils.isNotEmpty(details)) {
-                for (OrderDetail detail : details) {
-                    detail.setOrderId(orderId);
+                ResultData<Void> resultData = orderDetailService.updateAmount(order, details);
+                if (resultData.failed()) {
+                    // 回滚事务
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    return ResultData.fail(resultData.getMessage());
                 }
-                // TODO 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
-
-                orderDetailService.save(details);
             }
             return ResultData.success(orderId);
         } else {

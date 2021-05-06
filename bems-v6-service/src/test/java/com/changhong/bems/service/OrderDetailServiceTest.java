@@ -1,7 +1,9 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.dto.AddOrderDetail;
+import com.changhong.bems.dto.OrderCategory;
 import com.changhong.bems.dto.OrderDimension;
+import com.changhong.bems.entity.Order;
 import com.changhong.sei.core.test.BaseUnit5Test;
 import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
@@ -25,6 +27,8 @@ class OrderDetailServiceTest extends BaseUnit5Test {
 
     @Test
     void clearOrderItems() {
+        String orderId = "";
+        service.clearOrderItems(orderId);
     }
 
     @Test
@@ -48,7 +52,11 @@ class OrderDetailServiceTest extends BaseUnit5Test {
 //        set.add(new OrderDimension("a", "a"));
 //        set.add(new OrderDimension("b", "b"));
         detail.setOrg(set);
-        service.batchAddOrderItems(orderId, categoryId, detail);
+        Order order = new Order();
+        order.setId(orderId);
+        order.setCategoryId(categoryId);
+        order.setOrderCategory(OrderCategory.INJECTION);
+        service.batchAddOrderItems(order, detail);
 
     }
 }

@@ -16,10 +16,10 @@ import java.io.Serializable;
  * @since 2021-04-25 15:13:58
  */
 @Entity
-@Table(name = "order_detail")
+@Table(name = "order_detail_err")
 @DynamicInsert
 @DynamicUpdate
-public class OrderDetail extends BaseAttribute implements ITenant, Serializable, Cloneable {
+public class OrderDetailErr extends BaseAttribute implements ITenant, Serializable, Cloneable {
     private static final long serialVersionUID = -90286046160801596L;
     public static final String FIELD_ORDER_ID = "orderId";
     public static final String FIELD_ATTRIBUTE_HASH = "attributeHash";
@@ -54,16 +54,46 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
     @Column(name = "origin_pool_amount")
     private Double originPoolAmount = 0d;
     /**
-     * 属性值hash
+     * 错误信息
      */
-    @Column(name = "attribute_hash")
-    private Long attributeHash = -1L;
+    @Column(name = "err_msg")
+    private String errMsg;
     /**
      * 租户代码
      */
     @Column(name = "tenant_code")
     private String tenantCode;
 
+    public OrderDetailErr() {
+    }
+
+    public OrderDetailErr(OrderDetail detail) {
+        this.orderId = detail.getOrderId();
+        this.amount = detail.getAmount();
+        this.poolCode = detail.getPoolCode();
+        this.poolAmount = detail.getPoolAmount();
+        this.originPoolCode = detail.getOriginPoolCode();
+        this.originPoolAmount = detail.getOriginPoolAmount();
+        this.tenantCode = detail.getTenantCode();
+        this.period = detail.getPeriod();
+        this.periodName = detail.getPeriodName();
+        this.item = detail.getItem();
+        this.itemName = detail.getItemName();
+        this.org = detail.getOrg();
+        this.orgName = detail.getOrgName();
+        this.project = detail.getProject();
+        this.projectName = detail.getProjectName();
+        this.udf1 = detail.getUdf1();
+        this.udf1Name = detail.getUdf1Name();
+        this.udf2 = detail.getUdf2();
+        this.udf2Name = detail.getUdf2Name();
+        this.udf3 = detail.getUdf3();
+        this.udf3Name = detail.getUdf3Name();
+        this.udf4 = detail.getUdf4();
+        this.udf4Name = detail.getUdf4Name();
+        this.udf5 = detail.getUdf5();
+        this.udf5Name = detail.getUdf5Name();
+    }
 
     public String getOrderId() {
         return orderId;
@@ -113,24 +143,12 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
         this.originPoolAmount = originPoolAmount;
     }
 
-    public Long getAttributeHash() {
-        long result = 1;
-        result = 31 * result + this.getItem().hashCode();
-        result = 31 * result + this.getPeriod().hashCode();
-        result = 31 * result + this.getOrg().hashCode();
-        result = 31 * result + this.getProject().hashCode();
-
-        result = 31 * result + this.getUdf1().hashCode();
-        result = 31 * result + this.getUdf2().hashCode();
-        result = 31 * result + this.getUdf3().hashCode();
-        result = 31 * result + this.getUdf4().hashCode();
-        result = 31 * result + this.getUdf5().hashCode();
-        attributeHash = result;
-        return attributeHash;
+    public String getErrMsg() {
+        return errMsg;
     }
 
-    public void setAttributeHash(Long attributeHash) {
-        this.attributeHash = attributeHash;
+    public void setErrMsg(String errMsg) {
+        this.errMsg = errMsg;
     }
 
     @Override
@@ -144,9 +162,9 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
     }
 
     @Override
-    public OrderDetail clone() {
+    public OrderDetailErr clone() {
         try {
-            return (OrderDetail) super.clone();
+            return (OrderDetailErr) super.clone();
         } catch (CloneNotSupportedException e) {
             e.printStackTrace();
             return null;
