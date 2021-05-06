@@ -27,6 +27,7 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
     public static final String FIELD_SUBJECT_ID = "subjectId";
     public static final String FIELD_CATEGORY_ID = "categoryId";
     public static final String FIELD_ORDER_CATEGORY = "orderCategory";
+    public static final String FIELD_STATUS = "status";
     /**
      * 申请单号
      */
@@ -129,7 +130,7 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
      */
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
-    private OrderStatus status;
+    private OrderStatus status = OrderStatus.PREFAB;
     /**
      * 租户代码
      */

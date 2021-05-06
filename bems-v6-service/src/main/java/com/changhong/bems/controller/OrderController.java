@@ -67,6 +67,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         if (Objects.isNull(search)) {
             search = Search.createSearch();
         }
+        // 排除预制状态单据
+        search.addFilter(new SearchFilter(Order.FIELD_STATUS, OrderStatus.PREFAB, SearchFilter.Operator.NE));
         search.addFilter(new SearchFilter(Order.FIELD_ORDER_CATEGORY, OrderCategory.INJECTION));
         return convertToDtoPageResult(service.findByPage(search));
     }
@@ -82,6 +84,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         if (Objects.isNull(search)) {
             search = Search.createSearch();
         }
+        // 排除预制状态单据
+        search.addFilter(new SearchFilter(Order.FIELD_STATUS, OrderStatus.PREFAB, SearchFilter.Operator.NE));
         search.addFilter(new SearchFilter(Order.FIELD_ORDER_CATEGORY, OrderCategory.ADJUSTMENT));
         return convertToDtoPageResult(service.findByPage(search));
     }
@@ -97,6 +101,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         if (Objects.isNull(search)) {
             search = Search.createSearch();
         }
+        // 排除预制状态单据
+        search.addFilter(new SearchFilter(Order.FIELD_STATUS, OrderStatus.PREFAB, SearchFilter.Operator.NE));
         search.addFilter(new SearchFilter(Order.FIELD_ORDER_CATEGORY, OrderCategory.INJECTION));
         return convertToDtoPageResult(service.findByPage(search));
     }

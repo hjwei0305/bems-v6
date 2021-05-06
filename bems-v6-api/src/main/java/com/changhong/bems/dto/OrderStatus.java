@@ -10,6 +10,11 @@ import com.changhong.sei.annotation.Remark;
  */
 public enum OrderStatus {
     /**
+     * 预制
+     */
+    @Remark("预制")
+    PREFAB,
+    /**
      * 草稿
      */
     @Remark("草稿")
