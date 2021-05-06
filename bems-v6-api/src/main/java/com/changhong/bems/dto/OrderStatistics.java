@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.StringJoiner;
 
 /**
  * 实现功能：
@@ -101,4 +102,14 @@ public class OrderStatistics implements Serializable {
         this.failures++;
     }
 
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", OrderStatistics.class.getSimpleName() + "[", "]")
+                .add("total=" + total)
+                .add("successes=" + successes)
+                .add("failures=" + failures)
+                .add("startTime=" + startTime)
+                .toString();
+    }
 }

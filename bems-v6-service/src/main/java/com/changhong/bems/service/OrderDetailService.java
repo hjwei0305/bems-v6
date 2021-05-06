@@ -58,7 +58,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    private static final String HANDLE_CACHE_KEY_PREFIX = "bems-v6:order:handle:";
+    public static final String HANDLE_CACHE_KEY_PREFIX = "bems-v6:order:handle:";
 
     // 分组大小
     private static final int MAX_NUMBER = 500;
