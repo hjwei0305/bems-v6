@@ -87,6 +87,16 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     ResultData<Void> clearOrderItems(@RequestParam("orderId") String orderId);
 
     /**
+     * 通过单据行项id删除行项
+     *
+     * @param detailIds 单据Id
+     * @return 业务实体
+     */
+    @DeleteMapping(path = "removeOrderItems")
+    @ApiOperation(value = "通过单据行项id删除行项", notes = "通过单据行项id删除行项")
+    ResultData<Void> removeOrderItems(@RequestBody String[] detailIds);
+
+    /**
      * 通过单据Id检查预算主体和类型是否被修改
      *
      * @param orderId 单据Id
@@ -95,8 +105,8 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     @GetMapping(path = "checkDimension")
     @ApiOperation(value = "检查预算主体和类型是否修改", notes = "通过单据Id检查预算主体和类型是否被修改")
     ResultData<String> checkDimension(@RequestParam("orderId") String orderId,
-                                    @RequestParam("subjectId") String subjectId,
-                                    @RequestParam("categoryId") String categoryId);
+                                      @RequestParam("subjectId") String subjectId,
+                                      @RequestParam("categoryId") String categoryId);
 
     /**
      * 添加预算申请单行项明细

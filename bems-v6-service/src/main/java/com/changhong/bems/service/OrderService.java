@@ -23,8 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * 预算申请单(Order)业务逻辑实现类
@@ -82,6 +81,20 @@ public class OrderService extends BaseEntityService<Order> {
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> clearOrderItems(String orderId) {
         orderDetailService.clearOrderItems(orderId);
+        return ResultData.success();
+    }
+
+    /**
+     * 通过单据行项id删除行项
+     *
+     * @param detailIds 单据Id
+     * @return 业务实体
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ResultData<Void> removeOrderItems(String[] detailIds) {
+        Set<String> ids = new HashSet<>();
+        Collections.addAll(ids, detailIds);
+        orderDetailService.delete(ids);
         return ResultData.success();
     }
 

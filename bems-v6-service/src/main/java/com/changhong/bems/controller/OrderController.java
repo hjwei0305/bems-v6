@@ -135,6 +135,17 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     }
 
     /**
+     * 通过单据行项id删除行项
+     *
+     * @param detailIds 单据Id
+     * @return 业务实体
+     */
+    @Override
+    public ResultData<Void> removeOrderItems(String[] detailIds) {
+        return service.removeOrderItems(detailIds);
+    }
+
+    /**
      * 通过单据Id检查预算主体和类型是否被修改
      *
      * @param orderId    单据Id
