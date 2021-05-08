@@ -55,9 +55,6 @@ public class WebsocketServer {
                 }
                 // 输出最新日志
                 send(session, ResultData.success(statistics));
-                // 睡眠3s
-                //noinspection BusyWait
-                Thread.sleep(3000);
                 statistics = (OrderStatistics) operations.get();
             }
             statistics = new OrderStatistics();
