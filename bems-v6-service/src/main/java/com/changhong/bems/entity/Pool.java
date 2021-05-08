@@ -23,6 +23,9 @@ import java.time.LocalDate;
 @DynamicUpdate
 public class Pool extends BaseAuditableEntity implements ITenant, ICodeUnique, Serializable {
     private static final long serialVersionUID = 345291355065499642L;
+    public static final String FIELD_SUBJECT_ID = "subjectId";
+    public static final String FIELD_ATTRIBUTE_ID = "attributeId";
+    public static final String FIELD_ACTIVED = "actived";
     /**
      * 代码
      */
@@ -78,22 +81,22 @@ public class Pool extends BaseAuditableEntity implements ITenant, ICodeUnique, S
      * 是否启用
      */
     @Column(name = "is_actived")
-    private Boolean actived;
+    private Boolean actived = Boolean.TRUE;
     /**
      * 允许使用(业务可用)
      */
     @Column(name = "is_use")
-    private Boolean use;
+    private Boolean use = Boolean.FALSE;
     /**
      * 允许结转
      */
     @Column(name = "is_roll")
-    private Boolean roll;
+    private Boolean roll = Boolean.FALSE;
     /**
      * 是否可延期
      */
     @Column(name = "is_delay")
-    private Boolean delay;
+    private Boolean delay = Boolean.FALSE;
     /**
      * 可用余额
      */

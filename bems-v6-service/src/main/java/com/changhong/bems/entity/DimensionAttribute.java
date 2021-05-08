@@ -49,6 +49,20 @@ public class DimensionAttribute extends BaseAttribute implements ITenant, Serial
     @Column(name = "tenant_code")
     private String tenantCode;
 
+    public DimensionAttribute() {
+    }
+
+    public DimensionAttribute(BaseAttribute attribute) {
+        this.period = attribute.getPeriod();
+        this.item = attribute.getItem();
+        this.org = attribute.getOrg();
+        this.project = attribute.getProject();
+        this.udf1 = attribute.getUdf1();
+        this.udf2 = attribute.getUdf2();
+        this.udf3 = attribute.getUdf3();
+        this.udf4 = attribute.getUdf4();
+        this.udf5 = attribute.getUdf5();
+    }
 
     public String getSubjectId() {
         return subjectId;

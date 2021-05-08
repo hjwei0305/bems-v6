@@ -11,6 +11,12 @@ import com.changhong.sei.annotation.Remark;
 public enum OperationType {
 
     /**
+     * 预下达
+     */
+    @Remark("预下达")
+    PRE_RELEASE,
+
+    /**
      * 下达
      */
     @Remark("下达")

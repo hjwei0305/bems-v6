@@ -1,7 +1,6 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.dao.DimensionAttributeDao;
-import com.changhong.bems.entity.BaseAttribute;
 import com.changhong.bems.entity.DimensionAttribute;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
@@ -9,7 +8,6 @@ import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
-import com.changhong.sei.exception.ServiceException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -48,7 +46,7 @@ public class DimensionAttributeService extends BaseEntityService<DimensionAttrib
             return ResultData.fail(ContextUtil.getMessage("dimension_attribute_00001"));
         }
         String id;
-        DimensionAttribute attr = getAttribute(attribute.getSubjectId(), attribute);
+        DimensionAttribute attr = getAttribute(attribute.getSubjectId(), attribute.getAttributeHash());
         if (Objects.nonNull(attr)) {
             id = attr.getId();
         } else {
@@ -62,10 +60,10 @@ public class DimensionAttributeService extends BaseEntityService<DimensionAttrib
      * 按属性维度hash获取
      * 按维度属性值一一匹配
      */
-    public DimensionAttribute getAttribute(String subjectId, BaseAttribute attribute) {
+    public DimensionAttribute getAttribute(String subjectId, long attributeHash) {
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(DimensionAttribute.FIELD_SUBJECT_ID, subjectId));
-        search.addFilter(new SearchFilter(DimensionAttribute.FIELD_ATTRIBUTE_HASH, attribute.getAttributeHash()));
+        search.addFilter(new SearchFilter(DimensionAttribute.FIELD_ATTRIBUTE_HASH, attributeHash));
         return dao.findOneByFilters(search);
     }
 

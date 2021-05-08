@@ -3,10 +3,14 @@ package com.changhong.bems.service;
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.OrderDetailDao;
 import com.changhong.bems.dao.OrderDetailErrDao;
-import com.changhong.bems.dto.*;
+import com.changhong.bems.dto.AddOrderDetail;
+import com.changhong.bems.dto.DimensionDto;
+import com.changhong.bems.dto.OrderDimension;
+import com.changhong.bems.dto.OrderStatistics;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
 import com.changhong.bems.entity.OrderDetailErr;
+import com.changhong.bems.entity.Pool;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
@@ -15,9 +19,11 @@ import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.log.LogUtil;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResultWithData;
+import com.changhong.sei.core.util.JsonUtils;
 import com.changhong.sei.exception.ServiceException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,8 +59,6 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
     private CategoryService categoryService;
     @Autowired
     private PoolService poolService;
-    @Autowired
-    private DimensionAttributeService dimensionAttributeService;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
@@ -100,6 +104,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     // TODO 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
 
                 }
+                this.save(detailList);
             }
         }
         return ResultData.success();
@@ -329,10 +334,14 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         else if (StringUtils.equals(Constants.DIMENSION_CODE_ITEM, dimensionCode)) {
             detail.setItem(dimension.getValue());
             detail.setItemName(dimension.getText());
-        } else if (StringUtils.equals(Constants.DIMENSION_CODE_ORG, dimensionCode)) {
+        }
+        // 组织机构维度
+        else if (StringUtils.equals(Constants.DIMENSION_CODE_ORG, dimensionCode)) {
             detail.setOrg(dimension.getValue());
             detail.setOrgName(dimension.getText());
-        } else if (StringUtils.equals(Constants.DIMENSION_CODE_PROJECT, dimensionCode)) {
+        }
+        // 项目维度
+        else if (StringUtils.equals(Constants.DIMENSION_CODE_PROJECT, dimensionCode)) {
             detail.setProject(dimension.getValue());
             detail.setProjectName(dimension.getText());
         } else if (StringUtils.equals(Constants.DIMENSION_CODE_UDF1, dimensionCode)) {
@@ -380,6 +389,8 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         });
         details.clear();
 
+        ResultData<Pool> result;
+        OrderStatistics statistics;
         // 记录所有hash值,以便识别出重复的行项
         Set<Long> duplicateHash = new HashSet<>();
         Search search = Search.createSearch();
@@ -399,8 +410,12 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             }
 
             for (OrderDetail detail : detailList) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("正在处理行项: " + JsonUtils.toJson(detail));
+                }
+
                 detail.setOrderId(orderId);
-                OrderStatistics statistics = (OrderStatistics) operations.get();
+                statistics = (OrderStatistics) operations.get();
                 if (Objects.isNull(statistics)) {
                     statistics = new OrderStatistics(size, LocalDateTime.now());
                 }
@@ -428,54 +443,95 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     if (isCover) {
                         // 覆盖原有行项记录(更新金额)
                         orderDetail.setAmount(detail.getAmount());
-                        details.add(orderDetail);
+                        detail = orderDetail;
                     } else {
                         // 忽略,不做处理
                         continue;
                     }
-                } else {
-                    details.add(detail);
                 }
+
+                // 获取预算池及可用额度
+                try {
+                    // 按订单类型处理订单行项,设置预算池信息并持久化
+                    result = this.setDetailPool(order, detail);
+                } catch (Exception e) {
+                    result = ResultData.fail(ExceptionUtils.getRootCauseMessage(e));
+                }
+                if (result.successful()) {
+                    statistics.addSuccesses();
+                } else {
+                    statistics.addFailures();
+                    OrderDetailErr err = new OrderDetailErr(detail);
+                    err.setTenantCode(ContextUtil.getTenantCode());
+                    err.setErrMsg(result.getMessage());
+                    orderDetailErrDao.save(err);
+                }
+                operations.set(statistics);
             }
         }
-
-        OperateResultWithData<OrderDetail> result;
-        // 获取预算池及可用额度
-        for (OrderDetail detail : details) {
-            OrderStatistics statistics = (OrderStatistics) operations.get();
-            if (Objects.isNull(statistics)) {
-                statistics = new OrderStatistics(details.size(), LocalDateTime.now());
-            }
-
-
-
-            result = this.save(detail);
-            if (result.successful()) {
-                statistics.addSuccesses();
-            } else {
-                statistics.addFailures();
-                OrderDetailErr err = new OrderDetailErr(detail);
-                err.setTenantCode(ContextUtil.getTenantCode());
-                err.setErrMsg(result.getMessage());
-                orderDetailErrDao.save(err);
-            }
-            operations.set(statistics);
-        }
-//        handlePool(orderId, order.getOrderCategory(), details);
     }
 
     /**
      * 对行项数据做预算池及可用额度处理
      *
-     * @param category 订单类型
-     * @param details  订单行项
+     * @param order  订单头
+     * @param detail 订单行项
      */
-    private void handlePool(String orderId, OrderCategory category, List<OrderDetail> details) {
-        BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(HANDLE_CACHE_KEY_PREFIX + orderId);
-        for (OrderDetail detail : details) {
-            OrderStatistics statistics = (OrderStatistics) operations.get();
-
-
+    private ResultData<Pool> setDetailPool(Order order, OrderDetail detail) throws Exception {
+        // 预算主体id
+        String subjectId = order.getSubjectId();
+        ResultData<Pool> resultData;
+        switch (order.getOrderCategory()) {
+            // 注入下达(对总额的增减)
+            case INJECTION:
+                /*
+                    1.通过主体和维度属性hash检查是否存在预算池
+                    2.若存在,则设置预算池编码和当前余额到行项上
+                    3.若不存在,则跳过.在预算生效或申请完成时,创建预算池(创建时再检查是否存在预算池)
+                 */
+                resultData = poolService.getPool(subjectId, detail.getAttributeHash());
+                if (resultData.successful()) {
+                    Pool pool = resultData.getData();
+                    detail.setPoolCode(pool.getCode());
+                    detail.setPoolAmount(pool.getBalance());
+                }
+                break;
+            // 调整(跨纬度调整,总额不变)
+            case ADJUSTMENT:
+                /*
+                    1.通过主体和维度属性hash检查是否存在预算池
+                    2.若存在,则设置预算池编码和当前余额到行项上
+                    3.若不存在,则返回错误:预算池未找到
+                 */
+                resultData = poolService.getPool(subjectId, detail.getAttributeHash());
+                if (resultData.successful()) {
+                    Pool pool = resultData.getData();
+                    detail.setPoolCode(pool.getCode());
+                    detail.setPoolAmount(pool.getBalance());
+                } else {
+                    return resultData;
+                }
+                break;
+            // 分解(年度到月度,总额不变)
+            case SPLIT:
+                /* TODO
+                    1.通过主体和维度属性,按对应的自动溯源规则获取上级预算池;
+                    2.若找到上级预算池,则更新源预算池及源预算池余额;
+                    2-1.通过主体和维度属性hash检查是否存在预算池
+                    2-2.若存在,则设置预算池编码和当前余额到行项上
+                    2-3.若不存在,则跳过.在预算生效或申请完成时,创建预算池(创建时再检查是否存在预算池)
+                    3.若未找到,则返回错误:预算池未找到
+                 */
+                break;
+            default:
+                // 不支持的订单类型
+                return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
+        }
+        OperateResultWithData<OrderDetail> result = this.save(detail);
+        if (result.successful()) {
+            return ResultData.success();
+        } else {
+            return ResultData.fail(result.getMessage());
         }
     }
 }

@@ -5,6 +5,7 @@ import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
 import com.changhong.bems.service.OrderService;
+import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
@@ -166,6 +167,20 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     @Override
     public ResultData<String> saveOrder(OrderDto request) {
         Order order = convertToEntity(request);
+        switch (order.getStatus()) {
+            case PREFAB:
+            case DRAFT:
+                // 更新状态为草稿状态
+                order.setStatus(OrderStatus.DRAFT);
+                break;
+            case PROCESSING:
+            case COMPLETED:
+                // 订单状态为[{0}],不允许操作
+                return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+            default:
+                // 不支持的订单状态
+                return ResultData.fail(ContextUtil.getMessage("order_00005", order.getStatus()));
+        }
         List<OrderDetailDto> detailDtoList = request.getOrderDetails();
         List<OrderDetail> details = null;
         if (CollectionUtils.isNotEmpty(detailDtoList)) {
