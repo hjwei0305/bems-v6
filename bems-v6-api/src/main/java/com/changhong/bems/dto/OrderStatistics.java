@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.StringJoiner;
 
@@ -74,7 +75,7 @@ public class OrderStatistics implements Serializable {
         if (null == startTime) {
             return 0;
         } else {
-            return System.nanoTime() - startTime.getNano();
+            return Duration.between(startTime, LocalDateTime.now()).toMillis();
         }
     }
 

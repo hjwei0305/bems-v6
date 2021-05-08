@@ -351,31 +351,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             detail.setUdf5(dimension.getValue());
             detail.setUdf5Name(dimension.getText());
         }
-//        makeAttributeHash(detail);
     }
-
-//    /**
-//     * 计算维度属性hash值
-//     */
-//    private static void makeAttributeHash(OrderDetail detail) {
-//        if (Objects.nonNull(detail)) {
-//            long result = 1;
-//            result = 31 * result + detail.getItem().hashCode();
-//            result = 31 * result + detail.getPeriod().hashCode();
-//            result = 31 * result + detail.getOrg().hashCode();
-//            result = 31 * result + detail.getProject().hashCode();
-//
-//            result = 31 * result + detail.getUdf1().hashCode();
-//            result = 31 * result + detail.getUdf2().hashCode();
-//            result = 31 * result + detail.getUdf3().hashCode();
-//            result = 31 * result + detail.getUdf4().hashCode();
-//            result = 31 * result + detail.getUdf5().hashCode();
-//            detail.setAttributeHash(result);
-//        } else {
-//            // 预算维度属性不能为空
-//            throw new ServiceException(ContextUtil.getMessage("dimension_attribute_00002"));
-//        }
-//    }
 
     /**
      * 保存订单行项

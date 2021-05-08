@@ -2,7 +2,9 @@ package com.changhong.bems;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * 实现功能：
@@ -19,5 +21,17 @@ public class TestTime {
         System.out.println(localDate);
         LocalDate localDate1 = localDate.withMonth(2);
         System.out.println(localDate1.withDayOfMonth(localDate1.lengthOfMonth()));
+    }
+
+    @Test
+    public void testDuration() {
+        LocalDateTime startTime = LocalDateTime.of(2021, 5, 8, 8, 50, 0);
+        LocalDateTime endTime = LocalDateTime.now();
+        System.out.println(startTime);
+        System.out.println(endTime);
+        Duration duration = Duration.between(startTime, endTime);
+        System.out.println("耗时(ms): " + duration.toMillis());
+        System.out.println("耗时(s)" + duration.toMillis()/1000);
+        System.out.println("耗时(s)" + duration.toMinutes());
     }
 }
