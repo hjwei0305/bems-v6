@@ -101,7 +101,7 @@ public class Pool extends BaseAuditableEntity implements ITenant, ICodeUnique, S
      * 可用余额
      */
     @Column(name = "balance")
-    private Double balance;
+    private Double balance = 0d;
     /**
      * 租户代码
      */

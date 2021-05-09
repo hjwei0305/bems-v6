@@ -1,6 +1,7 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.dao.PoolDao;
+import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.entity.*;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.context.SessionUser;
@@ -12,6 +13,7 @@ import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResultWithData;
 import com.changhong.sei.exception.ServiceException;
 import com.changhong.sei.serial.sdk.SerialService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
+import java.util.StringJoiner;
 
 
 /**
@@ -112,6 +116,16 @@ public class PoolService extends BaseEntityService<Pool> {
         String subjectId = order.getSubjectId();
         DimensionAttribute dimensionAttribute = new DimensionAttribute(attribute);
         dimensionAttribute.setSubjectId(order.getSubjectId());
+        List<DimensionDto> dimensions = categoryService.getAssigned(order.getCategoryId());
+        if (CollectionUtils.isEmpty(dimensions)) {
+            // 预算类型[{0}]下未找到预算维度!
+            return ResultData.fail(ContextUtil.getMessage("category_00007", order.getCategoryName()));
+        }
+        StringJoiner joiner = new StringJoiner(",");
+        for (DimensionDto dimension : dimensions) {
+            joiner.add(dimension.getCode());
+        }
+        dimensionAttribute.setAttribute(joiner.toString());
         ResultData<String> resultData = dimensionAttributeService.add(dimensionAttribute);
         if (resultData.failed()) {
             return ResultData.fail(resultData.getMessage());

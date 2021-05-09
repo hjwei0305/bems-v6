@@ -2,6 +2,7 @@ package com.changhong.bems.entity;
 
 import com.changhong.bems.dto.OperationType;
 import com.changhong.sei.core.entity.BaseAuditableEntity;
+import com.changhong.sei.core.entity.BaseEntity;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -18,7 +19,7 @@ import java.io.Serializable;
 @Table(name = "pool_amount")
 @DynamicInsert
 @DynamicUpdate
-public class PoolAmount extends BaseAuditableEntity implements Serializable {
+public class PoolAmount extends BaseEntity implements Serializable {
     private static final long serialVersionUID = 434318292053003122L;
     public static final String FIELD_POOL_ID = "poolId";
     public static final String FIELD_POOL_CODE = "poolCode";

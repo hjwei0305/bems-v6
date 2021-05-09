@@ -195,6 +195,10 @@ public class OrderService extends BaseEntityService<Order> {
             // 订单[{0}]不存在!
             return ResultData.fail(ContextUtil.getMessage("order_00001", orderId));
         }
+        if (OrderStatus.DRAFT != order.getStatus()) {
+            // 订单[{0}]不存在!
+            return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+        }
         List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
         ResultData<Void> resultData = this.checkAndPutDetailPool(order, details, OperationType.RELEASE);
         if (resultData.successful()) {
@@ -218,6 +222,11 @@ public class OrderService extends BaseEntityService<Order> {
             // 订单[{0}]不存在!
             return ResultData.fail(ContextUtil.getMessage("order_00001", orderId));
         }
+
+        if (OrderStatus.DRAFT != order.getStatus()) {
+            // 订单[{0}]不存在!
+            return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+        }
         List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
         ResultData<Void> resultData = this.checkAndPutDetailPool(order, details, OperationType.PRE_RELEASE);
         if (resultData.successful()) {
@@ -229,6 +238,46 @@ public class OrderService extends BaseEntityService<Order> {
         return resultData;
     }
 
+
+
+    /**
+     * 预算申请单审批完成
+     *
+     * @param orderId 申请单id
+     * @return 返回处理结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ResultData<Void> completeOrder(String orderId) {
+        Order order = dao.findOne(orderId);
+        if (Objects.isNull(order)) {
+            // 订单[{0}]不存在!
+            return ResultData.fail(ContextUtil.getMessage("order_00001", orderId));
+        }
+
+        if (OrderStatus.PROCESSING != order.getStatus()) {
+            // 订单[{0}]不存在!
+            return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+        }
+        List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
+        // TODO 流程中 到 完成
+        ResultData<Void> resultData = this.checkAndPutDetailPool(order, details, OperationType.RELEASE);
+        if (resultData.successful()) {
+            // 更新订单状态为:完成
+            order.setStatus(OrderStatus.COMPLETED);
+            dao.save(order);
+            resultData = ResultData.success();
+        }
+        return resultData;
+    }
+
+    /**
+     * 检查并设置或创建预算池
+     *
+     * @param order     预算申请单
+     * @param details   预算申请单行项
+     * @param operation 操作类型
+     * @return 返回处理结果
+     */
     private ResultData<Void> checkAndPutDetailPool(Order order, List<OrderDetail> details, OperationType operation) {
         if (CollectionUtils.isNotEmpty(details)) {
             String poolCode;
