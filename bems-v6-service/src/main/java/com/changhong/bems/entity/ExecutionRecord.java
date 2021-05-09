@@ -36,7 +36,7 @@ public class ExecutionRecord extends BaseAuditableEntity implements Serializable
      */
     @Column(name = "operation_type")
     @Enumerated(EnumType.STRING)
-    private OperationType operationType;
+    private OperationType operation;
     /**
      * 金额
      */
@@ -46,22 +46,17 @@ public class ExecutionRecord extends BaseAuditableEntity implements Serializable
      * 操作时间
      */
     @Column(name = "operation_time")
-    private LocalDateTime operationTime;
+    private LocalDateTime opTime;
     /**
      * 操作人账号
      */
     @Column(name = "operation_user_account")
-    private String operationUserAccount;
+    private String opUserAccount;
     /**
      * 操作人名称
      */
     @Column(name = "operation_user_name")
-    private String operationUserName;
-    /**
-     * 业务来源
-     */
-    @Column(name = "biz_from")
-    private String bizFrom;
+    private String opUserName;
     /**
      * 业务单id
      */
@@ -93,6 +88,15 @@ public class ExecutionRecord extends BaseAuditableEntity implements Serializable
     @Column(name = "biz_remark")
     private String bizRemark;
 
+    public ExecutionRecord() {
+    }
+
+    public ExecutionRecord(String poolCode, OperationType operation, Double amount, String bizEvent) {
+        this.poolCode = poolCode;
+        this.operation = operation;
+        this.amount = amount;
+        this.bizEvent = bizEvent;
+    }
 
     public String getPoolCode() {
         return poolCode;
@@ -110,12 +114,12 @@ public class ExecutionRecord extends BaseAuditableEntity implements Serializable
         this.attributeId = attributeId;
     }
 
-    public OperationType getOperationType() {
-        return operationType;
+    public OperationType getOperation() {
+        return operation;
     }
 
-    public void setOperationType(OperationType operationType) {
-        this.operationType = operationType;
+    public void setOperation(OperationType operation) {
+        this.operation = operation;
     }
 
     public Double getAmount() {
@@ -126,36 +130,28 @@ public class ExecutionRecord extends BaseAuditableEntity implements Serializable
         this.amount = amount;
     }
 
-    public LocalDateTime getOperationTime() {
-        return operationTime;
+    public LocalDateTime getOpTime() {
+        return opTime;
     }
 
-    public void setOperationTime(LocalDateTime operationTime) {
-        this.operationTime = operationTime;
+    public void setOpTime(LocalDateTime opTime) {
+        this.opTime = opTime;
     }
 
-    public String getOperationUserAccount() {
-        return operationUserAccount;
+    public String getOpUserAccount() {
+        return opUserAccount;
     }
 
-    public void setOperationUserAccount(String operationUserAccount) {
-        this.operationUserAccount = operationUserAccount;
+    public void setOpUserAccount(String opUserAccount) {
+        this.opUserAccount = opUserAccount;
     }
 
-    public String getOperationUserName() {
-        return operationUserName;
+    public String getOpUserName() {
+        return opUserName;
     }
 
-    public void setOperationUserName(String operationUserName) {
-        this.operationUserName = operationUserName;
-    }
-
-    public String getBizFrom() {
-        return bizFrom;
-    }
-
-    public void setBizFrom(String bizFrom) {
-        this.bizFrom = bizFrom;
+    public void setOpUserName(String opUserName) {
+        this.opUserName = opUserName;
     }
 
     public String getBizOrderId() {

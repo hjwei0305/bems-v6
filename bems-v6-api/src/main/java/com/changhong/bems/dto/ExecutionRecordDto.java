@@ -31,7 +31,7 @@ public class ExecutionRecordDto extends BaseEntityDto {
      * 操作类型
      */
     @ApiModelProperty(value = "操作类型")
-    private OperationType operationType;
+    private OperationType operation;
     /**
      * 金额
      */
@@ -42,17 +42,17 @@ public class ExecutionRecordDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "操作时间", example = "2021-04-22")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime operationTime;
+    private LocalDateTime opTime;
     /**
      * 操作人账号
      */
     @ApiModelProperty(value = "操作人账号")
-    private String operationUserAccount;
+    private String opUserAccount;
     /**
      * 操作人名称
      */
     @ApiModelProperty(value = "操作人名称")
-    private String operationUserName;
+    private String opUserName;
     /**
      * 业务来源
      */
@@ -105,12 +105,12 @@ public class ExecutionRecordDto extends BaseEntityDto {
         this.attributeId = attributeId;
     }
 
-    public OperationType getOperationType() {
-        return operationType;
+    public OperationType getOperation() {
+        return operation;
     }
 
-    public void setOperationType(OperationType operationType) {
-        this.operationType = operationType;
+    public void setOperation(OperationType operation) {
+        this.operation = operation;
     }
 
     public Double getAmount() {
@@ -121,28 +121,28 @@ public class ExecutionRecordDto extends BaseEntityDto {
         this.amount = amount;
     }
 
-    public LocalDateTime getOperationTime() {
-        return operationTime;
+    public LocalDateTime getOpTime() {
+        return opTime;
     }
 
-    public void setOperationTime(LocalDateTime operationTime) {
-        this.operationTime = operationTime;
+    public void setOpTime(LocalDateTime opTime) {
+        this.opTime = opTime;
     }
 
-    public String getOperationUserAccount() {
-        return operationUserAccount;
+    public String getOpUserAccount() {
+        return opUserAccount;
     }
 
-    public void setOperationUserAccount(String operationUserAccount) {
-        this.operationUserAccount = operationUserAccount;
+    public void setOpUserAccount(String opUserAccount) {
+        this.opUserAccount = opUserAccount;
     }
 
-    public String getOperationUserName() {
-        return operationUserName;
+    public String getOpUserName() {
+        return opUserName;
     }
 
-    public void setOperationUserName(String operationUserName) {
-        this.operationUserName = operationUserName;
+    public void setOpUserName(String opUserName) {
+        this.opUserName = opUserName;
     }
 
     public String getBizFrom() {

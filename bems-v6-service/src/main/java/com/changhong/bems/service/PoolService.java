@@ -1,10 +1,7 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.dao.PoolDao;
-import com.changhong.bems.entity.DimensionAttribute;
-import com.changhong.bems.entity.Order;
-import com.changhong.bems.entity.OrderDetail;
-import com.changhong.bems.entity.Pool;
+import com.changhong.bems.entity.*;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
@@ -12,6 +9,7 @@ import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.exception.ServiceException;
+import com.changhong.sei.serial.sdk.SerialService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +29,12 @@ public class PoolService extends BaseEntityService<Pool> {
     private PoolDao dao;
     @Autowired
     private DimensionAttributeService dimensionAttributeService;
+    @Autowired
+    private PoolAmountService poolAmountService;
+    @Autowired
+    private ExecutionRecordService executionRecordService;
+    @Autowired(required = false)
+    private SerialService serialService;
 
     @Override
     protected BaseEntityDao<Pool> getDao() {
@@ -78,7 +82,7 @@ public class PoolService extends BaseEntityService<Pool> {
     /**
      * 按预算池编码获取预算池
      *
-     * @param poolCode   预算池编码
+     * @param poolCode 预算池编码
      * @return 返回符合条件的预算池
      */
     public Pool getPoolByCode(String poolCode) {
@@ -88,12 +92,21 @@ public class PoolService extends BaseEntityService<Pool> {
     /**
      * 创建一个预算池
      *
-     * @param order  申请单
-     * @param detail 申请单行项
+     * @param order     申请单
+     * @param attribute 预算维度属性
      */
     @Transactional(rollbackFor = Exception.class)
-    public void createPool(Order order, OrderDetail detail) {
-
+    public ResultData<Pool> createPool(Order order, BaseAttribute attribute) {
+        DimensionAttribute dimensionAttribute = new DimensionAttribute(attribute);
+        dimensionAttribute.setSubjectId(order.getSubjectId());
+        ResultData<String> resultData = dimensionAttributeService.add(dimensionAttribute);
+        if (resultData.failed()) {
+            return ResultData.fail(resultData.getMessage());
+        }
+        Pool pool = new Pool();
+        pool.setAttributeId(resultData.getData());
+        // todo 创建预算池
+        return ResultData.success(pool);
     }
 
     /**
@@ -120,5 +133,14 @@ public class PoolService extends BaseEntityService<Pool> {
         double amount = 0;
         pool.setBalance(amount);
         return amount;
+    }
+
+    /**
+     * @param record 执行记录
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void recordLog(ExecutionRecord record) {
+        // todo 记录执行日志
+
     }
 }

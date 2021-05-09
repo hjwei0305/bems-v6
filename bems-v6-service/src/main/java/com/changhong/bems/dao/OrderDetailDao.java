@@ -26,4 +26,13 @@ public interface OrderDetailDao extends BaseEntityDao<OrderDetail> {
     @Modifying
     @Query("delete from OrderDetail d where d.orderId = :orderId")
     int clearOrderItems(@Param("orderId") String orderId);
+
+    /**
+     * 获取订单总金额
+     *
+     * @param orderId 订单头id
+     * @return 返回总金额
+     */
+    @Query("select sum(d.amount) from OrderDetail d where d.orderId = :orderId")
+    double getSumAmount(@Param("orderId") String orderId);
 }

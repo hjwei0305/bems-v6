@@ -126,6 +126,9 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     }
                 }
                 this.save(detailList);
+                //获取订单总金额
+                double sumAmount = dao.getSumAmount(order.getId());
+                order.setApplyAmount(sumAmount);
             }
         }
         return ResultData.success();
