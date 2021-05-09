@@ -11,6 +11,7 @@ import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
+import com.changhong.sei.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -75,6 +76,16 @@ public class PoolService extends BaseEntityService<Pool> {
     }
 
     /**
+     * 按预算池编码获取预算池
+     *
+     * @param poolCode   预算池编码
+     * @return 返回符合条件的预算池
+     */
+    public Pool getPoolByCode(String poolCode) {
+        return dao.findByProperty(Pool.CODE_FIELD, poolCode);
+    }
+
+    /**
      * 创建一个预算池
      *
      * @param order  申请单
@@ -83,5 +94,31 @@ public class PoolService extends BaseEntityService<Pool> {
     @Transactional(rollbackFor = Exception.class)
     public void createPool(Order order, OrderDetail detail) {
 
+    }
+
+    /**
+     * 获取预算池当前可用余额
+     *
+     * @param poolId 预算池id
+     */
+    public double getPoolAmount(String poolId) {
+        Pool pool = dao.findOne(poolId);
+        return getPoolAmount(pool);
+    }
+
+    /**
+     * 获取预算池当前可用余额
+     *
+     * @param pool 预算池
+     */
+    public double getPoolAmount(Pool pool) {
+        if (Objects.isNull(pool)) {
+            // 未找到预算池
+            throw new ServiceException(ContextUtil.getMessage("pool_00001"));
+        }
+        // todo 实时计算当前预算池可用金额
+        double amount = 0;
+        pool.setBalance(amount);
+        return amount;
     }
 }

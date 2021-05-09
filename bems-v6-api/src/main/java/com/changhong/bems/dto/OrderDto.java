@@ -114,7 +114,7 @@ public class OrderDto extends BaseEntityDto {
      * 状态
      */
     @ApiModelProperty(value = "状态")
-    private OrderStatus status;
+    private OrderStatus status = OrderStatus.PREFAB;
 
     @ApiModelProperty(value = "订单行项明细")
     private List<OrderDetailDto> orderDetails;

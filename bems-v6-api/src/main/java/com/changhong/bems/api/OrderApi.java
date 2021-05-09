@@ -92,7 +92,7 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
      * @param detailIds 单据Id
      * @return 业务实体
      */
-    @DeleteMapping(path = "removeOrderItems")
+    @DeleteMapping(path = "removeOrderItems", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "通过单据行项id删除行项", notes = "通过单据行项id删除行项")
     ResultData<Void> removeOrderItems(@RequestBody String[] detailIds);
 
@@ -127,4 +127,24 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     @PostMapping(path = "saveOrder", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "保存预算申请单", notes = "保存一个预算申请单")
     ResultData<String> saveOrder(@RequestBody @Valid OrderDto order);
+
+    /**
+     * 生效预算申请单
+     *
+     * @param orderId 申请单id
+     * @return 返回处理结果
+     */
+    @PostMapping(path = "effectiveOrder")
+    @ApiOperation(value = "生效预算申请单", notes = "直接生效预算申请单")
+    ResultData<Void> effectiveOrder(@RequestParam("orderId") String orderId);
+
+    /**
+     * 提交审批预算申请单
+     *
+     * @param orderId 申请单id
+     * @return 返回处理结果
+     */
+    @PostMapping(path = "commitOrder")
+    @ApiOperation(value = "提交审批预算申请单", notes = "提交审批预算申请单")
+    ResultData<Void> commitOrder(@RequestParam("orderId") String orderId);
 }

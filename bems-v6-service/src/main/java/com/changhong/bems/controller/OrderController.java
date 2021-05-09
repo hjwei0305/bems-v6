@@ -199,4 +199,26 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         }
         return service.saveOrder(order, details);
     }
+
+    /**
+     * 生效预算申请单
+     *
+     * @param orderId 申请单id
+     * @return 返回处理结果
+     */
+    @Override
+    public ResultData<Void> effectiveOrder(String orderId) {
+        return service.effectiveOrder(orderId);
+    }
+
+    /**
+     * 提交审批预算申请单
+     *
+     * @param orderId 申请单id
+     * @return 返回处理结果
+     */
+    @Override
+    public ResultData<Void> commitOrder(String orderId) {
+        return service.commitOrder(orderId);
+    }
 }

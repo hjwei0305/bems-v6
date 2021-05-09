@@ -2,6 +2,7 @@ package com.changhong.bems.service;
 
 import com.changhong.bems.dao.OrderDao;
 import com.changhong.bems.dto.AddOrderDetail;
+import com.changhong.bems.dto.OrderStatus;
 import com.changhong.bems.dto.OrganizationDto;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
@@ -178,5 +179,90 @@ public class OrderService extends BaseEntityService<Order> {
         }
     }
 
+    /**
+     * 生效预算申请单
+     *
+     * @param orderId 申请单id
+     * @return 返回处理结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ResultData<Void> effectiveOrder(String orderId) {
+        Order order = dao.findOne(orderId);
+        if (Objects.isNull(order)) {
+            // 订单[{0}]不存在!
+            return ResultData.fail(ContextUtil.getMessage("order_00001", orderId));
+        }
+        List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
+        if (CollectionUtils.isNotEmpty(details)) {
+            ResultData<Void> resultData;
+            for (OrderDetail detail : details) {
+                resultData = this.checkAndPutDetailPool(order, detail);
+                if (resultData.failed()) {
+                    return resultData;
+                }
+            }
+        }
+        // 更新订单状态为:完成
+        order.setStatus(OrderStatus.COMPLETED);
+        dao.save(order);
+        return ResultData.success();
+    }
 
+    /**
+     * 提交审批预算申请单
+     *
+     * @param orderId 申请单id
+     * @return 返回处理结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ResultData<Void> commitOrder(String orderId) {
+        Order order = dao.findOne(orderId);
+        if (Objects.isNull(order)) {
+            // 订单[{0}]不存在!
+            return ResultData.fail(ContextUtil.getMessage("order_00001", orderId));
+        }
+        List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
+        if (CollectionUtils.isNotEmpty(details)) {
+            ResultData<Void> resultData;
+            for (OrderDetail detail : details) {
+                resultData = checkAndPutDetailPool(order, detail);
+                if (resultData.failed()) {
+                    return resultData;
+                }
+            }
+        }
+        // 更新订单状态为:流程中
+        order.setStatus(OrderStatus.PROCESSING);
+        dao.save(order);
+        return ResultData.success();
+    }
+
+    private ResultData<Void> checkAndPutDetailPool(Order order, OrderDetail detail) {
+        ResultData<Void> resultData;
+        // 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
+        switch (order.getOrderCategory()) {
+            case INJECTION:
+                resultData = orderDetailService.checkInjectionDetail(order, detail);
+                if (resultData.successful()) {
+                    String poolCode = detail.getPoolCode();
+                }
+                break;
+            case ADJUSTMENT:
+                resultData = orderDetailService.checkAdjustmentDetail(order, detail);
+                if (resultData.successful()) {
+                    String poolCode = detail.getPoolCode();
+                }
+                break;
+            case SPLIT:
+                resultData = orderDetailService.checkSplitDetail(order, detail);
+                if (resultData.successful()) {
+                    String poolCode = detail.getPoolCode();
+                }
+                break;
+            default:
+                // 不支持的订单类型
+                return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
+        }
+        return resultData;
+    }
 }
