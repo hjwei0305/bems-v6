@@ -3,17 +3,23 @@ package com.changhong.bems.service;
 import com.changhong.bems.dao.PoolDao;
 import com.changhong.bems.entity.*;
 import com.changhong.sei.core.context.ContextUtil;
+import com.changhong.sei.core.context.SessionUser;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
+import com.changhong.sei.core.service.bo.OperateResultWithData;
 import com.changhong.sei.exception.ServiceException;
 import com.changhong.sei.serial.sdk.SerialService;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 
@@ -25,10 +31,15 @@ import java.util.Objects;
  */
 @Service
 public class PoolService extends BaseEntityService<Pool> {
+    private static final Logger LOG = LoggerFactory.getLogger(PoolService.class);
     @Autowired
     private PoolDao dao;
     @Autowired
     private DimensionAttributeService dimensionAttributeService;
+    @Autowired
+    private PeriodService periodService;
+    @Autowired
+    private CategoryService categoryService;
     @Autowired
     private PoolAmountService poolAmountService;
     @Autowired
@@ -97,15 +108,56 @@ public class PoolService extends BaseEntityService<Pool> {
      */
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Pool> createPool(Order order, BaseAttribute attribute) {
+        // 预算主体id
+        String subjectId = order.getSubjectId();
         DimensionAttribute dimensionAttribute = new DimensionAttribute(attribute);
         dimensionAttribute.setSubjectId(order.getSubjectId());
         ResultData<String> resultData = dimensionAttributeService.add(dimensionAttribute);
         if (resultData.failed()) {
             return ResultData.fail(resultData.getMessage());
         }
-        Pool pool = new Pool();
-        pool.setAttributeId(resultData.getData());
-        // todo 创建预算池
+        // 属性id
+        String attributeId = resultData.getData();
+        Search search = Search.createSearch();
+        search.addFilter(new SearchFilter(Pool.FIELD_SUBJECT_ID, subjectId));
+        search.addFilter(new SearchFilter(Pool.FIELD_ATTRIBUTE_ID, attributeId));
+        Pool pool = dao.findOneByFilters(search);
+        if (Objects.isNull(pool)) {
+            pool = new Pool();
+            // 预算池编码
+            pool.setCode(serialService.getNumber(Pool.class, ContextUtil.getTenantCode()));
+            // 预算主体
+            pool.setSubjectId(subjectId);
+            // 属性id
+            pool.setAttributeId(attributeId);
+            // 币种
+            pool.setCurrencyCode(order.getCurrencyCode());
+            pool.setCurrencyName(order.getCurrencyName());
+            // 归口管理部门
+            pool.setManageOrg(order.getManagerOrgCode());
+            pool.setManageOrgName(order.getManagerOrgName());
+            // 期间类型
+            pool.setPeriodType(order.getPeriodType());
+            Period period = periodService.findOne(attribute.getPeriod());
+            if (Objects.isNull(period)) {
+                // 预算期间不存在
+                return ResultData.fail(ContextUtil.getMessage("period_00002"));
+            }
+            pool.setStartDate(period.getStartDate());
+            pool.setEndDate(period.getEndDate());
+            Category category = categoryService.findOne(order.getCategoryId());
+            if (Objects.isNull(category)) {
+                // 预算类型不存在
+                return ResultData.fail(ContextUtil.getMessage("category_00004", order.getCategoryId()));
+            }
+            pool.setUse(category.getUse());
+            pool.setRoll(category.getRoll());
+
+            OperateResultWithData<Pool> result = this.save(pool);
+            if (result.notSuccessful()) {
+                return ResultData.fail(result.getMessage());
+            }
+        }
         return ResultData.success(pool);
     }
 
@@ -114,9 +166,17 @@ public class PoolService extends BaseEntityService<Pool> {
      *
      * @param poolId 预算池id
      */
-    public double getPoolAmount(String poolId) {
-        Pool pool = dao.findOne(poolId);
-        return getPoolAmount(pool);
+    public double getPoolBalanceById(String poolId) {
+        return poolAmountService.getPoolBalanceByPoolId(poolId);
+    }
+
+    /**
+     * 获取预算池当前可用余额
+     *
+     * @param poolCode 预算池编码
+     */
+    public double getPoolBalanceByCode(String poolCode) {
+        return poolAmountService.getPoolBalanceByPoolCode(poolCode);
     }
 
     /**
@@ -124,13 +184,13 @@ public class PoolService extends BaseEntityService<Pool> {
      *
      * @param pool 预算池
      */
-    public double getPoolAmount(Pool pool) {
+    public double getPoolBalance(Pool pool) {
         if (Objects.isNull(pool)) {
             // 未找到预算池
             throw new ServiceException(ContextUtil.getMessage("pool_00001"));
         }
-        // todo 实时计算当前预算池可用金额
-        double amount = 0;
+        // 实时计算当前预算池可用金额
+        double amount = poolAmountService.getPoolBalanceByPoolCode(pool.getCode());
         pool.setBalance(amount);
         return amount;
     }
@@ -140,7 +200,24 @@ public class PoolService extends BaseEntityService<Pool> {
      */
     @Transactional(rollbackFor = Exception.class)
     public void recordLog(ExecutionRecord record) {
-        // todo 记录执行日志
-
+        Pool pool = dao.findByProperty(Pool.CODE_FIELD, record.getPoolCode());
+        if (Objects.isNull(pool)) {
+            LOG.error("预算池[" + record.getPoolCode() + "]不存在");
+            return;
+        }
+        // 操作时间
+        record.setOpTime(LocalDateTime.now());
+        // 操作人
+        if (StringUtils.isBlank(record.getOpUserAccount())) {
+            SessionUser user = ContextUtil.getSessionUser();
+            record.setOpUserAccount(user.getAccount());
+            record.setOpUserName(user.getUserName());
+        }
+        // 设置预算属性id
+        record.setAttributeId(pool.getAttributeId());
+        // 记录执行日志
+        executionRecordService.save(record);
+        // 累计金额
+        poolAmountService.countAmount(pool, record.getOperation(), record.getAmount());
     }
 }

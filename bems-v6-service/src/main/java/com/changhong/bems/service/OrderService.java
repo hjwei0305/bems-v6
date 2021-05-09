@@ -163,7 +163,7 @@ public class OrderService extends BaseEntityService<Order> {
     @Transactional(rollbackFor = Exception.class)
     public ResultData<String> saveOrder(Order order, List<OrderDetail> details) {
         if (StringUtils.isBlank(order.getCode())) {
-            order.setCode(serialService.getNumber(Order.class));
+            order.setCode(serialService.getNumber(Order.class, ContextUtil.getTenantCode()));
         }
         OperateResultWithData<Order> result = this.save(order);
         if (result.successful()) {

@@ -27,7 +27,7 @@ public class PoolAmountDto extends BaseEntityDto {
      * 操作类型
      */
     @ApiModelProperty(value = "操作类型")
-    private OperationType operationType;
+    private OperationType operation;
     /**
      * 金额
      */
@@ -50,12 +50,12 @@ public class PoolAmountDto extends BaseEntityDto {
         this.poolCode = poolCode;
     }
 
-    public OperationType getOperationType() {
-        return operationType;
+    public OperationType getOperation() {
+        return operation;
     }
 
-    public void setOperationType(OperationType operationType) {
-        this.operationType = operationType;
+    public void setOperation(OperationType operation) {
+        this.operation = operation;
     }
 
     public Double getAmount() {

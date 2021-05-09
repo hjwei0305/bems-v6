@@ -582,12 +582,13 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                 ResultData<Pool> result = poolService.getPool(subjectId, detail.getAttributeHash());
                 if (result.successful()) {
                     pool = result.getData();
-                    detail.setPoolCode(pool.getCode());
+                    poolCode = pool.getCode();
+                    detail.setPoolCode(poolCode);
                 }
             }
             if (Objects.nonNull(pool)) {
                 // 检查预算池可用余额是否满足本次发生金额(主要存在注入负数调减的金额)
-                balance = poolService.getPoolAmount(pool);
+                balance = poolService.getPoolBalance(pool);
                 // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
                 if (balance + detail.getAmount() < 0) {
                     // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
@@ -627,7 +628,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             pool = poolService.getPoolByCode(poolCode);
             if (Objects.nonNull(pool)) {
                 // 检查预算池可用余额是否满足本次发生金额(主要存在注入负数调减的金额)
-                balance = poolService.getPoolAmount(pool);
+                balance = poolService.getPoolBalance(pool);
                 // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
                 if (balance + detail.getAmount() < 0) {
                     // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].

@@ -20,6 +20,9 @@ import java.io.Serializable;
 @DynamicUpdate
 public class PoolAmount extends BaseAuditableEntity implements Serializable {
     private static final long serialVersionUID = 434318292053003122L;
+    public static final String FIELD_POOL_ID = "poolId";
+    public static final String FIELD_POOL_CODE = "poolCode";
+    public static final String FIELD_OPERATION = "operation";
     /**
      * 预算池id
      */
@@ -35,7 +38,7 @@ public class PoolAmount extends BaseAuditableEntity implements Serializable {
      */
     @Column(name = "operation_type")
     @Enumerated(EnumType.STRING)
-    private OperationType operationType;
+    private OperationType operation;
     /**
      * 金额
      */
@@ -59,12 +62,12 @@ public class PoolAmount extends BaseAuditableEntity implements Serializable {
         this.poolCode = poolCode;
     }
 
-    public OperationType getOperationType() {
-        return operationType;
+    public OperationType getOperation() {
+        return operation;
     }
 
-    public void setOperationType(OperationType operationType) {
-        this.operationType = operationType;
+    public void setOperation(OperationType operationType) {
+        this.operation = operationType;
     }
 
     public Double getAmount() {
