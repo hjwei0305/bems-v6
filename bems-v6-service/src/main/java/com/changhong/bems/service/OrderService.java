@@ -146,10 +146,13 @@ public class OrderService extends BaseEntityService<Order> {
         }
         Order order = modelMapper.map(orderDto, Order.class);
         // 保存订单头
-        resultData = this.saveOrder(order, null);
-        if (resultData.successful()) {
+        ResultData<Order> orderResult = this.saveOrder(order, null);
+        if (orderResult.successful()) {
             // 异步生成订单行项
             orderDetailService.batchAddOrderItems(order, orderDto);
+            resultData = ResultData.success(order.getId());
+        } else {
+            resultData = ResultData.fail(orderResult.getMessage());
         }
         return resultData;
     }
@@ -161,7 +164,7 @@ public class OrderService extends BaseEntityService<Order> {
      * @return 返回订单头id
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<String> saveOrder(Order order, List<OrderDetail> details) {
+    public ResultData<Order> saveOrder(Order order, List<OrderDetail> details) {
         if (StringUtils.isBlank(order.getCode())) {
             order.setCode(serialService.getNumber(Order.class, ContextUtil.getTenantCode()));
         }
@@ -176,7 +179,7 @@ public class OrderService extends BaseEntityService<Order> {
                     return ResultData.fail(resultData.getMessage());
                 }
             }
-            return ResultData.success(orderId);
+            return ResultData.success(order);
         } else {
             return ResultData.fail(result.getMessage());
         }

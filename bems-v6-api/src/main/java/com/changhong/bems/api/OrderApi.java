@@ -126,7 +126,7 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
      */
     @PostMapping(path = "saveOrder", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "保存预算申请单", notes = "保存一个预算申请单")
-    ResultData<String> saveOrder(@RequestBody @Valid OrderDto order);
+    ResultData<OrderDto> saveOrder(@RequestBody @Valid OrderDto order);
 
     /**
      * 生效预算申请单

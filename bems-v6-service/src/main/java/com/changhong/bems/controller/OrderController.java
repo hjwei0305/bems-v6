@@ -176,7 +176,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      * @return 返回订单头id
      */
     @Override
-    public ResultData<String> saveOrder(OrderDto request) {
+    public ResultData<OrderDto> saveOrder(OrderDto request) {
         Order order = convertToEntity(request);
         switch (order.getStatus()) {
             case PREFAB:
@@ -197,7 +197,12 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         if (CollectionUtils.isNotEmpty(detailDtoList)) {
             details = detailDtoList.stream().map(dto -> entityModelMapper.map(dto, OrderDetail.class)).collect(Collectors.toList());
         }
-        return service.saveOrder(order, details);
+        ResultData<Order> resultData = service.saveOrder(order, details);
+        if (resultData.successful()) {
+            return ResultData.success(dtoModelMapper.map(resultData.getData(), OrderDto.class));
+        } else {
+            return ResultData.fail(resultData.getMessage());
+        }
     }
 
     /**
