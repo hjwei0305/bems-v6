@@ -1,9 +1,11 @@
 package com.changhong.bems.dto;
 
 import com.changhong.sei.core.dto.BaseEntityDto;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -118,6 +120,16 @@ public class OrderDto extends BaseEntityDto {
 
     @ApiModelProperty(value = "订单行项明细")
     private List<OrderDetailDto> orderDetails;
+    @ApiModelProperty(value = "创建人账号")
+    protected String creatorAccount;
+    @ApiModelProperty(value = "创建人名称")
+    protected String creatorName;
+    /**
+     * 创建时间
+     */
+    @ApiModelProperty(value = "创建时间", example = "2021-04-22 12:01:10")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    protected Date createdDate;
 
     public String getCode() {
         return code;
@@ -285,5 +297,29 @@ public class OrderDto extends BaseEntityDto {
 
     public void setOrderDetails(List<OrderDetailDto> orderDetails) {
         this.orderDetails = orderDetails;
+    }
+
+    public String getCreatorAccount() {
+        return creatorAccount;
+    }
+
+    public void setCreatorAccount(String creatorAccount) {
+        this.creatorAccount = creatorAccount;
+    }
+
+    public String getCreatorName() {
+        return creatorName;
+    }
+
+    public void setCreatorName(String creatorName) {
+        this.creatorName = creatorName;
+    }
+
+    public Date getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(Date createdDate) {
+        this.createdDate = createdDate;
     }
 }
