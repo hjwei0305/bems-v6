@@ -243,28 +243,30 @@ public class CategoryService extends BaseEntityService<Category> {
      */
     @Cacheable(key = "#categoryId")
     public List<DimensionDto> getAssigned(String categoryId) {
-        List<CategoryDimension> categoryDimensions = categoryDimensionService.getByCategoryId(categoryId);
-
-        DimensionDto dto;
-        List<Dimension> dimensionList = dimensionService.findAll();
-        Map<String, Dimension> dimensionMap = dimensionList.stream().collect(Collectors.toMap(Dimension::getCode, d -> d));
         List<DimensionDto> list = new ArrayList<>();
-        for (CategoryDimension cd : categoryDimensions) {
-            Dimension dimension = dimensionMap.get(cd.getDimensionCode());
-            if (Objects.nonNull(dimension)) {
-                dto = new DimensionDto();
-                dto.setCode(dimension.getCode());
-                dto.setName(dimension.getName());
-                dto.setStrategyId(dimension.getStrategyId());
-                dto.setStrategyName(dimension.getStrategyName());
-                dto.setUiComponent(dimension.getUiComponent());
-                dto.setRequired(dimension.getRequired());
-                dto.setRank(cd.getRank());
-                list.add(dto);
+        List<CategoryDimension> categoryDimensions = categoryDimensionService.getByCategoryId(categoryId);
+        if (CollectionUtils.isNotEmpty(categoryDimensions)) {
+            DimensionDto dto;
+            List<Dimension> dimensionList = dimensionService.findAll();
+            Map<String, Dimension> dimensionMap = dimensionList.stream().collect(Collectors.toMap(Dimension::getCode, d -> d));
+
+            for (CategoryDimension cd : categoryDimensions) {
+                Dimension dimension = dimensionMap.get(cd.getDimensionCode());
+                if (Objects.nonNull(dimension)) {
+                    dto = new DimensionDto();
+                    dto.setCode(dimension.getCode());
+                    dto.setName(dimension.getName());
+                    dto.setStrategyId(dimension.getStrategyId());
+                    dto.setStrategyName(dimension.getStrategyName());
+                    dto.setUiComponent(dimension.getUiComponent());
+                    dto.setRequired(dimension.getRequired());
+                    dto.setRank(cd.getRank());
+                    list.add(dto);
+                }
             }
+            // 排序
+            list.sort(Comparator.comparing(DimensionDto::getRank));
         }
-        // 排序
-        list.sort(Comparator.comparing(DimensionDto::getRank));
         return list;
     }
 

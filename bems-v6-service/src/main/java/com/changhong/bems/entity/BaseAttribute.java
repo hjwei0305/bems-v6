@@ -2,7 +2,6 @@ package com.changhong.bems.entity;
 
 import com.changhong.bems.commons.Constants;
 import com.changhong.sei.core.entity.BaseEntity;
-import com.changhong.sei.core.entity.ITenant;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
@@ -18,7 +17,7 @@ import java.io.Serializable;
  */
 @MappedSuperclass
 @Access(AccessType.FIELD)
-public abstract class BaseAttribute extends BaseEntity implements ITenant, Serializable {
+public abstract class BaseAttribute extends BaseEntity implements Serializable {
     private static final long serialVersionUID = 8867286168446471538L;
     public static final String FIELD_PERIOD = "period";
     public static final String FIELD_ITEM = "item";
@@ -30,6 +29,11 @@ public abstract class BaseAttribute extends BaseEntity implements ITenant, Seria
     public static final String FIELD_UDF4 = "udf4";
     public static final String FIELD_UDF5 = "udf5";
 
+    /**
+     * 属性值hash
+     */
+    @Column(name = "attribute_code")
+    private Long code = -1L;
     /**
      * 预算期间
      */
@@ -265,18 +269,24 @@ public abstract class BaseAttribute extends BaseEntity implements ITenant, Seria
         this.udf5Name = udf5Name;
     }
 
-    public Long getAttributeHash() {
-        long result = 1;
-        result = 31 * result + this.getItem().hashCode();
-        result = 31 * result + this.getPeriod().hashCode();
-        result = 31 * result + this.getOrg().hashCode();
-        result = 31 * result + this.getProject().hashCode();
+    public Long getCode() {
+        long hash = 1L;
+        hash = 31 * hash + this.getItem().hashCode();
+        hash = 31 * hash + this.getPeriod().hashCode();
+        hash = 31 * hash + this.getOrg().hashCode();
+        hash = 31 * hash + this.getProject().hashCode();
 
-        result = 31 * result + this.getUdf1().hashCode();
-        result = 31 * result + this.getUdf2().hashCode();
-        result = 31 * result + this.getUdf3().hashCode();
-        result = 31 * result + this.getUdf4().hashCode();
-        result = 31 * result + this.getUdf5().hashCode();
-        return result;
+        hash = 31 * hash + this.getUdf1().hashCode();
+        hash = 31 * hash + this.getUdf2().hashCode();
+        hash = 31 * hash + this.getUdf3().hashCode();
+        hash = 31 * hash + this.getUdf4().hashCode();
+        hash = 31 * hash + this.getUdf5().hashCode();
+        code = hash;
+        return code;
     }
+
+    public void setCode(Long code) {
+        this.code = code;
+    }
+
 }

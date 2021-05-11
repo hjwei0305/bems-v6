@@ -460,7 +460,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         });
         details.clear();
 
-        ResultData<Pool> result;
+        ResultData<Void> result;
         OrderStatistics statistics;
         // 记录所有hash值,以便识别出重复的行项
         Set<Long> duplicateHash = new HashSet<>();
@@ -469,13 +469,13 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         for (List<OrderDetail> detailList : groups) {
             search.clearAll();
 
-            Set<Long> hashSet = detailList.stream().map(OrderDetail::getAttributeHash).collect(Collectors.toSet());
+            Set<Long> hashSet = detailList.stream().map(OrderDetail::getCode).collect(Collectors.toSet());
             search.addFilter(new SearchFilter(OrderDetail.FIELD_ORDER_ID, orderId));
             search.addFilter(new SearchFilter(OrderDetail.FIELD_ATTRIBUTE_HASH, hashSet, SearchFilter.Operator.IN));
             List<OrderDetail> orderDetails = dao.findByFilters(search);
             Map<Long, OrderDetail> detailMap;
             if (CollectionUtils.isNotEmpty(orderDetails)) {
-                detailMap = orderDetails.stream().collect(Collectors.toMap(OrderDetail::getAttributeHash, o -> o));
+                detailMap = orderDetails.stream().collect(Collectors.toMap(OrderDetail::getCode, o -> o));
             } else {
                 detailMap = new HashMap<>();
             }
@@ -492,7 +492,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                 }
 
                 // 本次提交数据中存在重复项
-                if (duplicateHash.contains(detail.getAttributeHash())) {
+                if (duplicateHash.contains(detail.getCode())) {
                     // 有错误的
                     detail.setHasErr(Boolean.TRUE);
                     // 存在重复项
@@ -505,10 +505,10 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     continue;
                 } else {
                     // 记录hash值
-                    duplicateHash.add(detail.getAttributeHash());
+                    duplicateHash.add(detail.getCode());
                 }
                 // 检查持久化数据中是否存在重复项
-                OrderDetail orderDetail = detailMap.get(detail.getAttributeHash());
+                OrderDetail orderDetail = detailMap.get(detail.getCode());
                 if (Objects.nonNull(orderDetail)) {
                     // 检查重复行项
                     if (isCover) {
@@ -523,7 +523,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
 
                 try {
                     // 设置行项数据的预算池及当前可用额度
-                    result = this.setDetailOfPool(order, detail);
+                    result = this.createDetail(order, detail);
                 } catch (Exception e) {
                     result = ResultData.fail(ExceptionUtils.getRootCauseMessage(e));
                 }
@@ -534,8 +534,8 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     // 有错误的
                     detail.setHasErr(Boolean.TRUE);
                     detail.setErrMsg(result.getMessage());
-                    this.save(detail);
                 }
+                this.save(detail);
                 operations.set(statistics);
             }
         }
@@ -547,7 +547,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
      * @param order  订单头
      * @param detail 订单行项
      */
-    private ResultData<Pool> setDetailOfPool(Order order, OrderDetail detail) throws Exception {
+    private ResultData<Void> createDetail(Order order, OrderDetail detail) throws Exception {
         // 预算主体id
         String subjectId = order.getSubjectId();
         ResultData<Pool> resultData;
@@ -559,7 +559,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     2.若存在,则设置预算池编码和当前余额到行项上
                     3.若不存在,则跳过.在预算生效或申请完成时,创建预算池(创建时再检查是否存在预算池)
                  */
-                resultData = poolService.getPool(subjectId, detail.getAttributeHash());
+                resultData = poolService.getPool(subjectId, detail.getCode());
                 if (resultData.successful()) {
                     Pool pool = resultData.getData();
                     detail.setPoolCode(pool.getCode());
@@ -573,13 +573,13 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     2.若存在,则设置预算池编码和当前余额到行项上
                     3.若不存在,则返回错误:预算池未找到
                  */
-                resultData = poolService.getPool(subjectId, detail.getAttributeHash());
+                resultData = poolService.getPool(subjectId, detail.getCode());
                 if (resultData.successful()) {
                     Pool pool = resultData.getData();
                     detail.setPoolCode(pool.getCode());
                     detail.setPoolAmount(pool.getBalance());
                 } else {
-                    return resultData;
+                    return ResultData.fail(resultData.getMessage());
                 }
                 break;
             case SPLIT:
@@ -597,12 +597,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                 // 不支持的订单类型
                 return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
         }
-        OperateResultWithData<OrderDetail> result = this.save(detail);
-        if (result.successful()) {
-            return ResultData.success();
-        } else {
-            return ResultData.fail(result.getMessage());
-        }
+        return ResultData.success();
     }
 
     /**
@@ -626,7 +621,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             if (StringUtils.isNotBlank(poolCode)) {
                 pool = poolService.getPoolByCode(poolCode);
             } else {
-                ResultData<Pool> result = poolService.getPool(subjectId, detail.getAttributeHash());
+                ResultData<Pool> result = poolService.getPool(subjectId, detail.getCode());
                 if (result.successful()) {
                     pool = result.getData();
                     poolCode = pool.getCode();

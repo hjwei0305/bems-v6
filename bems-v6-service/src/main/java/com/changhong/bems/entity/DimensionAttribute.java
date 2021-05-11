@@ -1,5 +1,6 @@
 package com.changhong.bems.entity;
 
+import com.changhong.sei.core.entity.ICodeUnique;
 import com.changhong.sei.core.entity.ITenant;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -24,7 +25,7 @@ public class DimensionAttribute extends BaseAttribute implements ITenant, Serial
     private static final long serialVersionUID = -63903291983170191L;
     public static final String FIELD_SUBJECT_ID = "subjectId";
     public static final String FIELD_ATTRIBUTE = "attribute";
-    public static final String FIELD_ATTRIBUTE_HASH = "attributeHash";
+    public static final String FIELD_ATTRIBUTE_CODE = "code";
 
     /**
      * 预算主体id
@@ -37,11 +38,6 @@ public class DimensionAttribute extends BaseAttribute implements ITenant, Serial
      */
     @Column(name = "attribute")
     private String attribute;
-    /**
-     * 属性值hash
-     */
-    @Column(name = "attribute_hash")
-    private Long attributeHash = -1L;
 
     /**
      * 租户代码
@@ -78,16 +74,6 @@ public class DimensionAttribute extends BaseAttribute implements ITenant, Serial
 
     public void setAttribute(String attribute) {
         this.attribute = attribute;
-    }
-
-    @Override
-    public Long getAttributeHash() {
-        attributeHash = super.getAttributeHash();
-        return attributeHash;
-    }
-
-    public void setAttributeHash(Long attributeHash) {
-        this.attributeHash = attributeHash;
     }
 
     @Override

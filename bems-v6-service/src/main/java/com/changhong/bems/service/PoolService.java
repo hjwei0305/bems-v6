@@ -1,7 +1,6 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.dao.PoolDao;
-import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.entity.*;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.context.SessionUser;
@@ -13,7 +12,6 @@ import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResultWithData;
 import com.changhong.sei.exception.ServiceException;
 import com.changhong.sei.serial.sdk.SerialService;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,9 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Objects;
-import java.util.StringJoiner;
 
 
 /**
@@ -107,31 +103,43 @@ public class PoolService extends BaseEntityService<Pool> {
     /**
      * 创建一个预算池
      *
-     * @param order     申请单
-     * @param attribute 预算维度属性
+     * @param order         申请单
+     * @param baseAttribute 预算维度属性
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Pool> createPool(Order order, BaseAttribute attribute) {
+    public ResultData<Pool> createPool(Order order, BaseAttribute baseAttribute) {
+        if (Objects.isNull(order)) {
+            // 创建预算池时,订单不能为空!
+            return ResultData.fail(ContextUtil.getMessage("pool_00005"));
+        }
         // 预算主体id
         String subjectId = order.getSubjectId();
-        DimensionAttribute dimensionAttribute = new DimensionAttribute(attribute);
-        dimensionAttribute.setSubjectId(order.getSubjectId());
-        List<DimensionDto> dimensions = categoryService.getAssigned(order.getCategoryId());
-        if (CollectionUtils.isEmpty(dimensions)) {
-            // 预算类型[{0}]下未找到预算维度!
-            return ResultData.fail(ContextUtil.getMessage("category_00007", order.getCategoryName()));
+        if (StringUtils.isBlank(subjectId)) {
+            // 创建预算池时,预算主体不能为空!
+            return ResultData.fail(ContextUtil.getMessage("pool_00008"));
         }
-        StringJoiner joiner = new StringJoiner(",");
-        for (DimensionDto dimension : dimensions) {
-            joiner.add(dimension.getCode());
+
+        DimensionAttribute attribute = dimensionAttributeService.getAttribute(subjectId, baseAttribute.getCode());
+        if (Objects.isNull(attribute)) {
+            ResultData<DimensionAttribute> resultData = dimensionAttributeService.createAttribute(subjectId, order.getCategoryId(), baseAttribute);
+            if (resultData.failed()) {
+                return ResultData.fail(resultData.getMessage());
+            }
+            attribute = resultData.getData();
         }
-        dimensionAttribute.setAttribute(joiner.toString());
-        ResultData<String> resultData = dimensionAttributeService.add(dimensionAttribute);
-        if (resultData.failed()) {
-            return ResultData.fail(resultData.getMessage());
+
+        String attributeId = attribute.getId();
+        if (StringUtils.isBlank(attributeId)) {
+            // 创建预算池时,维度属性不能为空!
+            return ResultData.fail(ContextUtil.getMessage("pool_00007"));
         }
+        String periodId = attribute.getPeriod();
+        if (StringUtils.isBlank(periodId)) {
+            // 创建预算池时,期间不能为空!
+            return ResultData.fail(ContextUtil.getMessage("pool_00006"));
+        }
+
         // 属性id
-        String attributeId = resultData.getData();
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(Pool.FIELD_SUBJECT_ID, subjectId));
         search.addFilter(new SearchFilter(Pool.FIELD_ATTRIBUTE_ID, attributeId));
@@ -152,7 +160,7 @@ public class PoolService extends BaseEntityService<Pool> {
             pool.setManageOrgName(order.getManagerOrgName());
             // 期间类型
             pool.setPeriodType(order.getPeriodType());
-            Period period = periodService.findOne(attribute.getPeriod());
+            Period period = periodService.findOne(periodId);
             if (Objects.isNull(period)) {
                 // 预算期间不存在
                 return ResultData.fail(ContextUtil.getMessage("period_00002"));

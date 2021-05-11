@@ -55,11 +55,6 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
     @Column(name = "origin_pool_amount")
     private Double originPoolAmount = 0d;
     /**
-     * 属性值hash
-     */
-    @Column(name = "attribute_hash")
-    private Long attributeHash = -1L;
-    /**
      * 是否错误
      */
     @Column(name = "has_err")
@@ -122,16 +117,6 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
 
     public void setOriginPoolAmount(Double originPoolAmount) {
         this.originPoolAmount = originPoolAmount;
-    }
-
-    @Override
-    public Long getAttributeHash() {
-        attributeHash = super.getAttributeHash();
-        return attributeHash;
-    }
-
-    public void setAttributeHash(Long attributeHash) {
-        this.attributeHash = attributeHash;
     }
 
     public Boolean getHasErr() {

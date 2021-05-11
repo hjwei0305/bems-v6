@@ -1,6 +1,7 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.dto.AddOrderDetail;
+import com.changhong.bems.entity.Order;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.test.BaseUnit5Test;
 import com.changhong.sei.core.util.JsonUtils;
@@ -36,9 +37,10 @@ class OrderServiceTest extends BaseUnit5Test {
     void effectiveOrder() {
         StopWatch stopWatch = StopWatch.createStarted();
         String orderId = "12EF4E3E-AFB0-11EB-A72F-0242C0A84429";
-        ResultData<Void> resultData = service.effective(orderId);
+        Order order = service.findOne(orderId);
+        ResultData<Void> resultData = service.effective(order);
         stopWatch.stop();
-        System.out.println("耗时: "+ stopWatch.getTime());
+        System.out.println("耗时: " + stopWatch.getTime());
         System.out.println(resultData);
     }
 
@@ -49,7 +51,7 @@ class OrderServiceTest extends BaseUnit5Test {
         String orderId = "1979E1C4-AFC8-11EB-B9C2-0242C0A84427";
         ResultData<Void> resultData = service.submitProcess(orderId);
         stopWatch.stop();
-        System.out.println("耗时: "+ stopWatch.getTime());
+        System.out.println("耗时: " + stopWatch.getTime());
         System.out.println(resultData);
     }
 }

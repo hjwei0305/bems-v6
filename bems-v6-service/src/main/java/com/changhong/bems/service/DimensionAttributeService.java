@@ -1,6 +1,8 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.dao.DimensionAttributeDao;
+import com.changhong.bems.dto.DimensionDto;
+import com.changhong.bems.entity.BaseAttribute;
 import com.changhong.bems.entity.DimensionAttribute;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
@@ -8,6 +10,7 @@ import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.StringJoiner;
 
 
 /**
@@ -27,6 +31,8 @@ import java.util.Objects;
 public class DimensionAttributeService extends BaseEntityService<DimensionAttribute> {
     @Autowired
     private DimensionAttributeDao dao;
+    @Autowired
+    private CategoryService categoryService;
 
     @Override
     protected BaseEntityDao<DimensionAttribute> getDao() {
@@ -40,30 +46,42 @@ public class DimensionAttributeService extends BaseEntityService<DimensionAttrib
      * @return 操作结果
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<String> add(DimensionAttribute attribute) {
+    public ResultData<DimensionAttribute> createAttribute(String subjectId, String categoryId, BaseAttribute attribute) {
         if (Objects.isNull(attribute)) {
             // 添加的预算维度属性不能为空
             return ResultData.fail(ContextUtil.getMessage("dimension_attribute_00001"));
         }
+        DimensionAttribute dimensionAttribute = new DimensionAttribute(attribute);
+        dimensionAttribute.setSubjectId(subjectId);
+        List<DimensionDto> dimensions = categoryService.getAssigned(categoryId);
+        if (CollectionUtils.isEmpty(dimensions)) {
+            // 预算类型[{0}]下未找到预算维度!
+            return ResultData.fail(ContextUtil.getMessage("category_00007", categoryId));
+        }
+        StringJoiner joiner = new StringJoiner(",");
+        for (DimensionDto dimension : dimensions) {
+            joiner.add(dimension.getCode());
+        }
+        dimensionAttribute.setAttribute(joiner.toString());
+
         String id;
-        DimensionAttribute attr = getAttribute(attribute.getSubjectId(), attribute.getAttributeHash());
+        DimensionAttribute attr = getAttribute(subjectId, dimensionAttribute.getCode());
         if (Objects.nonNull(attr)) {
             id = attr.getId();
         } else {
-            this.save(attribute);
-            id = attribute.getId();
+            this.save(dimensionAttribute);
         }
-        return ResultData.success(id);
+        return ResultData.success(dimensionAttribute);
     }
 
     /**
      * 按属性维度hash获取
      * 按维度属性值一一匹配
      */
-    public DimensionAttribute getAttribute(String subjectId, long attributeHash) {
+    public DimensionAttribute getAttribute(String subjectId, long code) {
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(DimensionAttribute.FIELD_SUBJECT_ID, subjectId));
-        search.addFilter(new SearchFilter(DimensionAttribute.FIELD_ATTRIBUTE_HASH, attributeHash));
+        search.addFilter(new SearchFilter(DimensionAttribute.FIELD_ATTRIBUTE_CODE, code));
         return dao.findOneByFilters(search);
     }
 

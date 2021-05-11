@@ -155,7 +155,7 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
      * @param orderId 申请单id
      * @return 返回处理结果
      */
-    @PostMapping(path = "commitOrder")
+    @PostMapping(path = "submitProcess")
     @ApiOperation(value = "提交审批预算申请单", notes = "提交审批预算申请单")
-    ResultData<Void> commitOrder(@RequestParam("orderId") String orderId);
+    ResultData<Void> submitProcess(@RequestParam("orderId") String orderId);
 }

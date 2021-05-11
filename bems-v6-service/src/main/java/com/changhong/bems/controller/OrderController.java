@@ -12,9 +12,10 @@ import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
+import com.changhong.sei.core.limiter.support.lock.SeiLockHelper;
 import com.changhong.sei.core.service.BaseEntityService;
+import com.changhong.sei.utils.AsyncRunUtil;
 import io.swagger.annotations.Api;
-import org.apache.commons.collections.CollectionUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -192,7 +193,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         Order order = service.findOne(detail.getOrderId());
         if (Objects.isNull(order)) {
             // 订单不存在
-            return ResultData.fail(ContextUtil.getMessage("order_00001", detail.getOrderId()));
+            return ResultData.fail(ContextUtil.getMessage("order_00001"));
         }
         ResultData<OrderDetail> resultData = orderDetailService.updateDetailAmount(order, detail, amount);
         if (resultData.successful()) {
@@ -246,7 +247,30 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      */
     @Override
     public ResultData<Void> effectiveOrder(String orderId) {
-        return service.effective(orderId);
+        final Order order = service.findOne(orderId);
+        if (Objects.isNull(order)) {
+            // 订单[{0}]不存在!
+            return ResultData.fail(ContextUtil.getMessage("order_00001"));
+        }
+
+        // 检查订单状态
+        if (OrderStatus.PREFAB == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
+            if (!SeiLockHelper.checkLocked("effective:" + orderId)) {
+                ContextUtil.getBean(AsyncRunUtil.class).runAsync(new Runnable() {
+                    @Override
+                    public void run() {
+                        service.effective(order);
+                    }
+                });
+                return ResultData.success();
+            } else {
+                // 订单[{0}]正在生效处理过程中,请稍后.
+                return ResultData.fail(ContextUtil.getMessage("order_00007", order.getCode()));
+            }
+        } else {
+            // 订单状态为[{0}],不允许操作!
+            return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+        }
     }
 
     /**
@@ -256,7 +280,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      * @return 返回处理结果
      */
     @Override
-    public ResultData<Void> commitOrder(String orderId) {
+    public ResultData<Void> submitProcess(String orderId) {
         return service.submitProcess(orderId);
     }
 }
