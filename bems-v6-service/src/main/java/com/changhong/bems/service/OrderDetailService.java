@@ -3,6 +3,7 @@ package com.changhong.bems.service;
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.OrderDetailDao;
 import com.changhong.bems.dto.*;
+import com.changhong.bems.entity.DimensionAttribute;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
 import com.changhong.bems.entity.Pool;
@@ -13,7 +14,6 @@ import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.log.LogUtil;
 import com.changhong.sei.core.service.BaseEntityService;
-import com.changhong.sei.core.service.bo.OperateResultWithData;
 import com.changhong.sei.core.util.JsonUtils;
 import com.changhong.sei.exception.ServiceException;
 import org.apache.commons.collections.CollectionUtils;
@@ -50,6 +50,8 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
     private CategoryService categoryService;
     @Autowired
     private PoolService poolService;
+    @Autowired
+    private DimensionAttributeService dimensionAttributeService;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
@@ -469,13 +471,13 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         for (List<OrderDetail> detailList : groups) {
             search.clearAll();
 
-            Set<Long> hashSet = detailList.stream().map(OrderDetail::getCode).collect(Collectors.toSet());
+            Set<Long> hashSet = detailList.stream().map(OrderDetail::getAttributeCode).collect(Collectors.toSet());
             search.addFilter(new SearchFilter(OrderDetail.FIELD_ORDER_ID, orderId));
             search.addFilter(new SearchFilter(OrderDetail.FIELD_ATTRIBUTE_HASH, hashSet, SearchFilter.Operator.IN));
             List<OrderDetail> orderDetails = dao.findByFilters(search);
             Map<Long, OrderDetail> detailMap;
             if (CollectionUtils.isNotEmpty(orderDetails)) {
-                detailMap = orderDetails.stream().collect(Collectors.toMap(OrderDetail::getCode, o -> o));
+                detailMap = orderDetails.stream().collect(Collectors.toMap(OrderDetail::getAttributeCode, o -> o));
             } else {
                 detailMap = new HashMap<>();
             }
@@ -492,7 +494,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                 }
 
                 // 本次提交数据中存在重复项
-                if (duplicateHash.contains(detail.getCode())) {
+                if (duplicateHash.contains(detail.getAttributeCode())) {
                     // 有错误的
                     detail.setHasErr(Boolean.TRUE);
                     // 存在重复项
@@ -505,10 +507,10 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     continue;
                 } else {
                     // 记录hash值
-                    duplicateHash.add(detail.getCode());
+                    duplicateHash.add(detail.getAttributeCode());
                 }
                 // 检查持久化数据中是否存在重复项
-                OrderDetail orderDetail = detailMap.get(detail.getCode());
+                OrderDetail orderDetail = detailMap.get(detail.getAttributeCode());
                 if (Objects.nonNull(orderDetail)) {
                     // 检查重复行项
                     if (isCover) {
@@ -559,7 +561,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     2.若存在,则设置预算池编码和当前余额到行项上
                     3.若不存在,则跳过.在预算生效或申请完成时,创建预算池(创建时再检查是否存在预算池)
                  */
-                resultData = poolService.getPool(subjectId, detail.getCode());
+                resultData = poolService.getPool(subjectId, detail.getAttributeCode());
                 if (resultData.successful()) {
                     Pool pool = resultData.getData();
                     detail.setPoolCode(pool.getCode());
@@ -573,7 +575,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     2.若存在,则设置预算池编码和当前余额到行项上
                     3.若不存在,则返回错误:预算池未找到
                  */
-                resultData = poolService.getPool(subjectId, detail.getCode());
+                resultData = poolService.getPool(subjectId, detail.getAttributeCode());
                 if (resultData.successful()) {
                     Pool pool = resultData.getData();
                     detail.setPoolCode(pool.getCode());
@@ -596,6 +598,15 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             default:
                 // 不支持的订单类型
                 return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
+        }
+        ResultData<DimensionAttribute> result = dimensionAttributeService.createAttribute(subjectId, order.getCategoryId(), detail);
+        if (result.successful()) {
+            if (!Objects.equals(detail.getAttributeCode(), result.getData().getAttributeCode())) {
+                LOG.error("预算维度策略hash计算错误: {}", JsonUtils.toJson(detail));
+                throw new ServiceException("预算维度策略hash计算错误.");
+            }
+        } else {
+            return ResultData.fail(result.getMessage());
         }
         return ResultData.success();
     }
@@ -621,7 +632,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             if (StringUtils.isNotBlank(poolCode)) {
                 pool = poolService.getPoolByCode(poolCode);
             } else {
-                ResultData<Pool> result = poolService.getPool(subjectId, detail.getCode());
+                ResultData<Pool> result = poolService.getPool(subjectId, detail.getAttributeCode());
                 if (result.successful()) {
                     pool = result.getData();
                     poolCode = pool.getCode();

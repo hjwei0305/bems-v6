@@ -25,7 +25,6 @@ public class DimensionAttribute extends BaseAttribute implements ITenant, Serial
     private static final long serialVersionUID = -63903291983170191L;
     public static final String FIELD_SUBJECT_ID = "subjectId";
     public static final String FIELD_ATTRIBUTE = "attribute";
-    public static final String FIELD_ATTRIBUTE_CODE = "code";
 
     /**
      * 预算主体id

@@ -4,6 +4,7 @@ import com.changhong.bems.dao.DimensionAttributeDao;
 import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.entity.BaseAttribute;
 import com.changhong.bems.entity.DimensionAttribute;
+import com.changhong.sei.core.cache.CacheBuilder;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
@@ -33,6 +34,8 @@ public class DimensionAttributeService extends BaseEntityService<DimensionAttrib
     private DimensionAttributeDao dao;
     @Autowired
     private CategoryService categoryService;
+    @Autowired
+    private CacheBuilder cacheBuilder;
 
     @Override
     protected BaseEntityDao<DimensionAttribute> getDao() {
@@ -64,14 +67,12 @@ public class DimensionAttributeService extends BaseEntityService<DimensionAttrib
         }
         dimensionAttribute.setAttribute(joiner.toString());
 
-        String id;
-        DimensionAttribute attr = getAttribute(subjectId, dimensionAttribute.getCode());
-        if (Objects.nonNull(attr)) {
-            id = attr.getId();
-        } else {
+        DimensionAttribute attr = getAttribute(subjectId, dimensionAttribute.getAttributeCode());
+        if (Objects.isNull(attr)) {
             this.save(dimensionAttribute);
+            attr = dimensionAttribute;
         }
-        return ResultData.success(dimensionAttribute);
+        return ResultData.success(attr);
     }
 
     /**
@@ -79,10 +80,17 @@ public class DimensionAttributeService extends BaseEntityService<DimensionAttrib
      * 按维度属性值一一匹配
      */
     public DimensionAttribute getAttribute(String subjectId, long code) {
-        Search search = Search.createSearch();
-        search.addFilter(new SearchFilter(DimensionAttribute.FIELD_SUBJECT_ID, subjectId));
-        search.addFilter(new SearchFilter(DimensionAttribute.FIELD_ATTRIBUTE_CODE, code));
-        return dao.findOneByFilters(search);
+        String key = getKey(subjectId, code);
+        DimensionAttribute attribute = cacheBuilder.get(key);
+        if (Objects.isNull(attribute)) {
+            Search search = Search.createSearch();
+            search.addFilter(new SearchFilter(DimensionAttribute.FIELD_SUBJECT_ID, subjectId));
+            search.addFilter(new SearchFilter(DimensionAttribute.FIELD_ATTRIBUTE_CODE, code));
+            attribute = dao.findOneByFilters(search);
+            // 缓存1天 24 * 3600 * 1000
+            cacheBuilder.set(key, attribute, 86400000);
+        }
+        return attribute;
     }
 
     /**
@@ -133,4 +141,7 @@ public class DimensionAttributeService extends BaseEntityService<DimensionAttrib
         return dao.findByFilters(search);
     }
 
+    private String getKey(String subjectId, long code) {
+        return "bems-v6:attribute:" + subjectId + code;
+    }
 }

@@ -28,12 +28,13 @@ public abstract class BaseAttribute extends BaseEntity implements Serializable {
     public static final String FIELD_UDF3 = "udf3";
     public static final String FIELD_UDF4 = "udf4";
     public static final String FIELD_UDF5 = "udf5";
+    public static final String FIELD_ATTRIBUTE_CODE = "attributeCode";
 
     /**
      * 属性值hash
      */
     @Column(name = "attribute_code")
-    private Long code = -1L;
+    private Long attributeCode = -1L;
     /**
      * 预算期间
      */
@@ -269,7 +270,7 @@ public abstract class BaseAttribute extends BaseEntity implements Serializable {
         this.udf5Name = udf5Name;
     }
 
-    public Long getCode() {
+    public Long getAttributeCode() {
         long hash = 1L;
         hash = 31 * hash + this.getItem().hashCode();
         hash = 31 * hash + this.getPeriod().hashCode();
@@ -281,12 +282,12 @@ public abstract class BaseAttribute extends BaseEntity implements Serializable {
         hash = 31 * hash + this.getUdf3().hashCode();
         hash = 31 * hash + this.getUdf4().hashCode();
         hash = 31 * hash + this.getUdf5().hashCode();
-        code = hash;
-        return code;
+        attributeCode = hash;
+        return attributeCode;
     }
 
-    public void setCode(Long code) {
-        this.code = code;
+    public void setAttributeCode(Long code) {
+        this.attributeCode = code;
     }
 
 }

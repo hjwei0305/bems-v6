@@ -119,7 +119,7 @@ public class PoolService extends BaseEntityService<Pool> {
             return ResultData.fail(ContextUtil.getMessage("pool_00008"));
         }
 
-        DimensionAttribute attribute = dimensionAttributeService.getAttribute(subjectId, baseAttribute.getCode());
+        DimensionAttribute attribute = dimensionAttributeService.getAttribute(subjectId, baseAttribute.getAttributeCode());
         if (Objects.isNull(attribute)) {
             ResultData<DimensionAttribute> resultData = dimensionAttributeService.createAttribute(subjectId, order.getCategoryId(), baseAttribute);
             if (resultData.failed()) {
