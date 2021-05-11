@@ -83,16 +83,6 @@ public class OrderDto extends BaseEntityDto {
     @ApiModelProperty(value = "申请组织名称")
     private String applyOrgName;
     /**
-     * 申请人代码
-     */
-    @ApiModelProperty(value = "申请人代码")
-    private String applyUserAccount;
-    /**
-     * 申请人名称
-     */
-    @ApiModelProperty(value = "申请人名称")
-    private String applyUserName;
-    /**
      * 归口管理组织Id
      */
     @ApiModelProperty(value = "归口管理组织id")
@@ -233,22 +223,6 @@ public class OrderDto extends BaseEntityDto {
 
     public void setApplyOrgName(String applyOrgName) {
         this.applyOrgName = applyOrgName;
-    }
-
-    public String getApplyUserAccount() {
-        return applyUserAccount;
-    }
-
-    public void setApplyUserAccount(String applyUserAccount) {
-        this.applyUserAccount = applyUserAccount;
-    }
-
-    public String getApplyUserName() {
-        return applyUserName;
-    }
-
-    public void setApplyUserName(String applyUserName) {
-        this.applyUserName = applyUserName;
     }
 
     public String getManagerOrgId() {

@@ -31,7 +31,7 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
     /**
      * 申请单号
      */
-    @Column(name = "code")
+    @Column(name = "code", updatable = false)
     private String code;
     /**
      * 预算主体id
@@ -96,16 +96,6 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
     @Column(name = "apply_org_name")
     private String applyOrgName;
     /**
-     * 申请人代码
-     */
-    @Column(name = "apply_user_account")
-    private String applyUserAccount;
-    /**
-     * 申请人名称
-     */
-    @Column(name = "apply_user_name")
-    private String applyUserName;
-    /**
      * 归口管理组织id
      */
     @Column(name = "manager_org_id")
@@ -134,7 +124,7 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
     /**
      * 租户代码
      */
-    @Column(name = "tenant_code")
+    @Column(name = "tenant_code", updatable = false)
     private String tenantCode;
 
     @Override
@@ -241,22 +231,6 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
 
     public void setApplyOrgName(String applyOrgName) {
         this.applyOrgName = applyOrgName;
-    }
-
-    public String getApplyUserAccount() {
-        return applyUserAccount;
-    }
-
-    public void setApplyUserAccount(String applyUserAccount) {
-        this.applyUserAccount = applyUserAccount;
-    }
-
-    public String getApplyUserName() {
-        return applyUserName;
-    }
-
-    public void setApplyUserName(String applyUserName) {
-        this.applyUserName = applyUserName;
     }
 
     public String getManagerOrgId() {
