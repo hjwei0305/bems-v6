@@ -177,20 +177,14 @@ public class OrderService extends BaseEntityService<Order> {
      */
     @SeiLock(key = "'bems-v6:effective:' + #order.id")
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> effective(Order order) {
+    public ResultData<Void> effective(Order order, List<OrderDetail> details) {
         if (Objects.isNull(order)) {
             // 订单[{0}]不存在!
             return ResultData.fail(ContextUtil.getMessage("order_00001"));
         }
         // 检查订单状态
         if (OrderStatus.PREFAB == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
-            List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
-            // 检查是否存在错误行项
-            ResultData<Void> resultData = checkDetailHasErr(details);
-            if (resultData.failed()) {
-                return resultData;
-            }
-            resultData = this.effectiveUseBudget(order, details);
+            ResultData<Void> resultData = this.effectiveUseBudget(order, details);
             if (resultData.successful()) {
                 // 更新订单状态为:完成
                 order.setStatus(OrderStatus.COMPLETED);
@@ -217,20 +211,14 @@ public class OrderService extends BaseEntityService<Order> {
      */
     @SeiLock(key = "'bems-v6:submit:' + #order.id")
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> submitProcess(Order order) {
+    public ResultData<Void> submitProcess(Order order, List<OrderDetail> details) {
         if (Objects.isNull(order)) {
             // 订单不存在!
             return ResultData.fail(ContextUtil.getMessage("order_00001"));
         }
         // 检查订单状态
         if (OrderStatus.PREFAB == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
-            List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
-            // 检查是否存在错误行项
-            ResultData<Void> resultData = checkDetailHasErr(details);
-            if (resultData.failed()) {
-                return resultData;
-            }
-            resultData = this.submitProcessUseBudget(order, details);
+            ResultData<Void> resultData = this.submitProcessUseBudget(order, details);
             if (resultData.successful()) {
                 // 更新订单状态为:流程中
                 order.setStatus(OrderStatus.PROCESSING);
@@ -292,11 +280,7 @@ public class OrderService extends BaseEntityService<Order> {
         }
         List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
         // 检查是否存在错误行项
-        ResultData<Void> resultData = checkDetailHasErr(details);
-        if (resultData.failed()) {
-            return resultData;
-        }
-        resultData = this.completeProcessUseBudget(order, details);
+        ResultData<Void> resultData = this.completeProcessUseBudget(order, details);
         if (resultData.successful()) {
             // 更新订单状态为:完成
             order.setStatus(OrderStatus.COMPLETED);
@@ -312,7 +296,7 @@ public class OrderService extends BaseEntityService<Order> {
      * @param details 预算申请单行项
      * @return 返回处理结果
      */
-    private ResultData<Void> checkDetailHasErr(List<OrderDetail> details) {
+    public ResultData<Void> checkDetailHasErr(List<OrderDetail> details) {
         if (CollectionUtils.isNotEmpty(details)) {
             if (details.parallelStream().anyMatch(OrderDetail::getHasErr)) {
                 // 存在错误行项未处理

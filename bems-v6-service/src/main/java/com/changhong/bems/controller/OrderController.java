@@ -258,8 +258,13 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         // 检查订单状态
         if (OrderStatus.PREFAB == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
             if (!SeiLockHelper.checkLocked("bems-v6:effective:" + orderId)) {
-                asyncRunUtil.runAsync(() -> service.effective(order));
-                return ResultData.success();
+                List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
+                // 检查是否存在错误行项
+                ResultData<Void> resultData = service.checkDetailHasErr(details);
+                if (resultData.successful()) {
+                    asyncRunUtil.runAsync(() -> service.effective(order, details));
+                }
+                return resultData;
             } else {
                 // 订单[{0}]正在生效处理过程中,请稍后.
                 return ResultData.fail(ContextUtil.getMessage("order_00007", order.getCode()));
@@ -287,8 +292,13 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         // 检查订单状态
         if (OrderStatus.PREFAB == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
             if (!SeiLockHelper.checkLocked("bems-v6:submit:" + orderId)) {
-                asyncRunUtil.runAsync(() -> service.submitProcess(order));
-                return ResultData.success();
+                List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
+                // 检查是否存在错误行项
+                ResultData<Void> resultData = service.checkDetailHasErr(details);
+                if (resultData.successful()) {
+                    asyncRunUtil.runAsync(() -> service.submitProcess(order, details));
+                }
+                return resultData;
             } else {
                 // 订单[{0}]正在提交流程处理过程中,请稍后.
                 return ResultData.fail(ContextUtil.getMessage("order_00008", order.getCode()));
