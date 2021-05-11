@@ -56,38 +56,27 @@ public class PoolService extends BaseEntityService<Pool> {
      * 按预算主体和属性hash获取预算池
      *
      * @param subjectId     预算主体id
-     * @param attributeHash 预算维度hash
+     * @param attributeCode 预算维度hash
      * @return 返回满足条件的预算池
      */
-    public ResultData<Pool> getPool(String subjectId, long attributeHash) {
-        DimensionAttribute attribute = dimensionAttributeService.getAttribute(subjectId, attributeHash);
+    public ResultData<Pool> getPool(String subjectId, long attributeCode) {
+        DimensionAttribute attribute = dimensionAttributeService.getAttribute(subjectId, attributeCode);
         if (Objects.isNull(attribute)) {
             // 预算池不存在
             return ResultData.fail(ContextUtil.getMessage("pool_00001"));
         }
-        Pool pool = this.getPool(subjectId, attribute.getId());
+        Search search = Search.createSearch();
+        search.addFilter(new SearchFilter(Pool.FIELD_SUBJECT_ID, subjectId));
+        search.addFilter(new SearchFilter(Pool.FIELD_ATTRIBUTE_CODE, attributeCode));
+        // 非禁用的预算池
+        search.addFilter(new SearchFilter(Pool.FIELD_ACTIVED, Boolean.TRUE));
+        Pool pool = dao.findFirstByFilters(search);
         if (Objects.isNull(pool)) {
             return ResultData.success(pool);
         } else {
             // 预算池不存在
             return ResultData.fail(ContextUtil.getMessage("pool_00001"));
         }
-    }
-
-    /**
-     * 按主体和属性id获取预算池
-     *
-     * @param subjectId   预算主体id
-     * @param attributeId 预算维度属性id
-     * @return 返回符合条件的预算池
-     */
-    public Pool getPool(String subjectId, String attributeId) {
-        Search search = Search.createSearch();
-        search.addFilter(new SearchFilter(Pool.FIELD_SUBJECT_ID, subjectId));
-        search.addFilter(new SearchFilter(Pool.FIELD_ATTRIBUTE_ID, attributeId));
-        // 非禁用的预算池
-        search.addFilter(new SearchFilter(Pool.FIELD_ACTIVED, Boolean.TRUE));
-        return dao.findFirstByFilters(search);
     }
 
     /**
@@ -128,11 +117,7 @@ public class PoolService extends BaseEntityService<Pool> {
             attribute = resultData.getData();
         }
 
-        String attributeId = attribute.getId();
-        if (StringUtils.isBlank(attributeId)) {
-            // 创建预算池时,维度属性不能为空!
-            return ResultData.fail(ContextUtil.getMessage("pool_00007"));
-        }
+        Long attributeCode = attribute.getAttributeCode();
         String periodId = attribute.getPeriod();
         if (StringUtils.isBlank(periodId)) {
             // 创建预算池时,期间不能为空!
@@ -142,7 +127,7 @@ public class PoolService extends BaseEntityService<Pool> {
         // 属性id
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(Pool.FIELD_SUBJECT_ID, subjectId));
-        search.addFilter(new SearchFilter(Pool.FIELD_ATTRIBUTE_ID, attributeId));
+        search.addFilter(new SearchFilter(Pool.FIELD_ATTRIBUTE_CODE, attributeCode));
         Pool pool = dao.findOneByFilters(search);
         if (Objects.isNull(pool)) {
             pool = new Pool();
@@ -151,7 +136,7 @@ public class PoolService extends BaseEntityService<Pool> {
             // 预算主体
             pool.setSubjectId(subjectId);
             // 属性id
-            pool.setAttributeId(attributeId);
+            pool.setAttributeCode(attributeCode);
             // 币种
             pool.setCurrencyCode(order.getCurrencyCode());
             pool.setCurrencyName(order.getCurrencyName());
@@ -222,11 +207,6 @@ public class PoolService extends BaseEntityService<Pool> {
      */
     @Transactional(rollbackFor = Exception.class)
     public void recordLog(ExecutionRecord record) {
-        Pool pool = dao.findByProperty(Pool.CODE_FIELD, record.getPoolCode());
-        if (Objects.isNull(pool)) {
-            LOG.error("预算池[" + record.getPoolCode() + "]不存在");
-            return;
-        }
         // 操作时间
         record.setOpTime(LocalDateTime.now());
         // 操作人
@@ -235,11 +215,25 @@ public class PoolService extends BaseEntityService<Pool> {
             record.setOpUserAccount(user.getAccount());
             record.setOpUserName(user.getUserName());
         }
-        // 设置预算属性id
-        record.setAttributeId(pool.getAttributeId());
         // 记录执行日志
         executionRecordService.save(record);
-        // 累计金额
-        poolAmountService.countAmount(pool, record.getOperation(), record.getAmount());
+
+        // 检查当前记录是否影响预算池余额
+        if (record.getIsPoolAmount()) {
+            /*
+             在注入或分解是可能还没有预算池,此时只记录日志.
+             注入或分解为负数的,必须存在预算池,提交流程时做预占用处理
+             */
+            String poolCode = record.getPoolCode();
+            if (StringUtils.isNotBlank(poolCode) && StringUtils.isNotBlank(poolCode.trim())) {
+                Pool pool = dao.findByProperty(Pool.CODE_FIELD, record.getPoolCode());
+                if (Objects.nonNull(pool)) {
+                    // 累计金额
+                    poolAmountService.countAmount(pool, record.getOperation(), record.getAmount());
+                    return;
+                }
+            }
+            LOG.error("预算池[" + poolCode + "]不存在");
+        }
     }
 }

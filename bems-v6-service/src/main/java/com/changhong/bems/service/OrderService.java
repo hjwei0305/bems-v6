@@ -188,7 +188,7 @@ public class OrderService extends BaseEntityService<Order> {
             if (resultData.failed()) {
                 return resultData;
             }
-            resultData = this.checkAndCreatePool(order, details, OperationType.RELEASE);
+            resultData = this.effectiveUseBudget(order, details);
             if (resultData.successful()) {
                 // 更新订单状态为:完成
                 order.setStatus(OrderStatus.COMPLETED);
@@ -228,12 +228,11 @@ public class OrderService extends BaseEntityService<Order> {
             if (resultData.failed()) {
                 return resultData;
             }
-            resultData = this.checkAndUsePool(order, details, OperationType.PRE_RELEASE);
+            resultData = this.submitProcessUseBudget(order, details);
             if (resultData.successful()) {
                 // 更新订单状态为:流程中
                 order.setStatus(OrderStatus.PROCESSING);
                 dao.save(order);
-                resultData = ResultData.success();
             }
             return resultData;
         } else {
@@ -262,8 +261,13 @@ public class OrderService extends BaseEntityService<Order> {
         }
         List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
 
-
-        return ResultData.success();
+        ResultData<Void> resultData = this.cancelProcessUseBudget(order, details);
+        if (resultData.successful()) {
+            // 更新订单状态为:草稿
+            order.setStatus(OrderStatus.DRAFT);
+            dao.save(order);
+        }
+        return resultData;
     }
 
     /**
@@ -290,7 +294,7 @@ public class OrderService extends BaseEntityService<Order> {
         if (resultData.failed()) {
             return resultData;
         }
-        resultData = this.checkAndCreatePool(order, details, OperationType.RELEASE);
+        resultData = this.completeProcessUseBudget(order, details);
         if (resultData.successful()) {
             // 更新订单状态为:完成
             order.setStatus(OrderStatus.COMPLETED);
@@ -317,100 +321,22 @@ public class OrderService extends BaseEntityService<Order> {
     }
 
     /**
-     * 检查并占用预算池
+     * 直接生效预算处理
+     * 规则:更新或创建预算池
      *
-     * @param order     预算申请单
-     * @param details   预算申请单行项
-     * @param operation 操作类型
+     * @param order   预算申请单
+     * @param details 预算申请单行项
      * @return 返回处理结果
      */
-    private ResultData<Void> checkAndUsePool(Order order, List<OrderDetail> details, OperationType operation) {
+    private ResultData<Void> effectiveUseBudget(Order order, List<OrderDetail> details) {
         if (CollectionUtils.isNotEmpty(details)) {
+            String remark;
             String poolCode;
             ExecutionRecord record;
             ResultData<Void> resultData;
             // 调整时总额不变(调增调减之和等于0)
             double adjustBalance = 0;
-            for (OrderDetail detail : details) {
-                // 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
-                switch (order.getOrderCategory()) {
-                    case INJECTION:
-                        if (detail.getAmount() < 0) {
-                            resultData = orderDetailService.checkInjectionDetail(order, detail);
-                            if (resultData.failed()) {
-                                return resultData;
-                            }
-                            poolCode = detail.getPoolCode();
-                            if (StringUtils.isBlank(poolCode)) {
-                                LOG.error("预算池不存在. - " + JsonUtils.toJson(detail));
-                                // 预算池金额不能值为负数[{0}]
-                                return ResultData.fail(ContextUtil.getMessage("pool_00004", detail.getAmount()));
-                            }
-                            // 记录预算池执行日志
-                            record = new ExecutionRecord(poolCode, operation, detail.getAmount(), OrderCategory.INJECTION.name());
-                            record.setBizOrderId(order.getId());
-                            record.setBizOrderCode(order.getCode());
-                            record.setBizItemId(detail.getOrderId());
-                            record.setBizRemark(order.getRemark());
-                            poolService.recordLog(record);
-                        }
-                        break;
-                    case ADJUSTMENT:
-                        // 计算调整余额
-                        adjustBalance = ArithUtils.add(adjustBalance, detail.getAmount());
-
-                        resultData = orderDetailService.checkAdjustmentDetail(order, detail);
-                        if (resultData.failed()) {
-                            return resultData;
-                        }
-                        poolCode = detail.getPoolCode();
-                        // 记录预算池执行日志
-                        record = new ExecutionRecord(poolCode, operation, detail.getAmount(), OrderCategory.ADJUSTMENT.name());
-                        record.setBizOrderId(order.getId());
-                        record.setBizOrderCode(order.getCode());
-                        record.setBizItemId(detail.getOrderId());
-                        record.setBizRemark(order.getRemark());
-                        poolService.recordLog(record);
-                        break;
-                    case SPLIT:
-                        resultData = orderDetailService.checkSplitDetail(order, detail);
-                        if (resultData.successful()) {
-                            // 当前预算池
-                            poolCode = detail.getPoolCode();
-                            // 源预算池
-                            String originPoolCode = detail.getOriginPoolCode();
-                            // 记录预算池执行日志
-                        }
-                        break;
-                    default:
-                        // 不支持的订单类型
-                        return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
-                }
-            }
-            // 检查调整余额是否等于0
-            if (0 != adjustBalance) {
-                // 还有剩余调整余额[{0}]
-                return ResultData.fail(ContextUtil.getMessage("order_00006", adjustBalance));
-            }
-        }
-        return ResultData.success();
-    }
-
-    /**
-     * 检查并设置或创建预算池
-     *
-     * @param order     预算申请单
-     * @param details   预算申请单行项
-     * @param operation 操作类型
-     * @return 返回处理结果
-     */
-    private ResultData<Void> checkAndCreatePool(Order order, List<OrderDetail> details, OperationType operation) {
-        if (CollectionUtils.isNotEmpty(details)) {
-            String poolCode;
-            ExecutionRecord record;
-            ResultData<Void> resultData;
-            // 调整时总额不变(调增调减之和等于0)
-            double adjustBalance = 0;
+            OperationType operation = OperationType.RELEASE;
             for (OrderDetail detail : details) {
                 // 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
                 switch (order.getOrderCategory()) {
@@ -438,7 +364,8 @@ public class OrderService extends BaseEntityService<Order> {
                         record.setBizOrderId(order.getId());
                         record.setBizOrderCode(order.getCode());
                         record.setBizItemId(detail.getOrderId());
-                        record.setBizRemark(order.getRemark());
+                        remark = order.getRemark();
+                        record.setBizRemark("直接生效" + (StringUtils.isBlank(remark) ? "" : remark));
                         poolService.recordLog(record);
                         break;
                     case ADJUSTMENT:
@@ -455,7 +382,277 @@ public class OrderService extends BaseEntityService<Order> {
                         record.setBizOrderId(order.getId());
                         record.setBizOrderCode(order.getCode());
                         record.setBizItemId(detail.getOrderId());
-                        record.setBizRemark(order.getRemark());
+                        remark = order.getRemark();
+                        record.setBizRemark("直接生效" + (StringUtils.isBlank(remark) ? "" : remark));
+                        poolService.recordLog(record);
+                        break;
+                    case SPLIT:
+                        resultData = orderDetailService.checkSplitDetail(order, detail);
+                        if (resultData.successful()) {
+                            // 当前预算池
+                            poolCode = detail.getPoolCode();
+                            // 源预算池
+                            String originPoolCode = detail.getOriginPoolCode();
+                            // 记录预算池执行日志
+                        }
+                        break;
+                    default:
+                        // 不支持的订单类型
+                        return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
+                }
+            }
+            // 检查调整余额是否等于0
+            if (0 != adjustBalance) {
+                // 还有剩余调整余额[{0}]
+                return ResultData.fail(ContextUtil.getMessage("order_00006", adjustBalance));
+            }
+        }
+        return ResultData.success();
+    }
+
+    /**
+     * 提交流程审批预算处理
+     * 规则:预算池进行预占用
+     *
+     * @param order   预算申请单
+     * @param details 预算申请单行项
+     * @return 返回处理结果
+     */
+    private ResultData<Void> submitProcessUseBudget(Order order, List<OrderDetail> details) {
+        if (CollectionUtils.isNotEmpty(details)) {
+            String remark;
+            String poolCode;
+            ExecutionRecord record;
+            ResultData<Void> resultData;
+            // 调整时总额不变(调增调减之和等于0)
+            double adjustBalance = 0;
+            OperationType operation = OperationType.RELEASE;
+            for (OrderDetail detail : details) {
+                // 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
+                switch (order.getOrderCategory()) {
+                    case INJECTION:
+                        if (detail.getAmount() < 0) {
+                            resultData = orderDetailService.checkInjectionDetail(order, detail);
+                            if (resultData.failed()) {
+                                return resultData;
+                            }
+                            poolCode = detail.getPoolCode();
+                            if (StringUtils.isBlank(poolCode)) {
+                                LOG.error("预算池不存在. - " + JsonUtils.toJson(detail));
+                                // 预算池金额不能值为负数[{0}]
+                                return ResultData.fail(ContextUtil.getMessage("pool_00004", detail.getAmount()));
+                            }
+                        } else {
+                            poolCode = detail.getPoolCode();
+                        }
+
+                        // 记录预算池执行日志
+                        record = new ExecutionRecord(poolCode, operation, detail.getAmount(), OrderCategory.INJECTION.name());
+                        if (detail.getAmount() >= 0) {
+                            // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
+                            record.setIsPoolAmount(Boolean.FALSE);
+                        }
+                        record.setSubjectId(order.getSubjectId());
+                        record.setAttributeCode(detail.getAttributeCode());
+                        record.setBizOrderId(order.getId());
+                        record.setBizOrderCode(order.getCode());
+                        record.setBizItemId(detail.getOrderId());
+                        remark = order.getRemark();
+                        record.setBizRemark("提交审核" + (StringUtils.isBlank(remark) ? "" : remark));
+                        poolService.recordLog(record);
+                        break;
+                    case ADJUSTMENT:
+                        // 计算调整余额
+                        adjustBalance = ArithUtils.add(adjustBalance, detail.getAmount());
+
+                        resultData = orderDetailService.checkAdjustmentDetail(order, detail);
+                        if (resultData.failed()) {
+                            return resultData;
+                        }
+                        poolCode = detail.getPoolCode();
+                        // 记录预算池执行日志
+                        record = new ExecutionRecord(poolCode, operation, detail.getAmount(), OrderCategory.ADJUSTMENT.name());
+                        if (detail.getAmount() >= 0) {
+                            // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
+                            record.setIsPoolAmount(Boolean.FALSE);
+                        }
+                        record.setSubjectId(order.getSubjectId());
+                        record.setAttributeCode(detail.getAttributeCode());
+                        record.setBizOrderId(order.getId());
+                        record.setBizOrderCode(order.getCode());
+                        record.setBizItemId(detail.getOrderId());
+                        remark = order.getRemark();
+                        record.setBizRemark("提交审核" + (StringUtils.isBlank(remark) ? "" : remark));
+                        poolService.recordLog(record);
+                        break;
+                    case SPLIT:
+                        resultData = orderDetailService.checkSplitDetail(order, detail);
+                        if (resultData.successful()) {
+                            // 当前预算池
+                            poolCode = detail.getPoolCode();
+                            // 源预算池
+                            String originPoolCode = detail.getOriginPoolCode();
+                            // 记录预算池执行日志
+                        }
+                        break;
+                    default:
+                        // 不支持的订单类型
+                        return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
+                }
+            }
+            // 检查调整余额是否等于0
+            if (0 != adjustBalance) {
+                // 还有剩余调整余额[{0}]
+                return ResultData.fail(ContextUtil.getMessage("order_00006", adjustBalance));
+            }
+        }
+        return ResultData.success();
+    }
+
+    /**
+     * 取消流程预算处理
+     * 规则:释放预占用
+     *
+     * @param order   预算申请单
+     * @param details 预算申请单行项
+     * @return 返回处理结果
+     */
+    private ResultData<Void> cancelProcessUseBudget(Order order, List<OrderDetail> details) {
+        if (CollectionUtils.isNotEmpty(details)) {
+            String remark;
+            String poolCode;
+            ExecutionRecord record;
+            ResultData<Void> resultData;
+            OperationType operation = OperationType.RELEASE;
+            for (OrderDetail detail : details) {
+                // 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
+                switch (order.getOrderCategory()) {
+                    case INJECTION:
+                        poolCode = detail.getPoolCode();
+
+                        // 记录预算池执行日志
+                        record = new ExecutionRecord(poolCode, operation, -detail.getAmount(), OrderCategory.INJECTION.name());
+                        if (detail.getAmount() >= 0) {
+                            // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
+                            record.setIsPoolAmount(Boolean.FALSE);
+                        }
+                        record.setSubjectId(order.getSubjectId());
+                        record.setAttributeCode(detail.getAttributeCode());
+                        record.setBizOrderId(order.getId());
+                        record.setBizOrderCode(order.getCode());
+                        record.setBizItemId(detail.getOrderId());
+                        remark = order.getRemark();
+                        record.setBizRemark("退出流程" + (StringUtils.isBlank(remark) ? "" : remark));
+                        poolService.recordLog(record);
+                        break;
+                    case ADJUSTMENT:
+                        resultData = orderDetailService.checkAdjustmentDetail(order, detail);
+                        if (resultData.failed()) {
+                            return resultData;
+                        }
+                        poolCode = detail.getPoolCode();
+                        // 记录预算池执行日志
+                        record = new ExecutionRecord(poolCode, operation, -detail.getAmount(), OrderCategory.ADJUSTMENT.name());
+                        if (detail.getAmount() >= 0) {
+                            // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
+                            record.setIsPoolAmount(Boolean.FALSE);
+                        }
+                        record.setSubjectId(order.getSubjectId());
+                        record.setAttributeCode(detail.getAttributeCode());
+                        record.setBizOrderId(order.getId());
+                        record.setBizOrderCode(order.getCode());
+                        record.setBizItemId(detail.getOrderId());
+                        remark = order.getRemark();
+                        record.setBizRemark("退出流程" + (StringUtils.isBlank(remark) ? "" : remark));
+                        poolService.recordLog(record);
+                        break;
+                    case SPLIT:
+                        resultData = orderDetailService.checkSplitDetail(order, detail);
+                        if (resultData.successful()) {
+                            // 当前预算池
+                            poolCode = detail.getPoolCode();
+                            // 源预算池
+                            String originPoolCode = detail.getOriginPoolCode();
+                            // 记录预算池执行日志
+                        }
+                        break;
+                    default:
+                        // 不支持的订单类型
+                        return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
+                }
+            }
+        }
+        return ResultData.success();
+    }
+
+    /**
+     * 流程审批完成生效预算处理
+     * 规则:释放预占用,更新正式占用或创建预算池
+     *
+     * @param order   预算申请单
+     * @param details 预算申请单行项
+     * @return 返回处理结果
+     */
+    private ResultData<Void> completeProcessUseBudget(Order order, List<OrderDetail> details) {
+        if (CollectionUtils.isNotEmpty(details)) {
+            String remark;
+            String poolCode;
+            ExecutionRecord record;
+            ResultData<Void> resultData;
+            // 调整时总额不变(调增调减之和等于0)
+            double adjustBalance = 0;
+            OperationType operation = OperationType.RELEASE;
+            for (OrderDetail detail : details) {
+                // 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
+                switch (order.getOrderCategory()) {
+                    case INJECTION:
+                        poolCode = detail.getPoolCode();
+                        if (StringUtils.isBlank(poolCode)) {
+                            // 预算池不存在,需要创建预算池
+                            ResultData<Pool> result = poolService.createPool(order, detail);
+                            if (result.failed()) {
+                                return ResultData.fail(result.getMessage());
+                            }
+                            Pool pool = result.getData();
+                            poolCode = pool.getCode();
+                        }
+                        // 记录预算池执行日志
+                        record = new ExecutionRecord(poolCode, operation, detail.getAmount(), OrderCategory.INJECTION.name());
+                        if (detail.getAmount() <= 0) {
+                            // 订单状态由流程中变为已完成,金额小于等于0在提交流程时已提前占用,故此时不再重复占用,只记录日志
+                            record.setIsPoolAmount(Boolean.FALSE);
+                        }
+                        record.setSubjectId(order.getSubjectId());
+                        record.setAttributeCode(detail.getAttributeCode());
+                        record.setBizOrderId(order.getId());
+                        record.setBizOrderCode(order.getCode());
+                        record.setBizItemId(detail.getOrderId());
+                        remark = order.getRemark();
+                        record.setBizRemark("退出流程" + (StringUtils.isBlank(remark) ? "" : remark));
+                        poolService.recordLog(record);
+                        break;
+                    case ADJUSTMENT:
+                        // 计算调整余额
+                        adjustBalance = ArithUtils.add(adjustBalance, detail.getAmount());
+
+                        resultData = orderDetailService.checkAdjustmentDetail(order, detail);
+                        if (resultData.failed()) {
+                            return resultData;
+                        }
+                        poolCode = detail.getPoolCode();
+                        // 记录预算池执行日志
+                        record = new ExecutionRecord(poolCode, operation, detail.getAmount(), OrderCategory.ADJUSTMENT.name());
+                        if (detail.getAmount() <= 0) {
+                            // 订单状态由流程中变为已完成,金额小于等于0在提交流程时已提前占用,故此时不再重复占用,只记录日志
+                            record.setIsPoolAmount(Boolean.FALSE);
+                        }
+                        record.setSubjectId(order.getSubjectId());
+                        record.setAttributeCode(detail.getAttributeCode());
+                        record.setBizOrderId(order.getId());
+                        record.setBizOrderCode(order.getCode());
+                        record.setBizItemId(detail.getOrderId());
+                        remark = order.getRemark();
+                        record.setBizRemark("退出流程" + (StringUtils.isBlank(remark) ? "" : remark));
                         poolService.recordLog(record);
                         break;
                     case SPLIT:

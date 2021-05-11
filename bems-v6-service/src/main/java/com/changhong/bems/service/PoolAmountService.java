@@ -65,10 +65,6 @@ public class PoolAmountService extends BaseEntityService<PoolAmount> {
      */
     @Transactional(rollbackFor = Exception.class)
     public void countAmount(Pool pool, OperationType operation, double amount) {
-        if (OperationType.PRE_RELEASE == operation && amount >= 0) {
-            // 大于等于零的预注入金额不影响预算池余额,故不参与计算
-            return;
-        }
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(PoolAmount.FIELD_POOL_ID, pool.getId()));
         search.addFilter(new SearchFilter(PoolAmount.FIELD_OPERATION, operation));
@@ -96,11 +92,6 @@ public class PoolAmountService extends BaseEntityService<PoolAmount> {
             // 注入金额+小于0的预注入金额-使用金额
             for (PoolAmount amount : amounts) {
                 switch (amount.getOperation()) {
-                    case PRE_RELEASE:
-                        if (amount.getAmount() >= 0) {
-                            // 大于等于0的预注入金额不影响预算池余额,故不参与计算
-                            break;
-                        }
                     case RELEASE:
                         balance = ArithUtils.add(balance, amount.getAmount());
                         break;

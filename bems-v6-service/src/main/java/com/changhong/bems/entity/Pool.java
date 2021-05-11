@@ -24,7 +24,7 @@ import java.time.LocalDate;
 public class Pool extends BaseAuditableEntity implements ITenant, ICodeUnique, Serializable {
     private static final long serialVersionUID = 345291355065499642L;
     public static final String FIELD_SUBJECT_ID = "subjectId";
-    public static final String FIELD_ATTRIBUTE_ID = "attributeId";
+    public static final String FIELD_ATTRIBUTE_CODE = "attributeCode";
     public static final String FIELD_ACTIVED = "actived";
     /**
      * 代码
@@ -37,10 +37,10 @@ public class Pool extends BaseAuditableEntity implements ITenant, ICodeUnique, S
     @Column(name = "subject_id")
     private String subjectId;
     /**
-     * 预算维度属性id
+     * 预算维度属性code
      */
-    @Column(name = "attribute_id")
-    private String attributeId;
+    @Column(name = "attribute_code")
+    private Long attributeCode;
     /**
      * 币种代码
      */
@@ -126,12 +126,12 @@ public class Pool extends BaseAuditableEntity implements ITenant, ICodeUnique, S
         this.subjectId = subjectId;
     }
 
-    public String getAttributeId() {
-        return attributeId;
+    public Long getAttributeCode() {
+        return attributeCode;
     }
 
-    public void setAttributeId(String attributeId) {
-        this.attributeId = attributeId;
+    public void setAttributeCode(Long attributeCode) {
+        this.attributeCode = attributeCode;
     }
 
     public String getCurrencyCode() {

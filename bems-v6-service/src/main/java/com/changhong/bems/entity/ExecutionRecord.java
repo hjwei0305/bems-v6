@@ -1,7 +1,6 @@
 package com.changhong.bems.entity;
 
 import com.changhong.bems.dto.OperationType;
-import com.changhong.sei.core.entity.BaseAuditableEntity;
 import com.changhong.sei.core.entity.BaseEntity;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -23,15 +22,20 @@ import java.time.LocalDateTime;
 public class ExecutionRecord extends BaseEntity implements Serializable {
     private static final long serialVersionUID = -28943145565423431L;
     /**
+     * 预算主体id
+     */
+    @Column(name = "subject_id")
+    private String subjectId;
+    /**
+     * 预算维度属性id
+     */
+    @Column(name = "attribute_code")
+    private Long attributeCode;
+    /**
      * 预算池编码
      */
     @Column(name = "pool_code")
     private String poolCode;
-    /**
-     * 预算维度属性id
-     */
-    @Column(name = "attribute_id")
-    private String attributeId;
     /**
      * 操作类型
      */
@@ -43,6 +47,11 @@ public class ExecutionRecord extends BaseEntity implements Serializable {
      */
     @Column(name = "amount")
     private Double amount = 0d;
+    /**
+     * 是预算池金额
+     */
+    @Column(name = "is_pool_amount")
+    private Boolean isPoolAmount = Boolean.TRUE;
     /**
      * 操作时间
      */
@@ -99,6 +108,22 @@ public class ExecutionRecord extends BaseEntity implements Serializable {
         this.bizEvent = bizEvent;
     }
 
+    public String getSubjectId() {
+        return subjectId;
+    }
+
+    public void setSubjectId(String subjectId) {
+        this.subjectId = subjectId;
+    }
+
+    public Long getAttributeCode() {
+        return attributeCode;
+    }
+
+    public void setAttributeCode(Long attributeCode) {
+        this.attributeCode = attributeCode;
+    }
+
     public String getPoolCode() {
         return poolCode;
     }
@@ -107,20 +132,20 @@ public class ExecutionRecord extends BaseEntity implements Serializable {
         this.poolCode = poolCode;
     }
 
-    public String getAttributeId() {
-        return attributeId;
-    }
-
-    public void setAttributeId(String attributeId) {
-        this.attributeId = attributeId;
-    }
-
     public OperationType getOperation() {
         return operation;
     }
 
     public void setOperation(OperationType operation) {
         this.operation = operation;
+    }
+
+    public Boolean getIsPoolAmount() {
+        return isPoolAmount;
+    }
+
+    public void setIsPoolAmount(Boolean poolAmount) {
+        isPoolAmount = poolAmount;
     }
 
     public Double getAmount() {
