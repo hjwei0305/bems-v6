@@ -44,6 +44,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     private OrderDetailService orderDetailService;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private AsyncRunUtil asyncRunUtil;
 
     @Override
     public BaseEntityService<Order> getService() {
@@ -195,11 +197,16 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             // 订单不存在
             return ResultData.fail(ContextUtil.getMessage("order_00001"));
         }
-        ResultData<OrderDetail> resultData = orderDetailService.updateDetailAmount(order, detail, amount);
-        if (resultData.successful()) {
-            return ResultData.success(dtoModelMapper.map(resultData.getData(), OrderDetailDto.class));
+        if (OrderStatus.PREFAB == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
+            ResultData<OrderDetail> resultData = orderDetailService.updateDetailAmount(order, detail, amount);
+            if (resultData.successful()) {
+                return ResultData.success(dtoModelMapper.map(resultData.getData(), OrderDetailDto.class));
+            } else {
+                return ResultData.fail(resultData.getMessage());
+            }
         } else {
-            return ResultData.fail(resultData.getMessage());
+            // 订单状态为[{0}],不允许操作
+            return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
         }
     }
 
@@ -226,12 +233,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                 // 不支持的订单状态
                 return ResultData.fail(ContextUtil.getMessage("order_00005", order.getStatus()));
         }
-//        List<OrderDetailDto> detailDtoList = request.getOrderDetails();
-        List<OrderDetail> details = null;
-//        if (CollectionUtils.isNotEmpty(detailDtoList)) {
-//            details = detailDtoList.stream().map(dto -> entityModelMapper.map(dto, OrderDetail.class)).collect(Collectors.toList());
-//        }
-        ResultData<Order> resultData = service.saveOrder(order, details);
+        ResultData<Order> resultData = service.saveOrder(order, null);
         if (resultData.successful()) {
             return ResultData.success(dtoModelMapper.map(resultData.getData(), OrderDto.class));
         } else {
@@ -255,13 +257,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
 
         // 检查订单状态
         if (OrderStatus.PREFAB == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
-            if (!SeiLockHelper.checkLocked("effective:" + orderId)) {
-                ContextUtil.getBean(AsyncRunUtil.class).runAsync(new Runnable() {
-                    @Override
-                    public void run() {
-                        service.effective(order);
-                    }
-                });
+            if (!SeiLockHelper.checkLocked("bems-v6:effective:" + orderId)) {
+                asyncRunUtil.runAsync(() -> service.effective(order));
                 return ResultData.success();
             } else {
                 // 订单[{0}]正在生效处理过程中,请稍后.
@@ -281,6 +278,82 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      */
     @Override
     public ResultData<Void> submitProcess(String orderId) {
-        return service.submitProcess(orderId);
+        final Order order = service.findOne(orderId);
+        if (Objects.isNull(order)) {
+            // 订单[{0}]不存在!
+            return ResultData.fail(ContextUtil.getMessage("order_00001"));
+        }
+
+        // 检查订单状态
+        if (OrderStatus.PREFAB == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
+            if (!SeiLockHelper.checkLocked("bems-v6:submit:" + orderId)) {
+                asyncRunUtil.runAsync(() -> service.submitProcess(order));
+                return ResultData.success();
+            } else {
+                // 订单[{0}]正在提交流程处理过程中,请稍后.
+                return ResultData.fail(ContextUtil.getMessage("order_00008", order.getCode()));
+            }
+        } else {
+            // 订单状态为[{0}],不允许操作!
+            return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+        }
+    }
+
+    /**
+     * 预算申请单取消流程审批
+     *
+     * @param orderId 申请单id
+     * @return 返回处理结果
+     */
+    @Override
+    public ResultData<Void> cancelProcess(String orderId) {
+        final Order order = service.findOne(orderId);
+        if (Objects.isNull(order)) {
+            // 订单[{0}]不存在!
+            return ResultData.fail(ContextUtil.getMessage("order_00001"));
+        }
+
+        // 检查订单状态
+        if (OrderStatus.PROCESSING == order.getStatus()) {
+            if (!SeiLockHelper.checkLocked("bems-v6:cancel:" + orderId)) {
+                asyncRunUtil.runAsync(() -> service.cancelProcess(order));
+                return ResultData.success();
+            } else {
+                // 订单[{0}]正在提交流程处理过程中,请稍后.
+                return ResultData.fail(ContextUtil.getMessage("order_00008", order.getCode()));
+            }
+        } else {
+            // 订单状态为[{0}],不允许操作!
+            return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+        }
+    }
+
+    /**
+     * 预算申请单审批完成
+     *
+     * @param orderId 申请单id
+     * @return 返回处理结果
+     */
+    @Override
+    public ResultData<Void> completeProcess(String orderId) {
+        final Order order = service.findOne(orderId);
+        if (Objects.isNull(order)) {
+            // 订单[{0}]不存在!
+            return ResultData.fail(ContextUtil.getMessage("order_00001"));
+        }
+
+        // 检查订单状态
+        if (OrderStatus.PROCESSING == order.getStatus()) {
+            if (!SeiLockHelper.checkLocked("bems-v6:complete:" + orderId)) {
+                asyncRunUtil.runAsync(() -> service.completeProcess(order));
+                return ResultData.success();
+            } else {
+                // 订单[{0}]正在提交流程处理过程中,请稍后.
+                return ResultData.fail(ContextUtil.getMessage("order_00008", order.getCode()));
+            }
+        } else {
+            // 订单状态为[{0}],不允许操作!
+            return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+        }
     }
 }

@@ -140,22 +140,42 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     ResultData<OrderDto> saveOrder(@RequestBody @Valid OrderDto order);
 
     /**
-     * 生效预算申请单
+     * 预算申请单生效
      *
      * @param orderId 申请单id
      * @return 返回处理结果
      */
     @PostMapping(path = "effectiveOrder")
-    @ApiOperation(value = "生效预算申请单", notes = "直接生效预算申请单")
+    @ApiOperation(value = "预算申请单生效", notes = "预算申请单直接生效")
     ResultData<Void> effectiveOrder(@RequestParam("orderId") String orderId);
 
     /**
-     * 提交审批预算申请单
+     * 预算申请单提交审批
      *
      * @param orderId 申请单id
      * @return 返回处理结果
      */
     @PostMapping(path = "submitProcess")
-    @ApiOperation(value = "提交审批预算申请单", notes = "提交审批预算申请单")
+    @ApiOperation(value = "预算申请单提交审批", notes = "预算申请单提交审批")
     ResultData<Void> submitProcess(@RequestParam("orderId") String orderId);
+
+    /**
+     * 预算申请单取消流程审批
+     *
+     * @param orderId 申请单id
+     * @return 返回处理结果
+     */
+    @PostMapping(path = "cancelProcess")
+    @ApiOperation(value = "预算申请单取消流程审批", notes = "预算申请单取消流程审批")
+    ResultData<Void> cancelProcess(@RequestParam("orderId") String orderId);
+
+    /**
+     * 预算申请单审批完成
+     *
+     * @param orderId 申请单id
+     * @return 返回处理结果
+     */
+    @PostMapping(path = "completeProcess")
+    @ApiOperation(value = "预算申请单审批完成", notes = "预算申请单审批完成")
+    ResultData<Void> completeProcess(@RequestParam("orderId") String orderId);
 }

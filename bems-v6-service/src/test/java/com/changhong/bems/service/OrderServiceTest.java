@@ -49,7 +49,8 @@ class OrderServiceTest extends BaseUnit5Test {
         StopWatch stopWatch = StopWatch.createStarted();
 
         String orderId = "1979E1C4-AFC8-11EB-B9C2-0242C0A84427";
-        ResultData<Void> resultData = service.submitProcess(orderId);
+        Order order = service.findOne(orderId);
+        ResultData<Void> resultData = service.submitProcess(order);
         stopWatch.stop();
         System.out.println("耗时: " + stopWatch.getTime());
         System.out.println(resultData);

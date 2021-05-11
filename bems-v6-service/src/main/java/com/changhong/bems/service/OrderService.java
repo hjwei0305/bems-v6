@@ -143,6 +143,7 @@ public class OrderService extends BaseEntityService<Order> {
      * @param order 业务实体DTO
      * @return 返回订单头id
      */
+    @SeiLock(key = "'bems-v6:saveOrder:' + #order.id")
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Order> saveOrder(Order order, List<OrderDetail> details) {
         if (StringUtils.isBlank(order.getCode())) {
@@ -173,7 +174,7 @@ public class OrderService extends BaseEntityService<Order> {
      * @param order 申请单
      * @return 返回处理结果
      */
-    @SeiLock(key = "'effective:' + #orderId")
+    @SeiLock(key = "'bems-v6:effective:' + #order.id")
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> effective(Order order) {
         if (Objects.isNull(order)) {
@@ -210,19 +211,19 @@ public class OrderService extends BaseEntityService<Order> {
      * 提交审批预算申请单
      * 对不存在预算池的行项,在此时不创建预算池,仅对金额为负数的按一般占用处理(预占用)
      *
-     * @param orderId 申请单id
+     * @param order 申请单
      * @return 返回处理结果
      */
+    @SeiLock(key = "'bems-v6:submit:' + #order.id")
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> submitProcess(String orderId) {
-        Order order = dao.findOne(orderId);
+    public ResultData<Void> submitProcess(Order order) {
         if (Objects.isNull(order)) {
             // 订单不存在!
             return ResultData.fail(ContextUtil.getMessage("order_00001"));
         }
         // 检查订单状态
         if (OrderStatus.PREFAB == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
-            List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
+            List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
             // 检查是否存在错误行项
             ResultData<Void> resultData = checkDetailHasErr(details);
             if (resultData.failed()) {
@@ -244,12 +245,12 @@ public class OrderService extends BaseEntityService<Order> {
     /**
      * 预算申请单取消流程审批
      *
-     * @param orderId 申请单id
+     * @param order 申请单
      * @return 返回处理结果
      */
+    @SeiLock(key = "'bems-v6:cancel:' + #order.id")
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> cancelProcess(String orderId) {
-        Order order = dao.findOne(orderId);
+    public ResultData<Void> cancelProcess(Order order) {
         if (Objects.isNull(order)) {
             // 订单不存在!
             return ResultData.fail(ContextUtil.getMessage("order_00001"));
@@ -259,7 +260,7 @@ public class OrderService extends BaseEntityService<Order> {
             // 订单状态为[{0}],不允许操作!
             return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
         }
-        List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
+        List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
 
         ResultData<Void> resultData = this.cancelProcessUseBudget(order, details);
         if (resultData.successful()) {
@@ -273,12 +274,12 @@ public class OrderService extends BaseEntityService<Order> {
     /**
      * 预算申请单审批完成
      *
-     * @param orderId 申请单id
+     * @param order 申请单
      * @return 返回处理结果
      */
+    @SeiLock(key = "'bems-v6:complete:' + #order.id")
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> completeProcess(String orderId) {
-        Order order = dao.findOne(orderId);
+    public ResultData<Void> completeProcess(Order order) {
         if (Objects.isNull(order)) {
             // 订单不存在
             return ResultData.fail(ContextUtil.getMessage("order_00001"));
@@ -288,7 +289,7 @@ public class OrderService extends BaseEntityService<Order> {
             // 订单状态为[{0}],不允许操作!
             return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
         }
-        List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
+        List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
         // 检查是否存在错误行项
         ResultData<Void> resultData = checkDetailHasErr(details);
         if (resultData.failed()) {
