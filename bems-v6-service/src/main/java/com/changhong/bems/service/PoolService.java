@@ -71,7 +71,7 @@ public class PoolService extends BaseEntityService<Pool> {
         // 非禁用的预算池
         search.addFilter(new SearchFilter(Pool.FIELD_ACTIVED, Boolean.TRUE));
         Pool pool = dao.findFirstByFilters(search);
-        if (Objects.isNull(pool)) {
+        if (Objects.nonNull(pool)) {
             return ResultData.success(pool);
         } else {
             // 预算池不存在

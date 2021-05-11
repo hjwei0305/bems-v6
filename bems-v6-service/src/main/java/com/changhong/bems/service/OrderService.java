@@ -1,5 +1,6 @@
 package com.changhong.bems.service;
 
+import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.OrderDao;
 import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.ExecutionRecord;
@@ -361,7 +362,7 @@ public class OrderService extends BaseEntityService<Order> {
                             detail.setPoolAmount(pool.getBalance());
                         }
                         // 记录预算池执行日志
-                        record = new ExecutionRecord(poolCode, operation, detail.getAmount(), OrderCategory.INJECTION.name());
+                        record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_INJECTION_EFFECTIVE);
                         record.setBizOrderId(order.getId());
                         record.setBizOrderCode(order.getCode());
                         record.setBizItemId(detail.getOrderId());
@@ -379,7 +380,7 @@ public class OrderService extends BaseEntityService<Order> {
                         }
                         poolCode = detail.getPoolCode();
                         // 记录预算池执行日志
-                        record = new ExecutionRecord(poolCode, operation, detail.getAmount(), OrderCategory.ADJUSTMENT.name());
+                        record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_ADJUSTMENT_EFFECTIVE);
                         record.setBizOrderId(order.getId());
                         record.setBizOrderCode(order.getCode());
                         record.setBizItemId(detail.getOrderId());
@@ -448,7 +449,7 @@ public class OrderService extends BaseEntityService<Order> {
                         }
 
                         // 记录预算池执行日志
-                        record = new ExecutionRecord(poolCode, operation, detail.getAmount(), OrderCategory.INJECTION.name());
+                        record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_INJECTION_SUBMIT);
                         if (detail.getAmount() >= 0) {
                             // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
                             record.setIsPoolAmount(Boolean.FALSE);
@@ -472,7 +473,7 @@ public class OrderService extends BaseEntityService<Order> {
                         }
                         poolCode = detail.getPoolCode();
                         // 记录预算池执行日志
-                        record = new ExecutionRecord(poolCode, operation, detail.getAmount(), OrderCategory.ADJUSTMENT.name());
+                        record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_ADJUSTMENT_SUBMIT);
                         if (detail.getAmount() >= 0) {
                             // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
                             record.setIsPoolAmount(Boolean.FALSE);
@@ -532,7 +533,7 @@ public class OrderService extends BaseEntityService<Order> {
                         poolCode = detail.getPoolCode();
 
                         // 记录预算池执行日志
-                        record = new ExecutionRecord(poolCode, operation, -detail.getAmount(), OrderCategory.INJECTION.name());
+                        record = new ExecutionRecord(poolCode, operation, -detail.getAmount(), Constants.EVENT_INJECTION_CANCEL);
                         if (detail.getAmount() >= 0) {
                             // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
                             record.setIsPoolAmount(Boolean.FALSE);
@@ -553,7 +554,7 @@ public class OrderService extends BaseEntityService<Order> {
                         }
                         poolCode = detail.getPoolCode();
                         // 记录预算池执行日志
-                        record = new ExecutionRecord(poolCode, operation, -detail.getAmount(), OrderCategory.ADJUSTMENT.name());
+                        record = new ExecutionRecord(poolCode, operation, -detail.getAmount(), Constants.EVENT_ADJUSTMENT_CANCEL);
                         if (detail.getAmount() >= 0) {
                             // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
                             record.setIsPoolAmount(Boolean.FALSE);
@@ -618,7 +619,7 @@ public class OrderService extends BaseEntityService<Order> {
                             poolCode = pool.getCode();
                         }
                         // 记录预算池执行日志
-                        record = new ExecutionRecord(poolCode, operation, detail.getAmount(), OrderCategory.INJECTION.name());
+                        record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_INJECTION_COMPLETE);
                         if (detail.getAmount() <= 0) {
                             // 订单状态由流程中变为已完成,金额小于等于0在提交流程时已提前占用,故此时不再重复占用,只记录日志
                             record.setIsPoolAmount(Boolean.FALSE);
@@ -642,7 +643,7 @@ public class OrderService extends BaseEntityService<Order> {
                         }
                         poolCode = detail.getPoolCode();
                         // 记录预算池执行日志
-                        record = new ExecutionRecord(poolCode, operation, detail.getAmount(), OrderCategory.ADJUSTMENT.name());
+                        record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_ADJUSTMENT_COMPLETE);
                         if (detail.getAmount() <= 0) {
                             // 订单状态由流程中变为已完成,金额小于等于0在提交流程时已提前占用,故此时不再重复占用,只记录日志
                             record.setIsPoolAmount(Boolean.FALSE);

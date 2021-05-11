@@ -1,6 +1,5 @@
 package com.changhong.bems.entity;
 
-import com.changhong.sei.core.entity.ICodeUnique;
 import com.changhong.sei.core.entity.ITenant;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -49,14 +48,23 @@ public class DimensionAttribute extends BaseAttribute implements ITenant, Serial
 
     public DimensionAttribute(BaseAttribute attribute) {
         this.period = attribute.getPeriod();
+        this.periodName = attribute.getPeriodName();
         this.item = attribute.getItem();
+        this.itemName = attribute.getItemName();
         this.org = attribute.getOrg();
+        this.orgName = attribute.getOrgName();
         this.project = attribute.getProject();
+        this.projectName = attribute.getProjectName();
         this.udf1 = attribute.getUdf1();
+        this.udf1Name = attribute.getUdf1Name();
         this.udf2 = attribute.getUdf2();
+        this.udf2Name = attribute.getUdf2Name();
         this.udf3 = attribute.getUdf3();
+        this.udf3Name = attribute.getUdf3Name();
         this.udf4 = attribute.getUdf4();
+        this.udf4Name = attribute.getUdf4Name();
         this.udf5 = attribute.getUdf5();
+        this.udf5Name = attribute.getUdf5Name();
     }
 
     public String getSubjectId() {

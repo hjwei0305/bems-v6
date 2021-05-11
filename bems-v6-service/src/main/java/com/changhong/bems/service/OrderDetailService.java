@@ -237,7 +237,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
      *
      * @param order 单据头
      */
-    @Async
+//    @Async
     public void batchAddOrderItems(Order order, AddOrderDetail addOrderDetail) {
         if (Objects.isNull(order)) {
             //添加单据行项时,订单头不能为空.
