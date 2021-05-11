@@ -119,6 +119,17 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     ResultData<String> addOrderDetails(@RequestBody @Valid AddOrderDetail order);
 
     /**
+     * 更新预算申请单行项金额
+     *
+     * @param detailId 申请单行项id
+     * @param amount   金额
+     * @return 返回订单头id
+     */
+    @PostMapping(path = "updateDetailAmount")
+    @ApiOperation(value = "更新预算申请单行项金额", notes = "检查并更新预算申请单行项金额")
+    ResultData<OrderDetailDto> updateDetailAmount(@RequestParam("detailId") String detailId, @RequestParam("amount") double amount);
+
+    /**
      * 保存预算申请单
      *
      * @param order 业务实体DTO

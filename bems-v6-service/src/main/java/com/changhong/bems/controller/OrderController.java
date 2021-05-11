@@ -4,6 +4,7 @@ import com.changhong.bems.api.OrderApi;
 import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
+import com.changhong.bems.service.OrderDetailService;
 import com.changhong.bems.service.OrderService;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.controller.BaseEntityController;
@@ -20,8 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -39,6 +39,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      */
     @Autowired
     private OrderService service;
+    @Autowired
+    private OrderDetailService orderDetailService;
     @Autowired
     private ModelMapper modelMapper;
 
@@ -131,7 +133,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      */
     @Override
     public ResultData<Void> clearOrderItems(String orderId) {
-        return service.clearOrderItems(orderId);
+        orderDetailService.clearOrderItems(orderId);
+        return ResultData.success();
     }
 
     /**
@@ -142,7 +145,10 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      */
     @Override
     public ResultData<Void> removeOrderItems(String[] detailIds) {
-        return service.removeOrderItems(detailIds);
+        Set<String> ids = new HashSet<>();
+        Collections.addAll(ids, detailIds);
+        orderDetailService.removeOrderItems(ids);
+        return ResultData.success();
     }
 
     /**
@@ -167,6 +173,33 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     @Override
     public ResultData<String> addOrderDetails(AddOrderDetail order) {
         return service.addOrderDetails(order);
+    }
+
+    /**
+     * 更新预算申请单行项金额
+     *
+     * @param detailId 申请单行项id
+     * @param amount   金额
+     * @return 返回订单头id
+     */
+    @Override
+    public ResultData<OrderDetailDto> updateDetailAmount(String detailId, double amount) {
+        OrderDetail detail = orderDetailService.findOne(detailId);
+        if (Objects.isNull(detail)) {
+            // 行项不存在
+            return ResultData.fail(ContextUtil.getMessage("order_detail_00009"));
+        }
+        Order order = service.findOne(detail.getOrderId());
+        if (Objects.isNull(order)) {
+            // 订单不存在
+            return ResultData.fail(ContextUtil.getMessage("order_00001", detail.getOrderId()));
+        }
+        ResultData<OrderDetail> resultData = orderDetailService.updateDetailAmount(order, detail, amount);
+        if (resultData.successful()) {
+            return ResultData.success(dtoModelMapper.map(resultData.getData(), OrderDetailDto.class));
+        } else {
+            return ResultData.fail(resultData.getMessage());
+        }
     }
 
     /**
@@ -213,7 +246,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      */
     @Override
     public ResultData<Void> effectiveOrder(String orderId) {
-        return service.effectiveOrder(orderId);
+        return service.effective(orderId);
     }
 
     /**
@@ -224,6 +257,6 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      */
     @Override
     public ResultData<Void> commitOrder(String orderId) {
-        return service.commitOrder(orderId);
+        return service.submitProcess(orderId);
     }
 }

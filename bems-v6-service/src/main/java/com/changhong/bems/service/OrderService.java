@@ -77,32 +77,6 @@ public class OrderService extends BaseEntityService<Order> {
     }
 
     /**
-     * 通过单据Id清空单据行项
-     *
-     * @param orderId 单据Id
-     * @return 业务实体
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> clearOrderItems(String orderId) {
-        orderDetailService.clearOrderItems(orderId);
-        return ResultData.success();
-    }
-
-    /**
-     * 通过单据行项id删除行项
-     *
-     * @param detailIds 单据行项Id
-     * @return 业务实体
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> removeOrderItems(String[] detailIds) {
-        Set<String> ids = new HashSet<>();
-        Collections.addAll(ids, detailIds);
-        orderDetailService.delete(ids);
-        return ResultData.success();
-    }
-
-    /**
      * 通过单据Id检查预算主体和类型是否被修改
      *
      * @param orderId    单据Id
@@ -194,14 +168,14 @@ public class OrderService extends BaseEntityService<Order> {
      * @return 返回处理结果
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> effectiveOrder(String orderId) {
+    public ResultData<Void> effective(String orderId) {
         Order order = dao.findOne(orderId);
         if (Objects.isNull(order)) {
             // 订单[{0}]不存在!
             return ResultData.fail(ContextUtil.getMessage("order_00001", orderId));
         }
         if (OrderStatus.DRAFT != order.getStatus()) {
-            // 订单[{0}]不存在!
+            // 订单状态为[{0}],不允许操作!
             return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
         }
         List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
@@ -210,7 +184,7 @@ public class OrderService extends BaseEntityService<Order> {
         if (resultData.failed()) {
             return resultData;
         }
-        resultData = this.checkAndPutDetailPool(order, details, OperationType.RELEASE);
+        resultData = this.checkAndCreatePool(order, details, OperationType.RELEASE);
         if (resultData.successful()) {
             // 更新订单状态为:完成
             order.setStatus(OrderStatus.COMPLETED);
@@ -221,12 +195,13 @@ public class OrderService extends BaseEntityService<Order> {
 
     /**
      * 提交审批预算申请单
+     * 对不存在预算池的行项,在此时不创建预算池,仅对金额为负数的按一般占用处理(预占用)
      *
      * @param orderId 申请单id
      * @return 返回处理结果
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> commitOrder(String orderId) {
+    public ResultData<Void> submitProcess(String orderId) {
         Order order = dao.findOne(orderId);
         if (Objects.isNull(order)) {
             // 订单[{0}]不存在!
@@ -234,7 +209,7 @@ public class OrderService extends BaseEntityService<Order> {
         }
 
         if (OrderStatus.DRAFT != order.getStatus()) {
-            // 订单[{0}]不存在!
+            // 订单状态为[{0}],不允许操作!
             return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
         }
         List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
@@ -243,7 +218,7 @@ public class OrderService extends BaseEntityService<Order> {
         if (resultData.failed()) {
             return resultData;
         }
-        resultData = this.checkAndPutDetailPool(order, details, OperationType.PRE_RELEASE);
+        resultData = this.checkAndUsePool(order, details, OperationType.PRE_RELEASE);
         if (resultData.successful()) {
             // 更新订单状态为:流程中
             order.setStatus(OrderStatus.PROCESSING);
@@ -254,13 +229,13 @@ public class OrderService extends BaseEntityService<Order> {
     }
 
     /**
-     * 预算申请单审批完成
+     * 预算申请单取消流程审批
      *
      * @param orderId 申请单id
      * @return 返回处理结果
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> completeOrder(String orderId) {
+    public ResultData<Void> cancelProcess(String orderId) {
         Order order = dao.findOne(orderId);
         if (Objects.isNull(order)) {
             // 订单[{0}]不存在!
@@ -268,17 +243,40 @@ public class OrderService extends BaseEntityService<Order> {
         }
 
         if (OrderStatus.PROCESSING != order.getStatus()) {
-            // 订单[{0}]不存在!
+            // 订单状态为[{0}],不允许操作!
             return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
         }
         List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
-        // TODO 流程中 到 完成
+
+
+        return ResultData.success();
+    }
+
+    /**
+     * 预算申请单审批完成
+     *
+     * @param orderId 申请单id
+     * @return 返回处理结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ResultData<Void> completeProcess(String orderId) {
+        Order order = dao.findOne(orderId);
+        if (Objects.isNull(order)) {
+            // 订单[{0}]不存在!
+            return ResultData.fail(ContextUtil.getMessage("order_00001", orderId));
+        }
+
+        if (OrderStatus.PROCESSING != order.getStatus()) {
+            // 订单状态为[{0}],不允许操作!
+            return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+        }
+        List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
         // 检查是否存在错误行项
         ResultData<Void> resultData = checkDetailHasErr(details);
         if (resultData.failed()) {
             return resultData;
         }
-        resultData = this.checkAndPutDetailPool(order, details, OperationType.RELEASE);
+        resultData = this.checkAndCreatePool(order, details, OperationType.RELEASE);
         if (resultData.successful()) {
             // 更新订单状态为:完成
             order.setStatus(OrderStatus.COMPLETED);
@@ -305,6 +303,18 @@ public class OrderService extends BaseEntityService<Order> {
     }
 
     /**
+     * 检查并占用预算池
+     *
+     * @param order     预算申请单
+     * @param details   预算申请单行项
+     * @param operation 操作类型
+     * @return 返回处理结果
+     */
+    private ResultData<Void> checkAndUsePool(Order order, List<OrderDetail> details, OperationType operation) {
+        return ResultData.success();
+    }
+
+    /**
      * 检查并设置或创建预算池
      *
      * @param order     预算申请单
@@ -312,7 +322,7 @@ public class OrderService extends BaseEntityService<Order> {
      * @param operation 操作类型
      * @return 返回处理结果
      */
-    private ResultData<Void> checkAndPutDetailPool(Order order, List<OrderDetail> details, OperationType operation) {
+    private ResultData<Void> checkAndCreatePool(Order order, List<OrderDetail> details, OperationType operation) {
         if (CollectionUtils.isNotEmpty(details)) {
             String poolCode;
             ExecutionRecord record;

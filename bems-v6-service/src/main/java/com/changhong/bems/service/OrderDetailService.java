@@ -86,6 +86,59 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
     }
 
     /**
+     * 通过单据行项id删除行项
+     *
+     * @param ids 单据行项Id
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void removeOrderItems(Set<String> ids) {
+        dao.delete(ids);
+    }
+
+    /**
+     * 更新预算申请单行项金额
+     *
+     * @param order  申请单
+     * @param detail 申请单行项
+     * @param amount 金额
+     * @return 返回订单头id
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ResultData<OrderDetail> updateDetailAmount(Order order, OrderDetail detail, double amount) {
+        // 原行项金额
+        double oldAmount = detail.getAmount();
+        // 设置当前修改金额
+        detail.setAmount(amount);
+
+        ResultData<Void> resultData;
+        // 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
+        switch (order.getOrderCategory()) {
+            case INJECTION:
+                resultData = this.checkInjectionDetail(order, detail);
+                break;
+            case ADJUSTMENT:
+                resultData = this.checkAdjustmentDetail(order, detail);
+                break;
+            case SPLIT:
+                resultData = this.checkSplitDetail(order, detail);
+                break;
+            default:
+                // 不支持的订单类型
+                return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
+        }
+        if (resultData.successful()) {
+            detail.setHasErr(Boolean.FALSE);
+            detail.setErrMsg("");
+        } else {
+            detail.setAmount(oldAmount);
+            detail.setHasErr(Boolean.TRUE);
+            detail.setErrMsg(resultData.getMessage());
+        }
+        this.save(detail);
+        return ResultData.success(detail);
+    }
+
+    /**
      * 更新行项金额
      *
      * @return 返回订单总金额

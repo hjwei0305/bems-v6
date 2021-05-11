@@ -36,7 +36,7 @@ class OrderServiceTest extends BaseUnit5Test {
     void effectiveOrder() {
         StopWatch stopWatch = StopWatch.createStarted();
         String orderId = "12EF4E3E-AFB0-11EB-A72F-0242C0A84429";
-        ResultData<Void> resultData = service.effectiveOrder(orderId);
+        ResultData<Void> resultData = service.effective(orderId);
         stopWatch.stop();
         System.out.println("耗时: "+ stopWatch.getTime());
         System.out.println(resultData);
@@ -47,7 +47,7 @@ class OrderServiceTest extends BaseUnit5Test {
         StopWatch stopWatch = StopWatch.createStarted();
 
         String orderId = "1979E1C4-AFC8-11EB-B9C2-0242C0A84427";
-        ResultData<Void> resultData = service.commitOrder(orderId);
+        ResultData<Void> resultData = service.submitProcess(orderId);
         stopWatch.stop();
         System.out.println("耗时: "+ stopWatch.getTime());
         System.out.println(resultData);
