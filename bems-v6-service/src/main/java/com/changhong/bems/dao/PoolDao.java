@@ -2,6 +2,9 @@ package com.changhong.bems.dao;
 
 import com.changhong.bems.entity.Pool;
 import com.changhong.sei.core.dao.BaseEntityDao;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -12,5 +15,15 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface PoolDao extends BaseEntityDao<Pool> {
+
+    /**
+     * 更新预算池余额
+     *
+     * @param id      订单id
+     * @param balance 金额
+     */
+    @Modifying
+    @Query("update Pool p set p.balance = :balance where p.id = :id ")
+    void updateAmount(@Param("id") String id, @Param("balance") double balance);
 
 }

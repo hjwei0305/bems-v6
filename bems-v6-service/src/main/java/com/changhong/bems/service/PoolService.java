@@ -230,6 +230,10 @@ public class PoolService extends BaseEntityService<Pool> {
                 if (Objects.nonNull(pool)) {
                     // 累计金额
                     poolAmountService.countAmount(pool, record.getOperation(), record.getAmount());
+                    // 实时计算当前预算池可用金额
+                    double amount = poolAmountService.getPoolBalanceByPoolCode(pool.getCode());
+                    // 更新预算池金额
+                    dao.updateAmount(pool.getId(), amount);
                     return;
                 }
             }

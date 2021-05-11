@@ -35,7 +35,10 @@ class OrderServiceTest extends BaseUnit5Test {
 
     @Test
     void saveOrder() {
-
+        String json = "{\"id\":\"CCCF62C3-B26B-11EB-971A-6E883C5EFC87\",\"code\":\"0000000180\",\"subjectId\":\"5B03DED0-A3F4-11EB-A297-0242C0A8442D\",\"subjectName\":\"四川爱联科技有限公司\",\"currencyCode\":\"CNY\",\"currencyName\":\"人民币\",\"categoryId\":\"A9DA0DB5-B25B-11EB-89CD-0242C0A84429\",\"categoryName\":\"年度预算\",\"periodType\":\"ANNUAL\",\"orderCategory\":\"INJECTION\",\"applyAmount\":null,\"applyOrgId\":\"877035BF-A40C-11E7-A8B9-02420B99179E\",\"applyOrgCode\":\"10607\",\"applyOrgName\":\"四川长虹电子控股集团有限公司\",\"managerOrgId\":null,\"managerOrgCode\":null,\"managerOrgName\":null,\"remark\":\"qqq\",\"status\":\"DRAFT\",\"creatorAccount\":\"admin\",\"creatorName\":\"系统管理员\",\"createdDate\":\"2021-05-11 23:16:03\"}";
+        Order order = JsonUtils.fromJson(json, Order.class);
+        ResultData<Order> resultData = service.saveOrder(order, null);
+        System.out.println(resultData);
     }
 
     @Test
