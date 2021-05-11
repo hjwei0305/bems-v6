@@ -1,7 +1,6 @@
 package com.changhong.bems.controller;
 
 import com.changhong.bems.api.EventApi;
-import com.changhong.bems.api.ItemApi;
 import com.changhong.bems.dto.EventDto;
 import com.changhong.bems.entity.Event;
 import com.changhong.bems.service.EventService;
@@ -26,7 +25,7 @@ import java.util.List;
  */
 @RestController
 @Api(value = "EventApi", tags = "预算事件服务")
-@RequestMapping(path = ItemApi.PATH, produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = EventApi.PATH, produces = MediaType.APPLICATION_JSON_VALUE)
 public class EventController extends BaseEntityController<Event, EventDto> implements EventApi {
     /**
      * 预算事件服务对象
