@@ -144,9 +144,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
      * @return 返回订单总金额
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Double> updateAmount(Order order, List<OrderDetail> details) {
-        // 订单总金额
-        double sumAmount = 0;
+    public ResultData<Void> updateAmount(Order order, List<OrderDetail> details) {
         if (CollectionUtils.isNotEmpty(details)) {
             Map<String, Double> detailMap = details.stream().collect(Collectors.toMap(OrderDetail::getId, OrderDetail::getAmount));
             Search search = Search.createSearch();
@@ -174,15 +172,13 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                             return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
                     }
                     if (resultData.failed()) {
-                        return ResultData.fail(resultData.getMessage());
+                        return resultData;
                     }
                 }
                 this.save(detailList);
-                //获取订单总金额
-                sumAmount = dao.getSumAmount(order.getId());
             }
         }
-        return ResultData.success(sumAmount);
+        return ResultData.success();
     }
 
     /**

@@ -25,4 +25,13 @@ public interface OrderDao extends BaseEntityDao<Order> {
     @Modifying
     @Query("update Order o set o.applyAmount = :amount where o.id = :id ")
     void updateAmount(@Param("id") String id, @Param("amount") double amount);
+
+    /**
+     * 更新订单申请金额
+     *
+     * @param id     订单id
+     */
+    @Modifying
+    @Query("update Order o set o.applyAmount = (select sum(d.amount) from OrderDetail d where d.orderId = o.id) where o.id = :id ")
+    void updateAmount(@Param("id") String id);
 }

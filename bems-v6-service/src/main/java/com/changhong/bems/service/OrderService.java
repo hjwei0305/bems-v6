@@ -145,16 +145,16 @@ public class OrderService extends BaseEntityService<Order> {
         OperateResultWithData<Order> result = this.save(order);
         if (result.successful()) {
             if (CollectionUtils.isNotEmpty(details)) {
-                ResultData<Double> resultData = orderDetailService.updateAmount(order, details);
+                ResultData<Void> resultData = orderDetailService.updateAmount(order, details);
                 if (resultData.failed()) {
                     // 回滚事务
                     TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                     return ResultData.fail(resultData.getMessage());
-                } else {
-                    // 订单总金额
-                    dao.updateAmount(order.getId(), resultData.getData());
                 }
             }
+            // 订单总金额
+            dao.updateAmount(order.getId());
+
             return ResultData.success(order);
         } else {
             return ResultData.fail(result.getMessage());

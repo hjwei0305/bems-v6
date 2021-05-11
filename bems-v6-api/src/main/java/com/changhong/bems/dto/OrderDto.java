@@ -108,8 +108,8 @@ public class OrderDto extends BaseEntityDto {
     @ApiModelProperty(value = "状态")
     private OrderStatus status = OrderStatus.PREFAB;
 
-    @ApiModelProperty(value = "订单行项明细")
-    private List<OrderDetailDto> orderDetails;
+//    @ApiModelProperty(value = "订单行项明细")
+//    private List<OrderDetailDto> orderDetails;
     @ApiModelProperty(value = "创建人账号")
     protected String creatorAccount;
     @ApiModelProperty(value = "创建人名称")
@@ -265,13 +265,13 @@ public class OrderDto extends BaseEntityDto {
         this.status = status;
     }
 
-    public List<OrderDetailDto> getOrderDetails() {
-        return orderDetails;
-    }
+//    public List<OrderDetailDto> getOrderDetails() {
+//        return orderDetails;
+//    }
 
-    public void setOrderDetails(List<OrderDetailDto> orderDetails) {
-        this.orderDetails = orderDetails;
-    }
+//    public void setOrderDetails(List<OrderDetailDto> orderDetails) {
+//        this.orderDetails = orderDetails;
+//    }
 
     public String getCreatorAccount() {
         return creatorAccount;

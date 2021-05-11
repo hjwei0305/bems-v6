@@ -225,11 +225,11 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                 // 不支持的订单状态
                 return ResultData.fail(ContextUtil.getMessage("order_00005", order.getStatus()));
         }
-        List<OrderDetailDto> detailDtoList = request.getOrderDetails();
+//        List<OrderDetailDto> detailDtoList = request.getOrderDetails();
         List<OrderDetail> details = null;
-        if (CollectionUtils.isNotEmpty(detailDtoList)) {
-            details = detailDtoList.stream().map(dto -> entityModelMapper.map(dto, OrderDetail.class)).collect(Collectors.toList());
-        }
+//        if (CollectionUtils.isNotEmpty(detailDtoList)) {
+//            details = detailDtoList.stream().map(dto -> entityModelMapper.map(dto, OrderDetail.class)).collect(Collectors.toList());
+//        }
         ResultData<Order> resultData = service.saveOrder(order, details);
         if (resultData.successful()) {
             return ResultData.success(dtoModelMapper.map(resultData.getData(), OrderDto.class));
