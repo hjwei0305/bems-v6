@@ -2,11 +2,9 @@ package com.changhong.bems.service;
 
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.OrderDetailDao;
-import com.changhong.bems.dao.OrderDetailErrDao;
 import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
-import com.changhong.bems.entity.OrderDetailErr;
 import com.changhong.bems.entity.Pool;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
@@ -49,8 +47,6 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
     @Autowired
     private OrderDetailDao dao;
     @Autowired
-    private OrderDetailErrDao orderDetailErrDao;
-    @Autowired
     private CategoryService categoryService;
     @Autowired
     private PoolService poolService;
@@ -83,7 +79,6 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
      */
     @Transactional(rollbackFor = Exception.class)
     public void clearOrderItems(String orderId) {
-        orderDetailErrDao.clearOrderItems(orderId);
         int count = dao.clearOrderItems(orderId);
         if (LogUtil.isDebugEnabled()) {
             LogUtil.debug("预算申请单[" + orderId + "]清空明细[" + count + "]行.");
@@ -449,11 +444,11 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
 
                 // 本次提交数据中存在重复项
                 if (duplicateHash.contains(detail.getAttributeHash())) {
-                    OrderDetailErr err = new OrderDetailErr(detail);
+                    // 有错误的
+                    detail.setHasErr(Boolean.TRUE);
                     // 存在重复项
-                    err.setErrMsg(ContextUtil.getMessage("order_detail_00006"));
-                    err.setTenantCode(ContextUtil.getTenantCode());
-                    orderDetailErrDao.save(err);
+                    detail.setErrMsg(ContextUtil.getMessage("order_detail_00006"));
+                    this.save(detail);
                     // 错误数加1
                     statistics.addFailures();
                     // 更新缓存
@@ -487,10 +482,10 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     statistics.addSuccesses();
                 } else {
                     statistics.addFailures();
-                    OrderDetailErr err = new OrderDetailErr(detail);
-                    err.setTenantCode(ContextUtil.getTenantCode());
-                    err.setErrMsg(result.getMessage());
-                    orderDetailErrDao.save(err);
+                    // 有错误的
+                    detail.setHasErr(Boolean.TRUE);
+                    detail.setErrMsg(result.getMessage());
+                    this.save(detail);
                 }
                 operations.set(statistics);
             }

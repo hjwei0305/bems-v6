@@ -16,12 +16,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface OrderDetailDao extends BaseEntityDao<OrderDetail> {
 
-
     /**
      * 通过单据Id清空单据行项
      *
      * @param orderId 单据Id
-     * @return 业务实体
+     * @return 返回操作记录数
      */
     @Modifying
     @Query("delete from OrderDetail d where d.orderId = :orderId")

@@ -91,7 +91,7 @@ public class OrderService extends BaseEntityService<Order> {
     /**
      * 通过单据行项id删除行项
      *
-     * @param detailIds 单据Id
+     * @param detailIds 单据行项Id
      * @return 业务实体
      */
     @Transactional(rollbackFor = Exception.class)
@@ -205,7 +205,12 @@ public class OrderService extends BaseEntityService<Order> {
             return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
         }
         List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
-        ResultData<Void> resultData = this.checkAndPutDetailPool(order, details, OperationType.RELEASE);
+        // 检查是否存在错误行项
+        ResultData<Void> resultData = checkDetailHasErr(details);
+        if (resultData.failed()) {
+            return resultData;
+        }
+        resultData = this.checkAndPutDetailPool(order, details, OperationType.RELEASE);
         if (resultData.successful()) {
             // 更新订单状态为:完成
             order.setStatus(OrderStatus.COMPLETED);
@@ -233,7 +238,12 @@ public class OrderService extends BaseEntityService<Order> {
             return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
         }
         List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
-        ResultData<Void> resultData = this.checkAndPutDetailPool(order, details, OperationType.PRE_RELEASE);
+        // 检查是否存在错误行项
+        ResultData<Void> resultData = checkDetailHasErr(details);
+        if (resultData.failed()) {
+            return resultData;
+        }
+        resultData = this.checkAndPutDetailPool(order, details, OperationType.PRE_RELEASE);
         if (resultData.successful()) {
             // 更新订单状态为:流程中
             order.setStatus(OrderStatus.PROCESSING);
@@ -263,7 +273,12 @@ public class OrderService extends BaseEntityService<Order> {
         }
         List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
         // TODO 流程中 到 完成
-        ResultData<Void> resultData = this.checkAndPutDetailPool(order, details, OperationType.RELEASE);
+        // 检查是否存在错误行项
+        ResultData<Void> resultData = checkDetailHasErr(details);
+        if (resultData.failed()) {
+            return resultData;
+        }
+        resultData = this.checkAndPutDetailPool(order, details, OperationType.RELEASE);
         if (resultData.successful()) {
             // 更新订单状态为:完成
             order.setStatus(OrderStatus.COMPLETED);
@@ -271,6 +286,22 @@ public class OrderService extends BaseEntityService<Order> {
             resultData = ResultData.success();
         }
         return resultData;
+    }
+
+    /**
+     * 检查行项是否有错误未处理
+     *
+     * @param details 预算申请单行项
+     * @return 返回处理结果
+     */
+    private ResultData<Void> checkDetailHasErr(List<OrderDetail> details) {
+        if (CollectionUtils.isNotEmpty(details)) {
+            if (details.parallelStream().anyMatch(OrderDetail::getHasErr)) {
+                // 存在错误行项未处理
+                return ResultData.fail(ContextUtil.getMessage("order_detail_00008"));
+            }
+        }
+        return ResultData.success();
     }
 
     /**

@@ -42,6 +42,16 @@ public class OrderDetailDto extends BaseAttribute {
      */
     @ApiModelProperty(value = "来源预算池金额")
     private Double originPoolAmount = 0d;
+    /**
+     * 是否错误
+     */
+    @ApiModelProperty(value = "是否错误")
+    private Boolean hasErr = Boolean.FALSE;
+    /**
+     * 错误信息
+     */
+    @ApiModelProperty(value = "错误信息")
+    private String errMsg;
 
     public String getOrderId() {
         return orderId;
@@ -91,4 +101,19 @@ public class OrderDetailDto extends BaseAttribute {
         this.originPoolAmount = originPoolAmount;
     }
 
+    public Boolean getHasErr() {
+        return hasErr;
+    }
+
+    public void setHasErr(Boolean hasErr) {
+        this.hasErr = hasErr;
+    }
+
+    public String getErrMsg() {
+        return errMsg;
+    }
+
+    public void setErrMsg(String errMsg) {
+        this.errMsg = errMsg;
+    }
 }

@@ -60,6 +60,16 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
     @Column(name = "attribute_hash")
     private Long attributeHash = -1L;
     /**
+     * 是否错误
+     */
+    @Column(name = "has_err")
+    private Boolean hasErr = Boolean.FALSE;
+    /**
+     * 错误信息
+     */
+    @Column(name = "err_msg")
+    private String errMsg;
+    /**
      * 租户代码
      */
     @Column(name = "tenant_code")
@@ -122,6 +132,22 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
 
     public void setAttributeHash(Long attributeHash) {
         this.attributeHash = attributeHash;
+    }
+
+    public Boolean getHasErr() {
+        return hasErr;
+    }
+
+    public void setHasErr(Boolean hasErr) {
+        this.hasErr = hasErr;
+    }
+
+    public String getErrMsg() {
+        return errMsg;
+    }
+
+    public void setErrMsg(String errMsg) {
+        this.errMsg = errMsg;
     }
 
     @Override
