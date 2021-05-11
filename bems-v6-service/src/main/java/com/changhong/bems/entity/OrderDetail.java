@@ -23,7 +23,6 @@ import java.util.Objects;
 public class OrderDetail extends BaseAttribute implements ITenant, Serializable, Cloneable {
     private static final long serialVersionUID = -90286046160801596L;
     public static final String FIELD_ORDER_ID = "orderId";
-    public static final String FIELD_ATTRIBUTE_HASH = "attributeHash";
     /**
      * 预算申请单id
      */

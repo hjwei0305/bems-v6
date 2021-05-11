@@ -473,7 +473,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
 
             Set<Long> hashSet = detailList.stream().map(OrderDetail::getAttributeCode).collect(Collectors.toSet());
             search.addFilter(new SearchFilter(OrderDetail.FIELD_ORDER_ID, orderId));
-            search.addFilter(new SearchFilter(OrderDetail.FIELD_ATTRIBUTE_HASH, hashSet, SearchFilter.Operator.IN));
+            search.addFilter(new SearchFilter(OrderDetail.FIELD_ATTRIBUTE_CODE, hashSet, SearchFilter.Operator.IN));
             List<OrderDetail> orderDetails = dao.findByFilters(search);
             Map<Long, OrderDetail> detailMap;
             if (CollectionUtils.isNotEmpty(orderDetails)) {
