@@ -28,6 +28,7 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
     public static final String FIELD_CATEGORY_ID = "categoryId";
     public static final String FIELD_ORDER_CATEGORY = "orderCategory";
     public static final String FIELD_STATUS = "status";
+    public static final String FIELD_CREATOR_ID = "creatorId";
     /**
      * 申请单号
      */

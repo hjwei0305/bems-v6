@@ -151,6 +151,33 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     @ApiOperation(value = "预算申请单生效", notes = "预算申请单直接生效")
     ResultData<Void> effectiveOrder(@RequestParam("orderId") String orderId);
 
+    /**
+     * 检查是否存在注入类型预制单
+     *
+     * @return 返回检查结果
+     */
+    @GetMapping(path = "checkInjectPrefab")
+    @ApiOperation(value = "检查是否存在注入类型预制单", notes = "检查是否存在注入类型预制单")
+    ResultData<OrderDto> checkInjectPrefab();
+
+    /**
+     * 检查是否存在调整类型预制单
+     *
+     * @return 返回检查结果
+     */
+    @GetMapping(path = "checkAdjustPrefab")
+    @ApiOperation(value = "检查是否存在调整类型预制单", notes = "检查是否存在调整类型预制单")
+    ResultData<OrderDto> checkAdjustPrefab();
+
+    /**
+     * 检查是否存在分解类型预制单
+     *
+     * @return 返回检查结果
+     */
+    @GetMapping(path = "checkSplitPrefab")
+    @ApiOperation(value = "检查是否存在分解类型预制单", notes = "检查是否存在分解类型预制单")
+    ResultData<OrderDto> checkSplitPrefab();
+
     ///////////////////////流程集成 start//////////////////////////////
 
     /**

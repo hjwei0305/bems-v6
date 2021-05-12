@@ -2,10 +2,7 @@ package com.changhong.bems.service;
 
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.OrderDao;
-import com.changhong.bems.dto.AddOrderDetail;
-import com.changhong.bems.dto.OperationType;
-import com.changhong.bems.dto.OrderStatus;
-import com.changhong.bems.dto.OrganizationDto;
+import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.ExecutionRecord;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
@@ -34,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
@@ -87,6 +85,22 @@ public class OrderService extends BaseEntityService<Order> {
         }
         search.addFilter(new SearchFilter(OrderDetail.FIELD_ORDER_ID, orderId));
         return orderDetailService.findByPage(search);
+    }
+
+    /**
+     * 检查是否存在指定类型的预制单
+     *
+     * @return 返回检查结果
+     */
+    public Order getPrefabExist(OrderCategory category) {
+        Search search = Search.createSearch();
+        // 创建人
+        search.addFilter(new SearchFilter(Order.FIELD_CREATOR_ID, ContextUtil.getUserId()));
+        // 类型
+        search.addFilter(new SearchFilter(Order.FIELD_ORDER_CATEGORY, category));
+        // 预制状态
+        search.addFilter(new SearchFilter(Order.FIELD_STATUS, OrderStatus.PREFAB));
+        return dao.findFirstByFilters(search);
     }
 
     /**
@@ -258,7 +272,7 @@ public class OrderService extends BaseEntityService<Order> {
                 flowClient.endByBusinessId(order.getId());
             } else {
                 // 回调flow通知接收任务继续执行
-                flowClient.signalByBusinessId(order.getId(), taskActDefId, null);
+                flowClient.signalByBusinessId(order.getId(), taskActDefId, new HashMap<>());
             }
         } catch (Exception e) {
             try {

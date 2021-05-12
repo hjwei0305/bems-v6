@@ -279,6 +279,51 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         }
     }
 
+    /**
+     * 检查是否存在注入类型预制单
+     *
+     * @return 返回检查结果
+     */
+    @Override
+    public ResultData<OrderDto> checkInjectPrefab() {
+        OrderDto dto = null;
+        Order order = service.getPrefabExist(OrderCategory.INJECTION);
+        if (Objects.nonNull(order)) {
+            dto = convertToDto(order);
+        }
+        return ResultData.success(dto);
+    }
+
+    /**
+     * 检查是否存在调整类型预制单
+     *
+     * @return 返回检查结果
+     */
+    @Override
+    public ResultData<OrderDto> checkAdjustPrefab() {
+        OrderDto dto = null;
+        Order order = service.getPrefabExist(OrderCategory.ADJUSTMENT);
+        if (Objects.nonNull(order)) {
+            dto = convertToDto(order);
+        }
+        return ResultData.success(dto);
+    }
+
+    /**
+     * 检查是否存在分解类型预制单
+     *
+     * @return 返回检查结果
+     */
+    @Override
+    public ResultData<OrderDto> checkSplitPrefab() {
+        OrderDto dto = null;
+        Order order = service.getPrefabExist(OrderCategory.SPLIT);
+        if (Objects.nonNull(order)) {
+            dto = convertToDto(order);
+        }
+        return ResultData.success(dto);
+    }
+
     ///////////////////////流程集成 start//////////////////////////////
 
     /**
