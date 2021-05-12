@@ -7,6 +7,7 @@ import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.Size;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 预算申请单(Order)DTO类
@@ -121,6 +122,9 @@ public class OrderDto extends BaseEntityDto {
     @ApiModelProperty(value = "创建时间", example = "2021-04-22 12:01:10")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     protected Date createdDate;
+
+    @ApiModelProperty(value = "维度字段")
+    private List<DimensionField> dimensionFields;
 
     public String getCode() {
         return code;
@@ -296,5 +300,13 @@ public class OrderDto extends BaseEntityDto {
 
     public void setCreatedDate(Date createdDate) {
         this.createdDate = createdDate;
+    }
+
+    public List<DimensionField> getDimensionFields() {
+        return dimensionFields;
+    }
+
+    public void setDimensionFields(List<DimensionField> dimensionFields) {
+        this.dimensionFields = dimensionFields;
     }
 }

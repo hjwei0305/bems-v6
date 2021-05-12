@@ -1,6 +1,7 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.dto.AddOrderDetail;
+import com.changhong.bems.dto.OrderDto;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
 import com.changhong.sei.core.dto.ResultData;
@@ -24,6 +25,15 @@ class OrderServiceTest extends BaseUnit5Test {
     private OrderService service;
     @Autowired
     private OrderDetailService orderDetailService;
+
+    @Test
+    void checkAndGetDimension() {
+        String orderId = "2A159A8B-B301-11EB-B481-0242C0A84427";
+        String subjectId = "5B03DED0-A3F4-11EB-A297-0242C0A8442D";
+        String categoryId = "D4B5BC30-B25B-11EB-86DD-0242C0A8442C";
+        ResultData<OrderDto> resultData = service.checkAndGetDimension(orderId, subjectId, categoryId);
+        System.out.println(resultData);
+    }
 
     @Test
     void addOrderDetails() {

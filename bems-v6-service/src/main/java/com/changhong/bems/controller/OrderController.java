@@ -167,8 +167,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      * @return 业务实体
      */
     @Override
-    public ResultData<String> checkDimension(String orderId, String subjectId, String categoryId) {
-        return service.checkDimension(orderId, subjectId, categoryId);
+    public ResultData<OrderDto> checkDimension(String orderId, String subjectId, String categoryId) {
+        return service.checkAndGetDimension(orderId, subjectId, categoryId);
     }
 
     /**

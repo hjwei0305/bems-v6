@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -56,6 +57,8 @@ public class OrderService extends BaseEntityService<Order> {
     private SerialService serialService;
     @Autowired
     private PoolService poolService;
+    @Autowired
+    private CategoryService categoryService;
     @Autowired
     private FlowClient flowClient;
 
@@ -101,6 +104,49 @@ public class OrderService extends BaseEntityService<Order> {
         // 预制状态
         search.addFilter(new SearchFilter(Order.FIELD_STATUS, OrderStatus.PREFAB));
         return dao.findFirstByFilters(search);
+    }
+
+    /**
+     * 通过单据Id检查预算主体和类型是否被修改
+     *
+     * @param orderId    单据Id
+     * @param subjectId  主体id
+     * @param categoryId 类型id
+     * @return 业务实体
+     */
+    public ResultData<OrderDto> checkAndGetDimension(String orderId, String subjectId, String categoryId) {
+        OrderDto dto = null;
+        if (StringUtils.isNotBlank(orderId)) {
+            // 通过orderId查询单据
+            Order order = dao.findOne(orderId);
+            if (Objects.nonNull(order)) {
+                OrderDetail detail = orderDetailService.findFirstByProperty(OrderDetail.FIELD_ORDER_ID, orderId);
+                if (Objects.nonNull(detail)) {
+                    //通过单据保存的主体和类型进行比较,是否一致
+                    if (!StringUtils.equals(subjectId, order.getSubjectId())) {
+                        // 预算主体不是[{0}]
+                        return ResultData.fail(ContextUtil.getMessage("order_00002", order.getSubjectName()));
+                    }
+                    if (!StringUtils.equals(categoryId, order.getCategoryId())) {
+                        // 预算类型不是[{0}]
+                        return ResultData.fail(ContextUtil.getMessage("order_00003", order.getCategoryName()));
+                    }
+                }
+                dto = modelMapper.map(order, OrderDto.class);
+                List<DimensionDto> dimensionList = categoryService.getAssigned(categoryId);
+                if (CollectionUtils.isNotEmpty(dimensionList)) {
+                    List<DimensionField> fields = new ArrayList<>();
+                    for (DimensionDto dimension : dimensionList) {
+//                        if (dimension.getRequired()) {
+//                            continue;
+//                        }
+                        fields.add(new DimensionField(dimension.getCode(), dimension.getName()));
+                    }
+                    dto.setDimensionFields(fields);
+                }
+            }
+        }
+        return ResultData.success(dto);
     }
 
     /**
