@@ -367,9 +367,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             case INPROCESS:
                 // 流程启动或流程中
                 if (OrderStatus.PREFAB == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
-                    order.setStatus(OrderStatus.PROCESSING);
-
-                    service.save(order);
+                    // 状态更新为流程中
+                    service.updateStatus(orderId, OrderStatus.PROCESSING);
                 } else {
                     // 订单状态为[{0}],不允许操作!
                     return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
@@ -408,6 +407,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         String orderId = flowInvokeParams.getId();
         // 流程接收任务回调id
         final String taskActDefId = flowInvokeParams.getTaskActDefId();
+        LogUtil.bizLog("流程状态变化接口. 单据id: {}, 回调id: {}", orderId, taskActDefId);
         final Order order = service.findOne(orderId);
         if (Objects.isNull(order)) {
             // 订单[{0}]不存在!

@@ -176,6 +176,17 @@ public class OrderService extends BaseEntityService<Order> {
     }
 
     /**
+     * 更新订单状态
+     *
+     * @param id     订单id
+     * @param status 状态
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void updateStatus(String id, OrderStatus status) {
+        dao.updateStatus(id, status);
+    }
+
+    /**
      * 生效预算申请单
      *
      * @param order 申请单

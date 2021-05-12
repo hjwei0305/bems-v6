@@ -1,5 +1,6 @@
 package com.changhong.bems.dao;
 
+import com.changhong.bems.dto.OrderStatus;
 import com.changhong.bems.entity.Order;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import org.springframework.data.jpa.repository.Modifying;
@@ -29,9 +30,19 @@ public interface OrderDao extends BaseEntityDao<Order> {
     /**
      * 更新订单申请金额
      *
-     * @param id     订单id
+     * @param id 订单id
      */
     @Modifying
     @Query("update Order o set o.applyAmount = (select sum(d.amount) from OrderDetail d where d.orderId = o.id) where o.id = :id ")
     void updateAmount(@Param("id") String id);
+
+    /**
+     * 更新订单状态
+     *
+     * @param id     订单id
+     * @param status 状态
+     */
+    @Modifying
+    @Query("update Order o set o.status = :status where o.id = :id ")
+    void updateStatus(@Param("id") String id, @Param("status") OrderStatus status);
 }
