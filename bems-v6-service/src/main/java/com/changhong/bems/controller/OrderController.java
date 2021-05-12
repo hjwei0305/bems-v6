@@ -340,7 +340,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      */
     @Override
     public ResultData<Boolean> resetState(String businessModelCode, String id, String status) {
-        LogUtil.bizLog("流程状态变化接口. 订单类型: {}, 单据id: {}, 状态: {}", businessModelCode, id, status);
+//        LogUtil.bizLog("流程状态变化接口. 订单类型: {}, 单据id: {}, 状态: {}", businessModelCode, id, status);
         Order order = service.findOne(id);
         if (Objects.isNull(order)) {
             // 订单[{0}]不存在!
@@ -407,7 +407,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         String orderId = flowInvokeParams.getId();
         // 流程接收任务回调id
         final String taskActDefId = flowInvokeParams.getTaskActDefId();
-        LogUtil.bizLog("流程状态变化接口. 单据id: {}, 回调id: {}", orderId, taskActDefId);
+//        LogUtil.bizLog("流程状态变化接口. 单据id: {}, 回调id: {}", orderId, taskActDefId);
         final Order order = service.findOne(orderId);
         if (Objects.isNull(order)) {
             // 订单[{0}]不存在!
@@ -415,15 +415,17 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         }
 
         // 检查订单状态
-        if (OrderStatus.PREFAB == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
+        if (OrderStatus.PROCESSING == order.getStatus()) {
             if (!SeiLockHelper.checkLocked("bems-v6:submit:" + orderId)) {
                 List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
                 // 检查是否存在错误行项
                 ResultData<Void> resultData = service.checkDetailHasErr(details);
                 if (resultData.successful()) {
                     asyncRunUtil.runAsync(() -> service.submitProcess(order, details, taskActDefId));
+                    return ResultData.success(Boolean.TRUE);
+                } else {
+                    return ResultData.fail(resultData.getMessage());
                 }
-                return ResultData.success(Boolean.TRUE);
             } else {
                 // 订单[{0}]正在提交流程处理过程中,请稍后.
                 return ResultData.fail(ContextUtil.getMessage("order_00008", order.getCode()));

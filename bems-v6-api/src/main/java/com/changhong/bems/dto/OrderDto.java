@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.Size;
 import java.util.Date;
-import java.util.List;
 
 /**
  * 预算申请单(Order)DTO类
@@ -20,6 +20,7 @@ public class OrderDto extends BaseEntityDto {
     /**
      * 申请单号
      */
+    @Size(max = 10)
     @ApiModelProperty(value = "申请单号")
     private String code;
     /**
