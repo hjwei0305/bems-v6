@@ -236,7 +236,8 @@ public class OrderService extends BaseEntityService<Order> {
             return ResultData.fail(ContextUtil.getMessage("order_00001"));
         }
         // 检查订单状态
-        if (OrderStatus.PREFAB == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
+//        if (OrderStatus.PREFAB == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
+        if (OrderStatus.PROCESSING == order.getStatus()) {
             ResultData<Void> resultData = this.submitProcessUseBudget(order, details);
             if (resultData.successful()) {
                 // 更新订单状态为:流程中
