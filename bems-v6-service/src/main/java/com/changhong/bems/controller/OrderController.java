@@ -20,6 +20,7 @@ import com.changhong.sei.core.util.JsonUtils;
 import com.changhong.sei.util.EnumUtils;
 import com.changhong.sei.utils.AsyncRunUtil;
 import io.swagger.annotations.Api;
+import org.apache.commons.collections.CollectionUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -457,11 +458,15 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             // 订单[{0}]不存在!
             return ResultData.fail(ContextUtil.getMessage("order_00001"));
         }
+        List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
+        if (CollectionUtils.isEmpty(details)) {
+            // 订单行项不存在!
+            return ResultData.fail(ContextUtil.getMessage("order_detail_00009"));
+        }
 
         // 检查订单状态
         if (OrderStatus.PROCESSING == order.getStatus()) {
             if (!SeiLockHelper.checkLocked("bems-v6:submit:" + orderId)) {
-                List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
                 // 检查是否存在错误行项
                 ResultData<Void> resultData = service.checkDetailHasErr(details);
                 if (resultData.successful()) {
