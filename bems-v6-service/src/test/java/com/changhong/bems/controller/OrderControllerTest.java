@@ -118,24 +118,25 @@ class OrderControllerTest extends BaseUnit5Test {
         System.out.println(resultData);
     }
 
-    @Test
-    void submitProcess() {
-        String orderId = "0BEDBC77-B266-11EB-A8DD-6E883C5EFC87";
-        ResultData<Void> resultData = controller.submitProcess(orderId);
-        System.out.println(resultData);
-    }
-
-    @Test
-    void cancelProcess() {
-        String orderId = "0BEDBC77-B266-11EB-A8DD-6E883C5EFC87";
-        ResultData<Void> resultData = controller.cancelProcess(orderId);
-        System.out.println(resultData);
-    }
-
-    @Test
-    void completeProcess() {
-        String orderId = "0BEDBC77-B266-11EB-A8DD-6E883C5EFC87";
-        ResultData<Void> resultData = controller.completeProcess(orderId);
-        System.out.println(resultData);
-    }
+//    @Test
+//    void submitProcess() {
+//        String orderId = "0BEDBC77-B266-11EB-A8DD-6E883C5EFC87";
+//        Order order = controller.findOne(orderId);
+//        ResultData<Void> resultData = controller.submitProcess(orderId);
+//        System.out.println(resultData);
+//    }
+//
+//    @Test
+//    void cancelProcess() {
+//        String orderId = "0BEDBC77-B266-11EB-A8DD-6E883C5EFC87";
+//        ResultData<Void> resultData = controller.cancelProcess(orderId);
+//        System.out.println(resultData);
+//    }
+//
+//    @Test
+//    void completeProcess() {
+//        String orderId = "0BEDBC77-B266-11EB-A8DD-6E883C5EFC87";
+//        ResultData<Void> resultData = controller.completeProcess(orderId);
+//        System.out.println(resultData);
+//    }
 }

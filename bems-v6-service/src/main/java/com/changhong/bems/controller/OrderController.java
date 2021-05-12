@@ -9,11 +9,15 @@ import com.changhong.bems.service.OrderService;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
+import com.changhong.sei.core.dto.flow.FlowInvokeParams;
+import com.changhong.sei.core.dto.flow.FlowStatus;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.limiter.support.lock.SeiLockHelper;
 import com.changhong.sei.core.service.BaseEntityService;
+import com.changhong.sei.core.util.JsonUtils;
+import com.changhong.sei.util.EnumUtils;
 import com.changhong.sei.utils.AsyncRunUtil;
 import io.swagger.annotations.Api;
 import org.modelmapper.ModelMapper;
@@ -275,14 +279,133 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         }
     }
 
+    ///////////////////////流程集成 start//////////////////////////////
+
     /**
-     * 提交审批预算申请单
+     * 获取条件POJO属性说明
      *
-     * @param orderId 申请单id
-     * @return 返回处理结果
+     * @param businessModelCode 订单类型 {@link OrderCategory}
+     * @param all               是否查询全部
+     * @return POJO属性说明Map
      */
     @Override
-    public ResultData<Void> submitProcess(String orderId) {
+    public ResultData<Map<String, String>> properties(String businessModelCode, Boolean all) {
+        Map<String, String> map = new HashMap<>();
+        return ResultData.success(map);
+    }
+
+    /**
+     * 获取条件POJO属性键值对
+     *
+     * @param businessModelCode 订单类型 {@link OrderCategory}
+     * @param id                单据id
+     * @return POJO属性说明Map
+     */
+    @Override
+    public ResultData<Map<String, Object>> propertiesAndValues(String businessModelCode, String id, Boolean all) {
+        Order order = service.findOne(id);
+        if (Objects.isNull(order)) {
+            return ResultData.fail("订单不存在.");
+        }
+
+        Map<String, Object> map = JsonUtils.object2Map(order);
+        map.put("orgId", order.getApplyOrgId());
+        map.put("tenantCode", order.getTenantCode());
+        map.put("workCaption", order.getRemark());
+        map.put("businessCode", order.getCode());
+        map.put("id", order.getId());
+        return ResultData.success(map);
+    }
+
+    /**
+     * 获取条件POJO属性初始化值键值对
+     *
+     * @param businessModelCode 订单类型 {@link OrderCategory}
+     * @return POJO属性说明Map
+     */
+    @Override
+    public ResultData<Map<String, Object>> initPropertiesAndValues(String businessModelCode) {
+        Map<String, Object> map = new HashMap<>();
+        return ResultData.success(map);
+    }
+
+    /**
+     * 重置单据状态
+     *
+     * @param businessModelCode 订单类型 {@link OrderCategory}
+     * @param id                单据id
+     * @param status            状态
+     * @return 返回结果
+     */
+    @Override
+    public ResultData<Boolean> resetState(String businessModelCode, String id, String status) {
+        Order order = service.findOne(id);
+        if (Objects.isNull(order)) {
+            // 订单[{0}]不存在!
+            return ResultData.fail(ContextUtil.getMessage("order_00001"));
+        }
+        String orderId = order.getId();
+        FlowStatus flowStatus = EnumUtils.getEnum(FlowStatus.class, status);
+        switch (flowStatus) {
+            case INIT:
+                // 流程终止或退出
+                // 检查订单状态
+                if (OrderStatus.PROCESSING == order.getStatus()) {
+                    if (!SeiLockHelper.checkLocked("bems-v6:cancel:" + orderId)) {
+                        asyncRunUtil.runAsync(() -> service.cancelProcess(order));
+                    } else {
+                        // 订单[{0}]正在提交流程处理过程中,请稍后.
+                        return ResultData.fail(ContextUtil.getMessage("order_00008", order.getCode()));
+                    }
+                } else {
+                    // 订单状态为[{0}],不允许操作!
+                    return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+                }
+                break;
+            case INPROCESS:
+                // 流程启动或流程中
+                if (OrderStatus.PREFAB == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
+                    order.setStatus(OrderStatus.PROCESSING);
+
+                    service.save(order);
+                } else {
+                    // 订单状态为[{0}],不允许操作!
+                    return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+                }
+                break;
+            case COMPLETED:
+                // 流程正常完成
+                // 检查订单状态
+                if (OrderStatus.PROCESSING == order.getStatus()) {
+                    if (!SeiLockHelper.checkLocked("bems-v6:complete:" + orderId)) {
+                        asyncRunUtil.runAsync(() -> service.completeProcess(order));
+                    } else {
+                        // 订单[{0}]正在提交流程处理过程中,请稍后.
+                        return ResultData.fail(ContextUtil.getMessage("order_00008", order.getCode()));
+                    }
+                } else {
+                    // 订单状态为[{0}],不允许操作!
+                    return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+                }
+                break;
+            default:
+
+        }
+        return ResultData.success(Boolean.TRUE);
+    }
+
+    /**
+     * 预算申请单提交流程占用预算事件
+     *
+     * @param flowInvokeParams 服务、事件输入参数VO
+     * @return 操作结果
+     */
+    @Override
+    public ResultData<Boolean> submitProcessEvent(FlowInvokeParams flowInvokeParams) {
+        // 业务id
+        String orderId = flowInvokeParams.getId();
+        // 流程接收任务回调id
+        final String taskActDefId = flowInvokeParams.getTaskActDefId();
         final Order order = service.findOne(orderId);
         if (Objects.isNull(order)) {
             // 订单[{0}]不存在!
@@ -296,9 +419,9 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                 // 检查是否存在错误行项
                 ResultData<Void> resultData = service.checkDetailHasErr(details);
                 if (resultData.successful()) {
-                    asyncRunUtil.runAsync(() -> service.submitProcess(order, details));
+                    asyncRunUtil.runAsync(() -> service.submitProcess(order, details, taskActDefId));
                 }
-                return resultData;
+                return ResultData.success(Boolean.TRUE);
             } else {
                 // 订单[{0}]正在提交流程处理过程中,请稍后.
                 return ResultData.fail(ContextUtil.getMessage("order_00008", order.getCode()));
@@ -310,60 +433,30 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     }
 
     /**
-     * 预算申请单取消流程审批
+     * 移动端页面属性
      *
-     * @param orderId 申请单id
-     * @return 返回处理结果
+     * @param businessModelCode 订单类型 {@link OrderCategory}
+     * @param id                单据id
      */
     @Override
-    public ResultData<Void> cancelProcess(String orderId) {
-        final Order order = service.findOne(orderId);
-        if (Objects.isNull(order)) {
-            // 订单[{0}]不存在!
-            return ResultData.fail(ContextUtil.getMessage("order_00001"));
-        }
+    public ResultData<Map<String, Object>> formPropertiesAndValues(String businessModelCode, String id) {
+        Order order = service.findOne(id);
+        if (Objects.nonNull(order)) {
+            Map<String, Object> map = JsonUtils.object2Map(order);
+            map.put("orgId", order.getApplyOrgId());
+            map.put("tenantCode", order.getTenantCode());
+            map.put("workCaption", order.getRemark());
+            map.put("businessCode", order.getCode());
+            map.put("id", order.getId());
 
-        // 检查订单状态
-        if (OrderStatus.PROCESSING == order.getStatus()) {
-            if (!SeiLockHelper.checkLocked("bems-v6:cancel:" + orderId)) {
-                asyncRunUtil.runAsync(() -> service.cancelProcess(order));
-                return ResultData.success();
-            } else {
-                // 订单[{0}]正在提交流程处理过程中,请稍后.
-                return ResultData.fail(ContextUtil.getMessage("order_00008", order.getCode()));
-            }
+            Map<String, Object> result = new HashMap<>();
+            //移动端类型标识 每一中业务的 唯一标识。移动端具体确认是何种业务
+            result.put("mobileBusinessType", businessModelCode);
+            result.put("data", map);
+            return ResultData.success(result);
         } else {
-            // 订单状态为[{0}],不允许操作!
-            return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+            return ResultData.fail("订单不存在.");
         }
     }
-
-    /**
-     * 预算申请单审批完成
-     *
-     * @param orderId 申请单id
-     * @return 返回处理结果
-     */
-    @Override
-    public ResultData<Void> completeProcess(String orderId) {
-        final Order order = service.findOne(orderId);
-        if (Objects.isNull(order)) {
-            // 订单[{0}]不存在!
-            return ResultData.fail(ContextUtil.getMessage("order_00001"));
-        }
-
-        // 检查订单状态
-        if (OrderStatus.PROCESSING == order.getStatus()) {
-            if (!SeiLockHelper.checkLocked("bems-v6:complete:" + orderId)) {
-                asyncRunUtil.runAsync(() -> service.completeProcess(order));
-                return ResultData.success();
-            } else {
-                // 订单[{0}]正在提交流程处理过程中,请稍后.
-                return ResultData.fail(ContextUtil.getMessage("order_00008", order.getCode()));
-            }
-        } else {
-            // 订单状态为[{0}],不允许操作!
-            return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
-        }
-    }
+    ///////////////////////流程集成 end//////////////////////////////
 }

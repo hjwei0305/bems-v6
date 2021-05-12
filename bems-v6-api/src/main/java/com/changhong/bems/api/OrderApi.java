@@ -6,6 +6,7 @@ import com.changhong.bems.dto.OrderDto;
 import com.changhong.bems.dto.OrganizationDto;
 import com.changhong.sei.core.api.BaseEntityApi;
 import com.changhong.sei.core.dto.ResultData;
+import com.changhong.sei.core.dto.flow.FlowInvokeParams;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import io.swagger.annotations.ApiOperation;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 预算申请单(Order)API
@@ -149,33 +151,74 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     @ApiOperation(value = "预算申请单生效", notes = "预算申请单直接生效")
     ResultData<Void> effectiveOrder(@RequestParam("orderId") String orderId);
 
-    /**
-     * 预算申请单提交审批
-     *
-     * @param orderId 申请单id
-     * @return 返回处理结果
-     */
-    @PostMapping(path = "submitProcess")
-    @ApiOperation(value = "预算申请单提交审批", notes = "预算申请单提交审批")
-    ResultData<Void> submitProcess(@RequestParam("orderId") String orderId);
+    ///////////////////////流程集成 start//////////////////////////////
 
     /**
-     * 预算申请单取消流程审批
+     * 工作流获取条件属性说明
      *
-     * @param orderId 申请单id
-     * @return 返回处理结果
+     * @param businessModelCode 业务实体代码
+     * @param all               是否查询全部
+     * @return POJO属性说明Map
      */
-    @PostMapping(path = "cancelProcess")
-    @ApiOperation(value = "预算申请单取消流程审批", notes = "预算申请单取消流程审批")
-    ResultData<Void> cancelProcess(@RequestParam("orderId") String orderId);
+    @GetMapping(path = "properties")
+    @ApiOperation(value = "工作流获取条件属性说明", notes = "工作流获取条件属性说明")
+    ResultData<Map<String, String>> properties(@RequestParam("businessModelCode") String businessModelCode,
+                                               @RequestParam("all") Boolean all);
 
     /**
-     * 预算申请单审批完成
+     * 获取条件POJO属性键值对
      *
-     * @param orderId 申请单id
-     * @return 返回处理结果
+     * @param businessModelCode 业务实体代码
+     * @param id                单据id
+     * @return POJO属性说明Map
      */
-    @PostMapping(path = "completeProcess")
-    @ApiOperation(value = "预算申请单审批完成", notes = "预算申请单审批完成")
-    ResultData<Void> completeProcess(@RequestParam("orderId") String orderId);
+    @GetMapping(path = "propertiesAndValues")
+    @ApiOperation(value = "通过业务实体代码,业务ID获取条件POJO属性键值对", notes = "测试")
+    ResultData<Map<String, Object>> propertiesAndValues(@RequestParam("businessModelCode") String businessModelCode,
+                                                        @RequestParam("id") String id,
+                                                        @RequestParam(name = "all", required = false) Boolean all);
+
+    /**
+     * 获取条件POJO属性初始化值键值对
+     *
+     * @param businessModelCode 业务实体代码
+     * @return POJO属性说明Map
+     */
+    @GetMapping(path = "initPropertiesAndValues")
+    @ApiOperation(value = "通过业务实体代码获取条件POJO属性初始化值键值对", notes = "测试")
+    ResultData<Map<String, Object>> initPropertiesAndValues(@RequestParam("businessModelCode") String businessModelCode);
+
+    /**
+     * 重置单据状态
+     *
+     * @param businessModelCode 业务实体代码
+     * @param id                单据id
+     * @param status            状态
+     * @return 返回结果
+     */
+    @PostMapping(path = "resetState")
+    @ApiOperation(value = "通过业务实体代码及单据ID重置业务单据流程状态", notes = "测试")
+    ResultData<Boolean> resetState(@RequestParam("businessModelCode") String businessModelCode,
+                                   @RequestParam("id") String id,
+                                   @RequestParam("status") String status);
+
+    /**
+     * 预算申请单提交流程占用预算事件
+     *
+     * @param flowInvokeParams 服务、事件输入参数VO
+     * @return 操作结果
+     */
+    @PostMapping(path = "submitProcessEvent", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "预算申请单提交流程占用预算事件", notes = "预算申请单提交流程占用预算事件")
+    ResultData<Boolean> submitProcessEvent(@RequestBody FlowInvokeParams flowInvokeParams);
+
+
+    /**
+     * 移动端页面属性
+     */
+    @GetMapping("formPropertiesAndValues")
+    @ApiOperation(value = "移动端流程接口", notes = "移动端流程接口")
+    ResultData<Map<String, Object>> formPropertiesAndValues(@RequestParam("businessModelCode") String businessModelCode,
+                                                            @RequestParam("id") String id);
+    ///////////////////////流程集成 end//////////////////////////////
 }

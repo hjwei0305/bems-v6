@@ -2,11 +2,15 @@ package com.changhong.bems.service;
 
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.OrderDao;
-import com.changhong.bems.dto.*;
+import com.changhong.bems.dto.AddOrderDetail;
+import com.changhong.bems.dto.OperationType;
+import com.changhong.bems.dto.OrderStatus;
+import com.changhong.bems.dto.OrganizationDto;
 import com.changhong.bems.entity.ExecutionRecord;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
 import com.changhong.bems.entity.Pool;
+import com.changhong.bems.service.client.FlowClient;
 import com.changhong.bems.service.client.OrganizationManager;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
@@ -54,6 +58,8 @@ public class OrderService extends BaseEntityService<Order> {
     private SerialService serialService;
     @Autowired
     private PoolService poolService;
+    @Autowired
+    private FlowClient flowClient;
 
     @Override
     protected BaseEntityDao<Order> getDao() {
@@ -206,12 +212,14 @@ public class OrderService extends BaseEntityService<Order> {
      * 提交审批预算申请单
      * 对不存在预算池的行项,在此时不创建预算池,仅对金额为负数的按一般占用处理(预占用)
      *
-     * @param order 申请单
+     * @param order        申请单
+     * @param details      申请单行项
+     * @param taskActDefId flow接收任务回调id
      * @return 返回处理结果
      */
     @SeiLock(key = "'bems-v6:submit:' + #order.id")
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> submitProcess(Order order, List<OrderDetail> details) {
+    public ResultData<Void> submitProcess(Order order, List<OrderDetail> details, String taskActDefId) {
         if (Objects.isNull(order)) {
             // 订单不存在!
             return ResultData.fail(ContextUtil.getMessage("order_00001"));
@@ -224,6 +232,8 @@ public class OrderService extends BaseEntityService<Order> {
                 order.setStatus(OrderStatus.PROCESSING);
                 dao.save(order);
             }
+            // 回调flow通知接收任务继续执行
+            flowClient.signalByBusinessId(order.getId(), taskActDefId);
             return resultData;
         } else {
             // 订单状态为[{0}],不允许操作!
