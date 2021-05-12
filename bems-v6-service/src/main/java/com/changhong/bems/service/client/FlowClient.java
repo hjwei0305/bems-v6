@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.Map;
+
 /**
  * 实现功能：FLOW接口api
  *
@@ -25,7 +27,7 @@ public interface FlowClient {
      */
     @PostMapping(path = "signalByBusinessId")
     ResultData<Void> signalByBusinessId(@RequestParam(value = "businessId") String orderId,
-                                        @RequestParam(value = "receiveTaskActDefId") String taskActDefId);
+                                        @RequestParam(value = "receiveTaskActDefId") String taskActDefId, Map<String, Object> v);
 
     /**
      * 撤销流程实例

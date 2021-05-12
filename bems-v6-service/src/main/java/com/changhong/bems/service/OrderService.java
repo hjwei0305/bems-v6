@@ -258,9 +258,14 @@ public class OrderService extends BaseEntityService<Order> {
                 flowClient.endByBusinessId(order.getId());
             } else {
                 // 回调flow通知接收任务继续执行
-                flowClient.signalByBusinessId(order.getId(), taskActDefId);
+                flowClient.signalByBusinessId(order.getId(), taskActDefId, null);
             }
         } catch (Exception e) {
+            try {
+                // 回调flow通知接收任务退出流程
+                flowClient.endByBusinessId(order.getId());
+            } catch (Exception ignored) {
+            }
             LOG.error("提交流程异步处理异常", e);
             // 回滚事务
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
