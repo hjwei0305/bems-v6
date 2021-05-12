@@ -421,7 +421,10 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                 // 检查是否存在错误行项
                 ResultData<Void> resultData = service.checkDetailHasErr(details);
                 if (resultData.successful()) {
-                    asyncRunUtil.runAsync(() -> service.submitProcess(order, details, taskActDefId));
+                    asyncRunUtil.runAsync(() -> {
+                        ResultData<Void> result = service.submitProcess(order, details, taskActDefId);
+                        LogUtil.bizLog("提交流程异步处理结果: " + JsonUtils.toJson(result));
+                    });
                     return ResultData.success(Boolean.TRUE);
                 } else {
                     return ResultData.fail(resultData.getMessage());
