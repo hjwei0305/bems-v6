@@ -2,6 +2,7 @@ package com.changhong.bems.service.client;
 
 import com.changhong.sei.core.dto.ResultData;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -25,4 +26,14 @@ public interface FlowClient {
     @PostMapping(path = "signalByBusinessId")
     ResultData<Void> signalByBusinessId(@RequestParam(value = "businessId") String orderId,
                                         @RequestParam(value = "receiveTaskActDefId") String taskActDefId);
+
+    /**
+     * 撤销流程实例
+     * 清除有关联的流程版本及对应的流程引擎数据
+     *
+     * @param orderId 业务单据id
+     * @return 操作结果
+     */
+    @PostMapping("endByBusinessId/{businessId}")
+    ResultData<Void> endByBusinessId(@PathVariable("businessId") String orderId);
 }

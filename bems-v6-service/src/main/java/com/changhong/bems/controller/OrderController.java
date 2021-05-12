@@ -15,7 +15,6 @@ import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.limiter.support.lock.SeiLockHelper;
-import com.changhong.sei.core.log.LogUtil;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.util.JsonUtils;
 import com.changhong.sei.util.EnumUtils;
@@ -421,10 +420,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                 // 检查是否存在错误行项
                 ResultData<Void> resultData = service.checkDetailHasErr(details);
                 if (resultData.successful()) {
-                    asyncRunUtil.runAsync(() -> {
-                        ResultData<Void> result = service.submitProcess(order, details, taskActDefId);
-                        LogUtil.bizLog("提交流程异步处理结果: " + JsonUtils.toJson(result));
-                    });
+                    asyncRunUtil.runAsync(() -> service.submitProcess(order, details, taskActDefId));
                     return ResultData.success(Boolean.TRUE);
                 } else {
                     return ResultData.fail(resultData.getMessage());

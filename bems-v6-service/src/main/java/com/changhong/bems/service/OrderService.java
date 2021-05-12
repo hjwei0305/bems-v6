@@ -231,26 +231,41 @@ public class OrderService extends BaseEntityService<Order> {
     @SeiLock(key = "'bems-v6:submit:' + #order.id")
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> submitProcess(Order order, List<OrderDetail> details, String taskActDefId) {
-        if (Objects.isNull(order)) {
-            // 订单不存在!
-            return ResultData.fail(ContextUtil.getMessage("order_00001"));
-        }
-        // 检查订单状态
-//        if (OrderStatus.PREFAB == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
-        if (OrderStatus.PROCESSING == order.getStatus()) {
-            ResultData<Void> resultData = this.submitProcessUseBudget(order, details);
-            if (resultData.successful()) {
-                // 更新订单状态为:流程中
-                order.setStatus(OrderStatus.PROCESSING);
-                dao.save(order);
+        ResultData<Void> resultData;
+        if (Objects.nonNull(order)) {
+            // 检查订单状态
+            if (OrderStatus.PROCESSING == order.getStatus()) {
+                resultData = this.submitProcessUseBudget(order, details);
+                if (resultData.successful()) {
+                    // 更新订单状态为:流程中
+                    order.setStatus(OrderStatus.PROCESSING);
+                    dao.save(order);
+                }
+            } else {
+                // 订单状态为[{0}],不允许操作!
+                resultData = ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
             }
-            // 回调flow通知接收任务继续执行
-            flowClient.signalByBusinessId(order.getId(), taskActDefId);
-            return resultData;
         } else {
-            // 订单状态为[{0}],不允许操作!
-            return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+            // 订单不存在!
+            resultData = ResultData.fail(ContextUtil.getMessage("order_00001"));
         }
+        if (LOG.isInfoEnabled()) {
+            LOG.info("提交流程异步处理结果: {}", JsonUtils.toJson(resultData));
+        }
+        try {
+            if (resultData.failed()) {
+                // 回调flow通知接收任务退出流程
+                flowClient.endByBusinessId(order.getId());
+            } else {
+                // 回调flow通知接收任务继续执行
+                flowClient.signalByBusinessId(order.getId(), taskActDefId);
+            }
+        } catch (Exception e) {
+            LOG.error("提交流程异步处理异常", e);
+            // 回滚事务
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+        }
+        return resultData;
     }
 
     /**
