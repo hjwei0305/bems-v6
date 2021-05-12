@@ -15,6 +15,7 @@ import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.limiter.support.lock.SeiLockHelper;
+import com.changhong.sei.core.log.LogUtil;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.util.JsonUtils;
 import com.changhong.sei.util.EnumUtils;
@@ -339,6 +340,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      */
     @Override
     public ResultData<Boolean> resetState(String businessModelCode, String id, String status) {
+        LogUtil.bizLog("流程状态变化接口. 订单类型: {}, 单据id: {}, 状态: {}", businessModelCode, id, status);
         Order order = service.findOne(id);
         if (Objects.isNull(order)) {
             // 订单[{0}]不存在!
