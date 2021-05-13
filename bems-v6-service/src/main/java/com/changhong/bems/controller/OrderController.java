@@ -4,6 +4,7 @@ import com.changhong.bems.api.OrderApi;
 import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
+import com.changhong.bems.service.CategoryService;
 import com.changhong.bems.service.OrderDetailService;
 import com.changhong.bems.service.OrderService;
 import com.changhong.sei.core.context.ContextUtil;
@@ -47,6 +48,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     private OrderService service;
     @Autowired
     private OrderDetailService orderDetailService;
+    @Autowired
+    private CategoryService categoryService;
     @Autowired
     private ModelMapper modelMapper;
     @Autowired
@@ -168,7 +171,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      * @return 业务实体
      */
     @Override
-    public ResultData<OrderDto> checkDimension(String orderId, String subjectId, String categoryId) {
+    public ResultData<Void> checkDimension(String orderId, String subjectId, String categoryId) {
         return service.checkAndGetDimension(orderId, subjectId, categoryId);
     }
 
@@ -213,6 +216,25 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             // 订单状态为[{0}],不允许操作
             return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
         }
+    }
+
+    /**
+     * 获取一个预算申请单
+     *
+     * @param orderId 申请单id
+     * @return 返回订单头
+     */
+    @Override
+    public ResultData<OrderDto> getOrder(String orderId) {
+        Order order = service.findOne(orderId);
+        if (Objects.isNull(order)) {
+            // 订单不存在
+            return ResultData.fail(ContextUtil.getMessage("order_00001"));
+        }
+        OrderDto dto = dtoModelMapper.map(order, OrderDto.class);
+        List<DimensionDto> dimensions = categoryService.getAssigned(order.getCategoryId());
+        dto.setDimensions(dimensions);
+        return ResultData.success(dto);
     }
 
     /**

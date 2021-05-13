@@ -31,7 +31,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -57,8 +56,6 @@ public class OrderService extends BaseEntityService<Order> {
     private SerialService serialService;
     @Autowired
     private PoolService poolService;
-    @Autowired
-    private CategoryService categoryService;
     @Autowired
     private FlowClient flowClient;
 
@@ -114,8 +111,7 @@ public class OrderService extends BaseEntityService<Order> {
      * @param categoryId 类型id
      * @return 业务实体
      */
-    public ResultData<OrderDto> checkAndGetDimension(String orderId, String subjectId, String categoryId) {
-        OrderDto dto = null;
+    public ResultData<Void> checkAndGetDimension(String orderId, String subjectId, String categoryId) {
         if (StringUtils.isNotBlank(orderId)) {
             // 通过orderId查询单据
             Order order = dao.findOne(orderId);
@@ -132,21 +128,9 @@ public class OrderService extends BaseEntityService<Order> {
                         return ResultData.fail(ContextUtil.getMessage("order_00003", order.getCategoryName()));
                     }
                 }
-                dto = modelMapper.map(order, OrderDto.class);
-                List<DimensionDto> dimensionList = categoryService.getAssigned(categoryId);
-                if (CollectionUtils.isNotEmpty(dimensionList)) {
-                    List<DimensionField> fields = new ArrayList<>();
-                    for (DimensionDto dimension : dimensionList) {
-//                        if (dimension.getRequired()) {
-//                            continue;
-//                        }
-                        fields.add(new DimensionField(dimension.getCode(), dimension.getName()));
-                    }
-                    dto.setDimensionFields(fields);
-                }
             }
         }
-        return ResultData.success(dto);
+        return ResultData.success();
     }
 
     /**

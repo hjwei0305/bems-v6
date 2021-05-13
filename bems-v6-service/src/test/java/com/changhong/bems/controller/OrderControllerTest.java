@@ -80,7 +80,7 @@ class OrderControllerTest extends BaseUnit5Test {
         String orderId = "0BEDBC77-B266-11EB-A8DD-6E883C5EFC87";
         String subjectId = "";
         String categoryId = "";
-        ResultData<OrderDto> resultData = controller.checkDimension(orderId, subjectId, categoryId);
+        ResultData<Void> resultData = controller.checkDimension(orderId, subjectId, categoryId);
         System.out.println(resultData);
     }
 

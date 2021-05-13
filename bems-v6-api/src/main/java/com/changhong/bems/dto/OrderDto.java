@@ -4,6 +4,7 @@ import com.changhong.sei.core.dto.BaseEntityDto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.Size;
 import java.util.Date;
@@ -21,7 +22,7 @@ public class OrderDto extends BaseEntityDto {
     /**
      * 申请单号
      */
-    @Size(max = 10)
+    @Length(max = 10)
     @ApiModelProperty(value = "申请单号")
     private String code;
     /**
@@ -123,8 +124,8 @@ public class OrderDto extends BaseEntityDto {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     protected Date createdDate;
 
-    @ApiModelProperty(value = "维度字段")
-    private List<DimensionField> dimensionFields;
+    @ApiModelProperty(value = "维度")
+    private List<DimensionDto> dimensions;
 
     public String getCode() {
         return code;
@@ -302,11 +303,11 @@ public class OrderDto extends BaseEntityDto {
         this.createdDate = createdDate;
     }
 
-    public List<DimensionField> getDimensionFields() {
-        return dimensionFields;
+    public List<DimensionDto> getDimensions() {
+        return dimensions;
     }
 
-    public void setDimensionFields(List<DimensionField> dimensionFields) {
-        this.dimensionFields = dimensionFields;
+    public void setDimensions(List<DimensionDto> dimensions) {
+        this.dimensions = dimensions;
     }
 }

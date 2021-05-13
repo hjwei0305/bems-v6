@@ -102,11 +102,11 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
      * 通过单据Id检查预算主体和类型是否被修改
      *
      * @param orderId 单据Id
-     * @return 业务实体
+     * @return 检查结果
      */
     @GetMapping(path = "checkDimension")
     @ApiOperation(value = "检查预算主体和类型是否修改", notes = "通过单据Id检查预算主体和类型是否被修改")
-    ResultData<OrderDto> checkDimension(@RequestParam("orderId") String orderId,
+    ResultData<Void> checkDimension(@RequestParam("orderId") String orderId,
                                       @RequestParam("subjectId") String subjectId,
                                       @RequestParam("categoryId") String categoryId);
 
@@ -130,6 +130,16 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     @PostMapping(path = "updateDetailAmount")
     @ApiOperation(value = "更新预算申请单行项金额", notes = "检查并更新预算申请单行项金额")
     ResultData<OrderDetailDto> updateDetailAmount(@RequestParam("detailId") String detailId, @RequestParam("amount") double amount);
+
+    /**
+     * 获取一个预算申请单
+     *
+     * @param orderId 申请单id
+     * @return 返回订单头
+     */
+    @GetMapping(path = "getOrder")
+    @ApiOperation(value = "获取一个预算申请单", notes = "获取一个预算申请单")
+    ResultData<OrderDto> getOrder(@RequestParam("id") String orderId);
 
     /**
      * 保存预算申请单
