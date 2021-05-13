@@ -225,7 +225,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      * @return 返回订单头
      */
     @Override
-    public ResultData<OrderDto> getOrder(String orderId) {
+    public ResultData<OrderDto> getOrderHead(String orderId) {
         Order order = service.findOne(orderId);
         if (Objects.isNull(order)) {
             // 订单不存在

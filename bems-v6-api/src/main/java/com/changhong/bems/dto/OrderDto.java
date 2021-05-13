@@ -6,7 +6,6 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.validator.constraints.Length;
 
-import javax.validation.constraints.Size;
 import java.util.Date;
 import java.util.List;
 
@@ -111,8 +110,6 @@ public class OrderDto extends BaseEntityDto {
     @ApiModelProperty(value = "状态")
     private OrderStatus status = OrderStatus.PREFAB;
 
-//    @ApiModelProperty(value = "订单行项明细")
-//    private List<OrderDetailDto> orderDetails;
     @ApiModelProperty(value = "创建人账号")
     protected String creatorAccount;
     @ApiModelProperty(value = "创建人名称")
@@ -270,14 +267,6 @@ public class OrderDto extends BaseEntityDto {
     public void setStatus(OrderStatus status) {
         this.status = status;
     }
-
-//    public List<OrderDetailDto> getOrderDetails() {
-//        return orderDetails;
-//    }
-
-//    public void setOrderDetails(List<OrderDetailDto> orderDetails) {
-//        this.orderDetails = orderDetails;
-//    }
 
     public String getCreatorAccount() {
         return creatorAccount;

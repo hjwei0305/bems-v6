@@ -137,9 +137,9 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
      * @param orderId 申请单id
      * @return 返回订单头
      */
-    @GetMapping(path = "getOrder")
+    @GetMapping(path = "getHead")
     @ApiOperation(value = "获取一个预算申请单", notes = "获取一个预算申请单")
-    ResultData<OrderDto> getOrder(@RequestParam("id") String orderId);
+    ResultData<OrderDto> getOrderHead(@RequestParam("id") String orderId);
 
     /**
      * 保存预算申请单
