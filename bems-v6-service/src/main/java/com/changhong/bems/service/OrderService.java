@@ -433,6 +433,8 @@ public class OrderService extends BaseEntityService<Order> {
                         }
                         // 记录预算池执行日志
                         record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_INJECTION_EFFECTIVE);
+                        record.setSubjectId(order.getSubjectId());
+                        record.setAttributeCode(detail.getAttributeCode());
                         record.setBizCode(order.getCode());
                         record.setBizId(detail.getOrderId());
                         remark = order.getRemark();
@@ -450,6 +452,8 @@ public class OrderService extends BaseEntityService<Order> {
                         poolCode = detail.getPoolCode();
                         // 记录预算池执行日志
                         record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_ADJUSTMENT_EFFECTIVE);
+                        record.setSubjectId(order.getSubjectId());
+                        record.setAttributeCode(detail.getAttributeCode());
                         record.setBizCode(order.getCode());
                         record.setBizId(detail.getOrderId());
                         remark = order.getRemark();

@@ -12,6 +12,8 @@ import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
+import com.changhong.sei.core.log.Level;
+import com.changhong.sei.core.log.annotation.Log;
 import io.swagger.annotations.Api;
 import org.apache.commons.collections.CollectionUtils;
 import org.modelmapper.ModelMapper;
@@ -50,6 +52,7 @@ public class BudgetController implements BudgetApi {
      * @return 使用预算结果
      */
     @Override
+    @Log(value = "使用预算", level = Level.INFO)
     public ResultData<List<BudgetResponse>> use(BudgetRequest request) {
         return service.use(request);
     }
