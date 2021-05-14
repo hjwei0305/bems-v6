@@ -286,10 +286,19 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         if (OrderStatus.PREFAB == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
             if (!SeiLockHelper.checkLocked("bems-v6:effective:" + orderId)) {
                 List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
+                // 更新状态为生效中
+                service.updateStatus(orderId, OrderStatus.EFFECTING);
                 // 检查是否存在错误行项
                 ResultData<Void> resultData = service.checkDetailHasErr(details);
                 if (resultData.successful()) {
-                    asyncRunUtil.runAsync(() -> service.effective(order, details));
+                    asyncRunUtil.runAsync(() -> {
+                        try {
+                            // 休眠1s,防止状态事务还未更新
+                            Thread.sleep(1000);
+                        } catch (InterruptedException ignored) {
+                        }
+                        service.effective(order, details);
+                    });
                 }
                 return resultData;
             } else {

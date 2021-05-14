@@ -20,6 +20,11 @@ public enum OrderStatus {
     @Remark("草稿")
     DRAFT,
     /**
+     * 生效中
+     */
+    @Remark("生效中")
+    EFFECTING,
+    /**
      * 流程中
      */
     @Remark("流程中")
