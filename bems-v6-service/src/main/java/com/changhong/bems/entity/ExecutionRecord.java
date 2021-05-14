@@ -24,12 +24,12 @@ public class ExecutionRecord extends BaseEntity implements Serializable {
     /**
      * 预算主体id
      */
-    @Column(name = "subject_id")
+    @Column(name = "subject_id", updatable = false)
     private String subjectId;
     /**
      * 预算维度属性id
      */
-    @Column(name = "attribute_code")
+    @Column(name = "attribute_code", updatable = false)
     private Long attributeCode;
     /**
      * 预算池编码
@@ -39,13 +39,13 @@ public class ExecutionRecord extends BaseEntity implements Serializable {
     /**
      * 操作类型
      */
-    @Column(name = "operation_type")
+    @Column(name = "operation_type", updatable = false)
     @Enumerated(EnumType.STRING)
     private OperationType operation;
     /**
      * 金额
      */
-    @Column(name = "amount")
+    @Column(name = "amount", updatable = false)
     private Double amount = 0d;
     /**
      * 是预算池金额
@@ -55,47 +55,37 @@ public class ExecutionRecord extends BaseEntity implements Serializable {
     /**
      * 操作时间
      */
-    @Column(name = "operation_time")
+    @Column(name = "operation_time", updatable = false)
     private LocalDateTime opTime;
     /**
      * 操作人账号
      */
-    @Column(name = "operation_user_account")
+    @Column(name = "operation_user_account", updatable = false)
     private String opUserAccount;
     /**
      * 操作人名称
      */
-    @Column(name = "operation_user_name")
+    @Column(name = "operation_user_name", updatable = false)
     private String opUserName;
-    /**
-     * 业务单id
-     */
-    @Column(name = "biz_order_id")
-    private String bizOrderId;
-    /**
-     * 业务单编码
-     */
-    @Column(name = "biz_order_code")
-    private String bizOrderCode;
-    /**
-     * 业务单行项id
-     */
-    @Column(name = "biz_item_id")
-    private String bizItemId;
-    /**
-     * 业务单行项编码
-     */
-    @Column(name = "biz_item_code")
-    private String bizItemCode;
     /**
      * 业务事件
      */
-    @Column(name = "biz_event")
+    @Column(name = "biz_event", updatable = false)
     private String bizEvent;
+    /**
+     * 业务单id
+     */
+    @Column(name = "biz_id", updatable = false)
+    private String bizId;
+    /**
+     * 业务单编码
+     */
+    @Column(name = "biz_code", updatable = false)
+    private String bizCode;
     /**
      * 业务描述
      */
-    @Column(name = "biz_remark")
+    @Column(name = "biz_remark", updatable = false)
     private String bizRemark;
 
     public ExecutionRecord() {
@@ -180,36 +170,20 @@ public class ExecutionRecord extends BaseEntity implements Serializable {
         this.opUserName = opUserName;
     }
 
-    public String getBizOrderId() {
-        return bizOrderId;
+    public String getBizId() {
+        return bizId;
     }
 
-    public void setBizOrderId(String bizOrderId) {
-        this.bizOrderId = bizOrderId;
+    public void setBizId(String bizId) {
+        this.bizId = bizId;
     }
 
-    public String getBizOrderCode() {
-        return bizOrderCode;
+    public String getBizCode() {
+        return bizCode;
     }
 
-    public void setBizOrderCode(String bizOrderCode) {
-        this.bizOrderCode = bizOrderCode;
-    }
-
-    public String getBizItemId() {
-        return bizItemId;
-    }
-
-    public void setBizItemId(String bizItemId) {
-        this.bizItemId = bizItemId;
-    }
-
-    public String getBizItemCode() {
-        return bizItemCode;
-    }
-
-    public void setBizItemCode(String bizItemCode) {
-        this.bizItemCode = bizItemCode;
+    public void setBizCode(String bizCode) {
+        this.bizCode = bizCode;
     }
 
     public String getBizEvent() {

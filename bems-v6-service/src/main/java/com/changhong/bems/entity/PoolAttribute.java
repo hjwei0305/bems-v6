@@ -1,16 +1,11 @@
 package com.changhong.bems.entity;
 
 import com.changhong.bems.dto.PeriodType;
-import com.changhong.sei.core.entity.BaseEntity;
-import com.changhong.sei.core.entity.ICodeUnique;
 import com.changhong.sei.core.entity.ITenant;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 /**
  * 预算池(Pool)实体类
@@ -19,40 +14,31 @@ import java.time.LocalDateTime;
  * @since 2021-04-22 12:54:27
  */
 @Entity
-@Table(name = "pool")
-@DynamicInsert
-@DynamicUpdate
-public class Pool extends BaseEntity implements ITenant, ICodeUnique, Serializable {
+@Table(name = "view_pool")
+public class PoolAttribute extends BaseAttribute implements ITenant, Serializable {
     private static final long serialVersionUID = 345291355065499642L;
     public static final String FIELD_SUBJECT_ID = "subjectId";
-    public static final String FIELD_ATTRIBUTE_CODE = "attributeCode";
+    public static final String FIELD_CODE = "code";
     public static final String FIELD_ACTIVED = "actived";
-    public static final String CREATED_DATE = "createdDate";
-
     /**
      * 代码
      */
-    @Column(name = "code", updatable = false)
+    @Column(name = "code")
     private String code;
     /**
      * 预算主体id
      */
-    @Column(name = "subject_id", updatable = false)
+    @Column(name = "subject_id")
     private String subjectId;
-    /**
-     * 预算维度属性code
-     */
-    @Column(name = "attribute_code", updatable = false)
-    private Long attributeCode;
     /**
      * 币种代码
      */
-    @Column(name = "currency_code", updatable = false)
+    @Column(name = "currency_code")
     private String currencyCode;
     /**
      * 币种名称
      */
-    @Column(name = "currency_name", updatable = false)
+    @Column(name = "currency_name")
     private String currencyName;
     /**
      * 归口管理部门
@@ -67,7 +53,7 @@ public class Pool extends BaseEntity implements ITenant, ICodeUnique, Serializab
     /**
      * 期间分类
      */
-    @Column(name = "period_category", updatable = false)
+    @Column(name = "period_category")
     @Enumerated(EnumType.STRING)
     private PeriodType periodType;
     /**
@@ -106,22 +92,15 @@ public class Pool extends BaseEntity implements ITenant, ICodeUnique, Serializab
     @Column(name = "balance")
     private Double balance = 0d;
     /**
-     * 创建时间
-     */
-    @Column(name = "created_date", updatable = false)
-    protected LocalDateTime createdDate;
-    /**
      * 租户代码
      */
-    @Column(name = "tenant_code", updatable = false)
+    @Column(name = "tenant_code")
     private String tenantCode;
 
-    @Override
     public String getCode() {
         return code;
     }
 
-    @Override
     public void setCode(String code) {
         this.code = code;
     }
@@ -132,14 +111,6 @@ public class Pool extends BaseEntity implements ITenant, ICodeUnique, Serializab
 
     public void setSubjectId(String subjectId) {
         this.subjectId = subjectId;
-    }
-
-    public Long getAttributeCode() {
-        return attributeCode;
-    }
-
-    public void setAttributeCode(Long attributeCode) {
-        this.attributeCode = attributeCode;
     }
 
     public String getCurrencyCode() {
@@ -236,14 +207,6 @@ public class Pool extends BaseEntity implements ITenant, ICodeUnique, Serializab
 
     public void setBalance(Double balance) {
         this.balance = balance;
-    }
-
-    public LocalDateTime getCreatedDate() {
-        return createdDate;
-    }
-
-    public void setCreatedDate(LocalDateTime createdDate) {
-        this.createdDate = createdDate;
     }
 
     @Override

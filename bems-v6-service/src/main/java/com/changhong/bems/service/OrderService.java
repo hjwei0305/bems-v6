@@ -433,9 +433,8 @@ public class OrderService extends BaseEntityService<Order> {
                         }
                         // 记录预算池执行日志
                         record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_INJECTION_EFFECTIVE);
-                        record.setBizOrderId(order.getId());
-                        record.setBizOrderCode(order.getCode());
-                        record.setBizItemId(detail.getOrderId());
+                        record.setBizCode(order.getCode());
+                        record.setBizId(detail.getOrderId());
                         remark = order.getRemark();
                         record.setBizRemark("直接生效" + (StringUtils.isBlank(remark) ? "" : remark));
                         poolService.recordLog(record);
@@ -451,9 +450,8 @@ public class OrderService extends BaseEntityService<Order> {
                         poolCode = detail.getPoolCode();
                         // 记录预算池执行日志
                         record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_ADJUSTMENT_EFFECTIVE);
-                        record.setBizOrderId(order.getId());
-                        record.setBizOrderCode(order.getCode());
-                        record.setBizItemId(detail.getOrderId());
+                        record.setBizCode(order.getCode());
+                        record.setBizId(detail.getOrderId());
                         remark = order.getRemark();
                         record.setBizRemark("直接生效" + (StringUtils.isBlank(remark) ? "" : remark));
                         poolService.recordLog(record);
@@ -526,9 +524,8 @@ public class OrderService extends BaseEntityService<Order> {
                         }
                         record.setSubjectId(order.getSubjectId());
                         record.setAttributeCode(detail.getAttributeCode());
-                        record.setBizOrderId(order.getId());
-                        record.setBizOrderCode(order.getCode());
-                        record.setBizItemId(detail.getOrderId());
+                        record.setBizCode(order.getCode());
+                        record.setBizId(detail.getOrderId());
                         remark = order.getRemark();
                         record.setBizRemark("提交审核" + (StringUtils.isBlank(remark) ? "" : remark));
                         poolService.recordLog(record);
@@ -550,9 +547,8 @@ public class OrderService extends BaseEntityService<Order> {
                         }
                         record.setSubjectId(order.getSubjectId());
                         record.setAttributeCode(detail.getAttributeCode());
-                        record.setBizOrderId(order.getId());
-                        record.setBizOrderCode(order.getCode());
-                        record.setBizItemId(detail.getOrderId());
+                        record.setBizCode(order.getCode());
+                        record.setBizId(detail.getOrderId());
                         remark = order.getRemark();
                         record.setBizRemark("提交审核" + (StringUtils.isBlank(remark) ? "" : remark));
                         poolService.recordLog(record);
@@ -610,9 +606,8 @@ public class OrderService extends BaseEntityService<Order> {
                         }
                         record.setSubjectId(order.getSubjectId());
                         record.setAttributeCode(detail.getAttributeCode());
-                        record.setBizOrderId(order.getId());
-                        record.setBizOrderCode(order.getCode());
-                        record.setBizItemId(detail.getOrderId());
+                        record.setBizCode(order.getCode());
+                        record.setBizId(detail.getOrderId());
                         remark = order.getRemark();
                         record.setBizRemark("退出流程" + (StringUtils.isBlank(remark) ? "" : remark));
                         poolService.recordLog(record);
@@ -631,9 +626,8 @@ public class OrderService extends BaseEntityService<Order> {
                         }
                         record.setSubjectId(order.getSubjectId());
                         record.setAttributeCode(detail.getAttributeCode());
-                        record.setBizOrderId(order.getId());
-                        record.setBizOrderCode(order.getCode());
-                        record.setBizItemId(detail.getOrderId());
+                        record.setBizCode(order.getCode());
+                        record.setBizId(detail.getOrderId());
                         remark = order.getRemark();
                         record.setBizRemark("退出流程" + (StringUtils.isBlank(remark) ? "" : remark));
                         poolService.recordLog(record);
@@ -696,9 +690,8 @@ public class OrderService extends BaseEntityService<Order> {
                         }
                         record.setSubjectId(order.getSubjectId());
                         record.setAttributeCode(detail.getAttributeCode());
-                        record.setBizOrderId(order.getId());
-                        record.setBizOrderCode(order.getCode());
-                        record.setBizItemId(detail.getOrderId());
+                        record.setBizCode(order.getCode());
+                        record.setBizId(detail.getOrderId());
                         remark = order.getRemark();
                         record.setBizRemark("退出流程" + (StringUtils.isBlank(remark) ? "" : remark));
                         poolService.recordLog(record);
@@ -720,9 +713,8 @@ public class OrderService extends BaseEntityService<Order> {
                         }
                         record.setSubjectId(order.getSubjectId());
                         record.setAttributeCode(detail.getAttributeCode());
-                        record.setBizOrderId(order.getId());
-                        record.setBizOrderCode(order.getCode());
-                        record.setBizItemId(detail.getOrderId());
+                        record.setBizCode(order.getCode());
+                        record.setBizId(detail.getOrderId());
                         remark = order.getRemark();
                         record.setBizRemark("退出流程" + (StringUtils.isBlank(remark) ? "" : remark));
                         poolService.recordLog(record);

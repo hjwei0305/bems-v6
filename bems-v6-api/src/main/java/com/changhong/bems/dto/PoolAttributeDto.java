@@ -1,127 +1,102 @@
-package com.changhong.bems.entity;
+package com.changhong.bems.dto;
 
-import com.changhong.bems.dto.PeriodType;
-import com.changhong.sei.core.entity.BaseEntity;
-import com.changhong.sei.core.entity.ICodeUnique;
-import com.changhong.sei.core.entity.ITenant;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 
-import javax.persistence.*;
-import java.io.Serializable;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 /**
- * 预算池(Pool)实体类
+ * 预算池维度(Pool)DTO类
  *
  * @author sei
- * @since 2021-04-22 12:54:27
+ * @since 2021-04-22 12:54:28
  */
-@Entity
-@Table(name = "pool")
-@DynamicInsert
-@DynamicUpdate
-public class Pool extends BaseEntity implements ITenant, ICodeUnique, Serializable {
-    private static final long serialVersionUID = 345291355065499642L;
-    public static final String FIELD_SUBJECT_ID = "subjectId";
-    public static final String FIELD_ATTRIBUTE_CODE = "attributeCode";
-    public static final String FIELD_ACTIVED = "actived";
-    public static final String CREATED_DATE = "createdDate";
-
+@ApiModel(description = "预算池维度DTO")
+public class PoolAttributeDto extends BaseAttributeDto {
+    private static final long serialVersionUID = -26673484823027470L;
     /**
      * 代码
      */
-    @Column(name = "code", updatable = false)
+    @ApiModelProperty(value = "代码")
     private String code;
     /**
      * 预算主体id
      */
-    @Column(name = "subject_id", updatable = false)
+    @ApiModelProperty(value = "预算主体id")
     private String subjectId;
     /**
-     * 预算维度属性code
+     * 预算维度属性id
      */
-    @Column(name = "attribute_code", updatable = false)
-    private Long attributeCode;
+    @ApiModelProperty(value = "预算维度属性id")
+    private String attributeId;
     /**
      * 币种代码
      */
-    @Column(name = "currency_code", updatable = false)
+    @ApiModelProperty(value = "币种代码")
     private String currencyCode;
     /**
      * 币种名称
      */
-    @Column(name = "currency_name", updatable = false)
+    @ApiModelProperty(value = "币种名称")
     private String currencyName;
     /**
      * 归口管理部门
      */
-    @Column(name = "manage_org")
+    @ApiModelProperty(value = "归口管理部门")
     private String manageOrg;
     /**
      * 归口管理部门名称
      */
-    @Column(name = "manage_org_name")
+    @ApiModelProperty(value = "归口管理部门名称")
     private String manageOrgName;
     /**
      * 期间分类
      */
-    @Column(name = "period_category", updatable = false)
-    @Enumerated(EnumType.STRING)
+    @ApiModelProperty(value = "期间分类")
     private PeriodType periodType;
     /**
      * 起始日期
      */
-    @Column(name = "start_date")
+    @ApiModelProperty(value = "起始日期", example = "2021-04-22")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate startDate;
     /**
      * 截止日期
      */
-    @Column(name = "end_date")
+    @ApiModelProperty(value = "截止日期", example = "2021-04-22")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate endDate;
     /**
      * 是否启用
      */
-    @Column(name = "is_actived")
-    private Boolean actived = Boolean.TRUE;
+    @ApiModelProperty(value = "是否启用")
+    private Boolean actived;
     /**
      * 允许使用(业务可用)
      */
-    @Column(name = "is_use")
-    private Boolean use = Boolean.FALSE;
+    @ApiModelProperty(value = "允许使用(业务可用)")
+    private Boolean use;
     /**
      * 允许结转
      */
-    @Column(name = "is_roll")
-    private Boolean roll = Boolean.FALSE;
+    @ApiModelProperty(value = "允许结转")
+    private Boolean roll;
     /**
      * 是否可延期
      */
-    @Column(name = "is_delay")
-    private Boolean delay = Boolean.FALSE;
+    @ApiModelProperty(value = "是否可延期")
+    private Boolean delay;
     /**
      * 可用余额
      */
-    @Column(name = "balance")
-    private Double balance = 0d;
-    /**
-     * 创建时间
-     */
-    @Column(name = "created_date", updatable = false)
-    protected LocalDateTime createdDate;
-    /**
-     * 租户代码
-     */
-    @Column(name = "tenant_code", updatable = false)
-    private String tenantCode;
+    @ApiModelProperty(value = "可用余额")
+    private Double balance;
 
-    @Override
     public String getCode() {
         return code;
     }
 
-    @Override
     public void setCode(String code) {
         this.code = code;
     }
@@ -134,12 +109,12 @@ public class Pool extends BaseEntity implements ITenant, ICodeUnique, Serializab
         this.subjectId = subjectId;
     }
 
-    public Long getAttributeCode() {
-        return attributeCode;
+    public String getAttributeId() {
+        return attributeId;
     }
 
-    public void setAttributeCode(Long attributeCode) {
-        this.attributeCode = attributeCode;
+    public void setAttributeId(String attributeId) {
+        this.attributeId = attributeId;
     }
 
     public String getCurrencyCode() {
@@ -236,24 +211,6 @@ public class Pool extends BaseEntity implements ITenant, ICodeUnique, Serializab
 
     public void setBalance(Double balance) {
         this.balance = balance;
-    }
-
-    public LocalDateTime getCreatedDate() {
-        return createdDate;
-    }
-
-    public void setCreatedDate(LocalDateTime createdDate) {
-        this.createdDate = createdDate;
-    }
-
-    @Override
-    public String getTenantCode() {
-        return tenantCode;
-    }
-
-    @Override
-    public void setTenantCode(String tenantCode) {
-        this.tenantCode = tenantCode;
     }
 
 }

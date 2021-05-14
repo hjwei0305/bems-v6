@@ -1,7 +1,5 @@
 package com.changhong.bems.api;
 
-import com.changhong.bems.dto.ExecutionRecordDto;
-import com.changhong.sei.core.api.BaseEntityApi;
 import org.springframework.cloud.openfeign.FeignClient;
 
 import javax.validation.Valid;

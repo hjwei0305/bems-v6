@@ -1,6 +1,5 @@
 package com.changhong.bems.dto;
 
-import com.changhong.sei.core.dto.BaseEntityDto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -11,7 +10,7 @@ import io.swagger.annotations.ApiModelProperty;
  * @since 2021-04-22 12:54:29
  */
 @ApiModel(description = "预算维度属性DTO")
-public class DimensionAttributeDto extends BaseAttribute {
+public class DimensionAttributeDto extends BaseAttributeDto {
     private static final long serialVersionUID = 874180418915412119L;
     /**
      * 预算主体id

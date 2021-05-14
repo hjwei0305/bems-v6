@@ -6,7 +6,6 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 
 /**
  * 预算执行记录(ExecutionRecord)DTO类
@@ -59,30 +58,20 @@ public class ExecutionRecordDto extends BaseEntityDto {
     @ApiModelProperty(value = "业务来源")
     private String bizFrom;
     /**
-     * 业务单id
-     */
-    @ApiModelProperty(value = "业务单id")
-    private String bizOrderId;
-    /**
-     * 业务单编码
-     */
-    @ApiModelProperty(value = "业务单编码")
-    private String bizOrderCode;
-    /**
-     * 业务单行项id
-     */
-    @ApiModelProperty(value = "业务单行项id")
-    private String bizItemId;
-    /**
-     * 业务单行项编码
-     */
-    @ApiModelProperty(value = "业务单行项编码")
-    private String bizItemCode;
-    /**
      * 业务事件
      */
     @ApiModelProperty(value = "业务事件")
     private String bizEvent;
+    /**
+     * 业务id
+     */
+    @ApiModelProperty(value = "业务id")
+    private String bizId;
+    /**
+     * 业务编码
+     */
+    @ApiModelProperty(value = "业务编码")
+    private String bizCode;
     /**
      * 业务描述
      */
@@ -153,44 +142,28 @@ public class ExecutionRecordDto extends BaseEntityDto {
         this.bizFrom = bizFrom;
     }
 
-    public String getBizOrderId() {
-        return bizOrderId;
-    }
-
-    public void setBizOrderId(String bizOrderId) {
-        this.bizOrderId = bizOrderId;
-    }
-
-    public String getBizOrderCode() {
-        return bizOrderCode;
-    }
-
-    public void setBizOrderCode(String bizOrderCode) {
-        this.bizOrderCode = bizOrderCode;
-    }
-
-    public String getBizItemId() {
-        return bizItemId;
-    }
-
-    public void setBizItemId(String bizItemId) {
-        this.bizItemId = bizItemId;
-    }
-
-    public String getBizItemCode() {
-        return bizItemCode;
-    }
-
-    public void setBizItemCode(String bizItemCode) {
-        this.bizItemCode = bizItemCode;
-    }
-
     public String getBizEvent() {
         return bizEvent;
     }
 
     public void setBizEvent(String bizEvent) {
         this.bizEvent = bizEvent;
+    }
+
+    public String getBizId() {
+        return bizId;
+    }
+
+    public void setBizId(String bizId) {
+        this.bizId = bizId;
+    }
+
+    public String getBizCode() {
+        return bizCode;
+    }
+
+    public void setBizCode(String bizCode) {
+        this.bizCode = bizCode;
     }
 
     public String getBizRemark() {

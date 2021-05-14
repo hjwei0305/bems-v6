@@ -1,11 +1,13 @@
 package com.changhong.bems.service;
 
+import com.changhong.bems.dao.PoolAttributeDao;
 import com.changhong.bems.dao.PoolDao;
 import com.changhong.bems.entity.*;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.context.SessionUser;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
+import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
@@ -34,6 +36,8 @@ public class PoolService extends BaseEntityService<Pool> {
     private static final Logger LOG = LoggerFactory.getLogger(PoolService.class);
     @Autowired
     private PoolDao dao;
+    @Autowired
+    private PoolAttributeDao poolAttributeDao;
     @Autowired
     private DimensionAttributeService dimensionAttributeService;
     @Autowired
@@ -239,5 +243,39 @@ public class PoolService extends BaseEntityService<Pool> {
             }
             LOG.error("预算池[" + poolCode + "]不存在");
         }
+    }
+
+    /**
+     * 分页查询预算池
+     *
+     * @param search 查询对象
+     * @return 分页结果
+     */
+    public PageResult<PoolAttribute> findPoolByPage(Search search) {
+        return poolAttributeDao.findByPage(search);
+    }
+
+    /**
+     * 按预算池id获取预算池
+     *
+     * @param id 预算池id
+     * @return 预算池
+     */
+    public PoolAttribute findPoolAttribute(String id) {
+        return poolAttributeDao.findOne(id);
+    }
+
+    /**
+     * 按预算主体和代码查询预算池
+     *
+     * @param subjectId 预算主体id
+     * @param code      预算编码
+     * @return 预算池
+     */
+    public PoolAttribute findPoolAttribute(String subjectId, String code) {
+        Search search = Search.createSearch();
+        search.addFilter(new SearchFilter(PoolAttribute.FIELD_SUBJECT_ID, subjectId));
+        search.addFilter(new SearchFilter(PoolAttribute.FIELD_CODE, code));
+        return poolAttributeDao.findFirstByFilters(search);
     }
 }

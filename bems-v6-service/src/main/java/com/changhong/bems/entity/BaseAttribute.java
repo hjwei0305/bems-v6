@@ -33,12 +33,12 @@ public abstract class BaseAttribute extends BaseEntity implements Serializable {
     /**
      * 属性值hash
      */
-    @Column(name = "attribute_code")
+    @Column(name = "attribute_code", updatable = false)
     private Long attributeCode = -1L;
     /**
      * 预算期间
      */
-    @Column(name = "period_id")
+    @Column(name = "period_id", updatable = false)
     protected String period = Constants.NONE;
     /**
      * 预算期间名称
@@ -48,7 +48,7 @@ public abstract class BaseAttribute extends BaseEntity implements Serializable {
     /**
      * 预算科目
      */
-    @Column(name = "item_code")
+    @Column(name = "item_code", updatable = false)
     protected String item = Constants.NONE;
     /**
      * 预算科目名称
@@ -58,7 +58,7 @@ public abstract class BaseAttribute extends BaseEntity implements Serializable {
     /**
      * 组织
      */
-    @Column(name = "org")
+    @Column(name = "org", updatable = false)
     protected String org = Constants.NONE;
     /**
      * 组织名称
@@ -68,7 +68,7 @@ public abstract class BaseAttribute extends BaseEntity implements Serializable {
     /**
      * 项目
      */
-    @Column(name = "project")
+    @Column(name = "project", updatable = false)
     protected String project = Constants.NONE;
     /**
      * 项目名称
@@ -78,7 +78,7 @@ public abstract class BaseAttribute extends BaseEntity implements Serializable {
     /**
      * 自定义1
      */
-    @Column(name = "udf1")
+    @Column(name = "udf1", updatable = false)
     protected String udf1 = Constants.NONE;
     /**
      * 自定义1名称
@@ -88,7 +88,7 @@ public abstract class BaseAttribute extends BaseEntity implements Serializable {
     /**
      * 自定义2
      */
-    @Column(name = "udf2")
+    @Column(name = "udf2", updatable = false)
     protected String udf2 = Constants.NONE;
     /**
      * 自定义2名称
@@ -98,7 +98,7 @@ public abstract class BaseAttribute extends BaseEntity implements Serializable {
     /**
      * 自定义3
      */
-    @Column(name = "udf3")
+    @Column(name = "udf3", updatable = false)
     protected String udf3 = Constants.NONE;
     /**
      * 自定义3名称
@@ -108,7 +108,7 @@ public abstract class BaseAttribute extends BaseEntity implements Serializable {
     /**
      * 自定义4
      */
-    @Column(name = "udf4")
+    @Column(name = "udf4", updatable = false)
     protected String udf4 = Constants.NONE;
     /**
      * 自定义4名称
@@ -118,7 +118,7 @@ public abstract class BaseAttribute extends BaseEntity implements Serializable {
     /**
      * 自定义5
      */
-    @Column(name = "udf5")
+    @Column(name = "udf5", updatable = false)
     protected String udf5 = Constants.NONE;
     /**
      * 自定义5名称

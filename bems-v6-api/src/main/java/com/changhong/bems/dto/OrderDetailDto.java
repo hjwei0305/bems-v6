@@ -10,7 +10,7 @@ import io.swagger.annotations.ApiModelProperty;
  * @since 2021-04-25 15:14:00
  */
 @ApiModel(description = "预算申请单行项DTO")
-public class OrderDetailDto extends BaseAttribute {
+public class OrderDetailDto extends BaseAttributeDto {
     private static final long serialVersionUID = 466264526815699224L;
     /**
      * 预算申请单id
