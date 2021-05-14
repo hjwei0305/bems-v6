@@ -67,10 +67,6 @@ public class CategoryService extends BaseEntityService<Category> {
         if (Objects.isNull(category)) {
             return OperateResult.operationFailure("category_00004", id);
         }
-        if (category.getReferenced()) {
-            // 预算类型已被使用,不允许删除
-            return OperateResult.operationFailure("category_00001");
-        }
         Order order = orderService.findFirstByProperty(Order.FIELD_CATEGORY_ID, id);
         if (Objects.nonNull(order)) {
             // 已被使用,禁止删除!
@@ -104,12 +100,6 @@ public class CategoryService extends BaseEntityService<Category> {
             // 创建前设置租户代码
             if (StringUtils.isBlank(entity.getTenantCode())) {
                 entity.setTenantCode(ContextUtil.getTenantCode());
-            }
-        } else {
-            Category category = dao.findOne(entity.getId());
-            if (category.getReferenced()) {
-                // 预算类型已被使用,不允许修改
-                return OperateResultWithData.operationFailure("category_00006");
             }
         }
         Category saveEntity = dao.save(entity);
@@ -278,11 +268,6 @@ public class CategoryService extends BaseEntityService<Category> {
     @CacheEvict(key = "#categoryId")
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> assigne(String categoryId, Set<String> dimensionCodes) {
-        Category category = dao.findOne(categoryId);
-        if (category.getReferenced()) {
-            // 预算类型已被使用,不允许修改
-            return ResultData.fail(ContextUtil.getMessage("category_00006"));
-        }
         List<CategoryDimension> dimensionList = new ArrayList<>();
         CategoryDimension categoryDimension;
         for (String code : dimensionCodes) {
@@ -309,11 +294,6 @@ public class CategoryService extends BaseEntityService<Category> {
     @CacheEvict(key = "#categoryId")
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> unassigne(String categoryId, Set<String> dimensionCodes) {
-        Category category = dao.findOne(categoryId);
-        if (category.getReferenced()) {
-            // 预算类型已被使用,不允许修改
-            return ResultData.fail("category_00006");
-        }
         List<CategoryDimension> dimensionList = categoryDimensionService.getCategoryDimensions(categoryId, dimensionCodes);
         if (CollectionUtils.isNotEmpty(dimensionList)) {
             Set<String> ids = dimensionList.stream().map(CategoryDimension::getId).collect(Collectors.toSet());
