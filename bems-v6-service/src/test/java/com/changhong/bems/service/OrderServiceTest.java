@@ -55,10 +55,10 @@ class OrderServiceTest extends BaseUnit5Test {
     void effectiveOrder() {
         StopWatch stopWatch = StopWatch.createStarted();
         String orderId = "12EF4E3E-AFB0-11EB-A72F-0242C0A84429";
-        Order order = service.findOne(orderId);
-        List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
+//        Order order = service.findOne(orderId);
+//        List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
 
-        ResultData<Void> resultData = service.effective(order, details);
+        ResultData<Void> resultData = service.effective(orderId);
         stopWatch.stop();
         System.out.println("耗时: " + stopWatch.getTime());
         System.out.println(resultData);

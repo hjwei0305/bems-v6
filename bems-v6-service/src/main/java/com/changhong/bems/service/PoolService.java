@@ -64,16 +64,9 @@ public class PoolService extends BaseEntityService<Pool> {
      * @return 返回满足条件的预算池
      */
     public ResultData<Pool> getPool(String subjectId, long attributeCode) {
-        DimensionAttribute attribute = dimensionAttributeService.getAttribute(subjectId, attributeCode);
-        if (Objects.isNull(attribute)) {
-            // 预算池不存在
-            return ResultData.fail(ContextUtil.getMessage("pool_00001"));
-        }
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(Pool.FIELD_SUBJECT_ID, subjectId));
         search.addFilter(new SearchFilter(Pool.FIELD_ATTRIBUTE_CODE, attributeCode));
-        // 非禁用的预算池
-        search.addFilter(new SearchFilter(Pool.FIELD_ACTIVED, Boolean.TRUE));
         Pool pool = dao.findFirstByFilters(search);
         if (Objects.nonNull(pool)) {
             return ResultData.success(pool);
@@ -230,8 +223,9 @@ public class PoolService extends BaseEntityService<Pool> {
              */
             String poolCode = record.getPoolCode();
             if (StringUtils.isNotBlank(poolCode) && StringUtils.isNotBlank(poolCode.trim())) {
-                Pool pool = dao.findByProperty(Pool.CODE_FIELD, record.getPoolCode());
-                if (Objects.nonNull(pool)) {
+                ResultData<Pool> poolResult = this.getPool(record.getSubjectId(), record.getAttributeCode());
+                if (poolResult.successful()) {
+                    Pool pool = poolResult.getData();
                     // 累计金额
                     poolAmountService.countAmount(pool, record.getOperation(), record.getAmount());
                     // 实时计算当前预算池可用金额

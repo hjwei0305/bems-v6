@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -43,5 +44,12 @@ public class BudgetResponse implements Serializable {
     public BudgetResponse setUseResults(List<BudgetUseResult> useResults) {
         this.useResults = useResults;
         return this;
+    }
+
+    public void addUseResult(BudgetUseResult result) {
+        if (this.useResults == null) {
+            this.useResults = new ArrayList<>();
+        }
+        this.useResults.add(result);
     }
 }

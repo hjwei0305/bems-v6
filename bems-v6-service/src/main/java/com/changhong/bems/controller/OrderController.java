@@ -16,6 +16,7 @@ import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.limiter.support.lock.SeiLockHelper;
+import com.changhong.sei.core.mq.MqProducer;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.util.JsonUtils;
 import com.changhong.sei.util.EnumUtils;
@@ -54,6 +55,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     private ModelMapper modelMapper;
     @Autowired
     private AsyncRunUtil asyncRunUtil;
+    @Autowired
+    private MqProducer producer;
 
     @Override
     public BaseEntityService<Order> getService() {
@@ -284,27 +287,24 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
 
         // 检查订单状态
         if (OrderStatus.PREFAB == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
-            if (!SeiLockHelper.checkLocked("bems-v6:effective:" + orderId)) {
-                List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
-                // 更新状态为生效中
-                service.updateStatus(orderId, OrderStatus.EFFECTING);
-                // 检查是否存在错误行项
-                ResultData<Void> resultData = service.checkDetailHasErr(details);
-                if (resultData.successful()) {
-                    asyncRunUtil.runAsync(() -> {
-                        try {
-                            // 休眠1s,防止状态事务还未更新
-                            Thread.sleep(1000);
-                        } catch (InterruptedException ignored) {
-                        }
-                        service.effective(order, details);
-                    });
-                }
-                return resultData;
-            } else {
-                // 订单[{0}]正在生效处理过程中,请稍后.
-                return ResultData.fail(ContextUtil.getMessage("order_00007", order.getCode()));
+            List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
+            // 更新状态为生效中
+            service.updateStatus(orderId, OrderStatus.EFFECTING);
+            // 检查是否存在错误行项
+            ResultData<Void> resultData = service.checkDetailHasErr(details);
+            if (resultData.successful()) {
+                asyncRunUtil.runAsync(() -> {
+                    // 以线性队列方式,避免预算池并发问题
+                    try {
+                        // 休眠1s,防止状态事务还未更新
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ignored) {
+                    }
+                    producer.send(orderId);
+                    //service.effective(orderId);
+                });
             }
+            return resultData;
         } else {
             // 订单状态为[{0}],不允许操作!
             return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));

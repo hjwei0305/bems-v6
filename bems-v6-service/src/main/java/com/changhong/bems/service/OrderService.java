@@ -233,34 +233,42 @@ public class OrderService extends BaseEntityService<Order> {
     /**
      * 生效预算申请单
      *
-     * @param order 申请单
+     * @param orderId 申请单id
      * @return 返回处理结果
      */
-    @SeiLock(key = "'bems-v6:effective:' + #order.id")
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> effective(Order order, List<OrderDetail> details) {
+    public ResultData<Void> effective(String orderId) {
+        ResultData<Void> resultData = ResultData.success();
+        Order order = dao.findOne(orderId);
         if (Objects.isNull(order)) {
             // 订单[{0}]不存在!
-            return ResultData.fail(ContextUtil.getMessage("order_00001"));
+            resultData = ResultData.fail(ContextUtil.getMessage("order_00001"));
         }
-        // 检查订单状态
-        if (OrderStatus.PREFAB == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
-            ResultData<Void> resultData = this.effectiveUseBudget(order, details);
-            if (resultData.successful()) {
-                // 更新订单状态为:完成
-                order.setStatus(OrderStatus.COMPLETED);
-                dao.save(order);
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("预算申请单[" + order.getCode() + "]生效成功!");
+        if (resultData.successful()) {
+            // 检查订单状态
+            if (OrderStatus.EFFECTING == order.getStatus()) {
+                List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
+                resultData = this.effectiveUseBudget(order, details);
+                if (resultData.successful()) {
+                    // 更新订单状态为:完成
+                    order.setStatus(OrderStatus.COMPLETED);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("预算申请单[" + order.getCode() + "]生效成功!");
+                    }
+                } else {
+                    LOG.error("预算申请单[" + order.getCode() + "]生效错误: " + resultData.getMessage());
                 }
             } else {
-                LOG.error("预算申请单[" + order.getCode() + "]生效错误: " + resultData.getMessage());
+                // 订单状态为[{0}],不允许操作!
+                resultData = ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
             }
-            return resultData;
-        } else {
-            // 订单状态为[{0}],不允许操作!
-            return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
         }
+        if (resultData.failed()) {
+            // 生效失败,更新订单状态为:草稿
+            order.setStatus(OrderStatus.DRAFT);
+        }
+        dao.save(order);
+        return resultData;
     }
 
     /**

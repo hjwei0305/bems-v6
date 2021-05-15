@@ -41,20 +41,16 @@ public class BudgetRequest implements Serializable {
     }
 
     public void addUse(BudgetUse use) {
-        List<BudgetUse> useList = getUseList();
-        if (useList == null || useList.size() == 0) {
-            useList = new ArrayList<>();
+        if (this.useList == null) {
+            this.useList = new ArrayList<>();
         }
-        useList.add(use);
-        this.useList = useList;
+        this.useList.add(use);
     }
 
     public void addFree(BudgetFree free) {
-        List<BudgetFree> freeList = getFreeList();
-        if (freeList == null || freeList.size() == 0) {
-            freeList = new ArrayList<>();
+        if (this.freeList == null) {
+            this.freeList = new ArrayList<>();
         }
-        freeList.add(free);
-        this.freeList = freeList;
+        this.freeList.add(free);
     }
 }

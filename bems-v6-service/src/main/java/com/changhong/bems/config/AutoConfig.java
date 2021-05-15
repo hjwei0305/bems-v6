@@ -1,5 +1,8 @@
 package com.changhong.bems.config;
 
+import com.changhong.bems.service.strategy.*;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 
@@ -13,4 +16,21 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @Configuration
 public class AutoConfig {
 
+    @Bean
+    @ConditionalOnMissingBean
+    public EqualMatchStrategy equalStrategy() {
+        return new DefaultEqualMatchStrategy();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public TreeMatchStrategy treeMatchStrategy() {
+        return new DefaultTreeMatchStrategy();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public PeriodMatchStrategy periodMatchStrategy() {
+        return new DefaultPeriodMatchStrategy();
+    }
 }
