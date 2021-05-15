@@ -3,6 +3,7 @@ package com.changhong.bems.service.mq;
 import com.changhong.bems.service.OrderService;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.util.JsonUtils;
+import com.changhong.sei.util.thread.ThreadLocalHolder;
 import com.changhong.sei.utils.MockUserHelper;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
@@ -43,6 +44,8 @@ public class EffectiveOrderConsumer {
         }
         // 执行业务处理逻辑
         try {
+            ThreadLocalHolder.begin();
+
             String message = record.value();
             EffectiveOrderMessage orderMessage = JsonUtils.fromJson(message, EffectiveOrderMessage.class);
             // 模拟用户
@@ -54,6 +57,9 @@ public class EffectiveOrderConsumer {
             }
         } catch (Exception e) {
             LOG.error("MqConsumer process message error!", e);
+        } finally {
+            // 释放资源
+            ThreadLocalHolder.end();
         }
     }
 }

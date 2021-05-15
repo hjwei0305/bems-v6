@@ -194,10 +194,9 @@ public class OrderService extends BaseEntityService<Order> {
      * @param order 业务实体DTO
      * @return 返回订单头id
      */
-    @SeiLock(key = "'bems-v6:saveOrder:' + #order.id")
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Order> saveOrder(Order order, List<OrderDetail> details) {
-        if (StringUtils.isBlank(order.getCode())) {
+        if (StringUtils.isBlank(order.getId()) && StringUtils.isBlank(order.getCode())) {
             order.setCode(serialService.getNumber(Order.class, ContextUtil.getTenantCode()));
         }
         OperateResultWithData<Order> result = this.save(order);
