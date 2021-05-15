@@ -16,6 +16,7 @@ import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.limiter.support.lock.SeiLock;
+import com.changhong.sei.core.log.LogUtil;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResultWithData;
 import com.changhong.sei.core.util.JsonUtils;
@@ -248,13 +249,14 @@ public class OrderService extends BaseEntityService<Order> {
             // 检查订单状态
             if (OrderStatus.EFFECTING == order.getStatus()) {
                 List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
+                LogUtil.bizLog("生效行数: {}", details.size());
                 resultData = this.effectiveUseBudget(order, details);
                 if (resultData.successful()) {
                     // 更新订单状态为:完成
                     order.setStatus(OrderStatus.COMPLETED);
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("预算申请单[" + order.getCode() + "]生效成功!");
-                    }
+//                    if (LOG.isDebugEnabled()) {
+                        LogUtil.bizLog("预算申请单[" + order.getCode() + "]生效成功!");
+//                    }
                 } else {
                     LOG.error("预算申请单[" + order.getCode() + "]生效错误: " + resultData.getMessage());
                 }
