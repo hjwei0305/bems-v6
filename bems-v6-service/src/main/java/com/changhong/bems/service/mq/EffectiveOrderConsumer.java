@@ -33,6 +33,7 @@ public class EffectiveOrderConsumer {
      */
     @KafkaListener(topics = "${sei.mq.topic}")
     public void processMessage(ConsumerRecord<String, String> record) {
+
         if (Objects.isNull(record)) {
             return;
         }

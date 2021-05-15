@@ -24,6 +24,8 @@ import com.changhong.sei.utils.AsyncRunUtil;
 import io.swagger.annotations.Api;
 import org.apache.commons.collections.CollectionUtils;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,6 +44,7 @@ import java.util.stream.Collectors;
 @Api(value = "OrderApi", tags = "预算申请单服务")
 @RequestMapping(path = OrderApi.PATH, produces = MediaType.APPLICATION_JSON_VALUE)
 public class OrderController extends BaseEntityController<Order, OrderDto> implements OrderApi {
+    private static final Logger LOG = LoggerFactory.getLogger(OrderController.class);
     /**
      * 预算申请单服务对象
      */
@@ -301,6 +304,9 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                     } catch (InterruptedException ignored) {
                     }
                     producer.send(orderId);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("预算申请单[{}]发送队列成功.", orderId);
+                    }
                     //service.effective(orderId);
                 });
             }
