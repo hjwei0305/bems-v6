@@ -7,7 +7,9 @@ import com.changhong.bems.entity.OrderDetail;
 import com.changhong.bems.service.CategoryService;
 import com.changhong.bems.service.OrderDetailService;
 import com.changhong.bems.service.OrderService;
+import com.changhong.bems.service.mq.EffectiveOrderMessage;
 import com.changhong.sei.core.context.ContextUtil;
+import com.changhong.sei.core.context.SessionUser;
 import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.flow.FlowInvokeParams;
@@ -16,7 +18,6 @@ import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.limiter.support.lock.SeiLockHelper;
-import com.changhong.sei.core.log.LogUtil;
 import com.changhong.sei.core.mq.MqProducer;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.util.JsonUtils;
@@ -304,10 +305,16 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                         Thread.sleep(1000);
                     } catch (InterruptedException ignored) {
                     }
-                    producer.send(orderId);
-//                    if (LOG.isInfoEnabled()) {
-                        LogUtil.bizLog("预算申请单[{}]发送队列成功.", orderId);
-//                    }
+                    // 发送队列消息
+                    EffectiveOrderMessage message = new EffectiveOrderMessage();
+                    message.setOrderId(orderId);
+                    SessionUser sessionUser = ContextUtil.getSessionUser();
+                    message.setAccount(sessionUser.getAccount());
+                    message.setTenantCode(sessionUser.getTenantCode());
+                    producer.send(JsonUtils.toJson(message));
+                    if (LOG.isInfoEnabled()) {
+                        LOG.info("预算申请单[{}]发送队列成功.", message);
+                    }
                     //service.effective(orderId);
                 });
             }

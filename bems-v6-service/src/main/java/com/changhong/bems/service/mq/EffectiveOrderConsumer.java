@@ -1,9 +1,9 @@
 package com.changhong.bems.service.mq;
 
 import com.changhong.bems.service.OrderService;
-import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.ResultData;
-import com.changhong.sei.core.log.LogUtil;
+import com.changhong.sei.core.util.JsonUtils;
+import com.changhong.sei.utils.MockUserHelper;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,22 +35,23 @@ public class EffectiveOrderConsumer {
      */
     @KafkaListener(topics = "${sei.mq.topic}")
     public void processMessage(ConsumerRecord<String, String> record) {
-//        if (LOG.isInfoEnabled()) {
-        LogUtil.bizLog("接收TOPIC[{}]的消息", ContextUtil.getProperty("sei.mq.topic"));
-//        }
         if (Objects.isNull(record)) {
             return;
         }
-//        if (LOG.isInfoEnabled()) {
-        LogUtil.bizLog("received key='{}' message = '{}'", record.key(), record.value());
-//        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("received key='{}' message = '{}'", record.key(), record.value());
+        }
         // 执行业务处理逻辑
         try {
-            String orderId = record.value();
-            ResultData<Void> resultData = orderService.effective(orderId);
-//            if (LOG.isInfoEnabled()) {
-            LogUtil.bizLog("预算申请单生效处理结果: {}", resultData);
-//            }
+            String message = record.value();
+            EffectiveOrderMessage orderMessage = JsonUtils.fromJson(message, EffectiveOrderMessage.class);
+            // 模拟用户
+            MockUserHelper.mockUser(orderMessage.getTenantCode(), orderMessage.getAccount());
+            // 生效处理
+            ResultData<Void> resultData = orderService.effective(orderMessage.getOrderId());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("预算申请单生效结果: {}", resultData);
+            }
         } catch (Exception e) {
             LOG.error("MqConsumer process message error!", e);
         }
