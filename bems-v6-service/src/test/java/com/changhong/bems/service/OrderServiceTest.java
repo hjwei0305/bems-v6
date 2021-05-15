@@ -54,7 +54,7 @@ class OrderServiceTest extends BaseUnit5Test {
     @Test
     void effectiveOrder() {
         StopWatch stopWatch = StopWatch.createStarted();
-        String orderId = "12EF4E3E-AFB0-11EB-A72F-0242C0A84429";
+        String orderId = "E5BCFE36-B588-11EB-8EDD-0242C0A84427";
 //        Order order = service.findOne(orderId);
 //        List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
 

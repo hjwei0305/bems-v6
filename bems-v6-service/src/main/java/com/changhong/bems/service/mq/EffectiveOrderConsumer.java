@@ -1,6 +1,7 @@
 package com.changhong.bems.service.mq;
 
 import com.changhong.bems.service.OrderService;
+import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.ResultData;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
@@ -33,19 +34,21 @@ public class EffectiveOrderConsumer {
      */
     @KafkaListener(topics = "${sei.mq.topic}")
     public void processMessage(ConsumerRecord<String, String> record) {
-
+        if (LOG.isInfoEnabled()) {
+            LOG.info("接收TOPIC[{}]的消息", ContextUtil.getProperty("sei.mq.topic"));
+        }
         if (Objects.isNull(record)) {
             return;
         }
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("received key='{}' message = '{}'", record.key(), record.value());
+        if (LOG.isInfoEnabled()) {
+            LOG.info("received key='{}' message = '{}'", record.key(), record.value());
         }
         // 执行业务处理逻辑
         try {
             String orderId = record.value();
             ResultData<Void> resultData = orderService.effective(orderId);
-            if (resultData.failed()) {
-                LOG.error("预算申请单生效失败: {}", resultData.getMessage());
+            if (LOG.isInfoEnabled()) {
+                LOG.info("预算申请单生效处理结果: {}", resultData);
             }
         } catch (Exception e) {
             LOG.error("MqConsumer process message error!", e);

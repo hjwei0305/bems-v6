@@ -304,8 +304,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                     } catch (InterruptedException ignored) {
                     }
                     producer.send(orderId);
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("预算申请单[{}]发送队列成功.", orderId);
+                    if (LOG.isInfoEnabled()) {
+                        LOG.info("预算申请单[{}]发送队列成功.", orderId);
                     }
                     //service.effective(orderId);
                 });
