@@ -1,5 +1,6 @@
 package com.changhong.bems.service.mq;
 
+import com.changhong.bems.dto.OrderStatus;
 import com.changhong.bems.service.OrderService;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.util.JsonUtils;
@@ -43,20 +44,24 @@ public class EffectiveOrderConsumer {
             LOG.debug("received key='{}' message = '{}'", record.key(), record.value());
         }
         // 执行业务处理逻辑
+        String orderId = null;
         try {
             ThreadLocalHolder.begin();
 
             String message = record.value();
             EffectiveOrderMessage orderMessage = JsonUtils.fromJson(message, EffectiveOrderMessage.class);
+            orderId = orderMessage.getOrderId();
             // 模拟用户
             MockUserHelper.mockUser(orderMessage.getTenantCode(), orderMessage.getAccount());
             // 生效处理
-            ResultData<Void> resultData = orderService.effective(orderMessage.getOrderId());
+            ResultData<Void> resultData = orderService.effective(orderId);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("预算申请单生效结果: {}", resultData);
             }
         } catch (Exception e) {
-            LOG.error("MqConsumer process message error!", e);
+            LOG.error("预算申请单生效处理异常.", e);
+            // 异常时,回滚状态为:草稿
+            orderService.updateStatus(orderId, OrderStatus.DRAFT);
         } finally {
             // 释放资源
             ThreadLocalHolder.end();
