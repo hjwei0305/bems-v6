@@ -22,12 +22,6 @@ class PoolServiceTest extends BaseUnit5Test {
     }
 
     @Test
-    void getPoolByCode() {
-        Pool pool = service.getPoolByCode("0000000027");
-        System.out.println(pool);
-    }
-
-    @Test
     void createPool() {
     }
 

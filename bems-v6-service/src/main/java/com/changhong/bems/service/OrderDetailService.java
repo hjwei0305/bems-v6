@@ -622,22 +622,15 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         // 预算主体id
         String subjectId = order.getSubjectId();
         Pool pool = null;
-        // 预算池编码
-        String poolCode;
         // 当前预算池余额
         double balance;
         if (OrderCategory.INJECTION == order.getOrderCategory()) {
             // 注入下达(对总额的增减,允许预算池不存在)
-            poolCode = detail.getPoolCode();
-            if (StringUtils.isNotBlank(poolCode)) {
-                pool = poolService.getPoolByCode(poolCode);
-            } else {
-                ResultData<Pool> result = poolService.getPool(subjectId, detail.getAttributeCode());
-                if (result.successful()) {
-                    pool = result.getData();
-                    poolCode = pool.getCode();
-                    detail.setPoolCode(poolCode);
-                }
+            ResultData<Pool> result = poolService.getPool(subjectId, detail.getAttributeCode());
+            if (result.successful()) {
+                pool = result.getData();
+                // 预算池编码
+                detail.setPoolCode(pool.getCode());
             }
             if (Objects.nonNull(pool)) {
                 // 检查预算池可用余额是否满足本次发生金额(主要存在注入负数调减的金额)
@@ -670,16 +663,15 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
      */
     public ResultData<Void> checkAdjustmentDetail(Order order, OrderDetail detail) {
         // 预算主体id
-        Pool pool;
-        // 预算池编码
-        String poolCode;
+        String subjectId = order.getSubjectId();
         // 当前预算池余额
         double balance;
         if (OrderCategory.ADJUSTMENT == order.getOrderCategory()) {
             // 调整(跨纬度调整,总额不变.不允许预算池不存在)
-            poolCode = detail.getPoolCode();
-            pool = poolService.getPoolByCode(poolCode);
-            if (Objects.nonNull(pool)) {
+            // 预算池编码
+            ResultData<Pool> resultData = poolService.getPool(subjectId, detail.getAttributeCode());
+            if (resultData.successful()) {
+                Pool pool = resultData.getData();
                 // 检查预算池可用余额是否满足本次发生金额(主要存在注入负数调减的金额)
                 balance = poolService.getPoolBalance(pool);
                 // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
@@ -690,7 +682,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                 detail.setPoolAmount(pool.getBalance());
             } else {
                 // 预算池未找到
-                return ResultData.fail(ContextUtil.getMessage("pool_00003"));
+                return ResultData.fail(resultData.getMessage());
             }
         } else {
             // 不支持的订单类型

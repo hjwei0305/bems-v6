@@ -77,16 +77,6 @@ public class PoolService extends BaseEntityService<Pool> {
     }
 
     /**
-     * 按预算池编码获取预算池
-     *
-     * @param poolCode 预算池编码
-     * @return 返回符合条件的预算池
-     */
-    public Pool getPoolByCode(String poolCode) {
-        return dao.findByProperty(Pool.CODE_FIELD, poolCode);
-    }
-
-    /**
      * 创建一个预算池
      *
      * @param order         申请单
@@ -221,8 +211,7 @@ public class PoolService extends BaseEntityService<Pool> {
              在注入或分解是可能还没有预算池,此时只记录日志.
              注入或分解为负数的,必须存在预算池,提交流程时做预占用处理
              */
-            String poolCode = record.getPoolCode();
-            if (StringUtils.isNotBlank(poolCode) && StringUtils.isNotBlank(poolCode.trim())) {
+            if (StringUtils.isNotBlank(record.getSubjectId())) {
                 ResultData<Pool> poolResult = this.getPool(record.getSubjectId(), record.getAttributeCode());
                 if (poolResult.successful()) {
                     Pool pool = poolResult.getData();
@@ -235,7 +224,7 @@ public class PoolService extends BaseEntityService<Pool> {
                     return;
                 }
             }
-            LOG.error("预算池[" + poolCode + "]不存在");
+            LOG.error("预算池[" + record.getPoolCode() + "]不存在");
         }
     }
 

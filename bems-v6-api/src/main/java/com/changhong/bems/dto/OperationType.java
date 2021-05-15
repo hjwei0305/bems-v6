@@ -19,5 +19,10 @@ public enum OperationType {
      * 使用
      */
     @Remark("使用")
-    USE
+    USE,
+    /**
+     * 释放
+     */
+    @Remark("释放")
+    FREED
 }

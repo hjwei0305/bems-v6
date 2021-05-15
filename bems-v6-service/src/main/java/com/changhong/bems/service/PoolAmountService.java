@@ -81,7 +81,7 @@ public class PoolAmountService extends BaseEntityService<PoolAmount> {
 
     /**
      * 计算预算池当前余额
-     * 公式: 注入金额+小于0的预注入金额-使用金额
+     * 公式: 注入金额+释放(使用)金额-使用金额
      *
      * @param amounts 预算池金额
      * @return 当前余额
@@ -89,13 +89,17 @@ public class PoolAmountService extends BaseEntityService<PoolAmount> {
     private double getPoolBalance(List<PoolAmount> amounts) {
         double balance = 0;
         if (CollectionUtils.isNotEmpty(amounts)) {
-            // 注入金额+小于0的预注入金额-使用金额
+            // 注入金额 + 释放(使用)金额 - 使用金额
             for (PoolAmount amount : amounts) {
                 switch (amount.getOperation()) {
                     case RELEASE:
+                        // 注入下达
+                    case FREED:
+                        // 释放
                         balance = ArithUtils.add(balance, amount.getAmount());
                         break;
                     case USE:
+                        // 使用
                         balance = ArithUtils.sub(balance, amount.getAmount());
                         break;
                     default:

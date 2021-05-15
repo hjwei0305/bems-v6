@@ -19,8 +19,11 @@ import java.time.LocalDateTime;
 @Table(name = "execution_record")
 @DynamicInsert
 @DynamicUpdate
-public class ExecutionRecord extends BaseEntity implements Serializable {
+public class ExecutionRecord extends BaseEntity implements Serializable, Cloneable {
     private static final long serialVersionUID = -28943145565423431L;
+    public static final String FIELD_EVENT_CODE = "eventCode";
+    public static final String FIELD_BIZ_ID = "bizId";
+    public static final String FIELD_OPERATION = "operation";
     /**
      * 预算主体id
      */
@@ -71,7 +74,7 @@ public class ExecutionRecord extends BaseEntity implements Serializable {
      * 业务事件
      */
     @Column(name = "biz_event", updatable = false)
-    private String bizEvent;
+    private String eventCode;
     /**
      * 业务单id
      */
@@ -91,11 +94,11 @@ public class ExecutionRecord extends BaseEntity implements Serializable {
     public ExecutionRecord() {
     }
 
-    public ExecutionRecord(String poolCode, OperationType operation, Double amount, String bizEvent) {
+    public ExecutionRecord(String poolCode, OperationType operation, Double amount, String eventCode) {
         this.poolCode = poolCode;
         this.operation = operation;
         this.amount = amount;
-        this.bizEvent = bizEvent;
+        this.eventCode = eventCode;
     }
 
     public String getSubjectId() {
@@ -186,12 +189,12 @@ public class ExecutionRecord extends BaseEntity implements Serializable {
         this.bizCode = bizCode;
     }
 
-    public String getBizEvent() {
-        return bizEvent;
+    public String getEventCode() {
+        return eventCode;
     }
 
-    public void setBizEvent(String bizEvent) {
-        this.bizEvent = bizEvent;
+    public void setEventCode(String bizEvent) {
+        this.eventCode = bizEvent;
     }
 
     public String getBizRemark() {
@@ -202,4 +205,13 @@ public class ExecutionRecord extends BaseEntity implements Serializable {
         this.bizRemark = bizRemark;
     }
 
+    @Override
+    public ExecutionRecord clone() {
+        try {
+            return (ExecutionRecord) super.clone();
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }
