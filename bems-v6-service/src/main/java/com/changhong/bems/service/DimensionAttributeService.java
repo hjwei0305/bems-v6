@@ -17,9 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.StringJoiner;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -62,8 +61,10 @@ public class DimensionAttributeService extends BaseEntityService<DimensionAttrib
             return ResultData.fail(ContextUtil.getMessage("category_00007", categoryId));
         }
         StringJoiner joiner = new StringJoiner(",");
-        for (DimensionDto dimension : dimensions) {
-            joiner.add(dimension.getCode());
+        List<String> codes = dimensions.stream().map(DimensionDto::getCode).sorted().collect(Collectors.toList());
+        // Collections.sort(codes);
+        for (String code : codes) {
+            joiner.add(code);
         }
         dimensionAttribute.setAttribute(joiner.toString());
 

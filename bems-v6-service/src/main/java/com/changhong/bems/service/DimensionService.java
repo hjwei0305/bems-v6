@@ -8,7 +8,6 @@ import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
 import com.changhong.sei.core.service.bo.OperateResultWithData;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
@@ -17,8 +16,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -90,18 +87,6 @@ public class DimensionService extends BaseEntityService<Dimension> {
     @Cacheable(key = "'all'")
     public List<Dimension> findAll() {
         return dao.findAll();
-    }
-
-    /**
-     * 基于主键集合查询集合数据对象
-     */
-    public List<Dimension> findByCodes(Collection<String> codes) {
-        List<Dimension> dimensions = findAll();
-        if (CollectionUtils.isNotEmpty(codes)) {
-            return dimensions.stream().filter(d -> codes.contains(d.getCode())).collect(Collectors.toList());
-        } else {
-            return new ArrayList<>();
-        }
     }
 
     /**

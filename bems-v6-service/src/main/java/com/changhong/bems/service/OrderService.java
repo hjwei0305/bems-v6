@@ -241,6 +241,16 @@ public class OrderService extends BaseEntityService<Order> {
     }
 
     /**
+     * 更新订单总金额
+     *
+     * @param id 订单id
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void updateAmount(String id) {
+        dao.updateAmount(id);
+    }
+
+    /**
      * 生效预算申请单
      *
      * @param orderId 申请单id
@@ -367,12 +377,12 @@ public class OrderService extends BaseEntityService<Order> {
     /**
      * 预算申请单审批完成
      *
-     * @param order 申请单
+     * @param orderId 申请单id
      * @return 返回处理结果
      */
-    @SeiLock(key = "'bems-v6:complete:' + #order.id")
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> completeProcess(Order order) {
+    public ResultData<Void> completeProcess(String orderId) {
+        Order order = dao.findOne(orderId);
         if (Objects.isNull(order)) {
             // 订单不存在
             return ResultData.fail(ContextUtil.getMessage("order_00001"));

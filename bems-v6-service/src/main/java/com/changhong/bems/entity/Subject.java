@@ -26,6 +26,7 @@ import java.io.Serializable;
 public class Subject extends BaseAuditableEntity implements ITenant, IRank, ICodeUnique, IDataAuthEntity, Serializable {
     private static final long serialVersionUID = 851011858666429840L;
     public static final String FIELD_STRATEGY_ID = "strategyId";
+    public static final String FIELD_CORP_CODE = "corporationCode";
     /**
      * 主体代码
      */

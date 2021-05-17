@@ -92,4 +92,7 @@ public final class Constants {
      * 预算分解流程完成事件
      */
     public static final String EVENT_SPLIT_COMPLETE = "SPLIT_COMPLETE";
+
+    public static final String ORDER_OPERATION_COMPLETE = "PROCESS_COMPLETE";
+    public static final String ORDER_OPERATION_EFFECTIVE = "EFFECTIVE_ORDER";
 }

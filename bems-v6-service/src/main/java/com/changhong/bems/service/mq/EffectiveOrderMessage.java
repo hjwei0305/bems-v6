@@ -13,8 +13,11 @@ public class EffectiveOrderMessage implements Serializable {
     private static final long serialVersionUID = -6753321214394856181L;
 
     private String orderId;
-    private String tenantCode;
+    private String operation;
+    private String userId;
     private String account;
+    private String userName;
+    private String tenantCode;
 
     public String getOrderId() {
         return orderId;
@@ -25,12 +28,21 @@ public class EffectiveOrderMessage implements Serializable {
         return this;
     }
 
-    public String getTenantCode() {
-        return tenantCode;
+    public String getOperation() {
+        return operation;
     }
 
-    public EffectiveOrderMessage setTenantCode(String tenantCode) {
-        this.tenantCode = tenantCode;
+    public EffectiveOrderMessage setOperation(String operation) {
+        this.operation = operation;
+        return this;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public EffectiveOrderMessage setUserId(String userId) {
+        this.userId = userId;
         return this;
     }
 
@@ -43,10 +55,29 @@ public class EffectiveOrderMessage implements Serializable {
         return this;
     }
 
+    public String getUserName() {
+        return userName;
+    }
+
+    public EffectiveOrderMessage setUserName(String userName) {
+        this.userName = userName;
+        return this;
+    }
+
+    public String getTenantCode() {
+        return tenantCode;
+    }
+
+    public EffectiveOrderMessage setTenantCode(String tenantCode) {
+        this.tenantCode = tenantCode;
+        return this;
+    }
+
     @Override
     public String toString() {
         return new StringJoiner(", ", EffectiveOrderMessage.class.getSimpleName() + "[", "]")
                 .add("orderId='" + orderId + "'")
+                .add("operation='" + operation + "'")
                 .add("tenantCode='" + tenantCode + "'")
                 .add("account='" + account + "'")
                 .toString();

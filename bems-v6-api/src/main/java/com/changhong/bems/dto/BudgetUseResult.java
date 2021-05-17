@@ -19,31 +19,28 @@ public class BudgetUseResult implements Serializable {
     private String poolCode;
     @ApiModelProperty(value = "占用后预算池余额")
     private double balance;
+    @ApiModelProperty(value = "占用金额")
+    private double useAmount;
 
     public BudgetUseResult() {
 
     }
 
-    public BudgetUseResult(String poolCode, double balance) {
+    public BudgetUseResult(String poolCode, double balance, double useAmount) {
         this.poolCode = poolCode;
         this.balance = balance;
+        this.useAmount = useAmount;
     }
 
     public String getPoolCode() {
         return poolCode;
     }
 
-    public BudgetUseResult setPoolCode(String poolCode) {
-        this.poolCode = poolCode;
-        return this;
-    }
-
     public double getBalance() {
         return balance;
     }
 
-    public BudgetUseResult setBalance(double balance) {
-        this.balance = balance;
-        return this;
+    public double getUseAmount() {
+        return useAmount;
     }
 }

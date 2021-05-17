@@ -1,11 +1,14 @@
 package com.changhong.bems.service.mq;
 
+import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.OrderStatus;
 import com.changhong.bems.service.OrderService;
+import com.changhong.sei.core.context.SessionUser;
+import com.changhong.sei.core.context.mock.LocalMockUser;
+import com.changhong.sei.core.context.mock.MockUser;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.util.JsonUtils;
 import com.changhong.sei.util.thread.ThreadLocalHolder;
-import com.changhong.sei.utils.MockUserHelper;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,23 +48,44 @@ public class EffectiveOrderConsumer {
         }
         // 执行业务处理逻辑
         String orderId = null;
+        // 操作类型
+        String operation = null;
         try {
             ThreadLocalHolder.begin();
 
             String message = record.value();
             EffectiveOrderMessage orderMessage = JsonUtils.fromJson(message, EffectiveOrderMessage.class);
-            orderId = orderMessage.getOrderId();
+
             // 模拟用户
-            MockUserHelper.mockUser(orderMessage.getTenantCode(), orderMessage.getAccount());
-            // 生效处理
-            ResultData<Void> resultData = orderService.effective(orderId);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("预算申请单生效结果: {}", resultData);
+            MockUser mockUser = new LocalMockUser();
+            SessionUser sessionUser = new SessionUser();
+            sessionUser.setTenantCode(orderMessage.getTenantCode());
+            sessionUser.setUserId(orderMessage.getUserId());
+            sessionUser.setAccount(orderMessage.getAccount());
+            sessionUser.setUserName(orderMessage.getUserName());
+            mockUser.mock(sessionUser);
+//            MockUserHelper.mockUser(orderMessage.getTenantCode(), orderMessage.getAccount());
+
+            orderId = orderMessage.getOrderId();
+            operation = orderMessage.getOperation();
+            ResultData<Void> resultData;
+            if (Constants.ORDER_OPERATION_EFFECTIVE.equals(operation)) {
+                resultData = orderService.effective(orderId);
+                if (LOG.isInfoEnabled()) {
+                    LOG.info("预算申请单生效结果: {}", resultData);
+                }
+            } else if (Constants.ORDER_OPERATION_COMPLETE.equals(operation)) {
+                resultData = orderService.completeProcess(orderId);
+                if (LOG.isInfoEnabled()) {
+                    LOG.info("预算申请单流程完成处理结果: {}", resultData);
+                }
             }
         } catch (Exception e) {
             LOG.error("预算申请单生效处理异常.", e);
-            // 异常时,回滚状态为:草稿
-            orderService.updateStatus(orderId, OrderStatus.DRAFT);
+            if (Constants.ORDER_OPERATION_EFFECTIVE.equals(operation)) {
+                // 异常时,回滚状态为:草稿
+                orderService.updateStatus(orderId, OrderStatus.DRAFT);
+            }
         } finally {
             // 释放资源
             ThreadLocalHolder.end();

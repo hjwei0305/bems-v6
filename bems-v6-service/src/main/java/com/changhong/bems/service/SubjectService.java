@@ -134,4 +134,14 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
         }
         return OperateResult.operationSuccess();
     }
+
+    /**
+     * 通过公司代码获取预算主体
+     *
+     * @param corpCode 公司代码
+     * @return 返回预算主体清单
+     */
+    public List<Subject> getByCorpCode(String corpCode) {
+        return dao.findListByProperty(Subject.FIELD_CORP_CODE, corpCode);
+    }
 }

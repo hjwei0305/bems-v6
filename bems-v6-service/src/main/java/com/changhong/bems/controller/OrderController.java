@@ -1,6 +1,7 @@
 package com.changhong.bems.controller;
 
 import com.changhong.bems.api.OrderApi;
+import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
@@ -125,7 +126,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         }
         // 排除预制状态单据
         search.addFilter(new SearchFilter(Order.FIELD_STATUS, OrderStatus.PREFAB, SearchFilter.Operator.NE));
-        search.addFilter(new SearchFilter(Order.FIELD_ORDER_CATEGORY, OrderCategory.INJECTION));
+        search.addFilter(new SearchFilter(Order.FIELD_ORDER_CATEGORY, OrderCategory.SPLIT));
         return convertToDtoPageResult(service.findByPage(search));
     }
 
@@ -295,6 +296,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
             // 更新状态为生效中
             service.updateStatus(orderId, OrderStatus.EFFECTING);
+            // 更新订单总金额
+            service.updateAmount(orderId);
             // 检查是否存在错误行项
             ResultData<Void> resultData = service.checkDetailHasErr(details);
             if (resultData.successful()) {
@@ -308,12 +311,15 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                     // 发送队列消息
                     EffectiveOrderMessage message = new EffectiveOrderMessage();
                     message.setOrderId(orderId);
+                    message.setOperation(Constants.ORDER_OPERATION_EFFECTIVE);
                     SessionUser sessionUser = ContextUtil.getSessionUser();
+                    message.setUserId(sessionUser.getUserId());
                     message.setAccount(sessionUser.getAccount());
+                    message.setUserName(sessionUser.getUserName());
                     message.setTenantCode(sessionUser.getTenantCode());
                     producer.send(JsonUtils.toJson(message));
                     if (LOG.isInfoEnabled()) {
-                        LOG.info("预算申请单[{}]发送队列成功.", message);
+                        LOG.info("预算申请单[{}]-直接生效消息发送队列成功.", message);
                     }
                     //service.effective(orderId);
                 });
@@ -468,12 +474,23 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                 // 流程正常完成
                 // 检查订单状态
                 if (OrderStatus.PROCESSING == order.getStatus()) {
-                    if (!SeiLockHelper.checkLocked("bems-v6:complete:" + orderId)) {
-                        asyncRunUtil.runAsync(() -> service.completeProcess(order));
-                    } else {
-                        // 订单[{0}]正在提交流程处理过程中,请稍后.
-                        return ResultData.fail(ContextUtil.getMessage("order_00008", order.getCode()));
+//                    asyncRunUtil.runAsync(() -> {
+                    // 以线性队列方式,避免预算池并发问题
+                    // 发送队列消息
+                    EffectiveOrderMessage message = new EffectiveOrderMessage();
+                    message.setOrderId(orderId);
+                    message.setOperation(Constants.ORDER_OPERATION_COMPLETE);
+                    SessionUser sessionUser = ContextUtil.getSessionUser();
+                    message.setUserId(sessionUser.getUserId());
+                    message.setAccount(sessionUser.getAccount());
+                    message.setUserName(sessionUser.getUserName());
+                    message.setTenantCode(sessionUser.getTenantCode());
+                    producer.send(JsonUtils.toJson(message));
+                    if (LOG.isInfoEnabled()) {
+                        LOG.info("预算申请单[{}]-流程审批完成消息发送队列成功.", message);
                     }
+                    // service.completeProcess(order);
+//                    });
                 } else {
                     // 订单状态为[{0}],不允许操作!
                     return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));

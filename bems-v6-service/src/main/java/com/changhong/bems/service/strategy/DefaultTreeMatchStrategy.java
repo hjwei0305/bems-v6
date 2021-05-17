@@ -6,5 +6,5 @@ package com.changhong.bems.service.strategy;
  * @author 马超(Vision.Mac)
  * @version 1.0.00  2021-05-15 11:32
  */
-public class DefaultTreeMatchStrategy extends BaseMatchStrategy implements TreeMatchStrategy {
+public class DefaultTreeMatchStrategy extends BaseMatchStrategy implements DimensionMatchStrategy {
 }

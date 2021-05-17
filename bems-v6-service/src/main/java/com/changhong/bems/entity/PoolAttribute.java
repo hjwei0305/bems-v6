@@ -18,8 +18,12 @@ import java.time.LocalDate;
 public class PoolAttribute extends BaseAttribute implements ITenant, Serializable {
     private static final long serialVersionUID = 345291355065499642L;
     public static final String FIELD_SUBJECT_ID = "subjectId";
+    public static final String FIELD_CORP_CODE = "corpCode";
     public static final String FIELD_CODE = "code";
-    public static final String FIELD_ACTIVED = "actived";
+    public static final String FIELD_START_DATE = "startDate";
+    public static final String FIELD_END_DATE = "endDate";
+    public static final String FIELD_ACTIVE = "actived";
+    public static final String FIELD_USE = "use";
     /**
      * 代码
      */
@@ -30,6 +34,11 @@ public class PoolAttribute extends BaseAttribute implements ITenant, Serializabl
      */
     @Column(name = "subject_id")
     private String subjectId;
+    /**
+     * 公司代码
+     */
+    @Column(name = "corporation_code")
+    private String corpCode;
     /**
      * 币种代码
      */
@@ -103,6 +112,15 @@ public class PoolAttribute extends BaseAttribute implements ITenant, Serializabl
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public String getCorpCode() {
+        return corpCode;
+    }
+
+    public PoolAttribute setCorpCode(String corpCode) {
+        this.corpCode = corpCode;
+        return this;
     }
 
     public String getSubjectId() {
