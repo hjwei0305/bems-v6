@@ -107,8 +107,8 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     @GetMapping(path = "checkDimension")
     @ApiOperation(value = "检查预算主体和类型是否修改", notes = "通过单据Id检查预算主体和类型是否被修改")
     ResultData<Void> checkDimension(@RequestParam("orderId") String orderId,
-                                      @RequestParam("subjectId") String subjectId,
-                                      @RequestParam("categoryId") String categoryId);
+                                    @RequestParam("subjectId") String subjectId,
+                                    @RequestParam("categoryId") String categoryId);
 
     /**
      * 添加预算申请单行项明细
@@ -187,6 +187,15 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     @GetMapping(path = "checkSplitPrefab")
     @ApiOperation(value = "检查是否存在分解类型预制单", notes = "检查是否存在分解类型预制单")
     ResultData<OrderDto> checkSplitPrefab();
+
+    /**
+     * 获取申请单调整数据
+     *
+     * @return 返回调整数据
+     */
+    @GetMapping(path = "getAdjustData")
+    @ApiOperation(value = "获取申请单调整数据", notes = "获取申请单调整数据")
+    ResultData<Map<String, Double>> getAdjustData(@RequestParam("orderId") String orderId);
 
     ///////////////////////流程集成 start//////////////////////////////
 

@@ -376,6 +376,27 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         return ResultData.success(dto);
     }
 
+    /**
+     * 获取申请单调整数据
+     *
+     * @param orderId 申请单号
+     * @return 返回调整数据
+     */
+    @Override
+    public ResultData<Map<String, Double>> getAdjustData(String orderId) {
+        Map<String, Double> data = new HashMap<>();
+        data.put("ADD", 0d);
+        data.put("SUB", 0d);
+        List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
+        if (CollectionUtils.isNotEmpty(details)) {
+            double countAdd = details.stream().filter(d -> d.getAmount() > 0).count();
+            data.put("ADD", countAdd);
+            double countSub = details.stream().filter(d -> d.getAmount() < 0).count();
+            data.put("SUB", countSub);
+        }
+        return ResultData.success(data);
+    }
+
     ///////////////////////流程集成 start//////////////////////////////
 
     /**
