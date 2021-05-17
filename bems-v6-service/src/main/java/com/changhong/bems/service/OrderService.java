@@ -21,6 +21,7 @@ import com.changhong.sei.core.service.bo.OperateResultWithData;
 import com.changhong.sei.core.util.JsonUtils;
 import com.changhong.sei.serial.sdk.SerialService;
 import com.changhong.sei.util.ArithUtils;
+import com.changhong.sei.utils.AsyncRunUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.modelmapper.ModelMapper;
@@ -58,6 +59,8 @@ public class OrderService extends BaseEntityService<Order> {
     private PoolService poolService;
     @Autowired
     private FlowClient flowClient;
+    @Autowired
+    private AsyncRunUtil asyncRunUtil;
 
     @Override
     protected BaseEntityDao<Order> getDao() {
@@ -270,11 +273,13 @@ public class OrderService extends BaseEntityService<Order> {
                 resultData = this.effectiveUseBudget(order, details);
                 if (resultData.successful()) {
                     // 更新订单状态为:完成
-                    order.setStatus(OrderStatus.COMPLETED);
+                    dao.updateStatus(orderId, OrderStatus.COMPLETED);
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("预算申请单[" + order.getCode() + "]生效成功!");
                     }
                 } else {
+                    // 回滚事务
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                     LOG.error("预算申请单[" + order.getCode() + "]生效错误: " + resultData.getMessage());
                 }
             } else {
@@ -283,10 +288,17 @@ public class OrderService extends BaseEntityService<Order> {
             }
         }
         if (resultData.failed()) {
-            // 生效失败,更新订单状态为:草稿
-            order.setStatus(OrderStatus.DRAFT);
+            asyncRunUtil.runAsync(() -> {
+                try {
+                    // 休眠1s,防止状态事务还未更新
+                    Thread.sleep(1000);
+                } catch (InterruptedException ignored) {
+                }
+                // 异步处理,规避事务影响状态更新
+                // 生效失败,更新订单状态为:草稿
+                dao.updateStatus(orderId, OrderStatus.DRAFT);
+            });
         }
-        dao.save(order);
         return resultData;
     }
 
@@ -338,6 +350,9 @@ public class OrderService extends BaseEntityService<Order> {
             } catch (Exception ignored) {
             }
             LOG.error("提交流程异步处理异常", e);
+            resultData = ResultData.fail("提交流程异步处理异常.");
+        }
+        if (resultData.failed()) {
             // 回滚事务
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
         }
