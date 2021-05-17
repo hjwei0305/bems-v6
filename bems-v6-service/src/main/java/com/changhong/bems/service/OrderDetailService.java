@@ -27,6 +27,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -137,6 +138,8 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             detail.setAmount(oldAmount);
             detail.setHasErr(Boolean.TRUE);
             detail.setErrMsg(resultData.getMessage());
+            // 回滚事务
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
         }
         return ResultData.success(detail);
     }
