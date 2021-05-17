@@ -131,12 +131,13 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         if (resultData.successful()) {
             detail.setHasErr(Boolean.FALSE);
             detail.setErrMsg("");
+            // 只对正常数据做保存
+            this.save(detail);
         } else {
             detail.setAmount(oldAmount);
             detail.setHasErr(Boolean.TRUE);
             detail.setErrMsg(resultData.getMessage());
         }
-        this.save(detail);
         return ResultData.success(detail);
     }
 
