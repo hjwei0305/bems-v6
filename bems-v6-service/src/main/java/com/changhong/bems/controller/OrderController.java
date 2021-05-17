@@ -22,6 +22,7 @@ import com.changhong.sei.core.limiter.support.lock.SeiLockHelper;
 import com.changhong.sei.core.mq.MqProducer;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.util.JsonUtils;
+import com.changhong.sei.util.ArithUtils;
 import com.changhong.sei.util.EnumUtils;
 import com.changhong.sei.utils.AsyncRunUtil;
 import io.swagger.annotations.Api;
@@ -389,10 +390,10 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         data.put("SUB", 0d);
         List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
         if (CollectionUtils.isNotEmpty(details)) {
-            double countAdd = details.stream().filter(d -> d.getAmount() > 0).count();
-            data.put("ADD", countAdd);
-            double countSub = details.stream().filter(d -> d.getAmount() < 0).count();
-            data.put("SUB", countSub);
+            double sumAdd = details.stream().filter(d -> d.getAmount() > 0).mapToDouble(OrderDetail::getAmount).sum();
+            data.put("ADD", ArithUtils.round(sumAdd, 2));
+            double sumSub = details.stream().filter(d -> d.getAmount() < 0).mapToDouble(OrderDetail::getAmount).sum();
+            data.put("SUB", ArithUtils.round(sumSub, 2));
         }
         return ResultData.success(data);
     }
