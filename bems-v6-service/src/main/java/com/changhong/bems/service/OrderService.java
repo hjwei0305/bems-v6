@@ -207,7 +207,6 @@ public class OrderService extends BaseEntityService<Order> {
                 order.setCreatorName(entity.getCreatorName());
                 order.setCreatedDate(entity.getCreatedDate());
                 order.setApplyAmount(entity.getApplyAmount());
-                order.setStatus(entity.getStatus());
             }
         }
         OperateResultWithData<Order> result = this.save(order);
