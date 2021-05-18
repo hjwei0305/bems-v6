@@ -235,9 +235,9 @@ public class BudgetService {
 
     private ResultData<List<Pool>> getOptimalBudgetPools(BudgetUse useBudget) {
         ResultData<List<Pool>> pools = this.getBudgetPools(useBudget);
-        // 按执行策略排序预算池使用优先顺序
+        // TODO 按执行策略排序预算池使用优先顺序
 
-        return null;
+        return ResultData.success();
     }
 
     private ResultData<List<Pool>> getBudgetPools(BudgetUse useBudget) {
@@ -364,16 +364,28 @@ public class BudgetService {
             throw new ServiceException(ContextUtil.getMessage("strategy_00004", dimension.getStrategyId()));
         }
 
+        SearchFilter filter = null;
         String className = strategy.getClassPath();
         try {
             Class<?> clazz = Class.forName(className);
             if (DimensionMatchStrategy.class.isAssignableFrom(clazz)) {
+                // 策略实例
                 DimensionMatchStrategy matchStrategy = (DimensionMatchStrategy) clazz.newInstance();
+                // 策略结果
+                Object obj = matchStrategy.getMatchValue(dimension, dimValue);
+                if (Objects.nonNull(obj)) {
+                    if (obj instanceof Collection) {
+                        filter = new SearchFilter(dimCode, dimValue, SearchFilter.Operator.IN);
+                    } else if (obj.getClass().isArray()) {
+                        filter = new SearchFilter(dimCode, dimValue, SearchFilter.Operator.IN);
+                    } else {
+                        filter = new SearchFilter(dimCode, dimValue);
+                    }
+                }
             }
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
         }
-
-        return new SearchFilter(dimCode, dimValue);
+        return filter;
     }
 }

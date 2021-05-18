@@ -100,6 +100,11 @@ public class OrderDto extends BaseEntityDto {
     @ApiModelProperty(value = "归口管理组织名称")
     private String managerOrgName;
     /**
+     * 是否手动生效
+     */
+    @ApiModelProperty(value = "是否手动生效")
+    private Boolean manuallyEffective = Boolean.FALSE;
+    /**
      * 备注说明
      */
     @ApiModelProperty(value = "备注说明")
@@ -250,6 +255,15 @@ public class OrderDto extends BaseEntityDto {
 
     public void setManagerOrgName(String managerOrgName) {
         this.managerOrgName = managerOrgName;
+    }
+
+    public Boolean getManuallyEffective() {
+        return manuallyEffective;
+    }
+
+    public OrderDto setManuallyEffective(Boolean manuallyEffective) {
+        this.manuallyEffective = manuallyEffective;
+        return this;
     }
 
     public String getRemark() {

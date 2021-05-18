@@ -45,4 +45,14 @@ public interface OrderDao extends BaseEntityDao<Order> {
     @Modifying
     @Query("update Order o set o.status = :status where o.id = :id ")
     void updateStatus(@Param("id") String id, @Param("status") OrderStatus status);
+
+    /**
+     * 更新订单是否手动生效
+     *
+     * @param id                订单id
+     * @param manuallyEffective 是否手动生效
+     */
+    @Modifying
+    @Query("update Order o set o.manuallyEffective = :manuallyEffective where o.id = :id ")
+    void manuallyEffective(@Param("id") String id, @Param("manuallyEffective") boolean manuallyEffective);
 }

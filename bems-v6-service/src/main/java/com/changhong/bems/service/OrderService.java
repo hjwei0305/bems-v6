@@ -274,6 +274,8 @@ public class OrderService extends BaseEntityService<Order> {
                 if (resultData.successful()) {
                     // 更新订单状态为:完成
                     dao.updateStatus(orderId, OrderStatus.COMPLETED);
+                    // 更新订单为手动生效标示
+                    dao.manuallyEffective(orderId, Boolean.TRUE);
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("预算申请单[" + order.getCode() + "]生效成功!");
                     }
@@ -344,8 +346,8 @@ public class OrderService extends BaseEntityService<Order> {
                 flowClient.endByBusinessId(order.getId());
             } catch (Exception ignored) {
             }
-            LOG.error("提交流程异步处理异常", e);
-            resultData = ResultData.fail("提交流程异步处理异常.");
+            LOG.error("回调flow通知接收任务异常", e);
+            resultData = ResultData.fail("回调flow通知接收任务异常.");
         }
         if (LOG.isInfoEnabled()) {
             LOG.info("[{}]回调flow通知接收任务结果: {}", order.getCode(), resultData.getMessage());

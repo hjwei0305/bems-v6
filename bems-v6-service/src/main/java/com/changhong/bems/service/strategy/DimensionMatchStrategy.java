@@ -1,5 +1,7 @@
 package com.changhong.bems.service.strategy;
 
+import com.changhong.bems.entity.Dimension;
+
 /**
  * 实现功能：
  *
@@ -8,5 +10,12 @@ package com.changhong.bems.service.strategy;
  */
 public interface DimensionMatchStrategy {
 
-    Object getMatchValue();
+    /**
+     * 获取维度匹配值
+     *
+     * @param dimension 维度对象
+     * @param dimValue  维度值
+     * @return 返回匹配值
+     */
+    Object getMatchValue(Dimension dimension, String dimValue);
 }

@@ -117,6 +117,11 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
     @Column(name = "remark")
     private String remark;
     /**
+     * 是否手动生效
+     */
+    @Column(name = "manually_effective")
+    private Boolean manuallyEffective = Boolean.FALSE;
+    /**
      * 状态
      */
     @Column(name = "status")
@@ -256,6 +261,15 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
 
     public void setManagerOrgName(String managerOrgName) {
         this.managerOrgName = managerOrgName;
+    }
+
+    public Boolean getManuallyEffective() {
+        return manuallyEffective;
+    }
+
+    public Order setManuallyEffective(Boolean manuallyEffective) {
+        this.manuallyEffective = manuallyEffective;
+        return this;
     }
 
     public String getRemark() {
