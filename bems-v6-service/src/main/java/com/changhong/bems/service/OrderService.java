@@ -328,15 +328,15 @@ public class OrderService extends BaseEntityService<Order> {
             resultData = ResultData.fail(ContextUtil.getMessage("order_00001"));
         }
         if (LOG.isInfoEnabled()) {
-            LOG.info("提交流程异步处理结果: {}", JsonUtils.toJson(resultData));
+            LOG.info("[{}]提交流程异步处理结果: {}", order.getCode(), resultData.getMessage());
         }
         try {
             if (resultData.failed()) {
                 // 回调flow通知接收任务退出流程
-                flowClient.endByBusinessId(order.getId());
+                resultData = flowClient.endByBusinessId(order.getId());
             } else {
                 // 回调flow通知接收任务继续执行
-                flowClient.signalByBusinessId(order.getId(), taskActDefId, new HashMap<>());
+                resultData = flowClient.signalByBusinessId(order.getId(), taskActDefId, new HashMap<>());
             }
         } catch (Exception e) {
             try {
@@ -346,6 +346,9 @@ public class OrderService extends BaseEntityService<Order> {
             }
             LOG.error("提交流程异步处理异常", e);
             resultData = ResultData.fail("提交流程异步处理异常.");
+        }
+        if (LOG.isInfoEnabled()) {
+            LOG.info("[{}]回调flow通知接收任务结果: {}", order.getCode(), resultData.getMessage());
         }
         if (resultData.failed()) {
             // 回滚事务
