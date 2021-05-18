@@ -319,11 +319,6 @@ public class OrderService extends BaseEntityService<Order> {
             // 检查订单状态
             if (OrderStatus.PROCESSING == order.getStatus()) {
                 resultData = this.submitProcessUseBudget(order, details);
-                if (resultData.successful()) {
-                    // 更新订单状态为:流程中
-                    order.setStatus(OrderStatus.PROCESSING);
-                    dao.save(order);
-                }
             } else {
                 // 订单状态为[{0}],不允许操作!
                 resultData = ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
