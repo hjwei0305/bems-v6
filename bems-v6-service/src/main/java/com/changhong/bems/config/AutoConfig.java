@@ -16,21 +16,21 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @Configuration
 public class AutoConfig {
 
-//    @Bean
-//    @ConditionalOnMissingBean
-//    public DimensionMatchStrategy equalStrategy() {
-//        return new DefaultEqualMatchStrategy();
-//    }
-//
-//    @Bean
-//    @ConditionalOnMissingBean
-//    public DimensionMatchStrategy treeMatchStrategy() {
-//        return new DefaultTreeMatchStrategy();
-//    }
-//
-//    @Bean
-//    @ConditionalOnMissingBean
-//    public DimensionMatchStrategy periodMatchStrategy() {
-//        return new DefaultPeriodMatchStrategy();
-//    }
+    @Bean
+    @ConditionalOnMissingBean
+    public DimensionMatchStrategy equalStrategy() {
+        return new DefaultEqualMatchStrategy();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public DimensionMatchStrategy treeMatchStrategy() {
+        return new DefaultTreeMatchStrategy();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public DimensionMatchStrategy periodMatchStrategy() {
+        return new DefaultPeriodMatchStrategy();
+    }
 }

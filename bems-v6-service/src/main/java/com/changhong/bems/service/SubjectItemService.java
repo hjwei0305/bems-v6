@@ -13,8 +13,12 @@ import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
+import com.changhong.sei.core.service.bo.OperateResultWithData;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +35,7 @@ import java.util.stream.Collectors;
  * @since 2021-04-22 12:54:30
  */
 @Service
+@CacheConfig(cacheNames = SubjectItemService.CACHE_KEY)
 public class SubjectItemService extends BaseEntityService<SubjectItem> {
     @Autowired
     private SubjectItemDao dao;
@@ -40,6 +45,8 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
     private SubjectService subjectService;
     @Autowired
     private ItemService itemService;
+
+    public static final String CACHE_KEY = "bems-v6:subjectitem";
 
     @Override
     protected BaseEntityDao<SubjectItem> getDao() {
@@ -53,6 +60,8 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
      * @return 返回操作结果对象
      */
     @Override
+    @CacheEvict(allEntries = true)
+    @Transactional(rollbackFor = Exception.class)
     public OperateResult delete(String id) {
         SubjectItem entity = findOne(id);
         if (Objects.nonNull(entity)) {
@@ -67,6 +76,16 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
         } else {
             return OperateResult.operationWarning("core_service_00029");
         }
+    }
+
+    /**
+     * 数据保存操作
+     */
+    @Override
+    @CacheEvict(key = "#entity.subjectId + ':' + #entity.code")
+    @Transactional(rollbackFor = Exception.class)
+    public OperateResultWithData<SubjectItem> save(SubjectItem entity) {
+        return super.save(entity);
     }
 
     /**
@@ -98,6 +117,7 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
      * @param ids 预算主体科目id
      * @return 操作结果
      */
+    @CacheEvict(allEntries = true)
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> frozen(List<String> ids, boolean frozen) {
         List<SubjectItem> items = dao.findAllById(ids);
@@ -155,6 +175,7 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
      * @param itemCodes 科目代码
      * @return 分配结果
      */
+    @CacheEvict(key = "#subjectId + ':*'")
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> assigne(String subjectId, Set<String> itemCodes) {
         Subject subject = subjectService.findOne(subjectId);
@@ -228,5 +249,20 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
         }
         this.save(itemList);
         return ResultData.success();
+    }
+
+    /**
+     * 按预算主体id和科目代码获取科目
+     *
+     * @param subjectId 预算主体id
+     * @param itemCode  科目代码
+     * @return 返回科目
+     */
+    @Cacheable(key = "#subjectId + ':' + #itemCode")
+    public SubjectItem getSubjectItem(String subjectId, String itemCode) {
+        Search search = Search.createSearch();
+        search.addFilter(new SearchFilter(SubjectItem.FIELD_SUBJECT_ID, subjectId));
+        search.addFilter(new SearchFilter(SubjectItem.FIELD_CODE, itemCode));
+        return dao.findFirstByFilters(search);
     }
 }

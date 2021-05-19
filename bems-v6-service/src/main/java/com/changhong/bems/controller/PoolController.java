@@ -1,8 +1,9 @@
 package com.changhong.bems.controller;
 
 import com.changhong.bems.api.PoolApi;
+import com.changhong.bems.dto.ExecutionRecordDto;
 import com.changhong.bems.dto.PoolAttributeDto;
-import com.changhong.bems.dto.PoolDto;
+import com.changhong.bems.entity.ExecutionRecord;
 import com.changhong.bems.entity.PoolAttribute;
 import com.changhong.bems.service.PoolService;
 import com.changhong.sei.core.context.ContextUtil;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -76,5 +78,44 @@ public class PoolController implements PoolApi {
         } else {
             return ResultData.fail(ContextUtil.getMessage("pool_00001"));
         }
+    }
+
+    /**
+     * 通过Id启用预算池
+     *
+     * @param ids 预算池Id集合
+     * @return 启用结果
+     */
+    @Override
+    public ResultData<Void> enable(Set<String> ids) {
+        return service.updateActiveStatus(ids, Boolean.TRUE);
+    }
+
+    /**
+     * 通过Id禁用预算池
+     *
+     * @param ids 预算池Id集合
+     * @return 启用结果
+     */
+    @Override
+    public ResultData<Void> disable(Set<String> ids) {
+        return service.updateActiveStatus(ids, Boolean.FALSE);
+    }
+
+    /**
+     * 分页查询预算执行日志
+     *
+     * @param search 查询参数
+     * @return 分页查询结果
+     */
+    @Override
+    public ResultData<PageResult<ExecutionRecordDto>> findRecordByPage(Search search) {
+        PageResult<ExecutionRecord> pageResult = service.findRecordByPage(search);
+        PageResult<ExecutionRecordDto> result = new PageResult<>(pageResult);
+        List<ExecutionRecord> records = pageResult.getRows();
+        if (CollectionUtils.isNotEmpty(records)) {
+            result.setRows(records.stream().map(r -> modelMapper.map(r, ExecutionRecordDto.class)).collect(Collectors.toList()));
+        }
+        return ResultData.success();
     }
 }

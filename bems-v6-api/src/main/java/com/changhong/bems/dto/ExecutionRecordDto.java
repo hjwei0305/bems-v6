@@ -22,11 +22,6 @@ public class ExecutionRecordDto extends BaseEntityDto {
     @ApiModelProperty(value = "预算池编码")
     private String poolCode;
     /**
-     * 预算维度属性id
-     */
-    @ApiModelProperty(value = "预算维度属性id")
-    private String attributeId;
-    /**
      * 操作类型
      */
     @ApiModelProperty(value = "操作类型")
@@ -84,14 +79,6 @@ public class ExecutionRecordDto extends BaseEntityDto {
 
     public void setPoolCode(String poolCode) {
         this.poolCode = poolCode;
-    }
-
-    public String getAttributeId() {
-        return attributeId;
-    }
-
-    public void setAttributeId(String attributeId) {
-        this.attributeId = attributeId;
     }
 
     public OperationType getOperation() {

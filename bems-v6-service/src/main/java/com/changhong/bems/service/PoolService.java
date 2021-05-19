@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.Set;
 
 
 /**
@@ -260,5 +261,27 @@ public class PoolService extends BaseEntityService<Pool> {
         search.addFilter(new SearchFilter(PoolAttribute.FIELD_SUBJECT_ID, subjectId));
         search.addFilter(new SearchFilter(PoolAttribute.FIELD_CODE, code));
         return poolAttributeDao.findFirstByFilters(search);
+    }
+
+    /**
+     * 通过Id启用预算池
+     *
+     * @param ids 预算池Id集合
+     * @return 启用结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ResultData<Void> updateActiveStatus(Set<String> ids, boolean isActive) {
+        dao.updateActiveStatus(ids, isActive);
+        return ResultData.success();
+    }
+
+    /**
+     * 分页查询预算执行日志
+     *
+     * @param search 查询参数
+     * @return 分页查询结果
+     */
+    public PageResult<ExecutionRecord> findRecordByPage(Search search) {
+        return executionRecordService.findByPage(search);
     }
 }
