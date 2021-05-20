@@ -55,8 +55,13 @@ public class ExecutionRecordDto extends BaseEntityDto {
     /**
      * 业务事件
      */
-    @ApiModelProperty(value = "业务事件")
+    @ApiModelProperty(value = "业务事件代码")
     private String bizEvent;
+    /**
+     * 业务事件
+     */
+    @ApiModelProperty(value = "业务事件名称")
+    private String eventName;
     /**
      * 业务id
      */
@@ -135,6 +140,14 @@ public class ExecutionRecordDto extends BaseEntityDto {
 
     public void setBizEvent(String bizEvent) {
         this.bizEvent = bizEvent;
+    }
+
+    public String getEventName() {
+        return eventName;
+    }
+
+    public void setEventName(String eventName) {
+        this.eventName = eventName;
     }
 
     public String getBizId() {

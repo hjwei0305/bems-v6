@@ -15,7 +15,7 @@ import java.time.LocalDate;
  */
 @Entity
 @Table(name = "view_pool")
-public class PoolAttribute extends BaseAttribute implements ITenant, Serializable {
+public class PoolAttributeView extends BaseAttribute implements ITenant, Serializable {
     private static final long serialVersionUID = 345291355065499642L;
     public static final String FIELD_SUBJECT_ID = "subjectId";
     public static final String FIELD_CORP_CODE = "corpCode";
@@ -118,7 +118,7 @@ public class PoolAttribute extends BaseAttribute implements ITenant, Serializabl
         return corpCode;
     }
 
-    public PoolAttribute setCorpCode(String corpCode) {
+    public PoolAttributeView setCorpCode(String corpCode) {
         this.corpCode = corpCode;
         return this;
     }

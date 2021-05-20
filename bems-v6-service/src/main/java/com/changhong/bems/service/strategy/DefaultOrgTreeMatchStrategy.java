@@ -1,5 +1,6 @@
 package com.changhong.bems.service.strategy;
 
+import com.changhong.bems.dto.BudgetUse;
 import com.changhong.bems.entity.Dimension;
 
 /**
@@ -8,7 +9,7 @@ import com.changhong.bems.entity.Dimension;
  * @author 马超(Vision.Mac)
  * @version 1.0.00  2021-05-15 11:32
  */
-public class DefaultTreeMatchStrategy extends BaseMatchStrategy implements DimensionMatchStrategy {
+public class DefaultOrgTreeMatchStrategy extends BaseMatchStrategy implements DimensionMatchStrategy {
     /**
      * 获取维度匹配值
      *
@@ -17,7 +18,7 @@ public class DefaultTreeMatchStrategy extends BaseMatchStrategy implements Dimen
      * @return 返回匹配值
      */
     @Override
-    public Object getMatchValue(Dimension dimension, String dimValue) {
+    public Object getMatchValue(BudgetUse budgetUse, Dimension dimension, String dimValue) {
         return null;
     }
 }

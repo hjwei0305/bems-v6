@@ -1,5 +1,6 @@
 package com.changhong.bems.service.strategy;
 
+import com.changhong.bems.dto.BudgetUse;
 import com.changhong.bems.entity.Dimension;
 
 /**
@@ -17,7 +18,7 @@ public class DefaultPeriodMatchStrategy extends BaseMatchStrategy implements Dim
      * @return 返回匹配值
      */
     @Override
-    public Object getMatchValue(Dimension dimension, String dimValue) {
+    public Object getMatchValue(BudgetUse budgetUse, Dimension dimension, String dimValue) {
         return null;
     }
 }

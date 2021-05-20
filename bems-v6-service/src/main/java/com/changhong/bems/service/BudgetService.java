@@ -4,6 +4,7 @@ import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.*;
 import com.changhong.bems.service.strategy.DimensionMatchStrategy;
+import com.changhong.sei.core.cache.impl.LocalCacheProviderImpl;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.Search;
@@ -11,6 +12,7 @@ import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.exception.ServiceException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,9 +38,14 @@ public class BudgetService {
     @Autowired
     private SubjectService subjectService;
     @Autowired
+    private SubjectItemService subjectItemService;
+    @Autowired
     private DimensionService dimensionService;
     @Autowired
     private StrategyService strategyService;
+
+    @Autowired
+    private LocalCacheProviderImpl localCacheService;
 
     /**
      * 使用预算
@@ -233,15 +240,31 @@ public class BudgetService {
         }
     }
 
+    /**
+     * 获取最优匹配条件的预算池
+     * @param useBudget 预算占用数据
+     * @return 返回最优预算池
+     */
     private ResultData<List<Pool>> getOptimalBudgetPools(BudgetUse useBudget) {
         ResultData<List<Pool>> pools = this.getBudgetPools(useBudget);
         // TODO 按执行策略排序预算池使用优先顺序
+        //
+//        SubjectItem item = subjectItemService.getSubjectItem(useBudget.getItem());
+//        if (Objects.isNull(item)) {
+//            return ResultData.fail(ContextUtil.getMessage("item_00003", useBudget.getItem()));
+//        }
+//        strategyService.findOne(item.)
 
         return ResultData.success();
     }
 
+    /**
+     * 初步查找满足条件的预算池
+     *
+     * @param useBudget 占用数据
+     * @return 返回满足条件的预算池
+     */
     private ResultData<List<Pool>> getBudgetPools(BudgetUse useBudget) {
-        // TODO 获取预算池
         /*
         1.按公司代码查询预算主体清单;
         2.维度匹配,匹配规则:
@@ -258,20 +281,21 @@ public class BudgetService {
 
         Search search = Search.createSearch();
         // 公司代码
-        search.addFilter(new SearchFilter(PoolAttribute.FIELD_CORP_CODE, corpCode));
-        //有效期
-        search.addFilter(new SearchFilter(PoolAttribute.FIELD_START_DATE, happenDate, SearchFilter.Operator.LE));
-        search.addFilter(new SearchFilter(PoolAttribute.FIELD_END_DATE, happenDate, SearchFilter.Operator.GE));
-        // 启用
-        search.addFilter(new SearchFilter(PoolAttribute.FIELD_ACTIVE, Boolean.TRUE));
-        // 允许使用(业务可用)
-        search.addFilter(new SearchFilter(PoolAttribute.FIELD_USE, Boolean.TRUE));
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_CORP_CODE, corpCode));
 
         // 按维度策略生成过滤条件
         Map<String, String> dimensionAttributes = this.getDimensionAttributes(useBudget);
         for (Map.Entry<String, String> entry : dimensionAttributes.entrySet()) {
-            search.addFilter(this.doDimensionStrategy(entry.getKey(), entry.getValue()));
+            search.addFilter(this.doDimensionStrategy(useBudget, entry.getKey(), entry.getValue()));
         }
+
+        //有效期
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_START_DATE, happenDate, SearchFilter.Operator.LE));
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_END_DATE, happenDate, SearchFilter.Operator.GE));
+        // 启用
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_ACTIVE, Boolean.TRUE));
+        // 允许使用(业务可用)
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_USE, Boolean.TRUE));
 
         // 按条件查询满足的预算池
         List<Pool> pools = poolService.findByFilters(search);
@@ -352,7 +376,15 @@ public class BudgetService {
         return dimensionMap;
     }
 
-    private SearchFilter doDimensionStrategy(String dimCode, String dimValue) {
+    /**
+     * 按预算维度策略获取过滤条件
+     *
+     * @param dimCode  维度代码
+     * @param dimValue 维度值
+     * @return 返回维度策略获取过滤条件
+     * @throws ServiceException 异常
+     */
+    private SearchFilter doDimensionStrategy(BudgetUse budgetUse, String dimCode, String dimValue) {
         Dimension dimension = dimensionService.findByCode(dimCode);
         if (Objects.isNull(dimension)) {
             // 维度[{0}]不存在
@@ -364,16 +396,17 @@ public class BudgetService {
             throw new ServiceException(ContextUtil.getMessage("strategy_00004", dimension.getStrategyId()));
         }
 
-        SearchFilter filter = null;
+        ServiceException exception;
         String className = strategy.getClassPath();
         try {
             Class<?> clazz = Class.forName(className);
             if (DimensionMatchStrategy.class.isAssignableFrom(clazz)) {
                 // 策略实例
-                DimensionMatchStrategy matchStrategy = (DimensionMatchStrategy) clazz.newInstance();
+                DimensionMatchStrategy matchStrategy = (DimensionMatchStrategy) ContextUtil.getBean(clazz);
                 // 策略结果
-                Object obj = matchStrategy.getMatchValue(dimension, dimValue);
+                Object obj = matchStrategy.getMatchValue(budgetUse, dimension, dimValue);
                 if (Objects.nonNull(obj)) {
+                    SearchFilter filter;
                     if (obj instanceof Collection) {
                         filter = new SearchFilter(dimCode, dimValue, SearchFilter.Operator.IN);
                     } else if (obj.getClass().isArray()) {
@@ -381,11 +414,16 @@ public class BudgetService {
                     } else {
                         filter = new SearchFilter(dimCode, dimValue);
                     }
+                    return filter;
+                } else {
+                    exception = new ServiceException("预算维度[" + dimension.getName() + "]策略条件不能返回为Null.");
                 }
+            } else {
+                exception = new ServiceException("预算维度[" + dimension.getName() + "]策略配置错误.");
             }
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
+        } catch (ClassNotFoundException | BeansException e) {
+            exception = new ServiceException("按预算维度策略获取过滤条件异常", e);
         }
-        return filter;
+        throw exception;
     }
 }

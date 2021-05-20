@@ -1,9 +1,12 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.dao.ExecutionRecordDao;
+import com.changhong.bems.dao.ExecutionRecordViewDao;
 import com.changhong.bems.dto.OperationType;
 import com.changhong.bems.entity.ExecutionRecord;
+import com.changhong.bems.entity.ExecutionRecordView;
 import com.changhong.sei.core.dao.BaseEntityDao;
+import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
@@ -23,6 +26,8 @@ import java.util.List;
 public class ExecutionRecordService extends BaseEntityService<ExecutionRecord> {
     @Autowired
     private ExecutionRecordDao dao;
+    @Autowired
+    private ExecutionRecordViewDao viewDao;
 
     @Override
     protected BaseEntityDao<ExecutionRecord> getDao() {
@@ -59,4 +64,7 @@ public class ExecutionRecordService extends BaseEntityService<ExecutionRecord> {
         return dao.findByFilters(search);
     }
 
+    public PageResult<ExecutionRecordView> findViewByPage(Search search) {
+        return viewDao.findByPage(search);
+    }
 }

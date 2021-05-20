@@ -25,7 +25,7 @@ public class AutoConfig {
     @Bean
     @ConditionalOnMissingBean
     public DimensionMatchStrategy treeMatchStrategy() {
-        return new DefaultTreeMatchStrategy();
+        return new DefaultOrgTreeMatchStrategy();
     }
 
     @Bean

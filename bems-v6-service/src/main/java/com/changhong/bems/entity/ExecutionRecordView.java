@@ -11,16 +11,16 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * 预算执行记录(ExecutionRecord)实体类
+ * 预算执行记录(ExecutionRecordView)实体类
  *
  * @author sei
  * @since 2021-04-25 15:10:03
  */
 @Entity
-@Table(name = "execution_record")
+@Table(name = "view_execution_record")
 @DynamicInsert
 @DynamicUpdate
-public class ExecutionRecord extends BaseEntity implements ITenant, Serializable, Cloneable {
+public class ExecutionRecordView extends BaseEntity implements ITenant, Serializable {
     private static final long serialVersionUID = -28943145565423431L;
     public static final String FIELD_EVENT_CODE = "eventCode";
     public static final String FIELD_BIZ_ID = "bizId";
@@ -77,6 +77,16 @@ public class ExecutionRecord extends BaseEntity implements ITenant, Serializable
     @Column(name = "biz_event", updatable = false)
     private String eventCode;
     /**
+     * 业务事件
+     */
+    @Column(name = "biz_event_name", updatable = false)
+    private String eventName;
+    /**
+     * 业务来源系统
+     */
+    @Column(name = "biz_from", updatable = false)
+    private String bizFrom;
+    /**
      * 业务单id
      */
     @Column(name = "biz_id", updatable = false)
@@ -96,16 +106,6 @@ public class ExecutionRecord extends BaseEntity implements ITenant, Serializable
      */
     @Column(name = "tenant_code", updatable = false)
     private String tenantCode;
-
-    public ExecutionRecord() {
-    }
-
-    public ExecutionRecord(String poolCode, OperationType operation, Double amount, String eventCode) {
-        this.poolCode = poolCode;
-        this.operation = operation;
-        this.amount = amount;
-        this.eventCode = eventCode;
-    }
 
     public String getSubjectId() {
         return subjectId;
@@ -203,6 +203,22 @@ public class ExecutionRecord extends BaseEntity implements ITenant, Serializable
         this.eventCode = bizEvent;
     }
 
+    public String getEventName() {
+        return eventName;
+    }
+
+    public void setEventName(String eventName) {
+        this.eventName = eventName;
+    }
+
+    public String getBizFrom() {
+        return bizFrom;
+    }
+
+    public void setBizFrom(String bizFrom) {
+        this.bizFrom = bizFrom;
+    }
+
     public String getBizRemark() {
         return bizRemark;
     }
@@ -222,9 +238,9 @@ public class ExecutionRecord extends BaseEntity implements ITenant, Serializable
     }
 
     @Override
-    public ExecutionRecord clone() {
+    public ExecutionRecordView clone() {
         try {
-            return (ExecutionRecord) super.clone();
+            return (ExecutionRecordView) super.clone();
         } catch (CloneNotSupportedException e) {
             e.printStackTrace();
             return null;

@@ -4,7 +4,8 @@ import com.changhong.bems.api.PoolApi;
 import com.changhong.bems.dto.ExecutionRecordDto;
 import com.changhong.bems.dto.PoolAttributeDto;
 import com.changhong.bems.entity.ExecutionRecord;
-import com.changhong.bems.entity.PoolAttribute;
+import com.changhong.bems.entity.ExecutionRecordView;
+import com.changhong.bems.entity.PoolAttributeView;
 import com.changhong.bems.service.PoolService;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.ResultData;
@@ -51,10 +52,10 @@ public class PoolController implements PoolApi {
      */
     @Override
     public ResultData<PageResult<PoolAttributeDto>> findByPage(Search search) {
-        PageResult<PoolAttribute> result = service.findPoolByPage(search);
+        PageResult<PoolAttributeView> result = service.findPoolByPage(search);
         PageResult<PoolAttributeDto> pageResult = new PageResult<>(result);
         List<PoolAttributeDto> list;
-        List<PoolAttribute> poolAttributes = result.getRows();
+        List<PoolAttributeView> poolAttributes = result.getRows();
         if (CollectionUtils.isNotEmpty(poolAttributes)) {
             list = poolAttributes.stream().map(p -> modelMapper.map(p, PoolAttributeDto.class)).collect(Collectors.toList());
         } else {
@@ -72,7 +73,7 @@ public class PoolController implements PoolApi {
      */
     @Override
     public ResultData<PoolAttributeDto> getPool(String id) {
-        PoolAttribute attribute = service.findPoolAttribute(id);
+        PoolAttributeView attribute = service.findPoolAttribute(id);
         if (Objects.nonNull(attribute)) {
             return ResultData.success(modelMapper.map(attribute, PoolAttributeDto.class));
         } else {
@@ -110,9 +111,9 @@ public class PoolController implements PoolApi {
      */
     @Override
     public ResultData<PageResult<ExecutionRecordDto>> findRecordByPage(Search search) {
-        PageResult<ExecutionRecord> pageResult = service.findRecordByPage(search);
+        PageResult<ExecutionRecordView> pageResult = service.findRecordByPage(search);
         PageResult<ExecutionRecordDto> result = new PageResult<>(pageResult);
-        List<ExecutionRecord> records = pageResult.getRows();
+        List<ExecutionRecordView> records = pageResult.getRows();
         if (CollectionUtils.isNotEmpty(records)) {
             result.setRows(records.stream().map(r -> modelMapper.map(r, ExecutionRecordDto.class)).collect(Collectors.toList()));
         }

@@ -1,6 +1,6 @@
 package com.changhong.bems.service;
 
-import com.changhong.bems.dao.PoolAttributeDao;
+import com.changhong.bems.dao.PoolAttributeViewDao;
 import com.changhong.bems.dao.PoolDao;
 import com.changhong.bems.entity.*;
 import com.changhong.sei.core.context.ContextUtil;
@@ -38,7 +38,7 @@ public class PoolService extends BaseEntityService<Pool> {
     @Autowired
     private PoolDao dao;
     @Autowired
-    private PoolAttributeDao poolAttributeDao;
+    private PoolAttributeViewDao poolAttributeDao;
     @Autowired
     private DimensionAttributeService dimensionAttributeService;
     @Autowired
@@ -235,7 +235,7 @@ public class PoolService extends BaseEntityService<Pool> {
      * @param search 查询对象
      * @return 分页结果
      */
-    public PageResult<PoolAttribute> findPoolByPage(Search search) {
+    public PageResult<PoolAttributeView> findPoolByPage(Search search) {
         return poolAttributeDao.findByPage(search);
     }
 
@@ -245,7 +245,7 @@ public class PoolService extends BaseEntityService<Pool> {
      * @param id 预算池id
      * @return 预算池
      */
-    public PoolAttribute findPoolAttribute(String id) {
+    public PoolAttributeView findPoolAttribute(String id) {
         return poolAttributeDao.findOne(id);
     }
 
@@ -256,10 +256,10 @@ public class PoolService extends BaseEntityService<Pool> {
      * @param code      预算编码
      * @return 预算池
      */
-    public PoolAttribute findPoolAttribute(String subjectId, String code) {
+    public PoolAttributeView findPoolAttribute(String subjectId, String code) {
         Search search = Search.createSearch();
-        search.addFilter(new SearchFilter(PoolAttribute.FIELD_SUBJECT_ID, subjectId));
-        search.addFilter(new SearchFilter(PoolAttribute.FIELD_CODE, code));
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_SUBJECT_ID, subjectId));
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_CODE, code));
         return poolAttributeDao.findFirstByFilters(search);
     }
 
@@ -281,7 +281,7 @@ public class PoolService extends BaseEntityService<Pool> {
      * @param search 查询参数
      * @return 分页查询结果
      */
-    public PageResult<ExecutionRecord> findRecordByPage(Search search) {
-        return executionRecordService.findByPage(search);
+    public PageResult<ExecutionRecordView> findRecordByPage(Search search) {
+        return executionRecordService.findViewByPage(search);
     }
 }
