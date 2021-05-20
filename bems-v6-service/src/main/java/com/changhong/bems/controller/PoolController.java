@@ -116,6 +116,6 @@ public class PoolController implements PoolApi {
         if (CollectionUtils.isNotEmpty(records)) {
             result.setRows(records.stream().map(r -> modelMapper.map(r, ExecutionRecordDto.class)).collect(Collectors.toList()));
         }
-        return ResultData.success();
+        return ResultData.success(result);
     }
 }
