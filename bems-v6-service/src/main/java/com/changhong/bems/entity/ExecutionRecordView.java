@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 @DynamicUpdate
 public class ExecutionRecordView extends BaseEntity implements ITenant, Serializable {
     private static final long serialVersionUID = -28943145565423431L;
-    public static final String FIELD_EVENT_CODE = "eventCode";
+    public static final String FIELD_EVENT_CODE = "bizEvent";
     public static final String FIELD_BIZ_ID = "bizId";
     public static final String FIELD_OPERATION = "operation";
     /**
@@ -75,7 +75,7 @@ public class ExecutionRecordView extends BaseEntity implements ITenant, Serializ
      * 业务事件
      */
     @Column(name = "biz_event", updatable = false)
-    private String eventCode;
+    private String bizEvent;
     /**
      * 业务事件
      */
@@ -195,12 +195,12 @@ public class ExecutionRecordView extends BaseEntity implements ITenant, Serializ
         this.bizCode = bizCode;
     }
 
-    public String getEventCode() {
-        return eventCode;
+    public String getBizEvent() {
+        return bizEvent;
     }
 
-    public void setEventCode(String bizEvent) {
-        this.eventCode = bizEvent;
+    public void setBizEvent(String bizEvent) {
+        this.bizEvent = bizEvent;
     }
 
     public String getEventName() {
