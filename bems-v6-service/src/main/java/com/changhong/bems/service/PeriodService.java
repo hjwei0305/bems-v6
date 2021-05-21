@@ -14,6 +14,8 @@ import com.changhong.sei.core.dto.serach.SearchOrder;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
 import com.changhong.sei.util.EnumUtils;
+import com.changhong.sei.util.IdGenerator;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -195,7 +198,19 @@ public class PeriodService extends BaseEntityService<Period> {
         for (PeriodType periodType : periodTypes) {
             periods.addAll(generateNormalPeriod(subjectId, year, periodType));
         }
-        this.save(periods);
+        Set<String> existSet;
+        List<Period> periodList = dao.findListByProperty(Period.FIELD_SUBJECT_ID, subjectId);
+        if (CollectionUtils.isNotEmpty(periodList)) {
+            existSet = periodList.stream().map(p -> p.getCode() + p.getYear()).collect(Collectors.toSet());
+        } else {
+            existSet = new HashSet<>();
+        }
+        for (Period period : periods) {
+            if (!existSet.contains(period.getCode() + period.getYear())) {
+                this.save(period);
+            }
+        }
+
         return ResultData.success();
     }
 
@@ -208,12 +223,17 @@ public class PeriodService extends BaseEntityService<Period> {
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> saveCustomizePeriod(Period period) {
         String id = period.getId();
+        period.setType(PeriodType.CUSTOMIZE);
         if (StringUtils.isNotBlank(id)) {
             if (!checkCustomizePeriod(id)) {
                 // 预算期间已被使用,禁止修改!
                 return ResultData.fail(ContextUtil.getMessage("period_00004"));
             }
+        } else {
+            period.setCode("" + IdGenerator.nextId());
         }
+        // TODO 检查同主体自定义期间交差
+
         this.save(period);
         return ResultData.success();
     }
