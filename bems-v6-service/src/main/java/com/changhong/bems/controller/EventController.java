@@ -6,10 +6,9 @@ import com.changhong.bems.entity.Event;
 import com.changhong.bems.service.EventService;
 import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
-import com.changhong.sei.core.dto.serach.PageResult;
-import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.service.BaseEntityService;
 import io.swagger.annotations.Api;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,24 +38,22 @@ public class EventController extends BaseEntityController<Event, EventDto> imple
     }
 
     /**
-     * 分页查询业务实体
-     *
-     * @param search 查询参数
-     * @return 分页查询结果
-     */
-    @Override
-    public ResultData<PageResult<EventDto>> findByPage(Search search) {
-        return convertToDtoPageResult(service.findByPage(search));
-    }
-
-    /**
      * 获取所有业务实体
      *
      * @return 业务实体清单
      */
     @Override
     public ResultData<List<EventDto>> findAll() {
-        return ResultData.success(convertToDtos(service.findAll()));
+        List<Event> eventList = service.findAll();
+        if (CollectionUtils.isEmpty(eventList)) {
+            ResultData<List<Event>> resultData = service.checkAndInit();
+            if (resultData.failed()) {
+                return ResultData.fail(resultData.getMessage());
+            } else {
+                eventList = resultData.getData();
+            }
+        }
+        return ResultData.success(convertToDtos(eventList));
     }
 
     /**
@@ -67,5 +64,29 @@ public class EventController extends BaseEntityController<Event, EventDto> imple
     @Override
     public ResultData<List<EventDto>> findAllUnfrozen() {
         return ResultData.success(convertToDtos(service.findAllUnfrozen()));
+    }
+
+    /**
+     * 按指定标签获取预算事件
+     *
+     * @param label 标签
+     * @return 预算事件清单
+     */
+    @Override
+    public ResultData<List<EventDto>> findByLabel(String label) {
+        List<Event> eventList = service.findByLabel(label);
+        return ResultData.success(convertToDtos(eventList));
+    }
+
+    /**
+     * 按指定业务来源系统获取预算事件
+     *
+     * @param bizFrom 业务来源系统
+     * @return 预算事件清单
+     */
+    @Override
+    public ResultData<List<EventDto>> findByBizFrom(String bizFrom) {
+        List<Event> eventList = service.findByBizFrom(bizFrom);
+        return ResultData.success(convertToDtos(eventList));
     }
 }

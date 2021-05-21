@@ -10,6 +10,7 @@ import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.util.EnumUtils;
 import io.swagger.annotations.Api;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,7 +46,11 @@ public class StrategyController extends BaseEntityController<Strategy, StrategyD
      */
     @Override
     public ResultData<List<StrategyDto>> findAll() {
-        return ResultData.success(convertToDtos(service.findAll()));
+        List<Strategy> strategyList = service.findAll();
+        if (CollectionUtils.isEmpty(strategyList)) {
+            strategyList = service.checkAndInit();
+        }
+        return ResultData.success(convertToDtos(strategyList));
     }
 
     /**

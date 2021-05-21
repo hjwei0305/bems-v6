@@ -6,10 +6,15 @@ import com.changhong.bems.entity.Dimension;
 import com.changhong.bems.entity.Strategy;
 import com.changhong.bems.entity.Subject;
 import com.changhong.bems.entity.SubjectItem;
+import com.changhong.bems.service.strategy.*;
 import com.changhong.sei.core.dao.BaseEntityDao;
+import com.changhong.sei.core.limiter.support.lock.SeiLock;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
 import com.changhong.sei.core.service.bo.OperateResultWithData;
+import com.changhong.sei.util.IdGenerator;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
@@ -17,6 +22,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -86,7 +92,74 @@ public class StrategyService extends BaseEntityService<Strategy> {
     @CacheEvict(allEntries = true)
     @Transactional(rollbackFor = Exception.class)
     public OperateResultWithData<Strategy> save(Strategy entity) {
+        if (Objects.nonNull(entity) && StringUtils.isBlank(entity.getCode())) {
+            entity.setCode(IdGenerator.uuid2());
+        }
         return super.save(entity);
+    }
+
+    /**
+     * 检查和初始化数据
+     * 当检测到租户下不存在维度数据时,默认初始化预制的维度数据
+     */
+    @Transactional(rollbackFor = Exception.class)
+    @SeiLock(key = "'StrategyService:checkAndInit'")
+    public List<Strategy> checkAndInit() {
+        List<Strategy> strategies = dao.findAll();
+        if (CollectionUtils.isEmpty(strategies)) {
+            strategies = new ArrayList<>();
+            Strategy strategy;
+            strategy = new Strategy();
+            strategy.setCode(DefaultEqualMatchStrategy.class.getSimpleName());
+            strategy.setName("维度值一致性匹配");
+            strategy.setCategory(StrategyCategory.DIMENSION);
+            strategy.setClassPath(DefaultEqualMatchStrategy.class.getName());
+            strategy.setRemark("维度值完全一致");
+            super.save(strategy);
+            strategies.add(strategy);
+            strategy = new Strategy();
+            strategy.setCode(DefaultOrgTreeMatchStrategy.class.getSimpleName());
+            strategy.setName("组织机构树路径匹配");
+            strategy.setCategory(StrategyCategory.DIMENSION);
+            strategy.setClassPath(DefaultOrgTreeMatchStrategy.class.getName());
+            strategy.setRemark("在同一条树分支路径上的节点(向上)匹配");
+            super.save(strategy);
+            strategies.add(strategy);
+            strategy = new Strategy();
+            strategy.setCode(DefaultPeriodMatchStrategy.class.getSimpleName());
+            strategy.setName("期间关系匹配");
+            strategy.setCategory(StrategyCategory.DIMENSION);
+            strategy.setClassPath(DefaultPeriodMatchStrategy.class.getName());
+            strategy.setRemark("标准期间(年,季,月)的客观包含关系");
+            super.save(strategy);
+            strategies.add(strategy);
+
+            strategy = new Strategy();
+            strategy.setCode(DefaultExcessExecutionStrategy.class.getSimpleName());
+            strategy.setName("弱控");
+            strategy.setCategory(StrategyCategory.EXECUTION);
+            strategy.setClassPath(DefaultExcessExecutionStrategy.class.getName());
+            strategy.setRemark("可超额使用预算,即预算池余额不够时可超额使用");
+            super.save(strategy);
+            strategies.add(strategy);
+            strategy = new Strategy();
+            strategy.setCode(DefaultAnnualTotalExecutionStrategy.class.getSimpleName());
+            strategy.setName("年度总额控");
+            strategy.setCategory(StrategyCategory.EXECUTION);
+            strategy.setClassPath(DefaultAnnualTotalExecutionStrategy.class.getName());
+            strategy.setRemark("允许月度预算超额,但不能超年度预算总额");
+            super.save(strategy);
+            strategies.add(strategy);
+            strategy = new Strategy();
+            strategy.setCode(DefaultLimitExecutionStrategy.class.getSimpleName());
+            strategy.setName("强控");
+            strategy.setCategory(StrategyCategory.EXECUTION);
+            strategy.setClassPath(DefaultLimitExecutionStrategy.class.getName());
+            strategy.setRemark("预算使用严格控制在余额范围内");
+            super.save(strategy);
+            strategies.add(strategy);
+        }
+        return strategies;
     }
 
     /**

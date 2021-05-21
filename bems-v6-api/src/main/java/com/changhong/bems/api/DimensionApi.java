@@ -2,15 +2,11 @@ package com.changhong.bems.api;
 
 import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.dto.KeyValueDto;
-import com.changhong.bems.dto.StrategyDto;
 import com.changhong.sei.core.api.BaseEntityApi;
-import com.changhong.sei.core.api.FindAllApi;
-import com.changhong.sei.core.api.FindByPageApi;
 import com.changhong.sei.core.dto.ResultData;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -37,11 +33,12 @@ public interface DimensionApi extends BaseEntityApi<DimensionDto> {
     ResultData<Set<KeyValueDto>> findAllCodes();
 
     /**
-     * 获取所有业务实体
+     * 获取所有维度
      *
      * @return 业务实体清单
      */
     @GetMapping(path = "findAll")
-    @ApiOperation(value = "获取所有业务实体", notes = "获取所有业务实体")
+    @ApiOperation(value = "获取所有维度", notes = "获取所有维度")
     ResultData<List<DimensionDto>> findAll();
+
 }

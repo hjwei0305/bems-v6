@@ -15,11 +15,6 @@ public enum StrategyCategory {
     @Remark("维度策略")
     DIMENSION,
     /**
-     * 管理策略
-     */
-    @Remark("管理策略")
-    MANAGEMENT,
-    /**
      * 执行策略
      */
     @Remark("执行策略")

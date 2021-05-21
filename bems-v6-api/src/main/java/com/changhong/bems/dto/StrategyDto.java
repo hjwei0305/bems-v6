@@ -17,6 +17,11 @@ import javax.validation.constraints.NotNull;
 public class StrategyDto extends BaseEntityDto {
     private static final long serialVersionUID = -51089250630553840L;
     /**
+     * 策略代码
+     */
+    @ApiModelProperty(value = "策略代码")
+    private String code;
+    /**
      * 策略名称
      */
     @NotBlank
@@ -34,6 +39,19 @@ public class StrategyDto extends BaseEntityDto {
     @NotNull
     @ApiModelProperty(value = "策略类别")
     private StrategyCategory category;
+    /**
+     * 策略描述
+     */
+    @ApiModelProperty(value = "策略描述")
+    private String remark;
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
 
     public String getName() {
         return name;
@@ -59,4 +77,11 @@ public class StrategyDto extends BaseEntityDto {
         this.category = category;
     }
 
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
 }

@@ -10,6 +10,7 @@ import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.service.BaseEntityService;
 import io.swagger.annotations.Api;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,7 +47,16 @@ public class DimensionController extends BaseEntityController<Dimension, Dimensi
      */
     @Override
     public ResultData<List<DimensionDto>> findAll() {
-        return ResultData.success(convertToDtos(service.findAll()));
+        List<Dimension> dimensions = service.findAll();
+        if (CollectionUtils.isEmpty(dimensions)) {
+            ResultData<List<Dimension>> resultData = service.checkAndInit();
+            if (resultData.failed()) {
+                return ResultData.fail(resultData.getMessage());
+            } else {
+                dimensions = resultData.getData();
+            }
+        }
+        return ResultData.success(convertToDtos(dimensions));
     }
 
     /**
