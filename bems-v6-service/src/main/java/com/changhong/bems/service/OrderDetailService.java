@@ -31,6 +31,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -467,7 +468,10 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         details.clear();
 
         ResultData<Void> result;
-        OrderStatistics statistics;
+        OrderStatistics statistics = (OrderStatistics) operations.get();
+        if (Objects.isNull(statistics)) {
+            statistics = new OrderStatistics(size, LocalDateTime.now());
+        }
         // 记录所有hash值,以便识别出重复的行项
         Set<Long> duplicateHash = new HashSet<>();
         Search search = Search.createSearch();
@@ -492,10 +496,6 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                 }
 
                 detail.setOrderId(orderId);
-                statistics = (OrderStatistics) operations.get();
-                if (Objects.isNull(statistics)) {
-                    statistics = new OrderStatistics(size, LocalDateTime.now());
-                }
 
                 // 本次提交数据中存在重复项
                 if (duplicateHash.contains(detail.getAttributeCode())) {
@@ -507,7 +507,8 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     // 错误数加1
                     statistics.addFailures();
                     // 更新缓存
-                    operations.set(statistics);
+                    OrderStatistics finalStatistics = statistics;
+                    CompletableFuture.runAsync(() -> operations.set(finalStatistics));
                     continue;
                 } else {
                     // 记录hash值
@@ -542,7 +543,8 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     detail.setErrMsg(result.getMessage());
                 }
                 this.save(detail);
-                operations.set(statistics);
+                OrderStatistics finalStatistics = statistics;
+                CompletableFuture.runAsync(() -> operations.set(finalStatistics));
             }
         }
     }

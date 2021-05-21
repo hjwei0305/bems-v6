@@ -163,7 +163,7 @@ public class DimensionService extends BaseEntityService<Dimension> {
             strategy = strategyMap.get(DefaultEqualMatchStrategy.class.getSimpleName());
             dimension.setStrategyId(strategy.getId());
             dimension.setStrategyName(strategy.getName());
-            dimension.setUiComponent("Project");
+            dimension.setUiComponent("ProjectList");
             super.save(dimension);
             dimensions.add(dimension);
         }
