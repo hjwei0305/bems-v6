@@ -1,5 +1,6 @@
 package com.changhong.bems.service.strategy;
 
+import com.changhong.bems.dto.BudgetResponse;
 import com.changhong.bems.dto.BudgetUse;
 import com.changhong.bems.entity.PoolAttributeView;
 import com.changhong.bems.service.vo.PoolLevel;
@@ -28,5 +29,5 @@ public interface BudgetExecutionStrategy {
      * @param otherDimFilters 其他维度条件
      * @return 返回执行结果
      */
-    ResultData<Set<PoolLevel>> execution(String attribute, BudgetUse useBudget, List<PoolAttributeView> poolAttributes, Collection<SearchFilter> otherDimFilters);
+    ResultData<BudgetResponse> execution(String attribute, BudgetUse useBudget, List<PoolAttributeView> poolAttributes, Collection<SearchFilter> otherDimFilters);
 }

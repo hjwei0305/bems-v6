@@ -12,7 +12,7 @@ public class PoolLevel {
     private final String subjectId;
     private final String poolCode;
     private final long attributeCode;
-    private int level = 0;
+    private long level = 0;
     private double balance = 0;
     private double useAmount = 0;
 
@@ -34,11 +34,11 @@ public class PoolLevel {
         return attributeCode;
     }
 
-    public int getLevel() {
+    public long getLevel() {
         return level;
     }
 
-    public void setLevel(int level) {
+    public void setLevel(long level) {
         this.level = level;
     }
 

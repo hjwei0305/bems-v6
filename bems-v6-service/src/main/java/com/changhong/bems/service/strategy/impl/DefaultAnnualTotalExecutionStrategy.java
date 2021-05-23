@@ -1,15 +1,14 @@
 package com.changhong.bems.service.strategy.impl;
 
+import com.changhong.bems.dto.BudgetResponse;
 import com.changhong.bems.dto.BudgetUse;
 import com.changhong.bems.entity.PoolAttributeView;
 import com.changhong.bems.service.strategy.AnnualTotalExecutionStrategy;
-import com.changhong.bems.service.vo.PoolLevel;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * 实现功能：年度总额控制
@@ -30,7 +29,7 @@ public class DefaultAnnualTotalExecutionStrategy implements AnnualTotalExecution
      * @return 返回执行结果
      */
     @Override
-    public ResultData<Set<PoolLevel>> execution(String attribute, BudgetUse useBudget, List<PoolAttributeView> poolAttributes, Collection<SearchFilter> otherDimFilters) {
+    public ResultData<BudgetResponse> execution(String attribute, BudgetUse useBudget, List<PoolAttributeView> poolAttributes, Collection<SearchFilter> otherDimFilters) {
         return null;
     }
 }

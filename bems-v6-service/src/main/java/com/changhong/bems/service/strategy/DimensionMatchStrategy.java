@@ -2,6 +2,7 @@ package com.changhong.bems.service.strategy;
 
 import com.changhong.bems.dto.BudgetUse;
 import com.changhong.bems.entity.Dimension;
+import com.changhong.sei.core.dto.ResultData;
 
 /**
  * 实现功能：
@@ -18,5 +19,5 @@ public interface DimensionMatchStrategy {
      * @param dimValue  维度值
      * @return 返回匹配值
      */
-    Object getMatchValue(BudgetUse budgetUse, Dimension dimension, String dimValue);
+    ResultData<Object> getMatchValue(BudgetUse budgetUse, Dimension dimension, String dimValue);
 }

@@ -47,7 +47,7 @@ public class StrategyDto extends BaseEntityDto {
     /**
      * 执行优先级
      */
-    @ApiModelProperty(value = "执行优先级(数字越大,优先级越高)")
+    @ApiModelProperty(value = "执行优先级(数字越大,优先级越低)")
     private Integer rank = 0;
 
     public String getCode() {

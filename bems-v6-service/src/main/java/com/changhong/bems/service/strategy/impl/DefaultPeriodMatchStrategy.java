@@ -3,6 +3,7 @@ package com.changhong.bems.service.strategy.impl;
 import com.changhong.bems.dto.BudgetUse;
 import com.changhong.bems.entity.Dimension;
 import com.changhong.bems.service.strategy.PeriodMatchStrategy;
+import com.changhong.sei.core.dto.ResultData;
 
 /**
  * 实现功能：
@@ -19,7 +20,8 @@ public class DefaultPeriodMatchStrategy extends BaseMatchStrategy implements Per
      * @return 返回匹配值
      */
     @Override
-    public Object getMatchValue(BudgetUse budgetUse, Dimension dimension, String dimValue) {
+    public ResultData<Object> getMatchValue(BudgetUse budgetUse, Dimension dimension, String dimValue) {
+        // TODO 期间关系策略
         return null;
     }
 }

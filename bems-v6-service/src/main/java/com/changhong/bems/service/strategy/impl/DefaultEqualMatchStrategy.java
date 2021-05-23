@@ -3,6 +3,7 @@ package com.changhong.bems.service.strategy.impl;
 import com.changhong.bems.dto.BudgetUse;
 import com.changhong.bems.entity.Dimension;
 import com.changhong.bems.service.strategy.EqualMatchStrategy;
+import com.changhong.sei.core.dto.ResultData;
 
 /**
  * 实现功能：
@@ -19,7 +20,7 @@ public class DefaultEqualMatchStrategy extends BaseMatchStrategy implements Equa
      * @return 返回匹配值
      */
     @Override
-    public Object getMatchValue(BudgetUse budgetUse, Dimension dimension, String dimValue) {
-        return dimValue;
+    public ResultData<Object> getMatchValue(BudgetUse budgetUse, Dimension dimension, String dimValue) {
+        return ResultData.success(dimValue);
     }
 }
