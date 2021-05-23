@@ -115,6 +115,7 @@ public class StrategyService extends BaseEntityService<Strategy> {
             strategy.setCategory(StrategyCategory.DIMENSION);
             strategy.setClassPath(EqualMatchStrategy.class.getName());
             strategy.setRemark("维度值完全一致");
+            strategy.setRank(130);
             super.save(strategy);
             strategies.add(strategy);
             strategy = new Strategy();
@@ -123,6 +124,7 @@ public class StrategyService extends BaseEntityService<Strategy> {
             strategy.setCategory(StrategyCategory.DIMENSION);
             strategy.setClassPath(OrgTreeMatchStrategy.class.getName());
             strategy.setRemark("在同一条树分支路径上的节点(向上)匹配");
+            strategy.setRank(120);
             super.save(strategy);
             strategies.add(strategy);
             strategy = new Strategy();
@@ -131,15 +133,17 @@ public class StrategyService extends BaseEntityService<Strategy> {
             strategy.setCategory(StrategyCategory.DIMENSION);
             strategy.setClassPath(PeriodMatchStrategy.class.getName());
             strategy.setRemark("标准期间(年,季,月)的客观包含关系");
+            strategy.setRank(110);
             super.save(strategy);
             strategies.add(strategy);
 
             strategy = new Strategy();
-            strategy.setCode(ExcessExecutionStrategy.class.getSimpleName());
-            strategy.setName("弱控");
+            strategy.setCode(LimitExecutionStrategy.class.getSimpleName());
+            strategy.setName("强控");
             strategy.setCategory(StrategyCategory.EXECUTION);
-            strategy.setClassPath(ExcessExecutionStrategy.class.getName());
-            strategy.setRemark("可超额使用预算,即预算池余额不够时可超额使用");
+            strategy.setClassPath(LimitExecutionStrategy.class.getName());
+            strategy.setRemark("预算使用严格控制在余额范围内");
+            strategy.setRank(90);
             super.save(strategy);
             strategies.add(strategy);
             strategy = new Strategy();
@@ -148,14 +152,16 @@ public class StrategyService extends BaseEntityService<Strategy> {
             strategy.setCategory(StrategyCategory.EXECUTION);
             strategy.setClassPath(AnnualTotalExecutionStrategy.class.getName());
             strategy.setRemark("允许月度预算超额,但不能超年度预算总额");
+            strategy.setRank(80);
             super.save(strategy);
             strategies.add(strategy);
             strategy = new Strategy();
-            strategy.setCode(LimitExecutionStrategy.class.getSimpleName());
-            strategy.setName("强控");
+            strategy.setCode(ExcessExecutionStrategy.class.getSimpleName());
+            strategy.setName("弱控");
             strategy.setCategory(StrategyCategory.EXECUTION);
-            strategy.setClassPath(LimitExecutionStrategy.class.getName());
-            strategy.setRemark("预算使用严格控制在余额范围内");
+            strategy.setClassPath(ExcessExecutionStrategy.class.getName());
+            strategy.setRemark("可超额使用预算,即预算池余额不够时可超额使用");
+            strategy.setRank(70);
             super.save(strategy);
             strategies.add(strategy);
         }
