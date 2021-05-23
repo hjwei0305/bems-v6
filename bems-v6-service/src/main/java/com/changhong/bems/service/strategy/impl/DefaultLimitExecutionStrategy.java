@@ -116,9 +116,8 @@ public class DefaultLimitExecutionStrategy extends BaseExecutionStrategy impleme
             double useAmount = 0;
 
             ExecutionRecord record;
-            Collection<PoolLevel> levelList = poolLevelMap.values();
             //
-            List<PoolLevel> pools = levelList.stream().sorted(Comparator.comparingLong(PoolLevel::getLevel)).collect(Collectors.toList());
+            List<PoolLevel> pools = poolLevelMap.values().stream().sorted(Comparator.comparingLong(PoolLevel::getLevel)).collect(Collectors.toList());
             for (PoolLevel poolLevel : pools) {
                 // 预算池代码
                 String poolCode = poolLevel.getPoolCode();
@@ -150,6 +149,10 @@ public class DefaultLimitExecutionStrategy extends BaseExecutionStrategy impleme
                 poolService.recordLog(record);
                 // 占用结果
                 response.addUseResult(new BudgetUseResult(poolCode, record.getAmount()));
+            }
+            if (amount > useAmount || amount < useAmount) {
+                // 预算占用时,当前余额[{0}]不满足占用金额[{1}]!
+                return ResultData.fail(ContextUtil.getMessage("pool_00013", useAmount, amount));
             }
             return ResultData.success(response);
         } else {

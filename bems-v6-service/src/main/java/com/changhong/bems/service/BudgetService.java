@@ -141,7 +141,7 @@ public class BudgetService {
     private ResultData<BudgetResponse> useBudget(BudgetUse useBudget) {
         // TODO 检查参数合法性
         // 事件代码
-        String eventCode = useBudget.getBizCode();
+        String eventCode = useBudget.getEventCode();
         // 业务id
         String bizId = useBudget.getBizId();
 
@@ -163,7 +163,7 @@ public class BudgetService {
         // 按占用数据获取维度
         Map<String, SearchFilter> otherDimensions = this.getOtherDimensionFilters(useBudget);
         // 组装所使用到的维度清单 -> 生成维度组合
-        Set<String> codes = otherDimensions.keySet();
+        Set<String> codes = new HashSet<>(otherDimensions.keySet());
         codes.add(Constants.DIMENSION_CODE_ITEM);
         codes.add(Constants.DIMENSION_CODE_PERIOD);
         // 使用到的维度,按asci码排序,逗号(,)分隔
@@ -389,11 +389,11 @@ public class BudgetService {
                     Object obj = resultData.getData();
                     if (Objects.nonNull(obj)) {
                         if (obj instanceof Collection) {
-                            filter = new SearchFilter(dimCode, dimValue, SearchFilter.Operator.IN);
+                            filter = new SearchFilter(dimCode, obj, SearchFilter.Operator.IN);
                         } else if (obj.getClass().isArray()) {
-                            filter = new SearchFilter(dimCode, dimValue, SearchFilter.Operator.IN);
+                            filter = new SearchFilter(dimCode, obj, SearchFilter.Operator.IN);
                         } else {
-                            filter = new SearchFilter(dimCode, dimValue);
+                            filter = new SearchFilter(dimCode, obj);
                         }
                         return filter;
                     } else {
