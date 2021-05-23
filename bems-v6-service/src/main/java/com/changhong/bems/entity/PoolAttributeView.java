@@ -26,7 +26,7 @@ public class PoolAttributeView extends BaseAttribute implements ITenant, Seriali
     public static final String FIELD_ACTIVE = "actived";
     public static final String FIELD_USE = "use";
     /**
-     * 代码
+     * 预算池编号
      */
     @Column(name = "code")
     private String code;

@@ -1,4 +1,4 @@
-package com.changhong.bems.service.strategy;
+package com.changhong.bems.service.strategy.impl;
 
 /**
  * 实现功能：

@@ -1,6 +1,7 @@
 package com.changhong.bems.entity;
 
 import com.changhong.bems.dto.StrategyCategory;
+import com.changhong.sei.core.dto.IRank;
 import com.changhong.sei.core.entity.BaseAuditableEntity;
 import com.changhong.sei.core.entity.ICodeUnique;
 import org.hibernate.annotations.DynamicInsert;
@@ -19,7 +20,7 @@ import java.io.Serializable;
 @Table(name = "strategy")
 @DynamicInsert
 @DynamicUpdate
-public class Strategy extends BaseAuditableEntity implements ICodeUnique, Serializable {
+public class Strategy extends BaseAuditableEntity implements ICodeUnique, IRank, Serializable {
     private static final long serialVersionUID = -28243258893909771L;
     public static final String FIELD_CATEGORY = "category";
     /**
@@ -43,6 +44,11 @@ public class Strategy extends BaseAuditableEntity implements ICodeUnique, Serial
     @Column(name = "category")
     @Enumerated(EnumType.STRING)
     private StrategyCategory category;
+    /**
+     * 执行优先级
+     */
+    @Column(name = "rank_")
+    private Integer rank = 0;
     /**
      * 策略描述
      */
@@ -81,6 +87,15 @@ public class Strategy extends BaseAuditableEntity implements ICodeUnique, Serial
 
     public void setCategory(StrategyCategory category) {
         this.category = category;
+    }
+
+    @Override
+    public Integer getRank() {
+        return rank;
+    }
+
+    public void setRank(Integer rank) {
+        this.rank = rank;
     }
 
     public String getRemark() {

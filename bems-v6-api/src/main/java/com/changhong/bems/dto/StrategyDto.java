@@ -44,6 +44,11 @@ public class StrategyDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "策略描述")
     private String remark;
+    /**
+     * 执行优先级
+     */
+    @ApiModelProperty(value = "执行优先级(数字越大,优先级越高)")
+    private Integer rank = 0;
 
     public String getCode() {
         return code;
@@ -83,5 +88,13 @@ public class StrategyDto extends BaseEntityDto {
 
     public void setRemark(String remark) {
         this.remark = remark;
+    }
+
+    public Integer getRank() {
+        return rank;
+    }
+
+    public void setRank(Integer rank) {
+        this.rank = rank;
     }
 }

@@ -2,6 +2,7 @@ package com.changhong.bems.service;
 
 import com.changhong.bems.dao.PoolAttributeViewDao;
 import com.changhong.bems.dao.PoolDao;
+import com.changhong.bems.dto.BudgetUse;
 import com.changhong.bems.entity.*;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.context.SessionUser;
@@ -14,6 +15,7 @@ import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResultWithData;
 import com.changhong.sei.exception.ServiceException;
 import com.changhong.sei.serial.sdk.SerialService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +23,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -159,15 +164,6 @@ public class PoolService extends BaseEntityService<Pool> {
     /**
      * 获取预算池当前可用余额
      *
-     * @param poolId 预算池id
-     */
-    public double getPoolBalanceById(String poolId) {
-        return poolAmountService.getPoolBalanceByPoolId(poolId);
-    }
-
-    /**
-     * 获取预算池当前可用余额
-     *
      * @param poolCode 预算池编码
      */
     public double getPoolBalanceByCode(String poolCode) {
@@ -231,6 +227,28 @@ public class PoolService extends BaseEntityService<Pool> {
     }
 
     /**
+     * 通过Id启用预算池
+     *
+     * @param ids 预算池Id集合
+     * @return 启用结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ResultData<Void> updateActiveStatus(Set<String> ids, boolean isActive) {
+        dao.updateActiveStatus(ids, isActive);
+        return ResultData.success();
+    }
+
+    /**
+     * 分页查询预算执行日志
+     *
+     * @param search 查询参数
+     * @return 分页查询结果
+     */
+    public PageResult<ExecutionRecordView> findRecordByPage(Search search) {
+        return executionRecordService.findViewByPage(search);
+    }
+
+    /**
      * 分页查询预算池
      *
      * @param search 查询对象
@@ -265,24 +283,40 @@ public class PoolService extends BaseEntityService<Pool> {
     }
 
     /**
-     * 通过Id启用预算池
+     * 初步查找满足条件的预算池
      *
-     * @param ids 预算池Id集合
-     * @return 启用结果
+     * @param useBudget 占用数据
+     * @return 返回满足条件的预算池
      */
-    @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> updateActiveStatus(Set<String> ids, boolean isActive) {
-        dao.updateActiveStatus(ids, isActive);
-        return ResultData.success();
-    }
+    public List<PoolAttributeView> getBudgetPools(String attribute, LocalDate useDate, BudgetUse useBudget, Collection<SearchFilter> dimFilters) {
+        // 公司代码
+        String corpCode = useBudget.getCorpCode();
+        // 预算科目
+        String item = useBudget.getItem();
 
-    /**
-     * 分页查询预算执行日志
-     *
-     * @param search 查询参数
-     * @return 分页查询结果
-     */
-    public PageResult<ExecutionRecordView> findRecordByPage(Search search) {
-        return executionRecordService.findViewByPage(search);
+        Search search = Search.createSearch();
+        // 公司代码
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_CORP_CODE, corpCode));
+        // 预算维度组合
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_ATTRIBUTE, attribute));
+        // 预算科目
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_ITEM, item));
+        // 其他维度条件
+        if (CollectionUtils.isNotEmpty(dimFilters)) {
+            for (SearchFilter filter : dimFilters) {
+                search.addFilter(filter);
+            }
+        }
+
+        //有效期
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_START_DATE, useDate, SearchFilter.Operator.LE));
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_END_DATE, useDate, SearchFilter.Operator.GE));
+        // 启用
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_ACTIVE, Boolean.TRUE));
+        // 允许使用(业务可用)
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_USE, Boolean.TRUE));
+
+        // 按条件查询满足的预算池
+        return poolAttributeDao.findByFilters(search);
     }
 }

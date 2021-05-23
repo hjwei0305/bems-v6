@@ -1,7 +1,8 @@
-package com.changhong.bems.service.strategy;
+package com.changhong.bems.service.strategy.impl;
 
 import com.changhong.bems.dto.BudgetUse;
 import com.changhong.bems.entity.Dimension;
+import com.changhong.bems.service.strategy.OrgTreeMatchStrategy;
 
 /**
  * 实现功能：
@@ -9,7 +10,7 @@ import com.changhong.bems.entity.Dimension;
  * @author 马超(Vision.Mac)
  * @version 1.0.00  2021-05-15 11:32
  */
-public class DefaultPeriodMatchStrategy extends BaseMatchStrategy implements DimensionMatchStrategy {
+public class DefaultOrgTreeMatchStrategy extends BaseMatchStrategy implements OrgTreeMatchStrategy {
     /**
      * 获取维度匹配值
      *

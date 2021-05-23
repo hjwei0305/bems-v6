@@ -1,7 +1,8 @@
-package com.changhong.bems.service.strategy;
+package com.changhong.bems.service.strategy.impl;
 
 import com.changhong.bems.dto.BudgetUse;
 import com.changhong.bems.entity.Dimension;
+import com.changhong.bems.service.strategy.EqualMatchStrategy;
 
 /**
  * 实现功能：
@@ -9,7 +10,7 @@ import com.changhong.bems.entity.Dimension;
  * @author 马超(Vision.Mac)
  * @version 1.0.00  2021-05-15 09:27
  */
-public class DefaultEqualMatchStrategy extends BaseMatchStrategy implements DimensionMatchStrategy {
+public class DefaultEqualMatchStrategy extends BaseMatchStrategy implements EqualMatchStrategy {
     /**
      * 获取维度匹配值
      *

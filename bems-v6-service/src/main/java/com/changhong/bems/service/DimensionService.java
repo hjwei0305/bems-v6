@@ -6,9 +6,9 @@ import com.changhong.bems.entity.Category;
 import com.changhong.bems.entity.CategoryDimension;
 import com.changhong.bems.entity.Dimension;
 import com.changhong.bems.entity.Strategy;
-import com.changhong.bems.service.strategy.DefaultEqualMatchStrategy;
-import com.changhong.bems.service.strategy.DefaultOrgTreeMatchStrategy;
-import com.changhong.bems.service.strategy.DefaultPeriodMatchStrategy;
+import com.changhong.bems.service.strategy.EqualMatchStrategy;
+import com.changhong.bems.service.strategy.OrgTreeMatchStrategy;
+import com.changhong.bems.service.strategy.PeriodMatchStrategy;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
@@ -101,7 +101,7 @@ public class DimensionService extends BaseEntityService<Dimension> {
             // 占用默认固定策略
             List<Strategy> strategies = strategyService.checkAndInit();
             Map<String, Strategy> strategyMap = strategies.stream().collect(Collectors.toMap(Strategy::getCode, s -> s));
-            Strategy strategy = strategyMap.get(DefaultEqualMatchStrategy.class.getSimpleName());
+            Strategy strategy = strategyMap.get(EqualMatchStrategy.class.getSimpleName());
             if (Objects.nonNull(strategy)) {
                 if (!StringUtils.equals(strategy.getId(), entity.getStrategyId())) {
                     // 预算科目维度必须使用一致性匹配策略
@@ -140,7 +140,7 @@ public class DimensionService extends BaseEntityService<Dimension> {
             dimension.setName("预算期间");
             dimension.setRequired(Boolean.TRUE);
             dimension.setRank(1);
-            strategy = strategyMap.get(DefaultPeriodMatchStrategy.class.getSimpleName());
+            strategy = strategyMap.get(PeriodMatchStrategy.class.getSimpleName());
             dimension.setStrategyId(strategy.getId());
             dimension.setStrategyName(strategy.getName());
             dimension.setUiComponent("Period");
@@ -152,7 +152,7 @@ public class DimensionService extends BaseEntityService<Dimension> {
             dimension.setName("预算科目");
             dimension.setRequired(Boolean.TRUE);
             dimension.setRank(2);
-            strategy = strategyMap.get(DefaultEqualMatchStrategy.class.getSimpleName());
+            strategy = strategyMap.get(EqualMatchStrategy.class.getSimpleName());
             dimension.setStrategyId(strategy.getId());
             dimension.setStrategyName(strategy.getName());
             dimension.setUiComponent("Subject");
@@ -163,7 +163,7 @@ public class DimensionService extends BaseEntityService<Dimension> {
             dimension.setCode(Constants.DIMENSION_CODE_ORG);
             dimension.setName("组织机构");
             dimension.setRank(3);
-            strategy = strategyMap.get(DefaultOrgTreeMatchStrategy.class.getSimpleName());
+            strategy = strategyMap.get(OrgTreeMatchStrategy.class.getSimpleName());
             dimension.setStrategyId(strategy.getId());
             dimension.setStrategyName(strategy.getName());
             dimension.setUiComponent("Organization");
@@ -174,7 +174,7 @@ public class DimensionService extends BaseEntityService<Dimension> {
             dimension.setCode(Constants.DIMENSION_CODE_PROJECT);
             dimension.setName("项目");
             dimension.setRank(4);
-            strategy = strategyMap.get(DefaultEqualMatchStrategy.class.getSimpleName());
+            strategy = strategyMap.get(EqualMatchStrategy.class.getSimpleName());
             dimension.setStrategyId(strategy.getId());
             dimension.setStrategyName(strategy.getName());
             dimension.setUiComponent("ProjectList");
