@@ -93,10 +93,24 @@ public class DimensionService extends BaseEntityService<Dimension> {
         if (Objects.isNull(entity)) {
             return OperateResultWithData.operationFailure("dimension_00003");
         }
+
         // 科目
         if (StringUtils.equals(Constants.DIMENSION_CODE_ITEM, entity.getCode())) {
             // 设置为系统必须
             entity.setRequired(Boolean.TRUE);
+            // 占用默认固定策略
+            List<Strategy> strategies = strategyService.checkAndInit();
+            Map<String, Strategy> strategyMap = strategies.stream().collect(Collectors.toMap(Strategy::getCode, s -> s));
+            Strategy strategy = strategyMap.get(DefaultEqualMatchStrategy.class.getSimpleName());
+            if (Objects.nonNull(strategy)) {
+                if (!StringUtils.equals(strategy.getId(), entity.getStrategyId())) {
+                    // 预算科目维度必须使用一致性匹配策略
+                    return OperateResultWithData.operationFailure("dimension_00004");
+                }
+            } else {
+                // 预算科目维度必须使用一致性匹配策略
+                return OperateResultWithData.operationFailure("dimension_00004");
+            }
         }
         // 期间
         else if (StringUtils.equals(Constants.DIMENSION_CODE_PERIOD, entity.getCode())) {

@@ -61,11 +61,8 @@ public class DimensionAttributeService extends BaseEntityService<DimensionAttrib
             return ResultData.fail(ContextUtil.getMessage("category_00007", categoryId));
         }
         StringJoiner joiner = new StringJoiner(",");
-        List<String> codes = dimensions.stream().map(DimensionDto::getCode).sorted().collect(Collectors.toList());
-        // Collections.sort(codes);
-        for (String code : codes) {
-            joiner.add(code);
-        }
+        // 使用到的维度字段名,按asci码排序,逗号(,)分隔
+        dimensions.stream().map(DimensionDto::getCode).sorted().forEach(joiner::add);
         dimensionAttribute.setAttribute(joiner.toString());
 
         DimensionAttribute attr = getAttribute(subjectId, dimensionAttribute.getAttributeCode());

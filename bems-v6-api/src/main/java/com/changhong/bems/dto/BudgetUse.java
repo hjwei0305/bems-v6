@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 import java.io.Serializable;
 import java.util.StringJoiner;
 
@@ -51,10 +52,11 @@ public class BudgetUse implements Serializable {
     @ApiModelProperty(value = "业务描述")
     private String bizRemark;
     /**
-     * 占用时间
+     * 占用日期
      */
     @NotBlank
-    @ApiModelProperty(value = "占用时间", example = "2021-05-13")
+    @Pattern(regexp = "^[0-9]{4}-[0-9]{2}-[0-9]{2}$", message = "占用日期格式yyyy-MM-dd不正确")
+    @ApiModelProperty(value = "占用日期", example = "2021-05-13")
     private String date;
     /**
      * 预算科目代码

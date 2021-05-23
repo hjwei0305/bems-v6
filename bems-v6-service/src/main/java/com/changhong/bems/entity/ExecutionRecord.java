@@ -25,6 +25,8 @@ public class ExecutionRecord extends BaseEntity implements ITenant, Serializable
     public static final String FIELD_EVENT_CODE = "eventCode";
     public static final String FIELD_BIZ_ID = "bizId";
     public static final String FIELD_OPERATION = "operation";
+    public static final String FIELD_IS_FREED = "isFreed";
+    public static final String FIELD_TIMESTAMP = "timestamp";
     /**
      * 预算主体id
      */
@@ -62,6 +64,11 @@ public class ExecutionRecord extends BaseEntity implements ITenant, Serializable
     @Column(name = "operation_time", updatable = false)
     private LocalDateTime opTime;
     /**
+     * 操作时间戳
+     */
+    @Column(name = "time_stamp", updatable = false)
+    private Long timestamp = 0L;
+    /**
      * 操作人账号
      */
     @Column(name = "operation_user_account", updatable = false)
@@ -91,6 +98,12 @@ public class ExecutionRecord extends BaseEntity implements ITenant, Serializable
      */
     @Column(name = "biz_remark", updatable = false)
     private String bizRemark;
+    /**
+     * 是否已被释放
+     * 为保证占用的幂等性,通过此标记避免被重复释放
+     */
+    @Column(name = "is_freed")
+    private Boolean isFreed = Boolean.FALSE;
     /**
      * 租户代码
      */
@@ -163,6 +176,14 @@ public class ExecutionRecord extends BaseEntity implements ITenant, Serializable
         this.opTime = opTime;
     }
 
+    public Long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Long timestamp) {
+        this.timestamp = timestamp;
+    }
+
     public String getOpUserAccount() {
         return opUserAccount;
     }
@@ -209,6 +230,14 @@ public class ExecutionRecord extends BaseEntity implements ITenant, Serializable
 
     public void setBizRemark(String bizRemark) {
         this.bizRemark = bizRemark;
+    }
+
+    public Boolean getIsFreed() {
+        return isFreed;
+    }
+
+    public void setIsFreed(Boolean isFreed) {
+        this.isFreed = isFreed;
     }
 
     @Override

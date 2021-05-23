@@ -10,6 +10,7 @@ import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.exception.ServiceException;
+import com.changhong.sei.util.ArithUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeansException;
@@ -21,6 +22,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 实现功能：
@@ -205,9 +207,12 @@ public class BudgetService {
         if (CollectionUtils.isNotEmpty(records)) {
             ExecutionRecord newRecord;
             for (ExecutionRecord record : records) {
+                // 为保证占用幂等,避免重复释放,更新记录已释放标记
+                executionRecordService.updateFreed(record.getId());
+
                 newRecord = record.clone();
-                newRecord.setId(null);
                 newRecord.setOperation(OperationType.FREED);
+                newRecord.setId(null);
                 newRecord.setOpUserAccount(null);
                 newRecord.setOpUserName(null);
                 newRecord.setBizRemark("释放: " + newRecord.getBizRemark());
@@ -226,22 +231,41 @@ public class BudgetService {
      */
     private void freeBudget(String eventCode, String bizId, double amount) {
         // 检查占用是否需要释放
-        ExecutionRecord record = executionRecordService.getUseRecord(eventCode, bizId);
-        if (Objects.nonNull(record)) {
-            ExecutionRecord newRecord = record.clone();
-            newRecord.setAmount(amount);
-            newRecord.setId(null);
-            newRecord.setOperation(OperationType.FREED);
-            newRecord.setOpUserAccount(null);
-            newRecord.setOpUserName(null);
-            newRecord.setBizRemark("释放: " + newRecord.getBizRemark());
-            // 释放记录
-            poolService.recordLog(newRecord);
+        List<ExecutionRecord> records = executionRecordService.getUseRecords(eventCode, bizId);
+        if (CollectionUtils.isNotEmpty(records)) {
+            ExecutionRecord newRecord;
+            // 剩余释放金额
+            double balance = amount;
+            for (ExecutionRecord record : records) {
+                if (balance <= 0) {
+                    continue;
+                }
+                // 为保证占用幂等,避免重复释放,更新记录已释放标记
+                executionRecordService.updateFreed(record.getId());
+
+                newRecord = record.clone();
+                if (record.getAmount() > balance) {
+                    // 释放当前记录部分金额
+                    newRecord.setAmount(balance);
+                    balance = 0;
+                } else {
+                    // 释放当前记录全部金额
+                    balance = ArithUtils.sub(balance, record.getAmount());
+                }
+                newRecord.setId(null);
+                newRecord.setOperation(OperationType.FREED);
+                newRecord.setOpUserAccount(null);
+                newRecord.setOpUserName(null);
+                newRecord.setBizRemark("释放: " + newRecord.getBizRemark());
+                // 释放记录
+                poolService.recordLog(newRecord);
+            }
         }
     }
 
     /**
      * 获取最优匹配条件的预算池
+     *
      * @param useBudget 预算占用数据
      * @return 返回最优预算池
      */
@@ -276,15 +300,29 @@ public class BudgetService {
          */
         // 公司代码
         String corpCode = useBudget.getCorpCode();
+        // 预算科目
+        String item = useBudget.getItem();
         // 预算占用日期
         LocalDate happenDate = LocalDate.parse(useBudget.getDate(), DateTimeFormatter.ISO_DATE);
 
         Search search = Search.createSearch();
         // 公司代码
         search.addFilter(new SearchFilter(PoolAttributeView.FIELD_CORP_CODE, corpCode));
-
         // 按维度策略生成过滤条件
         Map<String, String> dimensionAttributes = this.getDimensionAttributes(useBudget);
+        // 组装所使用到的维度清单 -> 生成维度组合
+        Set<String> codes = dimensionAttributes.keySet();
+        codes.add(Constants.DIMENSION_CODE_ITEM);
+        codes.add(Constants.DIMENSION_CODE_PERIOD);
+        // 使用到的维度,按asci码排序,逗号(,)分隔
+        StringJoiner joiner = new StringJoiner(",");
+        codes.stream().sorted().forEach(joiner::add);
+        // 预算维度组合
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_ATTRIBUTE, joiner.toString()));
+
+        // 预算科目
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_ITEM, item));
+        // 其他维度条件
         for (Map.Entry<String, String> entry : dimensionAttributes.entrySet()) {
             search.addFilter(this.doDimensionStrategy(useBudget, entry.getKey(), entry.getValue()));
         }
@@ -304,19 +342,11 @@ public class BudgetService {
 
     /**
      * 按属性维度获取
-     * 主要用于预算使用时,无期间维度查找预算
+     * 期间和科目为预制默认维度匹配,不在本范围中
      */
     public Map<String, String> getDimensionAttributes(BudgetUse use) {
         // 占用的维度代码
         Map<String, String> dimensionMap = new HashMap<>();
-        // 预算科目
-        String item = use.getItem();
-        if (Objects.nonNull(item)) {
-            item = item.trim();
-            if (StringUtils.isNotBlank(item) && !StringUtils.equalsIgnoreCase(Constants.NONE, item)) {
-                dimensionMap.put(DimensionAttribute.FIELD_ITEM, item);
-            }
-        }
         // 组织机构
         String org = use.getOrg();
         if (Objects.nonNull(org)) {

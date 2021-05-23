@@ -9,9 +9,11 @@ import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
+import com.changhong.sei.core.dto.serach.SearchOrder;
 import com.changhong.sei.core.service.BaseEntityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -41,27 +43,27 @@ public class ExecutionRecordService extends BaseEntityService<ExecutionRecord> {
      * @param bizId     业务id
      * @return 返回满足条件的占用记录
      */
-    public ExecutionRecord getUseRecord(String eventCode, String bizId) {
-        Search search = Search.createSearch();
-        search.addFilter(new SearchFilter(ExecutionRecord.FIELD_BIZ_ID, bizId));
-        search.addFilter(new SearchFilter(ExecutionRecord.FIELD_EVENT_CODE, eventCode));
-        search.addFilter(new SearchFilter(ExecutionRecord.FIELD_OPERATION, OperationType.USE));
-        return dao.findFirstByFilters(search);
-    }
-
-    /**
-     * 通过事件和业务id获取占用记录
-     *
-     * @param eventCode 事件代码
-     * @param bizId     业务id
-     * @return 返回满足条件的占用记录
-     */
     public List<ExecutionRecord> getUseRecords(String eventCode, String bizId) {
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(ExecutionRecord.FIELD_BIZ_ID, bizId));
         search.addFilter(new SearchFilter(ExecutionRecord.FIELD_EVENT_CODE, eventCode));
         search.addFilter(new SearchFilter(ExecutionRecord.FIELD_OPERATION, OperationType.USE));
+        search.addFilter(new SearchFilter(ExecutionRecord.FIELD_IS_FREED, Boolean.FALSE));
+        // 为保证释放顺序: 先占用后释放 -> 时间戳倒序
+        search.addSortOrder(SearchOrder.desc(ExecutionRecord.FIELD_TIMESTAMP));
         return dao.findByFilters(search);
+    }
+
+
+    /**
+     * 更新是否被释放标记
+     * 为保证占用幂等性,通过此标记判断是否已释放,避免重复释放
+     *
+     * @param id 记录id
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void updateFreed(String id) {
+        dao.updateFreed(id, Boolean.TRUE);
     }
 
     public PageResult<ExecutionRecordView> findViewByPage(Search search) {
