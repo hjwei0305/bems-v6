@@ -107,6 +107,7 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
             // 未找到预算主体
             return ResultData.fail(ContextUtil.getMessage("subject_item_00004", subjectId));
         }
+        // 控制组织的范围只能是预算主体指定的组织及下级
         return organizationManager.getTree4Unfrozen(subject.getOrgId());
     }
 

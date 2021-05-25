@@ -6,6 +6,9 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.validator.constraints.Length;
 
+import javax.validation.constraints.Digits;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.util.Date;
 import java.util.List;
 
@@ -27,6 +30,7 @@ public class OrderDto extends BaseEntityDto {
     /**
      * 预算主体id
      */
+    @Size(max = 36)
     @ApiModelProperty(value = "预算主体id")
     private String subjectId;
     /**
@@ -47,6 +51,7 @@ public class OrderDto extends BaseEntityDto {
     /**
      * 预算类型id
      */
+    @Size(max = 36)
     @ApiModelProperty(value = "预算类型id")
     private String categoryId;
     /**
@@ -57,21 +62,25 @@ public class OrderDto extends BaseEntityDto {
     /**
      * 期间分类
      */
+    @NotNull
     @ApiModelProperty(value = "期间分类")
     private PeriodType periodType;
     /**
      * 订单类型
      */
+    @NotNull
     @ApiModelProperty(value = "订单类型")
     private OrderCategory orderCategory;
     /**
      * 申请金额
      */
+    @Digits(integer = 10, fraction = 2)
     @ApiModelProperty(value = "申请金额")
     private Double applyAmount = 0d;
     /**
      * 申请组织id
      */
+    @Size(max = 36)
     @ApiModelProperty(value = "申请组织id")
     private String applyOrgId;
     /**
