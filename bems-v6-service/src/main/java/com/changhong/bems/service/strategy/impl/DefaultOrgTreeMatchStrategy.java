@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * 实现功能：
+ * 实现功能：组织机构树路径维度匹配策略
  *
  * @author 马超(Vision.Mac)
  * @version 1.0.00  2021-05-15 11:32

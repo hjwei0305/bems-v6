@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -67,6 +68,11 @@ public class ExecutionRecordService extends BaseEntityService<ExecutionRecord> {
     }
 
     public PageResult<ExecutionRecordView> findViewByPage(Search search) {
+        if (Objects.isNull(search)) {
+            search = Search.createSearch();
+        }
+        // 按时间戳排序
+        search.addSortOrder(SearchOrder.desc(ExecutionRecordView.FIELD_TIMESTAMP));
         return viewDao.findByPage(search);
     }
 }

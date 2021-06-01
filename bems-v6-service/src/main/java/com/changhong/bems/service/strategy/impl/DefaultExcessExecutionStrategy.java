@@ -1,7 +1,9 @@
 package com.changhong.bems.service.strategy.impl;
 
-import com.changhong.bems.commons.Constants;
-import com.changhong.bems.dto.*;
+import com.changhong.bems.dto.BudgetResponse;
+import com.changhong.bems.dto.BudgetUse;
+import com.changhong.bems.dto.BudgetUseResult;
+import com.changhong.bems.dto.OperationType;
 import com.changhong.bems.entity.ExecutionRecord;
 import com.changhong.bems.entity.PoolAttributeView;
 import com.changhong.bems.service.PoolService;
@@ -11,8 +13,6 @@ import com.changhong.bems.service.vo.PoolLevel;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.SearchFilter;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,12 +27,16 @@ import java.util.stream.Collectors;
  * @version 1.0.00  2021-05-21 14:40
  */
 public class DefaultExcessExecutionStrategy extends BaseExecutionStrategy implements ExcessExecutionStrategy {
-    private static final Logger LOG = LoggerFactory.getLogger(DefaultLimitExecutionStrategy.class);
 
     @Autowired
     private OrganizationManager organizationManager;
     @Autowired
     private PoolService poolService;
+
+    @Override
+    public OrganizationManager getOrgManager() {
+        return organizationManager;
+    }
 
     /**
      * 执行预算执行策略
@@ -46,67 +50,11 @@ public class DefaultExcessExecutionStrategy extends BaseExecutionStrategy implem
      */
     @Override
     public ResultData<BudgetResponse> execution(String attribute, BudgetUse useBudget, List<PoolAttributeView> poolAttributes, Collection<SearchFilter> otherDimFilters) {
-        Map<String, PoolLevel> poolLevelMap = null;
-
-        // 组织id
-        String orgId = useBudget.getOrg();
-        // 检查是否包含组织维度
-        if (attribute.contains(Constants.DIMENSION_CODE_ORG)) {
-            // 按id进行映射方便后续使用
-            Map<String, OrganizationDto> orgMap = null;
-            if (Objects.nonNull(orgId)) {
-                orgId = orgId.trim();
-                if (StringUtils.isNotBlank(orgId) && !StringUtils.equalsIgnoreCase(Constants.NONE, orgId)) {
-                    // 获取指定节点的所有父节点(含自己)
-                    ResultData<List<OrganizationDto>> resultData = organizationManager.getParentNodes(useBudget.getOrg(), Boolean.TRUE);
-                    if (resultData.successful()) {
-                        List<OrganizationDto> orgList = resultData.getData();
-                        if (CollectionUtils.isNotEmpty(orgList)) {
-                            // 组织id映射
-                            orgMap = orgList.stream().collect(Collectors.toMap(OrganizationDto::getId, o -> o));
-                            orgList.clear();
-                        }
-                    } else {
-                        return ResultData.fail(resultData.getMessage());
-                    }
-                }
-            }
-            if (Objects.isNull(orgMap)) {
-                // 预算占用时,组织维度值不能为空!
-                return ResultData.fail(ContextUtil.getMessage("pool_00012"));
-            }
-
-            /*
-            组织机构向上查找规则:
-            1.按组织机构树路径,从预算占用的节点开始,向上依次查找
-            2.当按组织节点找到存在的预算池,不管余额是否满足,都将停止向上查找
-             */
-            boolean isUp = true;
-            String parentId = useBudget.getOrg();
-            OrganizationDto org = orgMap.get(parentId);
-            while (isUp && Objects.nonNull(org)) {
-                String oId = org.getId();
-                // 按组织id匹配预算池
-                List<PoolAttributeView> pools = poolAttributes.stream().filter(p -> StringUtils.equals(oId, p.getOrg())).collect(Collectors.toList());
-                if (CollectionUtils.isNotEmpty(pools)) {
-                    // 通过组织id匹配到预算池进行排序
-                    poolLevelMap = this.sortByPeriod(pools);
-                    isUp = false;
-                } else {
-                    // 没有可用的预算池,继续查找上级组织的预算池
-                }
-                parentId = org.getParentId();
-                if (StringUtils.isNotBlank(parentId)) {
-                    org = orgMap.get(parentId);
-                } else {
-                    org = null;
-                }
-            }
-        } else {
-            // 按预算期间的优先级排序
-            poolLevelMap = this.sortByPeriod(poolAttributes);
+        ResultData<Map<String, PoolLevel>> resultData = this.sortPools(attribute, useBudget, poolAttributes);
+        if (resultData.failed()) {
+            return ResultData.fail(resultData.getMessage());
         }
-
+        Map<String, PoolLevel> poolLevelMap = resultData.getData();
         if (Objects.nonNull(poolLevelMap) && poolLevelMap.size() > 0) {
             BudgetResponse response = new BudgetResponse();
             response.setBizId(useBudget.getBizId());

@@ -25,6 +25,7 @@ public class ExecutionRecordView extends BaseEntity implements ITenant, Serializ
     public static final String FIELD_EVENT_CODE = "bizEvent";
     public static final String FIELD_BIZ_ID = "bizId";
     public static final String FIELD_OPERATION = "operation";
+    public static final String FIELD_TIMESTAMP = "timestamp";
     /**
      * 预算主体id
      */
@@ -61,6 +62,11 @@ public class ExecutionRecordView extends BaseEntity implements ITenant, Serializ
      */
     @Column(name = "operation_time", updatable = false)
     private LocalDateTime opTime;
+    /**
+     * 操作时间戳
+     */
+    @Column(name = "time_stamp", updatable = false)
+    private Long timestamp = 0L;
     /**
      * 操作人账号
      */
@@ -161,6 +167,14 @@ public class ExecutionRecordView extends BaseEntity implements ITenant, Serializ
 
     public void setOpTime(LocalDateTime opTime) {
         this.opTime = opTime;
+    }
+
+    public Long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Long timestamp) {
+        this.timestamp = timestamp;
     }
 
     public String getOpUserAccount() {

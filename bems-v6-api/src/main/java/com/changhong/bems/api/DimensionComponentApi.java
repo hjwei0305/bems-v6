@@ -32,7 +32,7 @@ public interface DimensionComponentApi {
      * @return 子实体清单
      */
     @GetMapping(path = "getBudgetItems")
-    @ApiImplicitParam(name = "subjectId", value = "预算主体id", required = true)
+    @ApiImplicitParam(name = "subjectId", value = "预算主体id", dataTypeClass = String.class, required = true)
     @ApiOperation(value = "获取预算科目", notes = "获取指定预算主体的科目(维度组件专用)")
     ResultData<List<SubjectItemDto>> getBudgetItems(@RequestParam("subjectId") String subjectId);
 
@@ -45,8 +45,8 @@ public interface DimensionComponentApi {
      */
     @GetMapping(path = "getBudgetPeriods")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "subjectId", value = "预算主体id", required = true),
-            @ApiImplicitParam(name = "type", value = "期间分类,可用值:ANNUAL,SEMIANNUAL,QUARTER,MONTHLY,CUSTOMIZE", required = true)
+            @ApiImplicitParam(name = "subjectId", value = "预算主体id", dataTypeClass = String.class, required = true),
+            @ApiImplicitParam(name = "type", value = "期间分类,可用值:ANNUAL,SEMIANNUAL,QUARTER,MONTHLY,CUSTOMIZE", dataTypeClass = String.class, required = true)
     })
     @ApiOperation(value = "获取期间", notes = "按预算主体和期间类型获取期间(维度组件专用)")
     ResultData<List<PeriodDto>> getPeriods(@RequestParam("subjectId") String subjectId,
@@ -59,7 +59,7 @@ public interface DimensionComponentApi {
      * @return 期间清单
      */
     @GetMapping(path = "getOrgTree")
-    @ApiImplicitParam(name = "subjectId", value = "预算主体id", required = true)
+    @ApiImplicitParam(name = "subjectId", value = "预算主体id", dataTypeClass = String.class, required = true)
     @ApiOperation(value = "获取组织机构", notes = "按预算主体获取组织机构(维度组件专用)")
     ResultData<OrganizationDto> getOrgTree(@RequestParam("subjectId") String subjectId);
 }

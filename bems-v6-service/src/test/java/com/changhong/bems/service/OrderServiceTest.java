@@ -7,6 +7,7 @@ import com.changhong.bems.entity.OrderDetail;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.test.BaseUnit5Test;
 import com.changhong.sei.core.util.JsonUtils;
+import com.changhong.sei.core.util.ValidUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +76,15 @@ class OrderServiceTest extends BaseUnit5Test {
         ResultData<Void> resultData = service.submitProcess(order, details, taskActDefId);
         stopWatch.stop();
         System.out.println("耗时: " + stopWatch.getTime());
+        System.out.println(resultData);
+    }
+
+    @Test
+    void testValid() {
+        OrderDto order = new OrderDto();
+        order.setCode("12345678901");
+
+        ResultData<Void> resultData = ValidUtils.validate(order);
         System.out.println(resultData);
     }
 }

@@ -18,6 +18,7 @@ import javax.websocket.server.ServerEndpoint;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 实现功能：
@@ -55,7 +56,7 @@ public class WebsocketServer {
                 }
                 // 输出最新日志
                 send(session, ResultData.success(statistics));
-                Thread.sleep(1100);
+                TimeUnit.SECONDS.sleep(2);
                 statistics = (OrderStatistics) operations.get();
             }
             statistics = new OrderStatistics();

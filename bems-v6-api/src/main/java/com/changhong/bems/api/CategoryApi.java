@@ -135,8 +135,8 @@ public interface CategoryApi extends BaseEntityApi<CategoryDto> {
      */
     @GetMapping(path = "getByCategory")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "subjectId", value = "预算主体"),
-            @ApiImplicitParam(name = "category", value = "管理类型(订单类型),可用值:INJECTION,ADJUSTMENT,SPLIT")
+            @ApiImplicitParam(name = "subjectId", value = "预算主体", dataTypeClass = String.class),
+            @ApiImplicitParam(name = "category", value = "管理类型(订单类型),可用值:INJECTION,ADJUSTMENT,SPLIT", dataTypeClass = String.class)
     })
     @ApiOperation(value = "通过订单类型获取预算类型", notes = "通过订单类型获取预算类型")
     ResultData<List<CategoryDto>> getByCategory(@RequestParam("subjectId") String subjectId, @RequestParam("category") String category);

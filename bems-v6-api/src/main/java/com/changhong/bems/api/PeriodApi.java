@@ -35,8 +35,8 @@ public interface PeriodApi extends BaseEntityApi<PeriodDto> {
      * @return 期间清单
      */
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "subjectId", value = "预算主体id", required = true),
-            @ApiImplicitParam(name = "type", value = "期间分类,可用值:ANNUAL,SEMIANNUAL,QUARTER,MONTHLY,CUSTOMIZE", required = true)
+            @ApiImplicitParam(name = "subjectId", value = "预算主体id", dataTypeClass = String.class, required = true),
+            @ApiImplicitParam(name = "type", value = "期间分类,可用值:ANNUAL,SEMIANNUAL,QUARTER,MONTHLY,CUSTOMIZE", dataTypeClass = String.class, required = true)
     })
     @GetMapping(path = "findBySubject")
     @ApiOperation(value = "按预算主体获取期间", notes = "按预算主体获取期间")

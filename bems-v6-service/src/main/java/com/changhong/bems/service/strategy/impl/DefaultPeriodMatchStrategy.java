@@ -6,7 +6,7 @@ import com.changhong.bems.service.strategy.PeriodMatchStrategy;
 import com.changhong.sei.core.dto.ResultData;
 
 /**
- * 实现功能：
+ * 实现功能：期间关系维度匹配策略
  *
  * @author 马超(Vision.Mac)
  * @version 1.0.00  2021-05-15 11:32

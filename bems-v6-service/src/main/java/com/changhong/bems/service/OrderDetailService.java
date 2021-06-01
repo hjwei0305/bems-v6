@@ -32,6 +32,8 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -213,27 +215,8 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             LOG.debug("生成行项: " + details.size());
         }
 
-        try {
-            BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(HANDLE_CACHE_KEY_PREFIX.concat(orderId));
-            OrderStatistics statistics = (OrderStatistics) operations.get();
-            if (Objects.nonNull(statistics)) {
-                // 订单[]正在处理过程中,再次提交会影响处理统计
-                LOG.warn(ContextUtil.getMessage("order_detail_00005"));
-            } else {
-                statistics = new OrderStatistics(details.size(), LocalDateTime.now());
-                // 设置默认过期时间:1天
-                operations.set(statistics, 1, TimeUnit.DAYS);
-            }
-
-            // 保存订单行项
-            this.addOrderItems(order, details, Boolean.TRUE);
-        } catch (ServiceException e) {
-            LOG.error("异步生成单据行项异常", e);
-        } finally {
-            // 清除缓存
-            redisTemplate.delete(HANDLE_CACHE_KEY_PREFIX.concat(orderId));
-        }
-
+        // 保存订单行项
+        this.addOrderItems(order, details, Boolean.TRUE);
     }
 
     /**
@@ -319,24 +302,11 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("生成行项: " + detailList.size());
             }
-            BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(HANDLE_CACHE_KEY_PREFIX.concat(orderId));
-            OrderStatistics statistics = (OrderStatistics) operations.get();
-            if (Objects.nonNull(statistics)) {
-                // 订单[]正在处理过程中,再次提交会影响处理统计
-                LOG.warn(ContextUtil.getMessage("order_detail_00005"));
-            } else {
-                statistics = new OrderStatistics(detailList.size(), LocalDateTime.now());
-                // 设置默认过期时间:1天
-                operations.set(statistics, 1, TimeUnit.DAYS);
-            }
 
             // 保存订单行项
             this.addOrderItems(order, detailList, Boolean.FALSE);
         } catch (ServiceException e) {
             LOG.error("异步生成单据行项异常", e);
-        } finally {
-            // 清除缓存
-            redisTemplate.delete(HANDLE_CACHE_KEY_PREFIX.concat(orderId));
         }
     }
 
@@ -446,6 +416,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
      *
      * @param isCover 出现重复行项时,是否覆盖原有记录
      */
+    @SuppressWarnings({"ResultOfMethodCallIgnored", "UnnecessaryLocalVariable"})
     private void addOrderItems(Order order, List<OrderDetail> details, boolean isCover) {
         if (Objects.isNull(order)) {
             //添加单据行项时,订单头不能为空.
@@ -454,98 +425,115 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         }
         // 订单id
         String orderId = order.getId();
-        BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(HANDLE_CACHE_KEY_PREFIX + orderId);
-
-        // 分组处理,防止数据太多导致异常(in查询限制)
-        int size = details.size();
-        // 计算组数
-        int limit = (details.size() + MAX_NUMBER - 1) / MAX_NUMBER;
-        // 使用流遍历操作
-        List<List<OrderDetail>> groups = new ArrayList<>();
-        Stream.iterate(0, n -> n + 1).limit(limit).forEach(i -> {
-            groups.add(details.stream().skip(i * MAX_NUMBER).limit(MAX_NUMBER).collect(Collectors.toList()));
-        });
-        details.clear();
-
-        ResultData<Void> result;
-        OrderStatistics statistics = (OrderStatistics) operations.get();
-        if (Objects.isNull(statistics)) {
-            statistics = new OrderStatistics(size, LocalDateTime.now());
+        if (StringUtils.isBlank(orderId)) {
+            //添加单据行项时,订单id不能为空.
+            LOG.error(ContextUtil.getMessage("order_detail_00002"));
+            return;
         }
-        // 记录所有hash值,以便识别出重复的行项
-        Set<Long> duplicateHash = new HashSet<>();
-        Search search = Search.createSearch();
-        // 分组处理
-        for (List<OrderDetail> detailList : groups) {
-            search.clearAll();
+        // 创建一个单线程执行器,保证任务按顺序执行(FIFO)
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        try {
+            // 分组处理,防止数据太多导致异常(in查询限制)
+            int size = details.size();
+            // 计算组数
+            int limit = (details.size() + MAX_NUMBER - 1) / MAX_NUMBER;
+            // 使用流遍历操作
+            List<List<OrderDetail>> groups = new ArrayList<>();
+            Stream.iterate(0, n -> n + 1).limit(limit).forEach(i -> {
+                groups.add(details.stream().skip(i * MAX_NUMBER).limit(MAX_NUMBER).collect(Collectors.toList()));
+            });
+            details.clear();
 
-            Set<Long> hashSet = detailList.stream().map(OrderDetail::getAttributeCode).collect(Collectors.toSet());
-            search.addFilter(new SearchFilter(OrderDetail.FIELD_ORDER_ID, orderId));
-            search.addFilter(new SearchFilter(OrderDetail.FIELD_ATTRIBUTE_CODE, hashSet, SearchFilter.Operator.IN));
-            List<OrderDetail> orderDetails = dao.findByFilters(search);
-            Map<Long, OrderDetail> detailMap;
-            if (CollectionUtils.isNotEmpty(orderDetails)) {
-                detailMap = orderDetails.stream().collect(Collectors.toMap(OrderDetail::getAttributeCode, o -> o));
-            } else {
-                detailMap = new HashMap<>();
-            }
+            OrderStatistics statistics = new OrderStatistics(size, LocalDateTime.now());
+            BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+            // 设置默认过期时间:1天
+            operations.set(statistics, 1, TimeUnit.DAYS);
 
-            for (OrderDetail detail : detailList) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("正在处理行项: " + JsonUtils.toJson(detail));
-                }
+            // 记录所有hash值,以便识别出重复的行项
+            Set<Long> duplicateHash = new HashSet<>();
+            Search search = Search.createSearch();
+            ResultData<Void> result;
+            // 分组处理
+            for (List<OrderDetail> detailList : groups) {
+                search.clearAll();
 
-                detail.setOrderId(orderId);
-
-                // 本次提交数据中存在重复项
-                if (duplicateHash.contains(detail.getAttributeCode())) {
-                    // 有错误的
-                    detail.setHasErr(Boolean.TRUE);
-                    // 存在重复项
-                    detail.setErrMsg(ContextUtil.getMessage("order_detail_00006"));
-                    this.save(detail);
-                    // 错误数加1
-                    statistics.addFailures();
-                    // 更新缓存
-                    OrderStatistics finalStatistics = statistics;
-                    CompletableFuture.runAsync(() -> operations.set(finalStatistics));
-                    continue;
+                Set<Long> hashSet = detailList.stream().map(OrderDetail::getAttributeCode).collect(Collectors.toSet());
+                search.addFilter(new SearchFilter(OrderDetail.FIELD_ORDER_ID, orderId));
+                search.addFilter(new SearchFilter(OrderDetail.FIELD_ATTRIBUTE_CODE, hashSet, SearchFilter.Operator.IN));
+                List<OrderDetail> orderDetails = dao.findByFilters(search);
+                Map<Long, OrderDetail> detailMap;
+                if (CollectionUtils.isNotEmpty(orderDetails)) {
+                    detailMap = orderDetails.stream().collect(Collectors.toMap(OrderDetail::getAttributeCode, o -> o));
                 } else {
-                    // 记录hash值
-                    duplicateHash.add(detail.getAttributeCode());
+                    detailMap = new HashMap<>();
                 }
-                // 检查持久化数据中是否存在重复项
-                OrderDetail orderDetail = detailMap.get(detail.getAttributeCode());
-                if (Objects.nonNull(orderDetail)) {
-                    // 检查重复行项
-                    if (isCover) {
-                        // 覆盖原有行项记录(更新金额)
-                        orderDetail.setAmount(detail.getAmount());
-                        detail = orderDetail;
-                    } else {
-                        // 忽略,不做处理
-                        continue;
+
+                for (OrderDetail detail : detailList) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("正在处理行项: " + JsonUtils.toJson(detail));
                     }
-                }
 
-                try {
-                    // 设置行项数据的预算池及当前可用额度
-                    result = this.createDetail(order, detail);
-                } catch (Exception e) {
-                    result = ResultData.fail(ExceptionUtils.getRootCauseMessage(e));
+                    detail.setOrderId(orderId);
+
+                    // 本次提交数据中存在重复项
+                    if (duplicateHash.contains(detail.getAttributeCode())) {
+                        // 有错误的
+                        detail.setHasErr(Boolean.TRUE);
+                        // 存在重复项
+                        detail.setErrMsg(ContextUtil.getMessage("order_detail_00006"));
+                        this.save(detail);
+                        // 错误数加1
+                        statistics.addFailures();
+                        // 更新缓存
+                        OrderStatistics finalStatistics = statistics;
+                        CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
+                        continue;
+                    } else {
+                        // 记录hash值
+                        duplicateHash.add(detail.getAttributeCode());
+                    }
+                    // 检查持久化数据中是否存在重复项
+                    OrderDetail orderDetail = detailMap.get(detail.getAttributeCode());
+                    if (Objects.nonNull(orderDetail)) {
+                        // 检查重复行项
+                        if (isCover) {
+                            // 覆盖原有行项记录(更新金额)
+                            orderDetail.setAmount(detail.getAmount());
+                            detail = orderDetail;
+                        } else {
+                            // 忽略,不做处理
+                            continue;
+                        }
+                    }
+
+                    try {
+                        // 设置行项数据的预算池及当前可用额度
+                        result = this.createDetail(order, detail);
+                    } catch (Exception e) {
+                        result = ResultData.fail(ExceptionUtils.getRootCauseMessage(e));
+                    }
+                    if (result.successful()) {
+                        statistics.addSuccesses();
+                    } else {
+                        statistics.addFailures();
+                        // 有错误的
+                        detail.setHasErr(Boolean.TRUE);
+                        detail.setErrMsg(result.getMessage());
+                    }
+                    this.save(detail);
+                    OrderStatistics finalStatistics = statistics;
+                    CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
                 }
-                if (result.successful()) {
-                    statistics.addSuccesses();
-                } else {
-                    statistics.addFailures();
-                    // 有错误的
-                    detail.setHasErr(Boolean.TRUE);
-                    detail.setErrMsg(result.getMessage());
-                }
-                this.save(detail);
-                OrderStatistics finalStatistics = statistics;
-                CompletableFuture.runAsync(() -> operations.set(finalStatistics));
             }
+        } catch (ServiceException e) {
+            LOG.error("异步生成单据行项异常", e);
+        } finally {
+            try {
+                executorService.awaitTermination(10, TimeUnit.SECONDS);
+            } catch (InterruptedException ignored) {
+            }
+            // 清除缓存
+            redisTemplate.delete(HANDLE_CACHE_KEY_PREFIX.concat(orderId));
         }
     }
 
