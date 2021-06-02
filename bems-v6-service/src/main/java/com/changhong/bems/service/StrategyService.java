@@ -7,7 +7,9 @@ import com.changhong.bems.entity.Strategy;
 import com.changhong.bems.entity.Subject;
 import com.changhong.bems.entity.SubjectItem;
 import com.changhong.bems.service.strategy.*;
+import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
+import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.limiter.support.lock.SeiLock;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
@@ -195,5 +197,40 @@ public class StrategyService extends BaseEntityService<Strategy> {
     @Cacheable(key = "#category.name()")
     public List<Strategy> findByCategory(StrategyCategory category) {
         return dao.findListByProperty(Strategy.FIELD_CATEGORY, category);
+    }
+
+    /**
+     * 获取预算执行控制策略
+     *
+     * @param subjectId 预算主体id
+     * @param itemCode  预算科目代码
+     * @return 预算执行控制策略
+     */
+    @Cacheable(key = "#subjectId + ':' + #itemCode")
+    public ResultData<Strategy> getStrategy(String subjectId, String itemCode) {
+        // 预算主体策略
+        Strategy strategy = null;
+        // 预算主体科目
+        SubjectItem subjectItem = subjectItemService.getSubjectItem(subjectId, itemCode);
+        if (Objects.nonNull(subjectItem)) {
+            if (StringUtils.isNotBlank(subjectItem.getStrategyId())) {
+                // 预算主体科目策略
+                strategy = dao.findOne(subjectItem.getStrategyId());
+            }
+        }
+        if (Objects.isNull(strategy)) {
+            Subject subject = subjectService.findOne(subjectId);
+            if (Objects.nonNull(subject)) {
+                strategy = dao.findOne(subject.getStrategyId());
+            } else {
+                // 预算主体[{0}]不存在!
+                return ResultData.fail(ContextUtil.getMessage("subject_00003", subjectId));
+            }
+        }
+        if (Objects.isNull(strategy)) {
+            // 预算占用时,未找到预算主体[{0}]的预算科目[{1}]
+            return ResultData.fail(ContextUtil.getMessage("pool_00010", subjectId, itemCode));
+        }
+        return ResultData.success(strategy);
     }
 }

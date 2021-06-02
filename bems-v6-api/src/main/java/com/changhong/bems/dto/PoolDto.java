@@ -6,7 +6,6 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 /**
  * 预算池(Pool)DTO类

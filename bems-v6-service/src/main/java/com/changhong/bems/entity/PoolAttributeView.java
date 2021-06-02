@@ -25,6 +25,7 @@ public class PoolAttributeView extends BaseAttribute implements ITenant, Seriali
     public static final String FIELD_END_DATE = "endDate";
     public static final String FIELD_ACTIVE = "actived";
     public static final String FIELD_USE = "use";
+    public static final String FIELD_PERIOD_TYPE = "periodType";
     /**
      * 预算池编号
      */
@@ -82,6 +83,16 @@ public class PoolAttributeView extends BaseAttribute implements ITenant, Seriali
      */
     @Column(name = "end_date")
     private LocalDate endDate;
+    /**
+     * 执行策略id
+     */
+    @Column(name = "strategy_id")
+    private String strategyId;
+    /**
+     * 执行策略名称
+     */
+    @Column(name = "strategy_name")
+    private String strategyName;
     /**
      * 是否启用
      */
@@ -200,6 +211,22 @@ public class PoolAttributeView extends BaseAttribute implements ITenant, Seriali
 
     public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
+    }
+
+    public String getStrategyId() {
+        return strategyId;
+    }
+
+    public void setStrategyId(String strategyId) {
+        this.strategyId = strategyId;
+    }
+
+    public String getStrategyName() {
+        return strategyName;
+    }
+
+    public void setStrategyName(String strategyName) {
+        this.strategyName = strategyName;
     }
 
     public Boolean getActived() {

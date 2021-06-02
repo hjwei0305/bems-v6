@@ -3,9 +3,9 @@ package com.changhong.bems.service;
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.*;
+import com.changhong.bems.service.client.OrganizationManager;
 import com.changhong.bems.service.strategy.BudgetExecutionStrategy;
 import com.changhong.bems.service.strategy.DimensionMatchStrategy;
-import com.changhong.bems.service.vo.SubjectStrategy;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.SearchFilter;
@@ -43,92 +43,77 @@ public class BudgetService {
     @Autowired
     private ExecutionRecordService executionRecordService;
     @Autowired
-    private SubjectService subjectService;
-    @Autowired
-    private SubjectItemService subjectItemService;
-    @Autowired
     private DimensionService dimensionService;
     @Autowired
     private StrategyService strategyService;
+    @Autowired(required = false)
+    private OrganizationManager organizationManager;
 
     /**
      * 使用预算
      * 包含占用和释放
+     * 1.处理释放数据
+     * 2.检查占用是否需要释放处理
+     * 2.1.若需要释放处理,则进行是否处理
+     * 2.2.若不需要释放处理,则进行占用处理
+     * 3.占用处理
      *
      * @param request 使用预算请求
      * @return 使用预算结果(只对占用预算结果进行返回, 释放不返回结果)
      */
     @Transactional(rollbackFor = Exception.class)
     public ResultData<List<BudgetResponse>> use(BudgetRequest request) {
-        ResultData<List<BudgetResponse>> result = ResultData.success();
-        /*
-        1.处理释放数据
-        2.检查占用是否需要释放处理
-        2.1.若需要释放处理,则进行是否处理
-        2.2.若不需要释放处理,则进行占用处理
-        3.占用处理
-         */
-        // 预算释放数据
-        List<BudgetFree> freeList = request.getFreeList();
-        if (CollectionUtils.isNotEmpty(freeList)) {
-            ResultData<Void> freeResult = this.freeBudget(freeList);
-            if (freeResult.failed()) {
-                // 回滚事务
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                return ResultData.fail(freeResult.getMessage());
-            }
+        if (LOG.isInfoEnabled()) {
+            LOG.info("预算占用: {}", JsonUtils.toJson(request));
         }
-
-        // 预算占用数据
-        List<BudgetUse> useList = request.getUseList();
-        if (CollectionUtils.isNotEmpty(useList)) {
-            result = this.useBudget(useList);
-            if (result.failed()) {
-                // 回滚事务
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                return ResultData.fail(result.getMessage());
+        ResultData<List<BudgetResponse>> result = ResultData.success();
+        try {
+            // 预算释放数据
+            List<BudgetFree> freeList = request.getFreeList();
+            if (CollectionUtils.isNotEmpty(freeList)) {
+                for (BudgetFree free : freeList) {
+                    if (0 == free.getAmount()) {
+                        // 按原先占用记录释放全部金额
+                        this.freeBudget(free.getEventCode(), free.getBizId());
+                    } else {
+                        // 按原先占用记录释放指定金额
+                        this.freeBudget(free.getEventCode(), free.getBizId(), free.getAmount());
+                    }
+                }
             }
+
+            // 预算占用数据
+            List<BudgetUse> useList = request.getUseList();
+            if (CollectionUtils.isNotEmpty(useList)) {
+                List<BudgetResponse> responses = new ArrayList<>();
+                boolean success = true;
+                ResultData<BudgetResponse> resultData;
+                for (BudgetUse budgetUse : useList) {
+                    resultData = this.useBudget(budgetUse);
+                    success = resultData.successful();
+                    if (success) {
+                        responses.add(resultData.getData());
+                    } else {
+                        result = ResultData.fail(resultData.getMessage());
+                        // 回滚事务
+                        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                        break;
+                    }
+                }
+                if (success) {
+                    result = ResultData.success(responses);
+                }
+            }
+        } catch (Exception e) {
+            // 回滚事务
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            LOG.error("预算占用异常", e);
+            result = ResultData.fail("预算占用异常: " + ExceptionUtils.getRootCauseMessage(e));
+        }
+        if (LOG.isInfoEnabled()) {
+            LOG.info("预算占用结果: {}", JsonUtils.toJson(result));
         }
         return result;
-    }
-
-    /**
-     * 释放预算
-     *
-     * @param freeList 需要释放的清单
-     * @return 返回释放结果
-     */
-    private ResultData<Void> freeBudget(List<BudgetFree> freeList) {
-        for (BudgetFree free : freeList) {
-            if (0 == free.getAmount()) {
-                // 按原先占用记录释放全部金额
-                this.freeBudget(free.getEventCode(), free.getBizId());
-            } else {
-                // 按原先占用记录释放指定金额
-                this.freeBudget(free.getEventCode(), free.getBizId(), free.getAmount());
-            }
-        }
-        return ResultData.success();
-    }
-
-    /**
-     * 占用预算
-     *
-     * @param useList 占用清单
-     * @return 返回占用结果
-     */
-    private ResultData<List<BudgetResponse>> useBudget(List<BudgetUse> useList) {
-        List<BudgetResponse> responses = new ArrayList<>();
-        ResultData<BudgetResponse> resultData;
-        for (BudgetUse budgetUse : useList) {
-            resultData = this.useBudget(budgetUse);
-            if (resultData.failed()) {
-                return ResultData.fail(resultData.getMessage());
-            } else {
-                responses.add(resultData.getData());
-            }
-        }
-        return ResultData.success(responses);
     }
 
     /**
@@ -170,55 +155,37 @@ public class BudgetService {
         StringJoiner joiner = new StringJoiner(",");
         codes.stream().sorted().forEach(joiner::add);
         final String attribute = joiner.toString();
-        // 查询满足条件的预算池
+        // 查询满足条件的预算池(非必要维度)
         final Collection<SearchFilter> otherDimFilters = otherDimensions.values();
         // 按预算占用参数获取预算池大致范围
         final List<PoolAttributeView> poolAttributes = poolService.getBudgetPools(attribute, useDate, useBudget, otherDimFilters);
         if (CollectionUtils.isEmpty(poolAttributes)) {
             return ResultData.fail(ContextUtil.getMessage("pool_00009", JsonUtils.toJson(useBudget)));
         }
-        // 预算科目代码
-        String item = useBudget.getItem();
-        // 通过预算主体清单和科目,确定预算执行策略.
-        Set<SubjectStrategy> subjectStrategySet = new HashSet<>();
-        // 通过预算池获取预算主体清单
-        Set<String> subjectIds = poolAttributes.stream().map(PoolAttributeView::getSubjectId).collect(Collectors.toSet());
-        List<Subject> subjects = subjectService.findByIds(subjectIds);
-        for (Subject subject : subjects) {
-            // 预算主体策略
-            Strategy strategy = strategyService.findOne(subject.getStrategyId());
-            // 预算主体科目
-            SubjectItem subjectItem = subjectItemService.getSubjectItem(subject.getId(), item);
-            if (Objects.nonNull(subjectItem)) {
-                if (StringUtils.isNotBlank(subjectItem.getStrategyId())) {
-                    // 预算主体科目策略
-                    strategy = strategyService.findOne(subjectItem.getStrategyId());
-                }
-            } else {
-                // 预算占用时,未找到预算主体[{0}]的预算科目[{1}]
-                return ResultData.fail(ContextUtil.getMessage("pool_00010", subject.getCode(), item));
-            }
-            subjectStrategySet.add(new SubjectStrategy(subject.getId(), strategy));
-        }
 
-        // 按策略优先级执行
-        List<SubjectStrategy> strategySet = subjectStrategySet.stream().sorted(Comparator.comparingInt(SubjectStrategy::getLevel)).collect(Collectors.toList());
-        for (SubjectStrategy strategy : strategySet) {
-            // 当存在同一个预算科目,多个预算主体下有不同的策略时,默认按强控>年度总额>弱控的顺序执行
-            try {
-                Class<?> clazz = Class.forName(strategy.getStrategyClass());
-                if (BudgetExecutionStrategy.class.isAssignableFrom(clazz)) {
-                    // 策略实例
-                    BudgetExecutionStrategy executionStrategy = (BudgetExecutionStrategy) ContextUtil.getBean(clazz);
-                    return executionStrategy.execution(attribute, useBudget, poolAttributes, otherDimFilters);
-                } else {
-                    return ResultData.fail("预算执行策略[" + strategy.getStrategyName() + "]配置错误.");
-                }
-            } catch (ClassNotFoundException | BeansException e) {
-                return ResultData.fail("预算执行策略执行异常: " + ExceptionUtils.getRootCauseMessage(e));
-            }
+        // 获取最优预算池
+        ResultData<PoolAttributeView> resultData = this.getOptimalPool(attribute, useBudget, poolAttributes);
+        if (resultData.failed()) {
+            return ResultData.fail(resultData.getMessage());
         }
-        return ResultData.fail("预算占用时,未找到满足条件的预算池.");
+        PoolAttributeView pool = resultData.getData();
+        Strategy strategy = strategyService.findOne(pool.getStrategyId());
+        if (Objects.isNull(strategy)) {
+            // 预算占用时,执行策略[{0}]不存在!
+            return ResultData.fail(ContextUtil.getMessage("pool_00014", pool.getStrategyName()));
+        }
+        try {
+            Class<?> clazz = Class.forName(strategy.getClassPath());
+            if (BudgetExecutionStrategy.class.isAssignableFrom(clazz)) {
+                // 策略实例
+                BudgetExecutionStrategy executionStrategy = (BudgetExecutionStrategy) ContextUtil.getBean(clazz);
+                return executionStrategy.execution(pool, useBudget, otherDimFilters);
+            } else {
+                return ResultData.fail("预算执行策略[" + strategy.getName() + "]配置错误.");
+            }
+        } catch (ClassNotFoundException | BeansException e) {
+            return ResultData.fail("预算执行策略执行异常: " + ExceptionUtils.getRootCauseMessage(e));
+        }
     }
 
     /**
@@ -409,5 +376,84 @@ public class BudgetService {
             exception = new ServiceException("按预算维度策略获取过滤条件异常", e);
         }
         throw exception;
+    }
+
+    /**
+     * 按使用优先级,获取最优预算池
+     * 当存在组织时,优先按组织树路径向上查找排序
+     * 再按期间类型枚举下标排序
+     *
+     * @param attribute      预算维度属性
+     * @param useBudget      预算占用数据
+     * @param poolAttributes 占用预算池范围清单
+     * @return 预算池使用优先级
+     */
+    private ResultData<PoolAttributeView> getOptimalPool(String attribute, BudgetUse useBudget, List<PoolAttributeView> poolAttributes) {
+        List<PoolAttributeView> pools = null;
+        // 组织id
+        String orgId = useBudget.getOrg();
+        // 检查是否包含组织维度
+        if (attribute.contains(Constants.DIMENSION_CODE_ORG)) {
+            if (Objects.isNull(organizationManager)) {
+                return ResultData.fail("对组织维度检查,OrganizationManager不能为空.");
+            }
+            // 按id进行映射方便后续使用
+            Map<String, OrganizationDto> orgMap = null;
+            if (Objects.nonNull(orgId)) {
+                orgId = orgId.trim();
+                if (StringUtils.isNotBlank(orgId) && !StringUtils.equalsIgnoreCase(Constants.NONE, orgId)) {
+                    // 获取指定节点的所有父节点(含自己)
+                    ResultData<List<OrganizationDto>> resultData = organizationManager.getParentNodes(orgId, Boolean.TRUE);
+                    if (resultData.successful()) {
+                        List<OrganizationDto> orgList = resultData.getData();
+                        if (CollectionUtils.isNotEmpty(orgList)) {
+                            // 组织id映射
+                            orgMap = orgList.stream().collect(Collectors.toMap(OrganizationDto::getId, o -> o));
+                            orgList.clear();
+                        }
+                    } else {
+                        return ResultData.fail(resultData.getMessage());
+                    }
+                }
+            }
+            if (Objects.isNull(orgMap)) {
+                // 预算占用时,组织维度值不能为空!
+                return ResultData.fail(ContextUtil.getMessage("pool_00012"));
+            }
+
+            /*
+            组织机构向上查找规则:
+            1.按组织机构树路径,从预算占用的节点开始,向上依次查找
+            2.当按组织节点找到存在的预算池,不管余额是否满足,都将停止向上查找
+             */
+            String parentId = orgId;
+            OrganizationDto org = orgMap.get(parentId);
+            while (Objects.nonNull(org)) {
+                String oId = org.getId();
+                // 按组织id匹配预算池
+                pools = poolAttributes.stream().filter(p -> StringUtils.equals(oId, p.getOrg())).collect(Collectors.toList());
+                if (CollectionUtils.isNotEmpty(pools)) {
+                    break;
+                } else {
+                    // 没有可用的预算池,继续查找上级组织的预算池
+                    parentId = org.getParentId();
+                    if (StringUtils.isNotBlank(parentId)) {
+                        org = orgMap.get(parentId);
+                    } else {
+                        org = null;
+                    }
+                }
+            }
+        } else {
+            pools = poolAttributes;
+        }
+
+        if (CollectionUtils.isEmpty(pools)) {
+            // 预算占用时,未找到满足条件[{0}]的预算池!
+            return ResultData.fail(ContextUtil.getMessage("pool_00009", useBudget));
+        }
+        // 按期间类型下标进行排序: 下标值越大优先级越高
+        pools = pools.stream().sorted(Comparator.comparingInt(p -> p.getPeriodType().ordinal())).collect(Collectors.toList());
+        return ResultData.success(pools.get(0));
     }
 }

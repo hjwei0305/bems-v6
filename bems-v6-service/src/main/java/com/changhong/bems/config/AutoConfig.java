@@ -1,16 +1,11 @@
 package com.changhong.bems.config;
 
-import com.changhong.bems.service.mq.OrderStateSubscribeListener;
+import com.changhong.bems.service.PoolService;
 import com.changhong.bems.service.strategy.*;
 import com.changhong.bems.service.strategy.impl.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.listener.ChannelTopic;
-import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
@@ -86,8 +81,8 @@ public class AutoConfig {
      */
     @Bean
     @ConditionalOnMissingBean
-    public LimitExecutionStrategy limitExecutionStrategy() {
-        return new DefaultLimitExecutionStrategy();
+    public LimitExecutionStrategy limitExecutionStrategy(PoolService poolService) {
+        return new DefaultLimitExecutionStrategy(poolService);
     }
 
     /**
@@ -95,8 +90,8 @@ public class AutoConfig {
      */
     @Bean
     @ConditionalOnMissingBean
-    public ExcessExecutionStrategy excessExecutionStrategy() {
-        return new DefaultExcessExecutionStrategy();
+    public ExcessExecutionStrategy excessExecutionStrategy(PoolService poolService) {
+        return new DefaultExcessExecutionStrategy(poolService);
     }
 
     /**
@@ -104,8 +99,8 @@ public class AutoConfig {
      */
     @Bean
     @ConditionalOnMissingBean
-    public AnnualTotalExecutionStrategy annualTotalExecutionStrategy() {
-        return new DefaultAnnualTotalExecutionStrategy();
+    public AnnualTotalExecutionStrategy annualTotalExecutionStrategy(PoolService poolService) {
+        return new DefaultAnnualTotalExecutionStrategy(poolService);
     }
 
 }

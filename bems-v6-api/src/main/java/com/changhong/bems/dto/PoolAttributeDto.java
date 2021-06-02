@@ -68,6 +68,16 @@ public class PoolAttributeDto extends BaseAttributeDto {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate endDate;
     /**
+     * 执行策略id
+     */
+    @ApiModelProperty(value = "执行策略id")
+    private String strategyId;
+    /**
+     * 执行策略名称
+     */
+    @ApiModelProperty(value = "执行策略名称")
+    private String strategyName;
+    /**
      * 是否启用
      */
     @ApiModelProperty(value = "是否启用")
@@ -171,6 +181,22 @@ public class PoolAttributeDto extends BaseAttributeDto {
 
     public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
+    }
+
+    public String getStrategyId() {
+        return strategyId;
+    }
+
+    public void setStrategyId(String strategyId) {
+        this.strategyId = strategyId;
+    }
+
+    public String getStrategyName() {
+        return strategyName;
+    }
+
+    public void setStrategyName(String strategyName) {
+        this.strategyName = strategyName;
     }
 
     public Boolean getActived() {

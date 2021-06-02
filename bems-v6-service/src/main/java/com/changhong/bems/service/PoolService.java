@@ -11,6 +11,7 @@ import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
+import com.changhong.sei.core.dto.serach.SearchOrder;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResultWithData;
 import com.changhong.sei.exception.ServiceException;
@@ -56,6 +57,8 @@ public class PoolService extends BaseEntityService<Pool> {
     private ExecutionRecordService executionRecordService;
     @Autowired(required = false)
     private SerialService serialService;
+    @Autowired
+    private StrategyService strategyService;
 
     @Override
     protected BaseEntityDao<Pool> getDao() {
@@ -316,6 +319,64 @@ public class PoolService extends BaseEntityService<Pool> {
         // 允许使用(业务可用)
         search.addFilter(new SearchFilter(PoolAttributeView.FIELD_USE, Boolean.TRUE));
 
+        // 按条件查询满足的预算池
+        return poolAttributeDao.findByFilters(search);
+    }
+
+    /**
+     * 获取同期间预算池(含自己但不含占用日期之前的预算池)
+     * 同期间预算池: 以1月预算池为基础,获取同维度的2月预算池
+     *
+     * @param pool 当前预算池
+     * @return 返回同期间预算池
+     */
+    public List<PoolAttributeView> getSamePeriodBudgetPool(PoolAttributeView pool, LocalDate useDate) {
+        Search search = Search.createSearch();
+        // 预算主体
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_SUBJECT_ID, pool.getSubjectId()));
+        // 公司代码
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_CORP_CODE, pool.getCorpCode()));
+        // 预算维度组合
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_ATTRIBUTE, pool.getAttribute()));
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_PERIOD_TYPE, pool.getPeriodType()));
+        // 预算科目
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_ITEM, pool.getItem()));
+        // 组织
+        if (StringUtils.isNotBlank(pool.getOrg())) {
+            search.addFilter(new SearchFilter(PoolAttributeView.FIELD_ORG, pool.getOrg()));
+        }
+        // 项目
+        if (StringUtils.isNotBlank(pool.getProject())) {
+            search.addFilter(new SearchFilter(PoolAttributeView.FIELD_PROJECT, pool.getProject()));
+        }
+        // 自定义1
+        if (StringUtils.isNotBlank(pool.getUdf1())) {
+            search.addFilter(new SearchFilter(PoolAttributeView.FIELD_UDF1, pool.getUdf1()));
+        }
+        // 自定义2
+        if (StringUtils.isNotBlank(pool.getUdf2())) {
+            search.addFilter(new SearchFilter(PoolAttributeView.FIELD_UDF2, pool.getUdf2()));
+        }
+        // 自定义3
+        if (StringUtils.isNotBlank(pool.getUdf3())) {
+            search.addFilter(new SearchFilter(PoolAttributeView.FIELD_UDF3, pool.getUdf3()));
+        }
+        // 自定义4
+        if (StringUtils.isNotBlank(pool.getUdf4())) {
+            search.addFilter(new SearchFilter(PoolAttributeView.FIELD_UDF4, pool.getUdf4()));
+        }
+        // 自定义5
+        if (StringUtils.isNotBlank(pool.getUdf5())) {
+            search.addFilter(new SearchFilter(PoolAttributeView.FIELD_UDF5, pool.getUdf5()));
+        }
+        // 占用日期之后的(含自己但不含占用日期之前的预算池)
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_END_DATE, useDate, SearchFilter.Operator.GE));
+        // 启用
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_ACTIVE, Boolean.TRUE));
+        // 允许使用(业务可用)
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_USE, Boolean.TRUE));
+        // 按起始时间排序
+        search.addSortOrder(SearchOrder.asc(PoolAttributeView.FIELD_START_DATE));
         // 按条件查询满足的预算池
         return poolAttributeDao.findByFilters(search);
     }
