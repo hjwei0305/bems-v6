@@ -56,7 +56,7 @@ public class WebsocketServer {
                 }
                 // 输出最新日志
                 send(session, ResultData.success(statistics));
-                TimeUnit.SECONDS.sleep(2);
+                TimeUnit.MILLISECONDS.sleep(1500);
                 statistics = (OrderStatistics) operations.get();
             }
             statistics = new OrderStatistics();
