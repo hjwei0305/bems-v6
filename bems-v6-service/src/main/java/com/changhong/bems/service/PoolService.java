@@ -369,8 +369,6 @@ public class PoolService extends BaseEntityService<Pool> {
         search.addFilter(new SearchFilter(PoolAttributeView.FIELD_END_DATE, eDate, SearchFilter.Operator.GE));
         // 启用
         search.addFilter(new SearchFilter(PoolAttributeView.FIELD_ACTIVE, Boolean.TRUE));
-        // 允许使用(业务可用)
-        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_USE, Boolean.TRUE));
         // 按起始时间排序
         search.addSortOrder(SearchOrder.asc(PoolAttributeView.FIELD_START_DATE));
         // 按条件查询满足的预算池

@@ -87,7 +87,7 @@ class OrderControllerTest extends BaseUnit5Test {
     @Test
     void addOrderDetails() {
         StopWatch stopWatch = StopWatch.createStarted();
-        String json = "{\"subjectId\":\"5B03DED0-A3F4-11EB-A297-0242C0A8442D\",\"currencyCode\":\"CNY\",\"currencyName\":\"人民币\",\"applyOrgId\":\"877035BF-A40C-11E7-A8B9-02420B99179E\",\"applyOrgCode\":\"10607\",\"categoryId\":\"A9DA0DB5-B25B-11EB-89CD-0242C0A84429\",\"orderCategory\":\"INJECTION\",\"periodType\":\"ANNUAL\",\"subjectName\":\"四川爱联科技有限公司\",\"applyOrgName\":\"四川长虹电子控股集团有限公司\",\"categoryName\":\"年度预算\",\"remark\":\"qqq\",\"period\":[{\"text\":\"2021年度\",\"value\":\"64358F80-A988-11EB-B18E-0242C0A84427\"}],\"item\":[{\"text\":\"办公费\",\"value\":\"2000\"},{\"text\":\"国内差旅费\",\"value\":\"3000\"}]}";
+        String json = "{\"subjectId\":\"C81A4E58-BBD4-11EB-A896-0242C0A84429\",\"currencyCode\":\"CNY\",\"currencyName\":\"人民币\",\"applyOrgId\":\"877035BF-A40C-11E7-A8B9-02420B99179E\",\"applyOrgCode\":\"10607\",\"categoryId\":\"18A3D44E-BBD5-11EB-A896-0242C0A84429\",\"orderCategory\":\"SPLIT\",\"periodType\":\"MONTHLY\",\"subjectName\":\"四川虹信软件股份有限公司\",\"applyOrgName\":\"四川长虹电子控股集团有限公司\",\"categoryName\":\"月度预算\",\"id\":\"AA264E22-C3C6-11EB-869B-0242C0A84427\",\"period\":[{\"text\":\"2021年1月\",\"value\":\"02FC0163-BBD5-11EB-90DB-0242C0A8442C\"}],\"item\":[{\"text\":\"通讯费\",\"value\":\"1000\"}],\"org\":[{\"text\":\"四川虹信软件股份有限公司\",\"value\":\"435B09B6-D0E1-11EA-93C3-0242C0A8460D\"}]}";
         AddOrderDetail detail = JsonUtils.fromJson(json, AddOrderDetail.class);
         ResultData<String> resultData = controller.addOrderDetails(detail);
         System.out.println(resultData);
