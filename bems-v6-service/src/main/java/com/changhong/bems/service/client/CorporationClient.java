@@ -20,7 +20,6 @@ import java.util.List;
  * @author 马超(Vision.Mac)
  * @version 1.0.00  2021-04-22 17:32
  */
-//@FeignClient(name = "dms", path = "corporation")
 @FeignClient(name = "sei-basic", path = "corporation")
 public interface CorporationClient {
 

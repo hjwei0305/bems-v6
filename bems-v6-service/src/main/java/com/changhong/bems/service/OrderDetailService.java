@@ -61,7 +61,9 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
 
     public static final String HANDLE_CACHE_KEY_PREFIX = "bems-v6:order:handle:";
 
-    // 分组大小
+    /**
+     * 分组大小
+     */
     private static final int MAX_NUMBER = 500;
 
     @Override
@@ -263,7 +265,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
 
         List<String> keyList = new ArrayList<>();
         // 维度映射
-        Map<String, Set<OrderDimension>> dimensionMap = new HashMap<>();
+        Map<String, Set<OrderDimension>> dimensionMap = new HashMap<>(10);
         for (DimensionDto dimension : dimensions) {
             String dimensionCode = dimension.getCode();
             keyList.add(dimensionCode);
@@ -431,6 +433,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             return;
         }
         // 创建一个单线程执行器,保证任务按顺序执行(FIFO)
+        //noinspection AlibabaThreadPoolCreation
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         try {
             // 分组处理,防止数据太多导致异常(in查询限制)
@@ -466,7 +469,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                 if (CollectionUtils.isNotEmpty(orderDetails)) {
                     detailMap = orderDetails.stream().collect(Collectors.toMap(OrderDetail::getAttributeCode, o -> o));
                 } else {
-                    detailMap = new HashMap<>();
+                    detailMap = new HashMap<>(7);
                 }
 
                 for (OrderDetail detail : detailList) {

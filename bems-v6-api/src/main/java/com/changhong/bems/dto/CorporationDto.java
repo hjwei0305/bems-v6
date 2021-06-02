@@ -7,6 +7,8 @@ import java.io.Serializable;
 
 /**
  * 实现功能: 公司DTO
+ *
+ * @author 马超(Vision.Mac)
  */
 @ApiModel(description = "公司DTO")
 public class CorporationDto implements Serializable {

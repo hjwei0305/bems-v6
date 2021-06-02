@@ -33,16 +33,6 @@ public class CategoryDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "预算主体名称")
     private String subjectName;
-//    /**
-//     * 管理策略id
-//     */
-//    @ApiModelProperty(value = "管理策略id")
-//    private String strategyId;
-//    /**
-//     * 管理策略名称
-//     */
-//    @ApiModelProperty(value = "管理策略名称")
-//    private String strategyName;
     /**
      * 期间类型
      */

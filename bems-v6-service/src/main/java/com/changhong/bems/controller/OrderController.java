@@ -322,7 +322,6 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                     if (LOG.isInfoEnabled()) {
                         LOG.info("预算申请单[{}]-直接生效消息发送队列成功.", message);
                     }
-                    //service.effective(orderId);
                 });
             }
             return resultData;
@@ -385,7 +384,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      */
     @Override
     public ResultData<Map<String, Double>> getAdjustData(String orderId) {
-        Map<String, Double> data = new HashMap<>();
+        Map<String, Double> data = new HashMap<>(7);
         data.put("ADD", 0d);
         data.put("SUB", 0d);
         List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
@@ -409,7 +408,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      */
     @Override
     public ResultData<Map<String, String>> properties(String businessModelCode, Boolean all) {
-        Map<String, String> map = new HashMap<>();
+        Map<String, String> map = new HashMap<>(7);
         return ResultData.success(map);
     }
 
@@ -444,7 +443,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      */
     @Override
     public ResultData<Map<String, Object>> initPropertiesAndValues(String businessModelCode) {
-        Map<String, Object> map = new HashMap<>();
+        Map<String, Object> map = new HashMap<>(7);
         return ResultData.success(map);
     }
 
@@ -458,7 +457,9 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      */
     @Override
     public ResultData<Boolean> resetState(String businessModelCode, String id, String status) {
-//        LogUtil.bizLog("流程状态变化接口. 订单类型: {}, 单据id: {}, 状态: {}", businessModelCode, id, status);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("流程状态变化接口. 订单类型: {}, 单据id: {}, 状态: {}", businessModelCode, id, status);
+        }
         Order order = service.findOne(id);
         if (Objects.isNull(order)) {
             // 订单[{0}]不存在!
@@ -496,7 +497,6 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                 // 流程正常完成
                 // 检查订单状态
                 if (OrderStatus.PROCESSING == order.getStatus()) {
-//                    asyncRunUtil.runAsync(() -> {
                     // 以线性队列方式,避免预算池并发问题
                     // 发送队列消息
                     EffectiveOrderMessage message = new EffectiveOrderMessage();
@@ -511,8 +511,6 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                     if (LOG.isInfoEnabled()) {
                         LOG.info("预算申请单[{}]-流程审批完成消息发送队列成功.", message);
                     }
-                    // service.completeProcess(order);
-//                    });
                 } else {
                     // 订单状态为[{0}],不允许操作!
                     return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
@@ -536,7 +534,9 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         String orderId = flowInvokeParams.getId();
         // 流程接收任务回调id
         final String taskActDefId = flowInvokeParams.getTaskActDefId();
-//        LogUtil.bizLog("流程状态变化接口. 单据id: {}, 回调id: {}", orderId, taskActDefId);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("流程状态变化接口. 单据id: {}, 回调id: {}", orderId, taskActDefId);
+        }
         final Order order = service.findOne(orderId);
         if (Objects.isNull(order)) {
             // 订单[{0}]不存在!
@@ -586,7 +586,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             map.put("businessCode", order.getCode());
             map.put("id", order.getId());
 
-            Map<String, Object> result = new HashMap<>();
+            Map<String, Object> result = new HashMap<>(7);
             //移动端类型标识 每一中业务的 唯一标识。移动端具体确认是何种业务
             result.put("mobileBusinessType", businessModelCode);
             result.put("data", map);

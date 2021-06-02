@@ -64,7 +64,6 @@ public class EffectiveOrderConsumer {
             sessionUser.setAccount(orderMessage.getAccount());
             sessionUser.setUserName(orderMessage.getUserName());
             mockUser.mock(sessionUser);
-//            MockUserHelper.mockUser(orderMessage.getTenantCode(), orderMessage.getAccount());
 
             orderId = orderMessage.getOrderId();
             operation = orderMessage.getOperation();

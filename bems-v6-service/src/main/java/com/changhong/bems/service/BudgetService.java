@@ -262,7 +262,7 @@ public class BudgetService {
      */
     private Map<String, SearchFilter> getOtherDimensionFilters(BudgetUse use) {
         // 占用的维度代码
-        Map<String, SearchFilter> dimFilterMap = new HashMap<>();
+        Map<String, SearchFilter> dimFilterMap = new HashMap<>(10);
         // 组织机构
         String org = use.getOrg();
         if (Objects.nonNull(org)) {

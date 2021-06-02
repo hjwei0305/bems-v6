@@ -6,6 +6,8 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 /**
  * REST服务主程序
+ *
+ * @author 马超(Vision.Mac)
  */
 @SpringBootApplication
 @EnableFeignClients(basePackages = {"com.changhong.bems.service.client"})

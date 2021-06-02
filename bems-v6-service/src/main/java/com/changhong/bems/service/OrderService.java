@@ -338,7 +338,7 @@ public class OrderService extends BaseEntityService<Order> {
                 resultData = flowClient.endByBusinessId(order.getId());
             } else {
                 // 回调flow通知接收任务继续执行
-                resultData = flowClient.signalByBusinessId(order.getId(), taskActDefId, new HashMap<>());
+                resultData = flowClient.signalByBusinessId(order.getId(), taskActDefId, new HashMap<>(7));
             }
         } catch (Exception e) {
             try {

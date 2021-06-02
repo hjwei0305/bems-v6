@@ -48,16 +48,6 @@ public class Category extends BaseAuditableEntity implements ITenant, IFrozen, S
      */
     @Column(name = "subject_name")
     private String subjectName;
-//    /**
-//     * 管理策略id
-//     */
-//    @Column(name = "strategy_id")
-//    private String strategyId;
-//    /**
-//     * 管理策略名称
-//     */
-//    @Column(name = "strategy_name")
-//    private String strategyName;
     /**
      * 期间类型
      */

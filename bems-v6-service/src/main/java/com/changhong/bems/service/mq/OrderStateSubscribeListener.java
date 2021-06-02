@@ -13,7 +13,9 @@ import org.springframework.data.redis.core.StringRedisTemplate;
  * @version 1.0.00  2021-06-01 11:36
  */
 public class OrderStateSubscribeListener implements MessageListener {
-    // 发布/订阅 的 Topic
+    /**
+     * 发布/订阅 的 Topic
+     */
     public static final String TOPIC = "bems-v6:order:state";
 
     private final StringRedisTemplate stringRedisTemplate;
@@ -36,11 +38,11 @@ public class OrderStateSubscribeListener implements MessageListener {
     public void onMessage(Message message, byte[] pattern) {
         String body = new String(message.getBody());
         String channel = new String(message.getChannel());
-        String pattern_ = new String(pattern);
+        String patternStr = new String(pattern);
 
         System.out.println(body);
         System.out.println(channel);
         // 如果是 ChannelTopic, 则 channel 字段与 pattern 字段值相同
-        System.out.println(pattern_);
+        System.out.println(patternStr);
     }
 }
