@@ -59,6 +59,8 @@ public class DimensionAttributeService extends BaseEntityService<DimensionAttrib
         if (Objects.isNull(attr)) {
             DimensionAttribute dimensionAttribute = new DimensionAttribute(attribute);
             dimensionAttribute.setSubjectId(subjectId);
+            // 刷新hash值
+            dimensionAttribute.getAttributeCode();
             this.save(dimensionAttribute);
             attr = dimensionAttribute;
         }
@@ -95,8 +97,10 @@ public class DimensionAttributeService extends BaseEntityService<DimensionAttrib
             search.addFilter(new SearchFilter(DimensionAttribute.FIELD_SUBJECT_ID, subjectId));
             search.addFilter(new SearchFilter(DimensionAttribute.FIELD_ATTRIBUTE_CODE, code));
             attribute = dao.findOneByFilters(search);
-            // 缓存1天 24 * 3600 * 1000
-            cacheBuilder.set(key, attribute, TimeUnit.DAYS.toMillis(1));
+            if (Objects.nonNull(attribute)) {
+                // 缓存1天 24 * 3600 * 1000
+                cacheBuilder.set(key, attribute, TimeUnit.DAYS.toMillis(1));
+            }
         }
         return attribute;
     }
