@@ -3,6 +3,7 @@ package com.changhong.bems.service;
 import com.changhong.bems.dao.PoolAttributeViewDao;
 import com.changhong.bems.dao.PoolDao;
 import com.changhong.bems.dto.BudgetUse;
+import com.changhong.bems.dto.PeriodType;
 import com.changhong.bems.entity.*;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.context.SessionUser;
@@ -103,29 +104,29 @@ public class PoolService extends BaseEntityService<Pool> {
             // 创建预算池时,预算主体不能为空!
             return ResultData.fail(ContextUtil.getMessage("pool_00008"));
         }
+        // 属性值hash
+        Long attributeCode = baseAttribute.getAttributeCode();
 
-        DimensionAttribute attribute = dimensionAttributeService.getAttribute(subjectId, baseAttribute.getAttributeCode());
-        if (Objects.isNull(attribute)) {
-            ResultData<DimensionAttribute> resultData = dimensionAttributeService.createAttribute(subjectId, order.getCategoryId(), baseAttribute);
-            if (resultData.failed()) {
-                return ResultData.fail(resultData.getMessage());
-            }
-            attribute = resultData.getData();
-        }
-
-        Long attributeCode = attribute.getAttributeCode();
-        String periodId = attribute.getPeriod();
-        if (StringUtils.isBlank(periodId)) {
-            // 创建预算池时,期间不能为空!
-            return ResultData.fail(ContextUtil.getMessage("pool_00006"));
-        }
-
-        // 属性id
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(Pool.FIELD_SUBJECT_ID, subjectId));
         search.addFilter(new SearchFilter(Pool.FIELD_ATTRIBUTE_CODE, attributeCode));
         Pool pool = dao.findOneByFilters(search);
         if (Objects.isNull(pool)) {
+            DimensionAttribute attribute = dimensionAttributeService.getAttribute(subjectId, attributeCode);
+            if (Objects.isNull(attribute)) {
+                ResultData<DimensionAttribute> resultData = dimensionAttributeService.createAttribute(subjectId, baseAttribute);
+                if (resultData.failed()) {
+                    return ResultData.fail(resultData.getMessage());
+                }
+                attribute = resultData.getData();
+            }
+
+            String periodId = attribute.getPeriod();
+            if (StringUtils.isBlank(periodId)) {
+                // 创建预算池时,期间不能为空!
+                return ResultData.fail(ContextUtil.getMessage("pool_00006"));
+            }
+
             pool = new Pool();
             // 预算池编码
             pool.setCode(serialService.getNumber(Pool.class, ContextUtil.getTenantCode()));
@@ -225,7 +226,7 @@ public class PoolService extends BaseEntityService<Pool> {
                     return;
                 }
             }
-            LOG.error("预算池[" + record.getPoolCode() + "]不存在");
+            LOG.error("预算池[{}]不存在", record.getPoolCode());
         }
     }
 
@@ -271,17 +272,108 @@ public class PoolService extends BaseEntityService<Pool> {
         return poolAttributeDao.findOne(id);
     }
 
+
     /**
      * 按预算主体和代码查询预算池
      *
-     * @param subjectId 预算主体id
-     * @param code      预算编码
+     * @param subjectId     预算主体id
+     * @param baseAttribute 预算维度属性
      * @return 预算池
      */
-    public PoolAttributeView findPoolAttribute(String subjectId, String code) {
+    public PoolAttributeView getParentPeriodBudgetPool(String subjectId, BaseAttribute baseAttribute) {
+        String periodId = baseAttribute.getPeriod();
+        Period period = periodService.findOne(periodId);
+        if (Objects.isNull(period)) {
+            // 预算期间不存在
+            LOG.error(ContextUtil.getMessage("period_00002"));
+            return null;
+        }
+
+        PeriodType periodType = period.getType();
+        LocalDate sDate = period.getStartDate();
+        LocalDate eDate = period.getEndDate();
+
+        PoolAttributeView pool = null;
+        switch (periodType) {
+            case CUSTOMIZE:
+            case ANNUAL:
+                LOG.error("年度或自定义期间,不支持分解.");
+                break;
+            case MONTHLY:
+                pool = this.getParentPeriodBudgetPool(subjectId, baseAttribute, PeriodType.QUARTER, sDate, eDate);
+                if (Objects.nonNull(pool)) {
+                    break;
+                }
+            case QUARTER:
+                pool = this.getParentPeriodBudgetPool(subjectId, baseAttribute, PeriodType.SEMIANNUAL, sDate, eDate);
+                if (Objects.nonNull(pool)) {
+                    break;
+                }
+            case SEMIANNUAL:
+                pool = this.getParentPeriodBudgetPool(subjectId, baseAttribute, PeriodType.ANNUAL, sDate, eDate);
+                if (Objects.nonNull(pool)) {
+                    break;
+                }
+        }
+        return pool;
+    }
+
+    /**
+     * 按预算主体和代码查询预算池
+     *
+     * @param subjectId     预算主体id
+     * @param baseAttribute 预算维度属性
+     * @return 预算池
+     */
+    public PoolAttributeView getParentPeriodBudgetPool(String subjectId, BaseAttribute baseAttribute, PeriodType periodType, LocalDate sDate, LocalDate eDate) {
         Search search = Search.createSearch();
+        // 预算主体id
         search.addFilter(new SearchFilter(PoolAttributeView.FIELD_SUBJECT_ID, subjectId));
-        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_CODE, code));
+        // 预算维度组合
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_ATTRIBUTE, baseAttribute.getAttribute()));
+        // 预算期间类型
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_PERIOD_TYPE, periodType));
+        // 预算科目
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_ITEM, baseAttribute.getItem()));
+        // 组织
+        if (StringUtils.isNotBlank(baseAttribute.getOrg())) {
+            search.addFilter(new SearchFilter(PoolAttributeView.FIELD_ORG, baseAttribute.getOrg()));
+        }
+        // 项目
+        if (StringUtils.isNotBlank(baseAttribute.getProject())) {
+            search.addFilter(new SearchFilter(PoolAttributeView.FIELD_PROJECT, baseAttribute.getProject()));
+        }
+        // 自定义1
+        if (StringUtils.isNotBlank(baseAttribute.getUdf1())) {
+            search.addFilter(new SearchFilter(PoolAttributeView.FIELD_UDF1, baseAttribute.getUdf1()));
+        }
+        // 自定义2
+        if (StringUtils.isNotBlank(baseAttribute.getUdf2())) {
+            search.addFilter(new SearchFilter(PoolAttributeView.FIELD_UDF2, baseAttribute.getUdf2()));
+        }
+        // 自定义3
+        if (StringUtils.isNotBlank(baseAttribute.getUdf3())) {
+            search.addFilter(new SearchFilter(PoolAttributeView.FIELD_UDF3, baseAttribute.getUdf3()));
+        }
+        // 自定义4
+        if (StringUtils.isNotBlank(baseAttribute.getUdf4())) {
+            search.addFilter(new SearchFilter(PoolAttributeView.FIELD_UDF4, baseAttribute.getUdf4()));
+        }
+        // 自定义5
+        if (StringUtils.isNotBlank(baseAttribute.getUdf5())) {
+            search.addFilter(new SearchFilter(PoolAttributeView.FIELD_UDF5, baseAttribute.getUdf5()));
+        }
+
+        // 周期范围内
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_START_DATE, sDate, SearchFilter.Operator.LE));
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_END_DATE, eDate, SearchFilter.Operator.GE));
+        // 启用
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_ACTIVE, Boolean.TRUE));
+        // 允许使用(业务可用)
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_USE, Boolean.TRUE));
+        // 按起始时间排序
+        search.addSortOrder(SearchOrder.asc(PoolAttributeView.FIELD_START_DATE));
+        // 按条件查询满足的预算池
         return poolAttributeDao.findFirstByFilters(search);
     }
 

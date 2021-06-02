@@ -17,7 +17,6 @@ import java.time.LocalDate;
 @Table(name = "view_pool")
 public class PoolAttributeView extends BaseAttribute implements ITenant, Serializable {
     private static final long serialVersionUID = 345291355065499642L;
-    public static final String FIELD_ATTRIBUTE = "attribute";
     public static final String FIELD_SUBJECT_ID = "subjectId";
     public static final String FIELD_CORP_CODE = "corpCode";
     public static final String FIELD_CODE = "code";
@@ -31,12 +30,6 @@ public class PoolAttributeView extends BaseAttribute implements ITenant, Seriali
      */
     @Column(name = "code")
     private String code;
-    /**
-     * 属性
-     * 使用到的维度字段名,按asci码排序,逗号(,)分隔
-     */
-    @Column(name = "attribute")
-    private String attribute;
     /**
      * 预算主体id
      */
@@ -130,14 +123,6 @@ public class PoolAttributeView extends BaseAttribute implements ITenant, Seriali
 
     public void setCode(String code) {
         this.code = code;
-    }
-
-    public String getAttribute() {
-        return attribute;
-    }
-
-    public void setAttribute(String attribute) {
-        this.attribute = attribute;
     }
 
     public String getCorpCode() {

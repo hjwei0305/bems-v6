@@ -3,10 +3,7 @@ package com.changhong.bems.service;
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.OrderDetailDao;
 import com.changhong.bems.dto.*;
-import com.changhong.bems.entity.DimensionAttribute;
-import com.changhong.bems.entity.Order;
-import com.changhong.bems.entity.OrderDetail;
-import com.changhong.bems.entity.Pool;
+import com.changhong.bems.entity.*;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
@@ -54,6 +51,8 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
     private CategoryService categoryService;
     @Autowired
     private PoolService poolService;
+    @Autowired
+    private PeriodService periodService;
     @Autowired
     private DimensionAttributeService dimensionAttributeService;
     @Autowired
@@ -426,12 +425,21 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             return;
         }
         // 订单id
-        String orderId = order.getId();
+        final String orderId = order.getId();
         if (StringUtils.isBlank(orderId)) {
             //添加单据行项时,订单id不能为空.
             LOG.error(ContextUtil.getMessage("order_detail_00002"));
             return;
         }
+        // 通过预算类型获取预算维度组合
+        ResultData<String> resultData = dimensionAttributeService.getAttribute(order.getCategoryId());
+        if (resultData.failed()) {
+            LOG.error(resultData.getMessage());
+            return;
+        }
+        // 预算维度组合
+        final String attribute = resultData.getData();
+
         // 创建一个单线程执行器,保证任务按顺序执行(FIFO)
         //noinspection AlibabaThreadPoolCreation
         ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -477,8 +485,10 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("正在处理行项: " + JsonUtils.toJson(detail));
                     }
-
+                    // 订单id
                     detail.setOrderId(orderId);
+                    // 维度属性组合
+                    detail.setAttribute(attribute);
 
                     // 本次提交数据中存在重复项
                     if (duplicateHash.contains(detail.getAttributeCode())) {
@@ -592,14 +602,29 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     2-1.通过主体和维度属性hash检查是否存在预算池
                     2-2.若存在,则设置预算池编码和当前余额到行项上
                     2-3.若不存在,则跳过.在预算生效或申请完成时,创建预算池(创建时再检查是否存在预算池)
-                    3.若未找到,则返回错误:预算池未找到
+                    3.若未找到,则返回错误:上级源预算池未找到
                  */
+                PoolAttributeView poolAttr = poolService.getParentPeriodBudgetPool(subjectId, detail);
+                if (Objects.isNull(poolAttr)) {
+                    // 添加单据行项时,上级期间预算池未找到.
+                    return ResultData.fail(ContextUtil.getMessage("order_detail_00005"));
+                }
+                // 获取上级期间源预算池
+                detail.setOriginPoolCode(poolAttr.getCode());
+                detail.setOriginPoolAmount(poolAttr.getBalance());
+
+                resultData = poolService.getPool(subjectId, detail.getAttributeCode());
+                if (resultData.successful()) {
+                    Pool pool = resultData.getData();
+                    detail.setPoolCode(pool.getCode());
+                    detail.setPoolAmount(pool.getBalance());
+                }
                 break;
             default:
                 // 不支持的订单类型
                 return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
         }
-        ResultData<DimensionAttribute> result = dimensionAttributeService.createAttribute(subjectId, order.getCategoryId(), detail);
+        ResultData<DimensionAttribute> result = dimensionAttributeService.createAttribute(subjectId, detail);
         if (result.successful()) {
             if (!Objects.equals(detail.getAttributeCode(), result.getData().getAttributeCode())) {
                 LOG.error("预算维度策略hash计算错误: {}", JsonUtils.toJson(detail));
@@ -640,7 +665,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
                     return ResultData.fail(ContextUtil.getMessage("pool_00002", pool.getCode(), balance, detail.getAmount()));
                 }
-                detail.setPoolAmount(pool.getBalance());
+                detail.setPoolAmount(balance);
             } else {
                 // 当预算池不存在时,发生金额不能小于0(不能将预算池值为负数)
                 if (detail.getAmount() < 0) {
@@ -679,7 +704,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
                     return ResultData.fail(ContextUtil.getMessage("pool_00002", pool.getCode(), balance, detail.getAmount()));
                 }
-                detail.setPoolAmount(pool.getBalance());
+                detail.setPoolAmount(balance);
             } else {
                 // 预算池未找到
                 return ResultData.fail(resultData.getMessage());

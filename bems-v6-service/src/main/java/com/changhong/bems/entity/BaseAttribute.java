@@ -28,8 +28,15 @@ public abstract class BaseAttribute extends BaseEntity implements Serializable {
     public static final String FIELD_UDF3 = "udf3";
     public static final String FIELD_UDF4 = "udf4";
     public static final String FIELD_UDF5 = "udf5";
+    public static final String FIELD_ATTRIBUTE = "attribute";
     public static final String FIELD_ATTRIBUTE_CODE = "attributeCode";
 
+    /**
+     * 属性
+     * 使用到的维度字段名,按asci码排序,逗号(,)分隔
+     */
+    @Column(name = "attribute")
+    protected String attribute;
     /**
      * 属性值hash
      */
@@ -125,6 +132,14 @@ public abstract class BaseAttribute extends BaseEntity implements Serializable {
      */
     @Column(name = "udf5_name")
     protected String udf5Name;
+
+    public String getAttribute() {
+        return attribute;
+    }
+
+    public void setAttribute(String attribute) {
+        this.attribute = attribute;
+    }
 
     public String getPeriod() {
         return period;

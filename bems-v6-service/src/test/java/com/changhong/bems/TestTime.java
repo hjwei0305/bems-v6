@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 实现功能：
@@ -13,6 +14,11 @@ import java.time.LocalDateTime;
  * @version 1.0.00  2021-04-23 00:41
  */
 public class TestTime {
+
+    @Test
+    public void testDays() {
+        System.out.println(TimeUnit.DAYS.toMillis(1));
+    }
 
     @Test
     public void test() {

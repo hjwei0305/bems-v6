@@ -35,6 +35,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 预算申请单(Order)业务逻辑实现类
@@ -293,7 +294,7 @@ public class OrderService extends BaseEntityService<Order> {
             asyncRunUtil.runAsync(() -> {
                 try {
                     // 休眠1s,防止状态事务还未更新
-                    Thread.sleep(1000);
+                    TimeUnit.SECONDS.sleep(1);
                 } catch (InterruptedException ignored) {
                 }
                 // 异步处理,规避事务影响状态更新
@@ -503,6 +504,7 @@ public class OrderService extends BaseEntityService<Order> {
                         poolService.recordLog(record);
                         break;
                     case SPLIT:
+                        // TODO 预算分解
                         resultData = orderDetailService.checkSplitDetail(order, detail);
                         if (resultData.successful()) {
                             // 当前预算池
@@ -600,6 +602,7 @@ public class OrderService extends BaseEntityService<Order> {
                         poolService.recordLog(record);
                         break;
                     case SPLIT:
+                        // TODO 预算分解
                         resultData = orderDetailService.checkSplitDetail(order, detail);
                         if (resultData.successful()) {
                             // 当前预算池
@@ -679,6 +682,7 @@ public class OrderService extends BaseEntityService<Order> {
                         poolService.recordLog(record);
                         break;
                     case SPLIT:
+                        // TODO 预算分解
                         resultData = orderDetailService.checkSplitDetail(order, detail);
                         if (resultData.successful()) {
                             // 当前预算池
@@ -766,6 +770,7 @@ public class OrderService extends BaseEntityService<Order> {
                         poolService.recordLog(record);
                         break;
                     case SPLIT:
+                        // TODO 预算分解
                         resultData = orderDetailService.checkSplitDetail(order, detail);
                         if (resultData.successful()) {
                             // 当前预算池

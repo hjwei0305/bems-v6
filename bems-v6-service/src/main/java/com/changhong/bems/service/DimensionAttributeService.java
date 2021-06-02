@@ -12,14 +12,14 @@ import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
+import java.util.List;
+import java.util.Objects;
+import java.util.StringJoiner;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 预算维度属性(DimensionAttribute)业务逻辑实现类
@@ -48,13 +48,30 @@ public class DimensionAttributeService extends BaseEntityService<DimensionAttrib
      * @return 操作结果
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<DimensionAttribute> createAttribute(String subjectId, String categoryId, BaseAttribute attribute) {
+    public ResultData<DimensionAttribute> createAttribute(String subjectId, BaseAttribute attribute) {
         if (Objects.isNull(attribute)) {
             // 添加的预算维度属性不能为空
             return ResultData.fail(ContextUtil.getMessage("dimension_attribute_00001"));
         }
-        DimensionAttribute dimensionAttribute = new DimensionAttribute(attribute);
-        dimensionAttribute.setSubjectId(subjectId);
+
+        // 检查是否存在.存在直接返回,不存在则创建
+        DimensionAttribute attr = this.getAttribute(subjectId, attribute.getAttributeCode());
+        if (Objects.isNull(attr)) {
+            DimensionAttribute dimensionAttribute = new DimensionAttribute(attribute);
+            dimensionAttribute.setSubjectId(subjectId);
+            this.save(dimensionAttribute);
+            attr = dimensionAttribute;
+        }
+        return ResultData.success(attr);
+    }
+
+    /**
+     * 通过预算类型获取维度属性组合
+     *
+     * @param categoryId 预算类型id
+     * @return 预算属性组合
+     */
+    public ResultData<String> getAttribute(String categoryId) {
         List<DimensionDto> dimensions = categoryService.getAssigned(categoryId);
         if (CollectionUtils.isEmpty(dimensions)) {
             // 预算类型[{0}]下未找到预算维度!
@@ -63,14 +80,7 @@ public class DimensionAttributeService extends BaseEntityService<DimensionAttrib
         StringJoiner joiner = new StringJoiner(",");
         // 使用到的维度字段名,按asci码排序,逗号(,)分隔
         dimensions.stream().map(DimensionDto::getCode).sorted().forEach(joiner::add);
-        dimensionAttribute.setAttribute(joiner.toString());
-
-        DimensionAttribute attr = getAttribute(subjectId, dimensionAttribute.getAttributeCode());
-        if (Objects.isNull(attr)) {
-            this.save(dimensionAttribute);
-            attr = dimensionAttribute;
-        }
-        return ResultData.success(attr);
+        return ResultData.success(joiner.toString());
     }
 
     /**
@@ -86,57 +96,9 @@ public class DimensionAttributeService extends BaseEntityService<DimensionAttrib
             search.addFilter(new SearchFilter(DimensionAttribute.FIELD_ATTRIBUTE_CODE, code));
             attribute = dao.findOneByFilters(search);
             // 缓存1天 24 * 3600 * 1000
-            cacheBuilder.set(key, attribute, 86400000);
+            cacheBuilder.set(key, attribute, TimeUnit.DAYS.toMillis(1));
         }
         return attribute;
-    }
-
-    /**
-     * 按属性维度获取
-     * 主要用于预算使用时,无期间维度查找预算
-     */
-    public List<DimensionAttribute> getAttributes(DimensionAttribute attribute) {
-        String attrStr = attribute.getAttribute();
-        Search search = Search.createSearch();
-        search.addFilter(new SearchFilter(DimensionAttribute.FIELD_SUBJECT_ID, attribute.getSubjectId()));
-        search.addFilter(new SearchFilter(DimensionAttribute.FIELD_ATTRIBUTE, attribute.getAttribute()));
-        // 预算科目
-        if (StringUtils.contains(attrStr, attribute.getItem())) {
-            search.addFilter(new SearchFilter(DimensionAttribute.FIELD_ITEM, attribute.getItem()));
-        }
-        // 预算期间
-        if (StringUtils.contains(attrStr, attribute.getPeriod())) {
-            search.addFilter(new SearchFilter(DimensionAttribute.FIELD_PERIOD, attribute.getPeriod()));
-        }
-        // 组织机构
-        if (StringUtils.contains(attrStr, attribute.getOrg())) {
-            search.addFilter(new SearchFilter(DimensionAttribute.FIELD_ORG, attribute.getOrg()));
-        }
-        // 预算项目
-        if (StringUtils.contains(attrStr, attribute.getProject())) {
-            search.addFilter(new SearchFilter(DimensionAttribute.FIELD_PROJECT, attribute.getProject()));
-        }
-        // 自定义1
-        if (StringUtils.contains(attrStr, attribute.getUdf1())) {
-            search.addFilter(new SearchFilter(DimensionAttribute.FIELD_UDF1, attribute.getUdf1()));
-        }
-        // 自定义2
-        if (StringUtils.contains(attrStr, attribute.getUdf2())) {
-            search.addFilter(new SearchFilter(DimensionAttribute.FIELD_UDF2, attribute.getUdf2()));
-        }
-        // 自定义3
-        if (StringUtils.contains(attrStr, attribute.getUdf3())) {
-            search.addFilter(new SearchFilter(DimensionAttribute.FIELD_UDF3, attribute.getUdf3()));
-        }
-        // 自定义4
-        if (StringUtils.contains(attrStr, attribute.getUdf4())) {
-            search.addFilter(new SearchFilter(DimensionAttribute.FIELD_UDF4, attribute.getUdf4()));
-        }
-        // 自定义5
-        if (StringUtils.contains(attrStr, attribute.getUdf5())) {
-            search.addFilter(new SearchFilter(DimensionAttribute.FIELD_UDF5, attribute.getUdf5()));
-        }
-        return dao.findByFilters(search);
     }
 
     private String getKey(String subjectId, long code) {

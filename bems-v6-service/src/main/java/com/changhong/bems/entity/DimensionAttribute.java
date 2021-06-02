@@ -23,19 +23,12 @@ import java.util.Objects;
 public class DimensionAttribute extends BaseAttribute implements ITenant, Serializable {
     private static final long serialVersionUID = -63903291983170191L;
     public static final String FIELD_SUBJECT_ID = "subjectId";
-    public static final String FIELD_ATTRIBUTE = "attribute";
 
     /**
      * 预算主体id
      */
     @Column(name = "subject_id")
     private String subjectId;
-    /**
-     * 属性
-     * 使用到的维度字段名,按asci码排序,逗号(,)分隔
-     */
-    @Column(name = "attribute")
-    private String attribute;
 
     /**
      * 租户代码
@@ -47,6 +40,7 @@ public class DimensionAttribute extends BaseAttribute implements ITenant, Serial
     }
 
     public DimensionAttribute(BaseAttribute attribute) {
+        this.attribute = attribute.getAttribute();
         this.period = attribute.getPeriod();
         this.periodName = attribute.getPeriodName();
         this.item = attribute.getItem();
@@ -73,14 +67,6 @@ public class DimensionAttribute extends BaseAttribute implements ITenant, Serial
 
     public void setSubjectId(String subjectId) {
         this.subjectId = subjectId;
-    }
-
-    public String getAttribute() {
-        return attribute;
-    }
-
-    public void setAttribute(String attribute) {
-        this.attribute = attribute;
     }
 
     @Override
