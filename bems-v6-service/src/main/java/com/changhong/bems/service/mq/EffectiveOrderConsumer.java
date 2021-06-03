@@ -9,13 +9,16 @@ import com.changhong.sei.core.context.mock.MockUser;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.util.JsonUtils;
 import com.changhong.sei.util.thread.ThreadLocalHolder;
+import com.changhong.sei.utils.AsyncRunUtil;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 实现功能：
@@ -28,6 +31,8 @@ public class EffectiveOrderConsumer {
     private static final Logger LOG = LoggerFactory.getLogger(EffectiveOrderConsumer.class);
 
     private final OrderService orderService;
+    @Autowired
+    private AsyncRunUtil asyncRunUtil;
 
     public EffectiveOrderConsumer(OrderService orderService) {
         this.orderService = orderService;
@@ -72,6 +77,10 @@ public class EffectiveOrderConsumer {
                 resultData = orderService.effective(orderId);
                 if (LOG.isInfoEnabled()) {
                     LOG.info("预算申请单生效结果: {}", resultData);
+                }
+                if (resultData.failed()) {
+                    // 生效失败,更新订单状态为:草稿
+                    orderService.updateStatus(orderId, OrderStatus.DRAFT);
                 }
             } else if (Constants.ORDER_OPERATION_COMPLETE.equals(operation)) {
                 resultData = orderService.completeProcess(orderId);

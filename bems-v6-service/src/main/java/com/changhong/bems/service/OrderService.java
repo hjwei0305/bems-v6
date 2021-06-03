@@ -60,8 +60,6 @@ public class OrderService extends BaseEntityService<Order> {
     private PoolService poolService;
     @Autowired
     private FlowClient flowClient;
-    @Autowired
-    private AsyncRunUtil asyncRunUtil;
 
     @Override
     protected BaseEntityDao<Order> getDao() {
@@ -289,18 +287,6 @@ public class OrderService extends BaseEntityService<Order> {
                 // 订单状态为[{0}],不允许操作!
                 resultData = ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
             }
-        }
-        if (resultData.failed()) {
-            asyncRunUtil.runAsync(() -> {
-                try {
-                    // 休眠1s,防止状态事务还未更新
-                    TimeUnit.SECONDS.sleep(1);
-                } catch (InterruptedException ignored) {
-                }
-                // 异步处理,规避事务影响状态更新
-                // 生效失败,更新订单状态为:草稿
-                dao.updateStatus(orderId, OrderStatus.DRAFT);
-            });
         }
         return resultData;
     }
