@@ -500,7 +500,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                         // 错误数加1
                         statistics.addFailures();
                         // 更新缓存
-                        if (count % 30 == 0) {
+                        if (count % 5 == 0) {
                             OrderStatistics finalStatistics = statistics;
                             CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
                         }
@@ -538,7 +538,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                         detail.setErrMsg(result.getMessage());
                     }
                     this.save(detail);
-                    if (count % 30 == 0) {
+                    if (count % 5 == 0) {
                         OrderStatistics finalStatistics = statistics;
                         CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
                     }

@@ -540,8 +540,10 @@ public class OrderService extends BaseEntityService<Order> {
                             remark = order.getRemark();
                             record.setBizRemark("直接生效" + (StringUtils.isBlank(remark) ? "" : remark));
                             poolService.recordLog(record);
+                            break;
+                        } else {
+                            return resultData;
                         }
-                        break;
                     default:
                         // 不支持的订单类型
                         return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
@@ -674,8 +676,10 @@ public class OrderService extends BaseEntityService<Order> {
                             remark = order.getRemark();
                             record.setBizRemark("提交审核" + (StringUtils.isBlank(remark) ? "" : remark));
                             poolService.recordLog(record);
+                            break;
+                        } else {
+                            return resultData;
                         }
-                        break;
                     default:
                         // 不支持的订单类型
                         return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
