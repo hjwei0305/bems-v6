@@ -9,16 +9,13 @@ import com.changhong.sei.core.context.mock.MockUser;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.util.JsonUtils;
 import com.changhong.sei.util.thread.ThreadLocalHolder;
-import com.changhong.sei.utils.AsyncRunUtil;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 实现功能：
@@ -31,8 +28,6 @@ public class EffectiveOrderConsumer {
     private static final Logger LOG = LoggerFactory.getLogger(EffectiveOrderConsumer.class);
 
     private final OrderService orderService;
-    @Autowired
-    private AsyncRunUtil asyncRunUtil;
 
     public EffectiveOrderConsumer(OrderService orderService) {
         this.orderService = orderService;

@@ -1,9 +1,6 @@
 package com.changhong.bems.api;
 
-import com.changhong.bems.dto.AddOrderDetail;
-import com.changhong.bems.dto.OrderDetailDto;
-import com.changhong.bems.dto.OrderDto;
-import com.changhong.bems.dto.OrganizationDto;
+import com.changhong.bems.dto.*;
 import com.changhong.sei.core.api.BaseEntityApi;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.flow.FlowInvokeParams;
@@ -196,6 +193,16 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     @GetMapping(path = "getAdjustData")
     @ApiOperation(value = "获取申请单调整数据", notes = "获取申请单调整数据")
     ResultData<Map<String, Double>> getAdjustData(@RequestParam("orderId") String orderId);
+
+    /**
+     * 分页查询预算分解上级期间预算
+     *
+     * @param param 查询参数
+     * @return 上级期间预算
+     */
+    @PostMapping(path = "querySplitGroup", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "分页查询预算分解上级期间预算", notes = "分页查询预算分解上级期间预算")
+    ResultData<PageResult<OrderDetailDto>> querySplitGroup(@RequestBody @Valid SplitDetailQuickQueryParam param);
 
     ///////////////////////流程集成 start//////////////////////////////
 

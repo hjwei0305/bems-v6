@@ -14,7 +14,7 @@ import org.springframework.stereotype.Repository;
  * @since 2021-04-25 15:13:59
  */
 @Repository
-public interface OrderDetailDao extends BaseEntityDao<OrderDetail> {
+public interface OrderDetailDao extends BaseEntityDao<OrderDetail>, OrderDetailExtDao {
 
     /**
      * 通过单据Id清空单据行项

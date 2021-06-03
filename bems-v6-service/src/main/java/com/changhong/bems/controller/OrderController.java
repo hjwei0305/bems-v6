@@ -397,6 +397,23 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         return ResultData.success(data);
     }
 
+    /**
+     * 分页查询预算分解上级期间预算
+     *
+     * @param param 查询参数
+     * @return 上级期间预算
+     */
+    @Override
+    public ResultData<PageResult<OrderDetailDto>> querySplitGroup(SplitDetailQuickQueryParam param) {
+        PageResult<OrderDetail> result = orderDetailService.querySplitGroup(param);
+        PageResult<OrderDetailDto> pageResult = new PageResult<>(result);
+        List<OrderDetail> details = result.getRows();
+        if (CollectionUtils.isNotEmpty(details)) {
+            pageResult.setRows(details.stream().map(d -> modelMapper.map(d, OrderDetailDto.class)).collect(Collectors.toList()));
+        }
+        return ResultData.success(pageResult);
+    }
+
     ///////////////////////流程集成 start//////////////////////////////
 
     /**

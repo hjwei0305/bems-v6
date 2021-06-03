@@ -7,6 +7,7 @@ import com.changhong.bems.entity.*;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
+import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.log.LogUtil;
@@ -51,8 +52,6 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
     private CategoryService categoryService;
     @Autowired
     private PoolService poolService;
-    @Autowired
-    private PeriodService periodService;
     @Autowired
     private DimensionAttributeService dimensionAttributeService;
     @Autowired
@@ -226,7 +225,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
      *
      * @param order 单据头
      */
-//    @Async
+    @Async
     public void batchAddOrderItems(Order order, AddOrderDetail addOrderDetail) {
         if (Objects.isNull(order)) {
             //添加单据行项时,订单头不能为空.
@@ -763,5 +762,15 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
         }
         return ResultData.success();
+    }
+
+    /**
+     * 分页查询预算分解上级期间预算
+     *
+     * @param param 查询参数
+     * @return 上级期间预算
+     */
+    public PageResult<OrderDetail> querySplitGroup(SplitDetailQuickQueryParam param) {
+        return dao.querySplitGroup(param);
     }
 }
