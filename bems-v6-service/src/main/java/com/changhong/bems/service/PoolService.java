@@ -208,23 +208,20 @@ public class PoolService extends BaseEntityService<Pool> {
         executionRecordService.save(record);
 
         // 检查当前记录是否影响预算池余额
-        if (record.getIsPoolAmount()) {
+        if (record.getIsPoolAmount() && StringUtils.isNotBlank(record.getPoolCode())) {
             /*
              在注入或分解是可能还没有预算池,此时只记录日志.
              注入或分解为负数的,必须存在预算池,提交流程时做预占用处理
              */
-            if (StringUtils.isNotBlank(record.getSubjectId())) {
-                ResultData<Pool> poolResult = this.getPool(record.getSubjectId(), record.getAttributeCode());
-                if (poolResult.successful()) {
-                    Pool pool = poolResult.getData();
-                    // 累计金额
-                    poolAmountService.countAmount(pool, record.getOperation(), record.getAmount());
-                    // 实时计算当前预算池可用金额
-                    double amount = poolAmountService.getPoolBalanceByPoolCode(pool.getCode());
-                    // 更新预算池金额
-                    dao.updateAmount(pool.getId(), amount);
-                    return;
-                }
+            Pool pool = dao.findFirstByProperty(Pool.CODE_FIELD, record.getPoolCode());
+            if (Objects.nonNull(pool)) {
+                // 累计金额
+                poolAmountService.countAmount(pool, record.getOperation(), record.getAmount());
+                // 实时计算当前预算池可用金额
+                double amount = poolAmountService.getPoolBalanceByPoolCode(pool.getCode());
+                // 更新预算池金额
+                dao.updateAmount(pool.getId(), amount);
+                return;
             }
             LOG.error("预算池[{}]不存在", record.getPoolCode());
         }

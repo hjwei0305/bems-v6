@@ -509,6 +509,17 @@ public class OrderService extends BaseEntityService<Order> {
                         if (resultData.successful()) {
                             // 当前预算池
                             poolCode = detail.getPoolCode();
+                            if (StringUtils.isBlank(poolCode)) {
+                                // 预算池不存在,需要创建预算池
+                                ResultData<Pool> result = poolService.createPool(order, detail);
+                                if (result.failed()) {
+                                    return ResultData.fail(result.getMessage());
+                                }
+                                Pool pool = result.getData();
+                                poolCode = pool.getCode();
+                                detail.setPoolCode(poolCode);
+                                detail.setPoolAmount(pool.getBalance());
+                            }
                             // 记录预算池执行日志
                             record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_SPLIT_EFFECTIVE);
                             record.setSubjectId(order.getSubjectId());

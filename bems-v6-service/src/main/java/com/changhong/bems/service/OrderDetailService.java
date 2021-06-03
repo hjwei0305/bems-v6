@@ -226,7 +226,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
      *
      * @param order 单据头
      */
-    @Async
+//    @Async
     public void batchAddOrderItems(Order order, AddOrderDetail addOrderDetail) {
         if (Objects.isNull(order)) {
             //添加单据行项时,订单头不能为空.
@@ -726,7 +726,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             // 当前预算池余额. 检查预算池可用余额是否满足本次发生金额(主要存在注入负数调减的金额)
             double originBalance = poolService.getPoolBalanceByCode(originPoolCode);
             // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
-            if (originBalance + detail.getAmount() < 0) {
+            if (originBalance - detail.getAmount() < 0) {
                 // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
                 return ResultData.fail(ContextUtil.getMessage("pool_00002", originPoolCode, originBalance, detail.getAmount()));
             }
