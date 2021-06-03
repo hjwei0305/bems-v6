@@ -226,7 +226,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
      *
      * @param order 单据头
      */
-//    @Async
+    @Async
     public void batchAddOrderItems(Order order, AddOrderDetail addOrderDetail) {
         if (Objects.isNull(order)) {
             //添加单据行项时,订单头不能为空.
@@ -596,7 +596,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                 break;
             case SPLIT:
                 // 分解(年度到月度,总额不变.目标预算池可以不存在,但源预算池必须存在)
-                /* TODO
+                /*
                     1.通过主体和维度属性,按对应的自动溯源规则获取上级预算池;
                     2.若找到上级预算池,则更新源预算池及源预算池余额;
                     2-1.通过主体和维度属性hash检查是否存在预算池
@@ -646,24 +646,24 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
     public ResultData<Void> checkInjectionDetail(Order order, OrderDetail detail) {
         // 预算主体id
         String subjectId = order.getSubjectId();
-        Pool pool = null;
-        // 当前预算池余额
-        double balance;
         if (OrderCategory.INJECTION == order.getOrderCategory()) {
             // 注入下达(对总额的增减,允许预算池不存在)
-            ResultData<Pool> result = poolService.getPool(subjectId, detail.getAttributeCode());
-            if (result.successful()) {
-                pool = result.getData();
-                // 预算池编码
-                detail.setPoolCode(pool.getCode());
+            String poolCode = detail.getPoolCode();
+            if (StringUtils.isBlank(poolCode)) {
+                ResultData<Pool> result = poolService.getPool(subjectId, detail.getAttributeCode());
+                if (result.successful()) {
+                    // 预算池编码
+                    poolCode = result.getData().getCode();
+                    detail.setPoolCode(poolCode);
+                }
             }
-            if (Objects.nonNull(pool)) {
-                // 检查预算池可用余额是否满足本次发生金额(主要存在注入负数调减的金额)
-                balance = poolService.getPoolBalance(pool);
+            if (StringUtils.isNotBlank(poolCode)) {
+                // 当前预算池余额. 检查预算池可用余额是否满足本次发生金额(主要存在注入负数调减的金额)
+                double balance = poolService.getPoolBalanceByCode(poolCode);
                 // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
                 if (balance + detail.getAmount() < 0) {
                     // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
-                    return ResultData.fail(ContextUtil.getMessage("pool_00002", pool.getCode(), balance, detail.getAmount()));
+                    return ResultData.fail(ContextUtil.getMessage("pool_00002", poolCode, balance, detail.getAmount()));
                 }
                 detail.setPoolAmount(balance);
             } else {
@@ -687,28 +687,18 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
      * @param detail 订单行项
      */
     public ResultData<Void> checkAdjustmentDetail(Order order, OrderDetail detail) {
-        // 预算主体id
-        String subjectId = order.getSubjectId();
-        // 当前预算池余额
-        double balance;
         if (OrderCategory.ADJUSTMENT == order.getOrderCategory()) {
             // 调整(跨纬度调整,总额不变.不允许预算池不存在)
             // 预算池编码
-            ResultData<Pool> resultData = poolService.getPool(subjectId, detail.getAttributeCode());
-            if (resultData.successful()) {
-                Pool pool = resultData.getData();
-                // 检查预算池可用余额是否满足本次发生金额(主要存在注入负数调减的金额)
-                balance = poolService.getPoolBalance(pool);
-                // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
-                if (balance + detail.getAmount() < 0) {
-                    // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
-                    return ResultData.fail(ContextUtil.getMessage("pool_00002", pool.getCode(), balance, detail.getAmount()));
-                }
-                detail.setPoolAmount(balance);
-            } else {
-                // 预算池未找到
-                return ResultData.fail(resultData.getMessage());
+            String poolCode = detail.getPoolCode();
+            // 当前预算池余额. 检查预算池可用余额是否满足本次发生金额(主要存在注入负数调减的金额)
+            double balance = poolService.getPoolBalanceByCode(poolCode);
+            // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
+            if (balance + detail.getAmount() < 0) {
+                // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
+                return ResultData.fail(ContextUtil.getMessage("pool_00002", poolCode, balance, detail.getAmount()));
             }
+            detail.setPoolAmount(balance);
         } else {
             // 不支持的订单类型
             return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
@@ -725,21 +715,49 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
     public ResultData<Void> checkSplitDetail(Order order, OrderDetail detail) {
         // 预算主体id
         String subjectId = order.getSubjectId();
-        Pool pool = null;
-        // 预算池编码
-        String poolCode;
-        // 当前预算池余额
-        double balance;
         if (OrderCategory.SPLIT == order.getOrderCategory()) {
             // 分解(年度到月度,总额不变.允许目标预算池不存在,源预算池必须存在)
-            /* TODO
-                1.通过主体和维度属性,按对应的自动溯源规则获取上级预算池;
-                2.若找到上级预算池,则更新源预算池及源预算池余额;
-                2-1.通过主体和维度属性hash检查是否存在预算池
-                2-2.若存在,则设置预算池编码和当前余额到行项上
-                2-3.若不存在,则跳过.在预算生效或申请完成时,创建预算池(创建时再检查是否存在预算池)
-                3.若未找到,则返回错误:预算池未找到
-             */
+            // 源预算池代码
+            String originPoolCode = detail.getOriginPoolCode();
+            if (StringUtils.isBlank(originPoolCode)) {
+                // 上级期间预算池不存在.
+                return ResultData.fail(ContextUtil.getMessage("order_detail_00010"));
+            }
+            // 当前预算池余额. 检查预算池可用余额是否满足本次发生金额(主要存在注入负数调减的金额)
+            double originBalance = poolService.getPoolBalanceByCode(originPoolCode);
+            // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
+            if (originBalance + detail.getAmount() < 0) {
+                // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
+                return ResultData.fail(ContextUtil.getMessage("pool_00002", originPoolCode, originBalance, detail.getAmount()));
+            }
+            detail.setOriginPoolAmount(originBalance);
+
+            // 当前(目标)预算池代码
+            String poolCode = detail.getPoolCode();
+            if (StringUtils.isBlank(poolCode)) {
+                ResultData<Pool> result = poolService.getPool(subjectId, detail.getAttributeCode());
+                if (result.successful()) {
+                    // 预算池编码
+                    poolCode = result.getData().getCode();
+                    detail.setPoolCode(poolCode);
+                }
+            }
+            if (StringUtils.isNotBlank(poolCode)) {
+                // 当前预算池余额. 检查预算池可用余额是否满足本次发生金额(主要存在注入负数调减的金额)
+                double balance = poolService.getPoolBalanceByCode(poolCode);
+                // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
+                if (balance + detail.getAmount() < 0) {
+                    // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
+                    return ResultData.fail(ContextUtil.getMessage("pool_00002", poolCode, balance, detail.getAmount()));
+                }
+                detail.setPoolAmount(balance);
+            } else {
+                // 当预算池不存在时,发生金额不能小于0(不能将预算池值为负数)
+                if (detail.getAmount() < 0) {
+                    // 预算池金额不能值为负数[{0}]
+                    return ResultData.fail(ContextUtil.getMessage("pool_00004", detail.getAmount()));
+                }
+            }
         } else {
             // 不支持的订单类型
             return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
