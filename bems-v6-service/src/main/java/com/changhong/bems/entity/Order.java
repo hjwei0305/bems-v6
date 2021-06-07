@@ -122,6 +122,12 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
     @Column(name = "manually_effective")
     private Boolean manuallyEffective = Boolean.FALSE;
     /**
+     * 是否正在异步处理行项数据
+     * 如果是,在编辑时进入socket状态显示页面
+     */
+    @Column(name = "processing")
+    private Boolean processing = Boolean.FALSE;
+    /**
      * 状态
      */
     @Column(name = "status")
@@ -270,6 +276,14 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
     public Order setManuallyEffective(Boolean manuallyEffective) {
         this.manuallyEffective = manuallyEffective;
         return this;
+    }
+
+    public Boolean getProcessing() {
+        return processing;
+    }
+
+    public void setProcessing(Boolean processing) {
+        this.processing = processing;
     }
 
     public String getRemark() {

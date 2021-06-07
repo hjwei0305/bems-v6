@@ -114,6 +114,12 @@ public class OrderDto extends BaseEntityDto {
     @ApiModelProperty(value = "是否手动生效")
     private Boolean manuallyEffective = Boolean.FALSE;
     /**
+     * 是否正在异步处理行项数据
+     * 如果是,在编辑时进入socket状态显示页面
+     */
+    @ApiModelProperty(value = "是否正在处理行项")
+    private Boolean processing = Boolean.FALSE;
+    /**
      * 备注说明
      */
     @ApiModelProperty(value = "备注说明")
@@ -273,6 +279,14 @@ public class OrderDto extends BaseEntityDto {
     public OrderDto setManuallyEffective(Boolean manuallyEffective) {
         this.manuallyEffective = manuallyEffective;
         return this;
+    }
+
+    public Boolean getProcessing() {
+        return processing;
+    }
+
+    public void setProcessing(Boolean processing) {
+        this.processing = processing;
     }
 
     public String getRemark() {

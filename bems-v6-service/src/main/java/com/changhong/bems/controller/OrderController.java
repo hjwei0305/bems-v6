@@ -27,6 +27,7 @@ import com.changhong.sei.util.EnumUtils;
 import com.changhong.sei.utils.AsyncRunUtil;
 import io.swagger.annotations.Api;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -409,10 +411,53 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         PageResult<OrderDetailDto> pageResult = new PageResult<>(result);
         List<OrderDetail> details = result.getRows();
         if (CollectionUtils.isNotEmpty(details)) {
-            pageResult.setRows(details.stream().map(d -> modelMapper.map(d, OrderDetailDto.class)).collect(Collectors.toList()));
+            Set<String> code = details.stream().map(OrderDetail::getOriginPoolCode).filter(StringUtils::isNotBlank).collect(Collectors.toSet());
+            Search search = Search.createSearch();
+            search.addFilter(new SearchFilter(OrderDetail.FIELD_ORDER_ID, param.getOrderId()));
+            search.addFilter(new SearchFilter(OrderDetail.FIELD_ORIGIN_POOL_CODE, code, SearchFilter.Operator.IN));
+            List<OrderDetail> allChildren = orderDetailService.findByFilters(search);
+            Map<String, List<OrderDetailDto>> group;
+            if (CollectionUtils.isNotEmpty(allChildren)) {
+                group = allChildren.stream().map(d -> modelMapper.map(d, OrderDetailDto.class))
+                        .collect(Collectors.groupingBy(OrderDetailDto::getOriginPoolCode));
+            } else {
+                group = new HashMap<>();
+            }
+            OrderDetailDto dto;
+            List<OrderDetailDto> dtoList = new ArrayList<>(details.size());
+            for (OrderDetail detail : details) {
+                dto = modelMapper.map(detail, OrderDetailDto.class);
+                if (StringUtils.isNotBlank(detail.getOriginPoolCode())) {
+                    dto.setChildren(group.get(detail.getOriginPoolCode()));
+                }
+                dtoList.add(dto);
+            }
+            pageResult.setRows(dtoList);
         }
         return ResultData.success(pageResult);
     }
+
+    /**
+     * 数据导入检查
+     *
+     * @param order
+     * @return 检查结果
+     */
+    @Override
+    public ResultData<Void> importExcel(AddOrderDetail order, MultipartFile file) {
+        return null;
+    }
+
+//    /**
+//     * excel文件数据导入
+//     *
+//     * @param file excel文件
+//     * @return 导入结果
+//     */
+//    @Override
+//    public ResultData<Void> importExcel(MultipartFile file) {
+//        return null;
+//    }
 
     ///////////////////////流程集成 start//////////////////////////////
 

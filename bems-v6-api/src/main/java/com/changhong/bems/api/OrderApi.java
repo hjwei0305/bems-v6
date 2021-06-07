@@ -10,6 +10,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -203,6 +204,26 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     @PostMapping(path = "querySplitGroup", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "分页查询预算分解上级期间预算", notes = "分页查询预算分解上级期间预算")
     ResultData<PageResult<OrderDetailDto>> querySplitGroup(@RequestBody @Valid SplitDetailQuickQueryParam param);
+
+    /**
+     * 数据导入检查
+     *
+     * @return 检查结果
+     */
+    @PostMapping(path = "import", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "数据导入检查", notes = "数据导入检查")
+    ResultData<Void> importExcel(@RequestBody @Valid AddOrderDetail order, MultipartFile file);
+//
+//    /**
+//     * excel文件数据导入
+//     *
+//     * @param file excel文件
+//     * @return 导入结果
+//     */
+//    @PostMapping(path = "importExcel")
+//    @ApiOperation(value = "excel文件数据导入", notes = "excel文件数据导入")
+//    ResultData<Void> importExcel(MultipartFile file);
+
 
     ///////////////////////流程集成 start//////////////////////////////
 

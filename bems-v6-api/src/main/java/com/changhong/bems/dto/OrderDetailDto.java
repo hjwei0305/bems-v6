@@ -3,6 +3,8 @@ package com.changhong.bems.dto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import java.util.List;
+
 /**
  * 预算维度属性(OrderItem)DTO类
  *
@@ -52,6 +54,10 @@ public class OrderDetailDto extends BaseAttributeDto {
      */
     @ApiModelProperty(value = "错误信息")
     private String errMsg;
+    /**
+     * 预算分解时的目标预算
+     */
+    private List<OrderDetailDto> children;
 
     public String getOrderId() {
         return orderId;
@@ -115,5 +121,13 @@ public class OrderDetailDto extends BaseAttributeDto {
 
     public void setErrMsg(String errMsg) {
         this.errMsg = errMsg;
+    }
+
+    public List<OrderDetailDto> getChildren() {
+        return children;
+    }
+
+    public void setChildren(List<OrderDetailDto> children) {
+        this.children = children;
     }
 }
