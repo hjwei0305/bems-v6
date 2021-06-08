@@ -1,6 +1,8 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.dto.AddOrderDetail;
+import com.changhong.bems.dto.OrderCategory;
+import com.changhong.bems.dto.OrderDimension;
 import com.changhong.bems.dto.OrderDto;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
@@ -12,7 +14,9 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 实现功能：
@@ -42,6 +46,36 @@ class OrderServiceTest extends BaseUnit5Test {
         AddOrderDetail detail = JsonUtils.fromJson(json, AddOrderDetail.class);
         ResultData<String> resultData = service.addOrderDetails(detail);
         System.out.println(resultData);
+    }
+
+
+
+    @Test
+    void batchAddOrderItems() {
+        String orderId = "1111";
+        String categoryId = "9C40DADB-A65C-11EB-8A8F-0242C0A84427";
+        AddOrderDetail detail = new AddOrderDetail();
+        detail.setId(orderId);
+        detail.setCategoryId(categoryId);
+        detail.setOrderCategory(OrderCategory.INJECTION);
+
+        Set<OrderDimension> set = new HashSet<>();
+        set.add(new OrderDimension("1", "1"));
+        set.add(new OrderDimension("2", "2"));
+        detail.setPeriod(set);
+
+        set = new HashSet<>();
+        set.add(new OrderDimension("A", "A"));
+        set.add(new OrderDimension("B", "B"));
+        set.add(new OrderDimension("C", "C"));
+        set.add(new OrderDimension("D", "D"));
+        detail.setItem(set);
+
+        set = new HashSet<>();
+//        set.add(new OrderDimension("a", "a"));
+//        set.add(new OrderDimension("b", "b"));
+        detail.setOrg(set);
+        service.addOrderDetails(detail);
     }
 
     @Test

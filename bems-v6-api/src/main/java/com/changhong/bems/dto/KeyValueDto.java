@@ -21,12 +21,20 @@ public class KeyValueDto implements Serializable {
     @ApiModelProperty(value = "值")
     private String value;
 
+    private String code;
+
     public KeyValueDto() {
     }
 
     public KeyValueDto(String key, String value) {
         this.key = key;
         this.value = value;
+    }
+
+    public KeyValueDto(String key, String value, String code) {
+        this.key = key;
+        this.value = value;
+        this.code = code;
     }
 
     public String getKey() {
@@ -43,6 +51,14 @@ public class KeyValueDto implements Serializable {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 
     @Override

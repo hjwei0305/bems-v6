@@ -8,10 +8,15 @@ import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.test.BaseUnit5Test;
 import com.changhong.sei.core.util.JsonUtils;
+import com.changhong.sei.util.FileUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -116,6 +121,20 @@ class OrderControllerTest extends BaseUnit5Test {
         String orderId = "0BEDBC77-B266-11EB-A8DD-6E883C5EFC87";
         ResultData<Void> resultData = controller.effectiveOrder(orderId);
         System.out.println(resultData);
+    }
+
+    @Test
+    void importBudge() {
+        String json = "{\"subjectId\":\"C81A4E58-BBD4-11EB-A896-0242C0A84429\",\"currencyCode\":\"CNY\",\"currencyName\":\"人民币\",\"applyOrgId\":\"877035BF-A40C-11E7-A8B9-02420B99179E\",\"applyOrgCode\":\"10607\",\"categoryId\":\"1883C92C-BBD5-11EB-A896-0242C0A84429\",\"orderCategory\":\"INJECTION\",\"periodType\":\"MONTHLY\",\"subjectName\":\"四川虹信软件股份有限公司\",\"applyOrgName\":\"四川长虹电子控股集团有限公司\",\"categoryName\":\"月度预算\"}";
+        AddOrderDetail order = JsonUtils.fromJson(json, AddOrderDetail.class);
+        File file = new File("/Users/chaoma/Downloads/预算导入测试.xlsx");
+        MultipartFile multipartFile = null;
+        try {
+            multipartFile = new MockMultipartFile(file.getName(), file.getName(), null, FileUtils.readFileToByteArray(file));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        controller.importBudge(order, multipartFile);
     }
 
 //    @Test

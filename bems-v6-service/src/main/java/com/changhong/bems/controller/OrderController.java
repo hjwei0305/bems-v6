@@ -453,15 +453,15 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     public ResultData<String> importBudge(AddOrderDetail order, MultipartFile file) {
         LogUtil.bizLog("上传订单数据 {}", JsonUtils.toJson(order));
         LogUtil.bizLog("上传文件名 {}", file.getOriginalFilename());
+        List<Object> list;
         try {
-            List<Object> list = EasyExcel.read(file.getInputStream())
+            list = EasyExcel.read(file.getInputStream())
                     // 指定sheet,默认从0开始
                     .sheet(0)
                     // 数据读取起始行
                     .headRowNumber(1)
                     .doReadSync();
-            List<OrderDetail> details = list.stream().map(o -> modelMapper.map(o, OrderDetail.class)).collect(Collectors.toList());
-            return service.importOrderDetails(order, details);
+            return service.importOrderDetails(order, list);
         } catch (Exception e) {
             return ResultData.fail(ContextUtil.getMessage("order_detail_00013", ExceptionUtils.getRootCause(e)));
         }

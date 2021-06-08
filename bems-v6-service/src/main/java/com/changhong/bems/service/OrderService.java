@@ -101,13 +101,13 @@ public class OrderService extends BaseEntityService<Order> {
             int index = 0;
             for (DimensionDto dto : dimensions) {
                 if (StringUtils.equals(Constants.DIMENSION_CODE_ITEM, dto.getCode())) {
-                    list.add(new KeyValueDto(String.valueOf(++index), dto.getName() + "代码"));
+                    list.add(new KeyValueDto(String.valueOf(index++), dto.getName() + "代码", dto.getCode()));
                 } else {
-                    list.add(new KeyValueDto(String.valueOf(++index), dto.getName() + "ID"));
+                    list.add(new KeyValueDto(String.valueOf(index++), dto.getName() + "ID", dto.getCode()));
                 }
-                list.add(new KeyValueDto(String.valueOf(++index), dto.getName()));
+                list.add(new KeyValueDto(String.valueOf(index++), dto.getName(), dto.getCode()));
             }
-            list.add(new KeyValueDto(String.valueOf(++index), "金额"));
+            list.add(new KeyValueDto(String.valueOf(index), "金额", "amount"));
         }
         return list;
     }
@@ -285,7 +285,7 @@ public class OrderService extends BaseEntityService<Order> {
      * @return 返回订单头id
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<String> importOrderDetails(AddOrderDetail orderDto, List<OrderDetail> details) {
+    public ResultData<String> importOrderDetails(AddOrderDetail orderDto, List<Object> details) {
         if (Objects.isNull(orderDto)) {
             //导入的订单头数据不能为空
             return ResultData.fail(ContextUtil.getMessage("order_detail_00011"));
@@ -323,8 +323,9 @@ public class OrderService extends BaseEntityService<Order> {
             }
 
             try {
+                List<OrderDetail> orderDetails = new ArrayList<>();
                 // 保存订单行项.在导入时,若存在相同的行项则需要覆盖处理
-                orderDetailService.addOrderItems(order, details, Boolean.TRUE);
+                orderDetailService.addOrderItems(order, orderDetails, Boolean.TRUE);
             } catch (ServiceException e) {
                 LOG.error("异步导入单据行项异常", e);
             }
