@@ -222,7 +222,7 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
      */
     @GetMapping(path = "getBudgetTemplate")
     @ApiOperation(value = "获取预算模版格式数据", notes = "获取预算模版格式数据")
-    ResultData<List<KeyValueDto>> getBudgetTemplate(@RequestParam("categoryId") String categoryId);
+    ResultData<List<String>> getBudgetTemplate(@RequestParam("categoryId") String categoryId);
 
     /**
      * 获取预算维度主数据
@@ -233,7 +233,7 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
      */
     @GetMapping(path = "getDimensionValues")
     @ApiOperation(value = "获取预算维度主数据", notes = "获取预算维度主数据(导入用)")
-    ResultData<List<KeyValueDto>> getDimensionValues(@RequestParam("subjectId") String subjectId, @RequestParam("dimCode") String dimCode);
+    ResultData<Map<String, Object>> getDimensionValues(@RequestParam("subjectId") String subjectId, @RequestParam("dimCode") String dimCode);
 
 
     ///////////////////////流程集成 start//////////////////////////////

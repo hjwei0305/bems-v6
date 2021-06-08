@@ -24,6 +24,7 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
     private static final long serialVersionUID = -90286046160801596L;
     public static final String FIELD_ORDER_ID = "orderId";
     public static final String FIELD_ORIGIN_POOL_CODE = "originPoolCode";
+    public static final String FIELD_AMOUNT = "amount";
     /**
      * 预算申请单id
      */

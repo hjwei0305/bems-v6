@@ -453,9 +453,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     public ResultData<String> importBudge(AddOrderDetail order, MultipartFile file) {
         LogUtil.bizLog("上传订单数据 {}", JsonUtils.toJson(order));
         LogUtil.bizLog("上传文件名 {}", file.getOriginalFilename());
-        List<Object> list;
         try {
-            list = EasyExcel.read(file.getInputStream())
+            List<Map<Integer, String>> list = EasyExcel.read(file.getInputStream())
                     // 指定sheet,默认从0开始
                     .sheet(0)
                     // 数据读取起始行
@@ -474,8 +473,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      * @return 预算模版格式数据
      */
     @Override
-    public ResultData<List<KeyValueDto>> getBudgetTemplate(String categoryId) {
-        return ResultData.success(service.getBudgetTemplate(categoryId));
+    public ResultData<List<String>> getBudgetTemplate(String categoryId) {
+        return ResultData.success(service.getBudgetTemplate(categoryId).stream().map(KeyValueDto::getValue).collect(Collectors.toList()));
     }
 
     /**
@@ -486,7 +485,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      * @return 导出预算模版数据
      */
     @Override
-    public ResultData<List<KeyValueDto>> getDimensionValues(String subjectId, String dimCode) {
+    public ResultData<Map<String, Object>> getDimensionValues(String subjectId, String dimCode) {
         return dimensionComponentService.getDimensionValues(subjectId, dimCode);
     }
 

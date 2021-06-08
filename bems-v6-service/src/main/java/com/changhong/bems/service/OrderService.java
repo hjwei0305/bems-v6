@@ -94,20 +94,22 @@ public class OrderService extends BaseEntityService<Order> {
      * @param categoryId 预算类型id
      * @return 预算模版格式数据
      */
-    public List<KeyValueDto> getBudgetTemplate(String categoryId) {
-        List<KeyValueDto> list = new ArrayList<>();
+    public LinkedList<KeyValueDto> getBudgetTemplate(String categoryId) {
+        LinkedList<KeyValueDto> list = new LinkedList<>();
         List<DimensionDto> dimensions = categoryService.getAssigned(categoryId);
         if (CollectionUtils.isNotEmpty(dimensions)) {
-            int index = 0;
             for (DimensionDto dto : dimensions) {
                 if (StringUtils.equals(Constants.DIMENSION_CODE_ITEM, dto.getCode())) {
-                    list.add(new KeyValueDto(String.valueOf(index++), dto.getName() + "代码", dto.getCode()));
+                    list.add(new KeyValueDto(dto.getCode(), dto.getName().concat("代码")));
                 } else {
-                    list.add(new KeyValueDto(String.valueOf(index++), dto.getName() + "ID", dto.getCode()));
+                    list.add(new KeyValueDto(dto.getCode(), dto.getName().concat("ID")));
                 }
-                list.add(new KeyValueDto(String.valueOf(index++), dto.getName(), dto.getCode()));
+                list.add(new KeyValueDto(dto.getCode().concat("Name"), dto.getName()));
             }
-            list.add(new KeyValueDto(String.valueOf(index), "金额", "amount"));
+            list.add(new KeyValueDto(OrderDetail.FIELD_AMOUNT, "金额"));
+        } else {
+            // 预算类型[{0}]下未找到预算维度
+            LOG.error(ContextUtil.getMessage("category_00007", categoryId));
         }
         return list;
     }
@@ -285,7 +287,7 @@ public class OrderService extends BaseEntityService<Order> {
      * @return 返回订单头id
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<String> importOrderDetails(AddOrderDetail orderDto, List<Object> details) {
+    public ResultData<String> importOrderDetails(AddOrderDetail orderDto, List<Map<Integer, String>> details) {
         if (Objects.isNull(orderDto)) {
             //导入的订单头数据不能为空
             return ResultData.fail(ContextUtil.getMessage("order_detail_00011"));
@@ -316,14 +318,19 @@ public class OrderService extends BaseEntityService<Order> {
                 //添加单据行项时,预算类型不能为空.
                 return ResultData.fail(ContextUtil.getMessage("order_detail_00003"));
             }
-            List<DimensionDto> dimensions = categoryService.getAssigned(categoryId);
-            if (CollectionUtils.isEmpty(dimensions)) {
-                // 预算类型[{0}]下未找到预算维度
-                return ResultData.fail(ContextUtil.getMessage("category_00007"));
-            }
+            List<KeyValueDto> keyValues = this.getBudgetTemplate(categoryId);
+
 
             try {
+                OrderDetail detail;
                 List<OrderDetail> orderDetails = new ArrayList<>();
+                for (Map<Integer, String> map : details) {
+                    detail = new OrderDetail();
+
+                    orderDetails.add(detail);
+                }
+
+
                 // 保存订单行项.在导入时,若存在相同的行项则需要覆盖处理
                 orderDetailService.addOrderItems(order, orderDetails, Boolean.TRUE);
             } catch (ServiceException e) {

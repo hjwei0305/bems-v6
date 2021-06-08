@@ -8,10 +8,13 @@ import com.changhong.bems.entity.Period;
 import com.changhong.bems.entity.SubjectItem;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.ResultData;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -76,14 +79,17 @@ public class DimensionComponentService {
      * @param dimCode   预算维度代码
      * @return 导出预算模版数据
      */
-    public ResultData<List<KeyValueDto>> getDimensionValues(String subjectId, String dimCode) {
+    public ResultData<Map<String, Object>> getDimensionValues(String subjectId, String dimCode) {
         List<KeyValueDto> list;
+        Map<String, Object> data = new HashMap<>();
+        data.put("head", Lists.newArrayList(new KeyValueDto("key", "ID"), new KeyValueDto("value", "名称")));
         switch (dimCode) {
             case Constants.DIMENSION_CODE_PERIOD:
                 List<Period> periods = periodService.findBySubjectUnclosed(subjectId);
                 list = periods.stream().map(p -> new KeyValueDto(p.getId(), p.getName())).collect(Collectors.toList());
                 break;
             case Constants.DIMENSION_CODE_ITEM:
+                data.put("head", Lists.newArrayList(new KeyValueDto("key", "代码"), new KeyValueDto("value", "名称")));
                 List<SubjectItem> subjectItems = subjectItemService.findBySubjectUnfrozen(subjectId);
                 list = subjectItems.stream().map(p -> new KeyValueDto(p.getId(), p.getName())).collect(Collectors.toList());
                 break;
@@ -113,6 +119,7 @@ public class DimensionComponentService {
                 // 不支持的预算维度
                 return ResultData.fail(ContextUtil.getMessage("dimension_00005", dimCode));
         }
-        return ResultData.success(list);
+        data.put("data", list);
+        return ResultData.success(data);
     }
 }
