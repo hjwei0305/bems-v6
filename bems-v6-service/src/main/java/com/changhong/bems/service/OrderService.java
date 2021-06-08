@@ -179,6 +179,8 @@ public class OrderService extends BaseEntityService<Order> {
         // 保存订单头
         ResultData<Order> orderResult = this.saveOrder(order, null);
         if (orderResult.successful()) {
+            // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
+            this.setProcessStatus(order.getId(), Boolean.TRUE);
             // 异步生成订单行项
             orderDetailService.batchAddOrderItems(order, orderDto);
             resultData = ResultData.success(order.getId());
@@ -247,6 +249,19 @@ public class OrderService extends BaseEntityService<Order> {
     @Transactional(rollbackFor = Exception.class)
     public void updateAmount(String id) {
         dao.updateAmount(id);
+    }
+
+    /**
+     * 更新订单是否正在异步处理行项数据
+     * 如果是,在编辑时进入socket状态显示页面
+     *
+     * @param orderId    订单id
+     * @param processing 是否正在异步处理行项数据
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void setProcessStatus(String orderId, boolean processing) {
+        // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
+        dao.setProcessStatus(orderId, Boolean.FALSE);
     }
 
     /**

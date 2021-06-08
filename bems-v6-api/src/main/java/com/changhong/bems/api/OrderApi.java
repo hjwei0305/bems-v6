@@ -210,9 +210,9 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
      *
      * @return 检查结果
      */
-    @PostMapping(path = "import", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "import")
     @ApiOperation(value = "数据导入检查", notes = "数据导入检查")
-    ResultData<Void> importExcel(@RequestBody @Valid AddOrderDetail order, MultipartFile file);
+    ResultData<Void> importExcel(@RequestPart("order") AddOrderDetail order, @RequestPart("file") MultipartFile file);
 //
 //    /**
 //     * excel文件数据导入

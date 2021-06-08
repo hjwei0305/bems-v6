@@ -2,6 +2,7 @@ package com.changhong.bems.websocket;
 
 import com.changhong.bems.dto.OrderStatistics;
 import com.changhong.bems.service.OrderDetailService;
+import com.changhong.bems.service.OrderService;
 import com.changhong.bems.websocket.config.MyEndpointConfigure;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.util.JsonUtils;
@@ -36,6 +37,8 @@ public class WebsocketServer {
     private static final Map<String, Session> SESSION_MAP = new ConcurrentHashMap<>();
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+    @Autowired
+    private OrderService orderService;
 
     /**
      * 连接建立成功调用的方法
@@ -60,6 +63,9 @@ public class WebsocketServer {
                 statistics = (OrderStatistics) operations.get();
             }
             statistics = new OrderStatistics();
+
+            // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
+            orderService.setProcessStatus(orderId, Boolean.FALSE);
             send(session, ResultData.success(statistics));
         } catch (Exception e) {
             LOG.error("websocket获取预算申请单处理日志异常:" + ExceptionUtils.getRootCauseMessage(e), e);

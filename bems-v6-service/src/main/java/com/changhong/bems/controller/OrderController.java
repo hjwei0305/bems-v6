@@ -19,6 +19,7 @@ import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.limiter.support.lock.SeiLockHelper;
+import com.changhong.sei.core.log.LogUtil;
 import com.changhong.sei.core.mq.MqProducer;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.util.JsonUtils;
@@ -445,7 +446,9 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      */
     @Override
     public ResultData<Void> importExcel(AddOrderDetail order, MultipartFile file) {
-        return null;
+        LogUtil.bizLog("上传订单数据 {}", JsonUtils.toJson(order));
+        LogUtil.bizLog("上传文件名 {}", file.getOriginalFilename());
+        return ResultData.success();
     }
 
 //    /**

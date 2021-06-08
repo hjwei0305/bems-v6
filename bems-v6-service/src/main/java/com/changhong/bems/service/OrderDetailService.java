@@ -446,8 +446,6 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         //noinspection AlibabaThreadPoolCreation
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         try {
-            // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
-            orderDao.setProcessStatus(orderId, Boolean.TRUE);
             // 分组处理,防止数据太多导致异常(in查询限制)
             int size = details.size();
             // 计算组数
