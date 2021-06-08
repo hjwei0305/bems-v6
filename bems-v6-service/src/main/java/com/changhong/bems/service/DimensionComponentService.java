@@ -82,14 +82,14 @@ public class DimensionComponentService {
     public ResultData<Map<String, Object>> getDimensionValues(String subjectId, String dimCode) {
         List<KeyValueDto> list;
         Map<String, Object> data = new HashMap<>();
-        data.put("head", Lists.newArrayList(new KeyValueDto("key", "ID"), new KeyValueDto("value", "名称")));
+        data.put("head", Lists.newArrayList("ID", "名称"));
         switch (dimCode) {
             case Constants.DIMENSION_CODE_PERIOD:
                 List<Period> periods = periodService.findBySubjectUnclosed(subjectId);
                 list = periods.stream().map(p -> new KeyValueDto(p.getId(), p.getName())).collect(Collectors.toList());
                 break;
             case Constants.DIMENSION_CODE_ITEM:
-                data.put("head", Lists.newArrayList(new KeyValueDto("key", "代码"), new KeyValueDto("value", "名称")));
+                data.put("head", Lists.newArrayList("代码", "名称"));
                 List<SubjectItem> subjectItems = subjectItemService.findBySubjectUnfrozen(subjectId);
                 list = subjectItems.stream().map(p -> new KeyValueDto(p.getId(), p.getName())).collect(Collectors.toList());
                 break;
