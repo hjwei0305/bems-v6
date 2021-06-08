@@ -57,6 +57,9 @@ public class WebsocketServer {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("预算申请单id[{}]当前处理状态: {}", orderId, statistics);
                 }
+                if (statistics.getFinish()) {
+                    break;
+                }
                 // 输出最新日志
                 send(session, ResultData.success(statistics));
                 TimeUnit.SECONDS.sleep(2);

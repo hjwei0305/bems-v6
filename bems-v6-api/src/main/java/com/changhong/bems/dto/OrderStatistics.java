@@ -95,6 +95,10 @@ public class OrderStatistics implements Serializable {
         }
     }
 
+    public boolean getFinish() {
+        return total - successes - failures == 0;
+    }
+
     public void addSuccesses() {
         this.successes++;
     }
