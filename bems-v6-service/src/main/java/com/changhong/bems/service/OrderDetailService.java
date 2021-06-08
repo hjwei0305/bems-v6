@@ -1,9 +1,11 @@
 package com.changhong.bems.service;
 
-import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.OrderDao;
 import com.changhong.bems.dao.OrderDetailDao;
-import com.changhong.bems.dto.*;
+import com.changhong.bems.dto.DimensionDto;
+import com.changhong.bems.dto.OrderCategory;
+import com.changhong.bems.dto.OrderStatistics;
+import com.changhong.bems.dto.SplitDetailQuickQueryParam;
 import com.changhong.bems.entity.*;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
@@ -194,233 +196,14 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
     }
 
     /**
-     * 保存订单行项(导入使用)
-     */
-    @Async
-    public void batchAddOrderItems(Order order, List<OrderDetail> details) {
-        if (Objects.isNull(order)) {
-            // 添加单据行项时,订单头不能为空.
-            LOG.error(ContextUtil.getMessage("order_detail_00001"));
-            return;
-        }
-        String orderId = order.getId();
-        if (StringUtils.isBlank(orderId)) {
-            //添加单据行项时,订单id不能为空.
-            LOG.error(ContextUtil.getMessage("order_detail_00002"));
-            return;
-        }
-        if (CollectionUtils.isEmpty(details)) {
-            // 添加单据行项时,行项数据不能为空.
-            LOG.error(ContextUtil.getMessage("order_detail_00004"));
-            return;
-        }
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("生成行项: " + details.size());
-        }
-
-        // 保存订单行项
-        this.addOrderItems(order, details, Boolean.TRUE);
-    }
-
-    /**
-     * 异步生成单据行项(手工添加使用)
-     * 若存在相同的行项则忽略跳过(除非在导入时需要覆盖处理)
-     *
-     * @param order 单据头
-     */
-    @Async
-    public void batchAddOrderItems(Order order, AddOrderDetail addOrderDetail) {
-        if (Objects.isNull(order)) {
-            //添加单据行项时,订单头不能为空.
-            LOG.error(ContextUtil.getMessage("order_detail_00001"));
-            return;
-        }
-        String orderId = order.getId();
-        if (StringUtils.isBlank(orderId)) {
-            //添加单据行项时,订单id不能为空.
-            LOG.error(ContextUtil.getMessage("order_detail_00002"));
-            return;
-        }
-        String categoryId = order.getCategoryId();
-        if (StringUtils.isBlank(categoryId)) {
-            //添加单据行项时,预算类型不能为空.
-            LOG.error(ContextUtil.getMessage("order_detail_00003"));
-            return;
-        }
-        if (Objects.isNull(addOrderDetail)) {
-            //添加单据行项时,行项数据不能为空.
-            LOG.error(ContextUtil.getMessage("order_detail_00004"));
-            return;
-        }
-        List<DimensionDto> dimensions = categoryService.getAssigned(categoryId);
-        if (CollectionUtils.isEmpty(dimensions)) {
-            // 预算类型[{0}]下未找到预算维度
-            LOG.error(ContextUtil.getMessage("category_00007"));
-            return;
-        }
-        if (CollectionUtils.isEmpty(dimensions)) {
-            // 预算类型[{0}]下未找到预算维度
-            LOG.error(ContextUtil.getMessage("category_00007"));
-            return;
-        }
-
-        List<String> keyList = new ArrayList<>();
-        // 维度映射
-        Map<String, Set<OrderDimension>> dimensionMap = new HashMap<>(10);
-        for (DimensionDto dimension : dimensions) {
-            String dimensionCode = dimension.getCode();
-            keyList.add(dimensionCode);
-            // 期间维度
-            if (StringUtils.equals(Constants.DIMENSION_CODE_PERIOD, dimensionCode)) {
-                dimensionMap.put(Constants.DIMENSION_CODE_PERIOD, addOrderDetail.getPeriod());
-            }
-            // 科目维度
-            else if (StringUtils.equals(Constants.DIMENSION_CODE_ITEM, dimensionCode)) {
-                dimensionMap.put(Constants.DIMENSION_CODE_ITEM, addOrderDetail.getItem());
-            } else if (StringUtils.equals(Constants.DIMENSION_CODE_ORG, dimensionCode)) {
-                dimensionMap.put(Constants.DIMENSION_CODE_ORG, addOrderDetail.getOrg());
-            } else if (StringUtils.equals(Constants.DIMENSION_CODE_PROJECT, dimensionCode)) {
-                dimensionMap.put(Constants.DIMENSION_CODE_PROJECT, addOrderDetail.getProject());
-            } else if (StringUtils.equals(Constants.DIMENSION_CODE_UDF1, dimensionCode)) {
-                dimensionMap.put(Constants.DIMENSION_CODE_UDF1, addOrderDetail.getUdf1());
-            } else if (StringUtils.equals(Constants.DIMENSION_CODE_UDF2, dimensionCode)) {
-                dimensionMap.put(Constants.DIMENSION_CODE_UDF2, addOrderDetail.getUdf2());
-            } else if (StringUtils.equals(Constants.DIMENSION_CODE_UDF3, dimensionCode)) {
-                dimensionMap.put(Constants.DIMENSION_CODE_UDF3, addOrderDetail.getUdf3());
-            } else if (StringUtils.equals(Constants.DIMENSION_CODE_UDF4, dimensionCode)) {
-                dimensionMap.put(Constants.DIMENSION_CODE_UDF4, addOrderDetail.getUdf4());
-            } else if (StringUtils.equals(Constants.DIMENSION_CODE_UDF5, dimensionCode)) {
-                dimensionMap.put(Constants.DIMENSION_CODE_UDF5, addOrderDetail.getUdf5());
-            }
-        }
-
-        try {
-            List<OrderDetail> detailList = new ArrayList<>();
-            OrderDetail detail = new OrderDetail();
-            // 订单id
-            detail.setOrderId(orderId);
-
-            // 通过笛卡尔方式生成行项
-            descartes(keyList, dimensionMap, detailList, 0, detail);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("生成行项: " + detailList.size());
-            }
-
-            // 保存订单行项
-            this.addOrderItems(order, detailList, Boolean.FALSE);
-        } catch (ServiceException e) {
-            LOG.error("异步生成单据行项异常", e);
-        }
-    }
-
-    /**
-     * 笛卡尔方式生成行项
-     */
-    private static void descartes(List<String> keyList, Map<String, Set<OrderDimension>> dimensionMap,
-                                  List<OrderDetail> detailList, int layer, OrderDetail detail) {
-        // 维度代码
-        String dimensionCode = keyList.get(layer);
-        // 当前维度所选择的要素清单
-        Set<OrderDimension> orderDimensionSet = dimensionMap.get(dimensionCode);
-        // 如果不是最后一个子集合时
-        if (layer < keyList.size() - 1) {
-            // 如果当前子集合元素个数为空，则抛出异常中止
-            if (CollectionUtils.isEmpty(orderDimensionSet)) {
-                throw new ServiceException("维度[" + dimensionCode + "]未选择要素值.");
-            } else {
-                OrderDetail od;
-                //如果当前子集合元素不为空，则循环当前子集合元素，累加到临时变量。并且继续递归调用，直到达到父集合的最后一个子集合。
-                int i = 0;
-                for (OrderDimension dimension : orderDimensionSet) {
-                    if (i == 0) {
-                        od = detail;
-                    } else {
-                        od = detail.clone();
-                    }
-                    // 设置维度值
-                    setDimension(dimensionCode, dimension, od);
-                    descartes(keyList, dimensionMap, detailList, layer + 1, od);
-                    i++;
-                }
-            }
-        }
-        //递归调用到最后一个子集合时
-        else if (layer == keyList.size() - 1) {
-            // 如果当前子集合元素为空，则抛出异常中止
-            if (CollectionUtils.isEmpty(orderDimensionSet)) {
-                throw new ServiceException("维度[" + dimensionCode + "]未选择要素值.");
-            } else {
-                OrderDetail od;
-                //如果当前子集合元素不为空，则循环当前子集合所有元素，累加到临时变量，然后将临时变量加入到结果集中。
-                int i = 0;
-                for (OrderDimension dimension : orderDimensionSet) {
-                    if (i == 0) {
-                        od = detail;
-                    } else {
-                        od = detail.clone();
-                    }
-                    // 设置维度值
-                    setDimension(dimensionCode, dimension, od);
-                    detailList.add(od);
-                    i++;
-                }
-            }
-        }
-    }
-
-    /**
-     * 设置维度要素值
-     *
-     * @param dimensionCode 维度代码
-     * @param dimension     选择的维度要素值
-     * @param detail        订单行项对象
-     */
-    private static void setDimension(String dimensionCode, OrderDimension dimension, OrderDetail detail) {
-        // 期间维度
-        if (StringUtils.equals(Constants.DIMENSION_CODE_PERIOD, dimensionCode)) {
-            detail.setPeriod(dimension.getValue());
-            detail.setPeriodName(dimension.getText());
-        }
-        // 科目维度
-        else if (StringUtils.equals(Constants.DIMENSION_CODE_ITEM, dimensionCode)) {
-            detail.setItem(dimension.getValue());
-            detail.setItemName(dimension.getText());
-        }
-        // 组织机构维度
-        else if (StringUtils.equals(Constants.DIMENSION_CODE_ORG, dimensionCode)) {
-            detail.setOrg(dimension.getValue());
-            detail.setOrgName(dimension.getText());
-        }
-        // 项目维度
-        else if (StringUtils.equals(Constants.DIMENSION_CODE_PROJECT, dimensionCode)) {
-            detail.setProject(dimension.getValue());
-            detail.setProjectName(dimension.getText());
-        } else if (StringUtils.equals(Constants.DIMENSION_CODE_UDF1, dimensionCode)) {
-            detail.setUdf1(dimension.getValue());
-            detail.setUdf1Name(dimension.getText());
-        } else if (StringUtils.equals(Constants.DIMENSION_CODE_UDF2, dimensionCode)) {
-            detail.setUdf2(dimension.getValue());
-            detail.setUdf2Name(dimension.getText());
-        } else if (StringUtils.equals(Constants.DIMENSION_CODE_UDF3, dimensionCode)) {
-            detail.setUdf3(dimension.getValue());
-            detail.setUdf3Name(dimension.getText());
-        } else if (StringUtils.equals(Constants.DIMENSION_CODE_UDF4, dimensionCode)) {
-            detail.setUdf4(dimension.getValue());
-            detail.setUdf4Name(dimension.getText());
-        } else if (StringUtils.equals(Constants.DIMENSION_CODE_UDF5, dimensionCode)) {
-            detail.setUdf5(dimension.getValue());
-            detail.setUdf5Name(dimension.getText());
-        }
-    }
-
-    /**
      * 保存订单行项
      * 被异步调用,故忽略事务一致性
      *
      * @param isCover 出现重复行项时,是否覆盖原有记录
      */
+    @Async
     @SuppressWarnings({"ResultOfMethodCallIgnored", "UnnecessaryLocalVariable"})
-    private void addOrderItems(Order order, List<OrderDetail> details, boolean isCover) {
+    public void addOrderItems(Order order, List<OrderDetail> details, boolean isCover) {
         if (Objects.isNull(order)) {
             //添加单据行项时,订单头不能为空.
             LOG.error(ContextUtil.getMessage("order_detail_00001"));
@@ -433,6 +216,12 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             LOG.error(ContextUtil.getMessage("order_detail_00002"));
             return;
         }
+
+        OrderStatistics statistics = new OrderStatistics(details.size(), LocalDateTime.now());
+        BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+        // 设置默认过期时间:1天
+        operations.set(statistics, 1, TimeUnit.DAYS);
+
         // 通过预算类型获取预算维度组合
         ResultData<String> resultData = dimensionAttributeService.getAttribute(order.getCategoryId());
         if (resultData.failed()) {
@@ -446,8 +235,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         //noinspection AlibabaThreadPoolCreation
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         try {
-            // 分组处理,防止数据太多导致异常(in查询限制)
-            int size = details.size();
+            ////////////// 分组处理,防止数据太多导致异常(in查询限制)  //////////////
             // 计算组数
             int limit = (details.size() + MAX_NUMBER - 1) / MAX_NUMBER;
             // 使用流遍历操作
@@ -456,11 +244,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                 groups.add(details.stream().skip(i * MAX_NUMBER).limit(MAX_NUMBER).collect(Collectors.toList()));
             });
             details.clear();
-
-            OrderStatistics statistics = new OrderStatistics(size, LocalDateTime.now());
-            BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(HANDLE_CACHE_KEY_PREFIX.concat(orderId));
-            // 设置默认过期时间:1天
-            operations.set(statistics, 1, TimeUnit.DAYS);
+            ////////////// end 分组处理 /////////////
 
             // 记录所有hash值,以便识别出重复的行项
             Set<Long> duplicateHash = new HashSet<>();

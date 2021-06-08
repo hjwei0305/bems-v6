@@ -212,7 +212,7 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
      */
     @PostMapping(path = "import")
     @ApiOperation(value = "导入excel文件预算数据", notes = "导入excel文件预算数据")
-    ResultData<Void> importBudge(@RequestPart("order") AddOrderDetail order, @RequestPart("file") MultipartFile file);
+    ResultData<String> importBudge(@RequestPart("order") AddOrderDetail order, @RequestPart("file") MultipartFile file);
 
     /**
      * 获取预算模版格式数据

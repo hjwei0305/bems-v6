@@ -19,6 +19,7 @@ import com.changhong.sei.core.limiter.support.lock.SeiLock;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResultWithData;
 import com.changhong.sei.core.util.JsonUtils;
+import com.changhong.sei.exception.ServiceException;
 import com.changhong.sei.serial.sdk.SerialService;
 import com.changhong.sei.util.ArithUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -31,10 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * 预算申请单(Order)业务逻辑实现类
@@ -198,6 +196,11 @@ public class OrderService extends BaseEntityService<Order> {
      */
     @Transactional(rollbackFor = Exception.class)
     public ResultData<String> addOrderDetails(AddOrderDetail orderDto) {
+        if (Objects.isNull(orderDto)) {
+            //添加单据行项时,行项数据不能为空.
+            return ResultData.fail(ContextUtil.getMessage("order_detail_00004"));
+        }
+        // 通过单据Id检查预算主体和类型是否被修改
         ResultData<String> resultData = this.checkDimension(orderDto.getId(), orderDto.getSubjectId(), orderDto.getCategoryId());
         if (resultData.failed()) {
             return resultData;
@@ -206,11 +209,126 @@ public class OrderService extends BaseEntityService<Order> {
         // 保存订单头
         ResultData<Order> orderResult = this.saveOrder(order, null);
         if (orderResult.successful()) {
+            String orderId = order.getId();
             // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
-            this.setProcessStatus(order.getId(), Boolean.TRUE);
-            // 异步生成订单行项
-            orderDetailService.batchAddOrderItems(order, orderDto);
-            resultData = ResultData.success(order.getId());
+            this.setProcessStatus(orderId, Boolean.TRUE);
+
+            String categoryId = order.getCategoryId();
+            if (StringUtils.isBlank(categoryId)) {
+                //添加单据行项时,预算类型不能为空.
+                return ResultData.fail(ContextUtil.getMessage("order_detail_00003"));
+            }
+            List<DimensionDto> dimensions = categoryService.getAssigned(categoryId);
+            if (CollectionUtils.isEmpty(dimensions)) {
+                // 预算类型[{0}]下未找到预算维度
+                return ResultData.fail(ContextUtil.getMessage("category_00007"));
+            }
+
+            List<String> keyList = new ArrayList<>();
+            // 维度映射
+            Map<String, Set<OrderDimension>> dimensionMap = new HashMap<>(10);
+            for (DimensionDto dimension : dimensions) {
+                String dimensionCode = dimension.getCode();
+                keyList.add(dimensionCode);
+                // 期间维度
+                if (StringUtils.equals(Constants.DIMENSION_CODE_PERIOD, dimensionCode)) {
+                    dimensionMap.put(Constants.DIMENSION_CODE_PERIOD, orderDto.getPeriod());
+                }
+                // 科目维度
+                else if (StringUtils.equals(Constants.DIMENSION_CODE_ITEM, dimensionCode)) {
+                    dimensionMap.put(Constants.DIMENSION_CODE_ITEM, orderDto.getItem());
+                } else if (StringUtils.equals(Constants.DIMENSION_CODE_ORG, dimensionCode)) {
+                    dimensionMap.put(Constants.DIMENSION_CODE_ORG, orderDto.getOrg());
+                } else if (StringUtils.equals(Constants.DIMENSION_CODE_PROJECT, dimensionCode)) {
+                    dimensionMap.put(Constants.DIMENSION_CODE_PROJECT, orderDto.getProject());
+                } else if (StringUtils.equals(Constants.DIMENSION_CODE_UDF1, dimensionCode)) {
+                    dimensionMap.put(Constants.DIMENSION_CODE_UDF1, orderDto.getUdf1());
+                } else if (StringUtils.equals(Constants.DIMENSION_CODE_UDF2, dimensionCode)) {
+                    dimensionMap.put(Constants.DIMENSION_CODE_UDF2, orderDto.getUdf2());
+                } else if (StringUtils.equals(Constants.DIMENSION_CODE_UDF3, dimensionCode)) {
+                    dimensionMap.put(Constants.DIMENSION_CODE_UDF3, orderDto.getUdf3());
+                } else if (StringUtils.equals(Constants.DIMENSION_CODE_UDF4, dimensionCode)) {
+                    dimensionMap.put(Constants.DIMENSION_CODE_UDF4, orderDto.getUdf4());
+                } else if (StringUtils.equals(Constants.DIMENSION_CODE_UDF5, dimensionCode)) {
+                    dimensionMap.put(Constants.DIMENSION_CODE_UDF5, orderDto.getUdf5());
+                }
+            }
+
+            try {
+                List<OrderDetail> detailList = new ArrayList<>();
+                OrderDetail detail = new OrderDetail();
+                // 订单id
+                detail.setOrderId(orderId);
+
+                // 通过笛卡尔方式生成行项
+                descartes(keyList, dimensionMap, detailList, 0, detail);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("生成行项数: " + detailList.size());
+                }
+
+                // 保存订单行项.若存在相同的行项则忽略跳过(除非在导入时需要覆盖处理)
+                orderDetailService.addOrderItems(order, detailList, Boolean.FALSE);
+            } catch (ServiceException e) {
+                LOG.error("异步生成单据行项异常", e);
+            }
+            resultData = ResultData.success(orderId);
+        } else {
+            resultData = ResultData.fail(orderResult.getMessage());
+        }
+        return resultData;
+    }
+
+    /**
+     * 添加预算申请单行项明细(导入使用)
+     *
+     * @param orderDto 业务实体DTO
+     * @return 返回订单头id
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ResultData<String> importOrderDetails(AddOrderDetail orderDto, List<OrderDetail> details) {
+        if (Objects.isNull(orderDto)) {
+            //导入的订单头数据不能为空
+            return ResultData.fail(ContextUtil.getMessage("order_detail_00011"));
+        }
+        if (CollectionUtils.isEmpty(details)) {
+            //导入的订单行项数据不能为空
+            return ResultData.fail(ContextUtil.getMessage("order_detail_00012"));
+        }
+        // 通过单据Id检查预算主体和类型是否被修改
+        ResultData<String> resultData = this.checkDimension(orderDto.getId(), orderDto.getSubjectId(), orderDto.getCategoryId());
+        if (resultData.failed()) {
+            return resultData;
+        }
+        Order order = modelMapper.map(orderDto, Order.class);
+        // 保存订单头
+        ResultData<Order> orderResult = this.saveOrder(order, null);
+        if (orderResult.successful()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("导入行项数: " + details.size());
+            }
+
+            String orderId = order.getId();
+            // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
+            this.setProcessStatus(orderId, Boolean.TRUE);
+
+            String categoryId = order.getCategoryId();
+            if (StringUtils.isBlank(categoryId)) {
+                //添加单据行项时,预算类型不能为空.
+                return ResultData.fail(ContextUtil.getMessage("order_detail_00003"));
+            }
+            List<DimensionDto> dimensions = categoryService.getAssigned(categoryId);
+            if (CollectionUtils.isEmpty(dimensions)) {
+                // 预算类型[{0}]下未找到预算维度
+                return ResultData.fail(ContextUtil.getMessage("category_00007"));
+            }
+
+            try {
+                // 保存订单行项.在导入时,若存在相同的行项则需要覆盖处理
+                orderDetailService.addOrderItems(order, details, Boolean.TRUE);
+            } catch (ServiceException e) {
+                LOG.error("异步导入单据行项异常", e);
+            }
+            resultData = ResultData.success(orderId);
         } else {
             resultData = ResultData.fail(orderResult.getMessage());
         }
@@ -923,5 +1041,105 @@ public class OrderService extends BaseEntityService<Order> {
             }
         }
         return ResultData.success();
+    }
+
+    /**
+     * 笛卡尔方式生成行项
+     */
+    private void descartes(List<String> keyList, Map<String, Set<OrderDimension>> dimensionMap,
+                           List<OrderDetail> detailList, int layer, OrderDetail detail) {
+        // 维度代码
+        String dimensionCode = keyList.get(layer);
+        // 当前维度所选择的要素清单
+        Set<OrderDimension> orderDimensionSet = dimensionMap.get(dimensionCode);
+        // 如果不是最后一个子集合时
+        if (layer < keyList.size() - 1) {
+            // 如果当前子集合元素个数为空，则抛出异常中止
+            if (CollectionUtils.isEmpty(orderDimensionSet)) {
+                throw new ServiceException("维度[" + dimensionCode + "]未选择要素值.");
+            } else {
+                OrderDetail od;
+                //如果当前子集合元素不为空，则循环当前子集合元素，累加到临时变量。并且继续递归调用，直到达到父集合的最后一个子集合。
+                int i = 0;
+                for (OrderDimension dimension : orderDimensionSet) {
+                    if (i == 0) {
+                        od = detail;
+                    } else {
+                        od = detail.clone();
+                    }
+                    // 设置维度值
+                    setDimension(dimensionCode, dimension, od);
+                    descartes(keyList, dimensionMap, detailList, layer + 1, od);
+                    i++;
+                }
+            }
+        }
+        //递归调用到最后一个子集合时
+        else if (layer == keyList.size() - 1) {
+            // 如果当前子集合元素为空，则抛出异常中止
+            if (CollectionUtils.isEmpty(orderDimensionSet)) {
+                throw new ServiceException("维度[" + dimensionCode + "]未选择要素值.");
+            } else {
+                OrderDetail od;
+                //如果当前子集合元素不为空，则循环当前子集合所有元素，累加到临时变量，然后将临时变量加入到结果集中。
+                int i = 0;
+                for (OrderDimension dimension : orderDimensionSet) {
+                    if (i == 0) {
+                        od = detail;
+                    } else {
+                        od = detail.clone();
+                    }
+                    // 设置维度值
+                    setDimension(dimensionCode, dimension, od);
+                    detailList.add(od);
+                    i++;
+                }
+            }
+        }
+    }
+
+    /**
+     * 设置维度要素值
+     *
+     * @param dimensionCode 维度代码
+     * @param dimension     选择的维度要素值
+     * @param detail        订单行项对象
+     */
+    private void setDimension(String dimensionCode, OrderDimension dimension, OrderDetail detail) {
+        // 期间维度
+        if (StringUtils.equals(Constants.DIMENSION_CODE_PERIOD, dimensionCode)) {
+            detail.setPeriod(dimension.getValue());
+            detail.setPeriodName(dimension.getText());
+        }
+        // 科目维度
+        else if (StringUtils.equals(Constants.DIMENSION_CODE_ITEM, dimensionCode)) {
+            detail.setItem(dimension.getValue());
+            detail.setItemName(dimension.getText());
+        }
+        // 组织机构维度
+        else if (StringUtils.equals(Constants.DIMENSION_CODE_ORG, dimensionCode)) {
+            detail.setOrg(dimension.getValue());
+            detail.setOrgName(dimension.getText());
+        }
+        // 项目维度
+        else if (StringUtils.equals(Constants.DIMENSION_CODE_PROJECT, dimensionCode)) {
+            detail.setProject(dimension.getValue());
+            detail.setProjectName(dimension.getText());
+        } else if (StringUtils.equals(Constants.DIMENSION_CODE_UDF1, dimensionCode)) {
+            detail.setUdf1(dimension.getValue());
+            detail.setUdf1Name(dimension.getText());
+        } else if (StringUtils.equals(Constants.DIMENSION_CODE_UDF2, dimensionCode)) {
+            detail.setUdf2(dimension.getValue());
+            detail.setUdf2Name(dimension.getText());
+        } else if (StringUtils.equals(Constants.DIMENSION_CODE_UDF3, dimensionCode)) {
+            detail.setUdf3(dimension.getValue());
+            detail.setUdf3Name(dimension.getText());
+        } else if (StringUtils.equals(Constants.DIMENSION_CODE_UDF4, dimensionCode)) {
+            detail.setUdf4(dimension.getValue());
+            detail.setUdf4Name(dimension.getText());
+        } else if (StringUtils.equals(Constants.DIMENSION_CODE_UDF5, dimensionCode)) {
+            detail.setUdf5(dimension.getValue());
+            detail.setUdf5Name(dimension.getText());
+        }
     }
 }

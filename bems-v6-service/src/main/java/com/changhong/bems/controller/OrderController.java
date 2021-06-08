@@ -1,5 +1,6 @@
 package com.changhong.bems.controller;
 
+import com.alibaba.excel.EasyExcel;
 import com.changhong.bems.api.OrderApi;
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.*;
@@ -30,6 +31,7 @@ import com.changhong.sei.utils.AsyncRunUtil;
 import io.swagger.annotations.Api;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -312,7 +315,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                     // 以线性队列方式,避免预算池并发问题
                     try {
                         // 休眠1s,防止状态事务还未更新
-                        Thread.sleep(1000);
+                        TimeUnit.SECONDS.sleep(1);
                     } catch (InterruptedException ignored) {
                     }
                     // 发送队列消息
@@ -447,10 +450,21 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      * @return 检查结果
      */
     @Override
-    public ResultData<Void> importBudge(AddOrderDetail order, MultipartFile file) {
+    public ResultData<String> importBudge(AddOrderDetail order, MultipartFile file) {
         LogUtil.bizLog("上传订单数据 {}", JsonUtils.toJson(order));
         LogUtil.bizLog("上传文件名 {}", file.getOriginalFilename());
-        return ResultData.success();
+        try {
+            List<Object> list = EasyExcel.read(file.getInputStream())
+                    // 指定sheet,默认从0开始
+                    .sheet(0)
+                    // 数据读取起始行
+                    .headRowNumber(1)
+                    .doReadSync();
+            List<OrderDetail> details = list.stream().map(o -> modelMapper.map(o, OrderDetail.class)).collect(Collectors.toList());
+            return service.importOrderDetails(order, details);
+        } catch (Exception e) {
+            return ResultData.fail(ContextUtil.getMessage("order_detail_00013", ExceptionUtils.getRootCause(e)));
+        }
     }
 
     /**
