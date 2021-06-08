@@ -206,23 +206,34 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     ResultData<PageResult<OrderDetailDto>> querySplitGroup(@RequestBody @Valid SplitDetailQuickQueryParam param);
 
     /**
-     * 数据导入检查
+     * excel文件数据导入
      *
      * @return 检查结果
      */
     @PostMapping(path = "import")
-    @ApiOperation(value = "数据导入检查", notes = "数据导入检查")
-    ResultData<Void> importExcel(@RequestPart("order") AddOrderDetail order, @RequestPart("file") MultipartFile file);
-//
-//    /**
-//     * excel文件数据导入
-//     *
-//     * @param file excel文件
-//     * @return 导入结果
-//     */
-//    @PostMapping(path = "importExcel")
-//    @ApiOperation(value = "excel文件数据导入", notes = "excel文件数据导入")
-//    ResultData<Void> importExcel(MultipartFile file);
+    @ApiOperation(value = "导入excel文件预算数据", notes = "导入excel文件预算数据")
+    ResultData<Void> importBudge(@RequestPart("order") AddOrderDetail order, @RequestPart("file") MultipartFile file);
+
+    /**
+     * 获取预算模版格式数据
+     *
+     * @param categoryId 预算类型id
+     * @return 预算模版格式数据
+     */
+    @GetMapping(path = "getBudgetTemplate")
+    @ApiOperation(value = "获取预算模版格式数据", notes = "获取预算模版格式数据")
+    ResultData<List<KeyValueDto>> getBudgetTemplate(@RequestParam("categoryId") String categoryId);
+
+    /**
+     * 获取预算维度主数据
+     *
+     * @param subjectId 预算主体id
+     * @param dimCode   预算维度代码
+     * @return 导出预算模版数据
+     */
+    @GetMapping(path = "getDimensionValues")
+    @ApiOperation(value = "获取预算维度主数据", notes = "获取预算维度主数据(导入用)")
+    ResultData<List<KeyValueDto>> getDimensionValues(@RequestParam("subjectId") String subjectId, @RequestParam("dimCode") String dimCode);
 
 
     ///////////////////////流程集成 start//////////////////////////////

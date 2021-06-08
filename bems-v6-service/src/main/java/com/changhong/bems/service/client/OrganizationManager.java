@@ -48,6 +48,15 @@ public class OrganizationManager {
         return client.getTree4Unfrozen(nodeId);
     }
 
+    /**
+     * 通过组织机构id获取组织机构清单
+     *
+     * @param nodeId 组织机构id
+     * @return 组织机构清单（非树形）
+     */
+    public ResultData<List<OrganizationDto>> getChildrenNodes4Unfrozen(String nodeId) {
+        return client.getChildrenNodes4Unfrozen(nodeId);
+    }
 
     /**
      * 获取一个节点的所有父节点

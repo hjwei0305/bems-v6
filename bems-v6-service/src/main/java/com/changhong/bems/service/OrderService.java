@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -50,6 +51,8 @@ public class OrderService extends BaseEntityService<Order> {
     private ModelMapper modelMapper;
     @Autowired
     private OrderDetailService orderDetailService;
+    @Autowired
+    private CategoryService categoryService;
     @Autowired
     private OrganizationManager organizationManager;
     @Autowired(required = false)
@@ -85,6 +88,30 @@ public class OrderService extends BaseEntityService<Order> {
         }
         search.addFilter(new SearchFilter(OrderDetail.FIELD_ORDER_ID, orderId));
         return orderDetailService.findByPage(search);
+    }
+
+    /**
+     * 获取预算模版格式数据
+     *
+     * @param categoryId 预算类型id
+     * @return 预算模版格式数据
+     */
+    public List<KeyValueDto> getBudgetTemplate(String categoryId) {
+        List<KeyValueDto> list = new ArrayList<>();
+        List<DimensionDto> dimensions = categoryService.getAssigned(categoryId);
+        if (CollectionUtils.isNotEmpty(dimensions)) {
+            int index = 0;
+            for (DimensionDto dto : dimensions) {
+                if (StringUtils.equals(Constants.DIMENSION_CODE_ITEM, dto.getCode())) {
+                    list.add(new KeyValueDto(String.valueOf(++index), dto.getName() + "代码"));
+                } else {
+                    list.add(new KeyValueDto(String.valueOf(++index), dto.getName() + "ID"));
+                }
+                list.add(new KeyValueDto(String.valueOf(++index), dto.getName()));
+            }
+            list.add(new KeyValueDto(String.valueOf(++index), "金额"));
+        }
+        return list;
     }
 
     /**

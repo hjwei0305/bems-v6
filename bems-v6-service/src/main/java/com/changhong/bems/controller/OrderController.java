@@ -6,6 +6,7 @@ import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
 import com.changhong.bems.service.CategoryService;
+import com.changhong.bems.service.DimensionComponentService;
 import com.changhong.bems.service.OrderDetailService;
 import com.changhong.bems.service.OrderService;
 import com.changhong.bems.service.mq.EffectiveOrderMessage;
@@ -61,6 +62,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     private OrderDetailService orderDetailService;
     @Autowired
     private CategoryService categoryService;
+    @Autowired
+    private DimensionComponentService dimensionComponentService;
     @Autowired
     private ModelMapper modelMapper;
     @Autowired
@@ -439,28 +442,39 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     }
 
     /**
-     * 数据导入检查
+     * excel文件数据导入
      *
-     * @param order
      * @return 检查结果
      */
     @Override
-    public ResultData<Void> importExcel(AddOrderDetail order, MultipartFile file) {
+    public ResultData<Void> importBudge(AddOrderDetail order, MultipartFile file) {
         LogUtil.bizLog("上传订单数据 {}", JsonUtils.toJson(order));
         LogUtil.bizLog("上传文件名 {}", file.getOriginalFilename());
         return ResultData.success();
     }
 
-//    /**
-//     * excel文件数据导入
-//     *
-//     * @param file excel文件
-//     * @return 导入结果
-//     */
-//    @Override
-//    public ResultData<Void> importExcel(MultipartFile file) {
-//        return null;
-//    }
+    /**
+     * 获取预算模版格式数据
+     *
+     * @param categoryId 预算类型id
+     * @return 预算模版格式数据
+     */
+    @Override
+    public ResultData<List<KeyValueDto>> getBudgetTemplate(String categoryId) {
+        return ResultData.success(service.getBudgetTemplate(categoryId));
+    }
+
+    /**
+     * 获取预算维度主数据
+     *
+     * @param subjectId 预算主体id
+     * @param dimCode   预算维度代码
+     * @return 导出预算模版数据
+     */
+    @Override
+    public ResultData<List<KeyValueDto>> getDimensionValues(String subjectId, String dimCode) {
+        return dimensionComponentService.getDimensionValues(subjectId, dimCode);
+    }
 
     ///////////////////////流程集成 start//////////////////////////////
 

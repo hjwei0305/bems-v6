@@ -97,9 +97,9 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
     }
 
     /**
-     * 获取组织机构树(不包含冻结)
+     * 通过预算主体获取组织机构树(不包含冻结)
      *
-     * @return 组织机构树清单
+     * @return 组织机构树
      */
     public ResultData<OrganizationDto> getOrgTree(String subjectId) {
         Subject subject = dao.findOne(subjectId);
@@ -109,6 +109,21 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
         }
         // 控制组织的范围只能是预算主体指定的组织及下级
         return organizationManager.getTree4Unfrozen(subject.getOrgId());
+    }
+
+    /**
+     * 通过预算主体获取组织机构清单(不包含冻结)
+     *
+     * @return 组织机构子节点清单
+     */
+    public ResultData<List<OrganizationDto>> getOrgChildren(String subjectId) {
+        Subject subject = dao.findOne(subjectId);
+        if (Objects.isNull(subject)) {
+            // 未找到预算主体
+            return ResultData.fail(ContextUtil.getMessage("subject_item_00004", subjectId));
+        }
+        // 通过组织机构id获取组织机构清单
+        return organizationManager.getChildrenNodes4Unfrozen(subject.getOrgId());
     }
 
     /**

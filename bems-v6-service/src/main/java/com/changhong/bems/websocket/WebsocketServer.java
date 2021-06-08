@@ -63,14 +63,14 @@ public class WebsocketServer {
                 statistics = (OrderStatistics) operations.get();
             }
             statistics = new OrderStatistics();
-
-            // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
-            orderService.setProcessStatus(orderId, Boolean.FALSE);
             send(session, ResultData.success(statistics));
         } catch (Exception e) {
             LOG.error("websocket获取预算申请单处理日志异常:" + ExceptionUtils.getRootCauseMessage(e), e);
             // 输出最新日志
             send(session, ResultData.fail("websocket获取预算申请单处理日志异常:" + ExceptionUtils.getRootCauseMessage(e)));
+        } finally {
+            // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
+            orderService.setProcessStatus(orderId, Boolean.FALSE);
         }
     }
 

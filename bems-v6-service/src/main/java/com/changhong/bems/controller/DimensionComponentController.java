@@ -1,6 +1,5 @@
 package com.changhong.bems.controller;
 
-import com.changhong.bems.api.DimensionApi;
 import com.changhong.bems.api.DimensionComponentApi;
 import com.changhong.bems.dto.OrganizationDto;
 import com.changhong.bems.dto.PeriodDto;
@@ -8,9 +7,7 @@ import com.changhong.bems.dto.PeriodType;
 import com.changhong.bems.dto.SubjectItemDto;
 import com.changhong.bems.entity.Period;
 import com.changhong.bems.entity.SubjectItem;
-import com.changhong.bems.service.PeriodService;
-import com.changhong.bems.service.SubjectItemService;
-import com.changhong.bems.service.SubjectService;
+import com.changhong.bems.service.DimensionComponentService;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.util.EnumUtils;
 import io.swagger.annotations.Api;
@@ -34,20 +31,11 @@ import java.util.stream.Collectors;
 @RequestMapping(path = DimensionComponentApi.PATH, produces = MediaType.APPLICATION_JSON_VALUE)
 public class DimensionComponentController implements DimensionComponentApi {
     /**
-     * 预算主体科目服务对象
+     * 预算维度组件服务
      */
     @Autowired
-    private PeriodService periodService;
-    /**
-     * 预算主体科目服务对象
-     */
-    @Autowired
-    private SubjectItemService subjectItemService;
-    /**
-     * 预算主体服务对象
-     */
-    @Autowired
-    private SubjectService subjectService;
+    private DimensionComponentService service;
+
     @Autowired
     private ModelMapper modelMapper;
 
@@ -60,7 +48,7 @@ public class DimensionComponentController implements DimensionComponentApi {
      */
     @Override
     public ResultData<List<SubjectItemDto>> getBudgetItems(String subjectId) {
-        List<SubjectItem> subjectItems = subjectItemService.findBySubjectUnfrozen(subjectId);
+        List<SubjectItem> subjectItems = service.getBudgetItems(subjectId);
         return ResultData.success(subjectItems.stream().map(s -> modelMapper.map(s, SubjectItemDto.class)).collect(Collectors.toList()));
     }
 
@@ -73,7 +61,7 @@ public class DimensionComponentController implements DimensionComponentApi {
      */
     @Override
     public ResultData<List<PeriodDto>> getPeriods(String subjectId, String type) {
-        List<Period> periods = periodService.findBySubjectUnclosed(subjectId, EnumUtils.getEnum(PeriodType.class, type));
+        List<Period> periods = service.getPeriods(subjectId, EnumUtils.getEnum(PeriodType.class, type));
         return ResultData.success(periods.stream().map(s -> modelMapper.map(s, PeriodDto.class)).collect(Collectors.toList()));
     }
 
@@ -85,6 +73,6 @@ public class DimensionComponentController implements DimensionComponentApi {
      */
     @Override
     public ResultData<OrganizationDto> getOrgTree(String subjectId) {
-        return subjectService.getOrgTree(subjectId);
+        return service.getOrgTree(subjectId);
     }
 }
