@@ -467,7 +467,6 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             Search search = Search.createSearch();
             ResultData<Void> result;
             // 分组处理
-            int count = 0;
             for (List<OrderDetail> detailList : groups) {
                 search.clearAll();
 
@@ -483,7 +482,6 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                 }
 
                 for (OrderDetail detail : detailList) {
-                    count++;
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("正在处理行项: " + JsonUtils.toJson(detail));
                     }
@@ -502,10 +500,8 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                         // 错误数加1
                         statistics.addFailures();
                         // 更新缓存
-                        if (count % 5 == 0) {
-                            OrderStatistics finalStatistics = statistics;
-                            CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
-                        }
+                        OrderStatistics finalStatistics = statistics;
+                        CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
                         continue;
                     } else {
                         // 记录hash值
@@ -540,10 +536,8 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                         detail.setErrMsg(result.getMessage());
                     }
                     this.save(detail);
-                    if (count % 5 == 0) {
-                        OrderStatistics finalStatistics = statistics;
-                        CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
-                    }
+                    OrderStatistics finalStatistics = statistics;
+                    CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
                 }
             }
         } catch (ServiceException e) {
