@@ -6,6 +6,7 @@ import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
+import com.changhong.bems.entity.vo.TemplateHeadVo;
 import com.changhong.bems.service.CategoryService;
 import com.changhong.bems.service.DimensionComponentService;
 import com.changhong.bems.service.OrderDetailService;
@@ -457,8 +458,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             List<Map<Integer, String>> list = EasyExcel.read(file.getInputStream())
                     // 指定sheet,默认从0开始
                     .sheet(0)
-                    // 数据读取起始行
-                    .headRowNumber(1)
+                    // 数据读取起始行.从头开始读,并将第一行数据进行校验
+                    .headRowNumber(0)
                     .doReadSync();
             return service.importOrderDetails(order, list);
         } catch (Exception e) {
@@ -474,7 +475,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      */
     @Override
     public ResultData<List<String>> getBudgetTemplate(String categoryId) {
-        return ResultData.success(service.getBudgetTemplate(categoryId).stream().map(KeyValueDto::getValue).collect(Collectors.toList()));
+        return ResultData.success(service.getBudgetTemplate(categoryId).stream().map(TemplateHeadVo::getValue).collect(Collectors.toList()));
     }
 
     /**

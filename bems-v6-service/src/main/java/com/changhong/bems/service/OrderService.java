@@ -7,6 +7,7 @@ import com.changhong.bems.entity.ExecutionRecord;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
 import com.changhong.bems.entity.Pool;
+import com.changhong.bems.entity.vo.TemplateHeadVo;
 import com.changhong.bems.service.client.FlowClient;
 import com.changhong.bems.service.client.OrganizationManager;
 import com.changhong.sei.core.context.ContextUtil;
@@ -94,19 +95,20 @@ public class OrderService extends BaseEntityService<Order> {
      * @param categoryId 预算类型id
      * @return 预算模版格式数据
      */
-    public LinkedList<KeyValueDto> getBudgetTemplate(String categoryId) {
-        LinkedList<KeyValueDto> list = new LinkedList<>();
+    public LinkedList<TemplateHeadVo> getBudgetTemplate(String categoryId) {
+        LinkedList<TemplateHeadVo> list = new LinkedList<>();
         List<DimensionDto> dimensions = categoryService.getAssigned(categoryId);
         if (CollectionUtils.isNotEmpty(dimensions)) {
+            int index = 0;
             for (DimensionDto dto : dimensions) {
                 if (StringUtils.equals(Constants.DIMENSION_CODE_ITEM, dto.getCode())) {
-                    list.add(new KeyValueDto(dto.getCode(), dto.getName().concat("代码")));
+                    list.add(new TemplateHeadVo(index++, dto.getCode(), dto.getName().concat("代码")));
                 } else {
-                    list.add(new KeyValueDto(dto.getCode(), dto.getName().concat("ID")));
+                    list.add(new TemplateHeadVo(index++, dto.getCode(), dto.getName().concat("ID")));
                 }
-                list.add(new KeyValueDto(dto.getCode().concat("Name"), dto.getName()));
+                list.add(new TemplateHeadVo(index++, dto.getCode().concat("Name"), dto.getName()));
             }
-            list.add(new KeyValueDto(OrderDetail.FIELD_AMOUNT, "金额"));
+            list.add(new TemplateHeadVo(index, OrderDetail.FIELD_AMOUNT, "金额"));
         } else {
             // 预算类型[{0}]下未找到预算维度
             LOG.error(ContextUtil.getMessage("category_00007", categoryId));
@@ -296,11 +298,37 @@ public class OrderService extends BaseEntityService<Order> {
             //导入的订单行项数据不能为空
             return ResultData.fail(ContextUtil.getMessage("order_detail_00012"));
         }
+        String categoryId = orderDto.getCategoryId();
+        if (StringUtils.isBlank(categoryId)) {
+            //添加单据行项时,预算类型不能为空.
+            return ResultData.fail(ContextUtil.getMessage("order_detail_00003"));
+        }
         // 通过单据Id检查预算主体和类型是否被修改
-        ResultData<String> resultData = this.checkDimension(orderDto.getId(), orderDto.getSubjectId(), orderDto.getCategoryId());
+        ResultData<String> resultData = this.checkDimension(orderDto.getId(), orderDto.getSubjectId(), categoryId);
         if (resultData.failed()) {
             return resultData;
         }
+
+        // 预算类型获取模版
+        List<TemplateHeadVo> templateHead = this.getBudgetTemplate(categoryId);
+        // 模版检查
+        {
+            // 导入模版
+            Map<Integer, String> head = details.get(0);
+            if (Objects.nonNull(templateHead) && Objects.nonNull(head)
+                    && templateHead.size() == head.size()) {
+                for (TemplateHeadVo headVo : templateHead) {
+                    if (!StringUtils.equals(head.get(headVo.getIndex()), headVo.getValue())) {
+                        // 预算数据导入模版不正确
+                        return ResultData.fail(ContextUtil.getMessage("order_detail_00014"));
+                    }
+                }
+            } else {
+                // 预算数据导入模版不正确
+                return ResultData.fail(ContextUtil.getMessage("order_detail_00014"));
+            }
+        }
+
         Order order = modelMapper.map(orderDto, Order.class);
         // 保存订单头
         ResultData<Order> orderResult = this.saveOrder(order, null);
@@ -313,24 +341,74 @@ public class OrderService extends BaseEntityService<Order> {
             // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
             this.setProcessStatus(orderId, Boolean.TRUE);
 
-            String categoryId = order.getCategoryId();
-            if (StringUtils.isBlank(categoryId)) {
-                //添加单据行项时,预算类型不能为空.
-                return ResultData.fail(ContextUtil.getMessage("order_detail_00003"));
-            }
-            List<KeyValueDto> keyValues = this.getBudgetTemplate(categoryId);
-
-
             try {
                 OrderDetail detail;
                 List<OrderDetail> orderDetails = new ArrayList<>();
-                for (Map<Integer, String> map : details) {
-                    detail = new OrderDetail();
+                int index = 0;
+                for (Map<Integer, String> data : details) {
+                    if (index++ == 0) {
+                        // 第一行为数据头,故跳过
+                        continue;
+                    }
 
+                    detail = new OrderDetail();
+                    String temp;
+                    for (TemplateHeadVo headVo : templateHead) {
+                        temp = data.get(headVo.getIndex());
+                        if (StringUtils.isBlank(temp)) {
+                            detail.setHasErr(Boolean.TRUE);
+                            // 导入的金额不是数字
+                            detail.setErrMsg(ContextUtil.getMessage("order_detail_00015"));
+                        } else {
+                            if (Constants.DIMENSION_CODE_PERIOD.equals(headVo.getFiled())) {
+                                detail.setPeriod(temp);
+                            } else if (Constants.DIMENSION_CODE_PERIOD.concat("Name").equals(headVo.getFiled())) {
+                                detail.setPeriodName(temp);
+                            } else if (Constants.DIMENSION_CODE_ITEM.equals(headVo.getFiled())) {
+                                detail.setItem(temp);
+                            } else if (Constants.DIMENSION_CODE_ITEM.concat("Name").equals(headVo.getFiled())) {
+                                detail.setItemName(temp);
+                            } else if (Constants.DIMENSION_CODE_ORG.equals(headVo.getFiled())) {
+                                detail.setOrg(temp);
+                            } else if (Constants.DIMENSION_CODE_ORG.concat("Name").equals(headVo.getFiled())) {
+                                detail.setOrgName(temp);
+                            } else if (Constants.DIMENSION_CODE_PROJECT.equals(headVo.getFiled())) {
+                                detail.setProject(temp);
+                            } else if (Constants.DIMENSION_CODE_PROJECT.concat("Name").equals(headVo.getFiled())) {
+                                detail.setProjectName(temp);
+                            } else if (Constants.DIMENSION_CODE_UDF1.equals(headVo.getFiled())) {
+                                detail.setUdf1(temp);
+                            } else if (Constants.DIMENSION_CODE_UDF1.concat("Name").equals(headVo.getFiled())) {
+                                detail.setUdf1Name(temp);
+                            } else if (Constants.DIMENSION_CODE_UDF2.equals(headVo.getFiled())) {
+                                detail.setUdf2(temp);
+                            } else if (Constants.DIMENSION_CODE_UDF2.concat("Name").equals(headVo.getFiled())) {
+                                detail.setUdf2Name(temp);
+                            } else if (Constants.DIMENSION_CODE_UDF3.equals(headVo.getFiled())) {
+                                detail.setUdf3(temp);
+                            } else if (Constants.DIMENSION_CODE_UDF3.concat("Name").equals(headVo.getFiled())) {
+                                detail.setUdf3Name(temp);
+                            } else if (Constants.DIMENSION_CODE_UDF4.equals(headVo.getFiled())) {
+                                detail.setUdf4(temp);
+                            } else if (Constants.DIMENSION_CODE_UDF4.concat("Name").equals(headVo.getFiled())) {
+                                detail.setUdf4Name(temp);
+                            } else if (Constants.DIMENSION_CODE_UDF5.equals(headVo.getFiled())) {
+                                detail.setUdf5(temp);
+                            } else if (Constants.DIMENSION_CODE_UDF5.concat("Name").equals(headVo.getFiled())) {
+                                detail.setUdf5Name(temp);
+                            } else if (OrderDetail.FIELD_AMOUNT.equals(headVo.getFiled())) {
+                                if (StringUtils.isNumeric(temp)) {
+                                    detail.setAmount(Double.valueOf(temp));
+                                } else {
+                                    detail.setHasErr(Boolean.TRUE);
+                                    // 导入的金额不是数字
+                                    detail.setErrMsg(ContextUtil.getMessage("order_detail_00015"));
+                                }
+                            }
+                        }
+                    }
                     orderDetails.add(detail);
                 }
-
-
                 // 保存订单行项.在导入时,若存在相同的行项则需要覆盖处理
                 orderDetailService.addOrderItems(order, orderDetails, Boolean.TRUE);
             } catch (ServiceException e) {

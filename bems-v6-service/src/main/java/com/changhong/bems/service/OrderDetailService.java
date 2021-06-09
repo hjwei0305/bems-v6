@@ -273,6 +273,16 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     detail.setOrderId(orderId);
                     // 维度属性组合
                     detail.setAttribute(attribute);
+                    if (detail.getHasErr()) {
+                        // 对导入时数据校验结果持久化处理
+                        this.save(detail);
+                        // 错误数加1
+                        statistics.addFailures();
+                        // 更新缓存
+                        OrderStatistics finalStatistics = statistics;
+                        CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
+                        continue;
+                    }
 
                     // 本次提交数据中存在重复项
                     if (duplicateHash.contains(detail.getAttributeCode())) {

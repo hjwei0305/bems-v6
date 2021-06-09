@@ -91,7 +91,7 @@ public class DimensionComponentService {
             case Constants.DIMENSION_CODE_ITEM:
                 data.put("head", Lists.newArrayList("代码", "名称"));
                 List<SubjectItem> subjectItems = subjectItemService.findBySubjectUnfrozen(subjectId);
-                list = subjectItems.stream().map(p -> new KeyValueDto(p.getId(), p.getName())).collect(Collectors.toList());
+                list = subjectItems.stream().map(p -> new KeyValueDto(p.getCode(), p.getName())).collect(Collectors.toList());
                 break;
             case Constants.DIMENSION_CODE_ORG:
                 ResultData<List<OrganizationDto>> resultData = subjectService.getOrgChildren(subjectId);
