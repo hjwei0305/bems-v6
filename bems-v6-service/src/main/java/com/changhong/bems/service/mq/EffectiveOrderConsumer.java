@@ -72,19 +72,10 @@ public class EffectiveOrderConsumer {
             mockUser.mock(sessionUser);
 
             if (Constants.ORDER_OPERATION_EFFECTIVE.equals(operation)) {
-                resultData = orderService.effectiveUseBudget(order, orderDetail);
+                resultData = orderService.effectiveUseBudget(orderId, orderDetail);
                 if (LOG.isInfoEnabled()) {
                     LOG.info("预算申请单生效结果: {}", resultData);
                 }
-                OrderStatus status;
-                if (resultData.failed()) {
-                    // 生效失败,更新订单状态为:草稿
-                    status = OrderStatus.DRAFT;
-                } else {
-                    // 更新订单状态为:完成
-                    status = OrderStatus.COMPLETED;
-                }
-                orderService.updateStatus(orderId, status);
             } else if (Constants.ORDER_OPERATION_COMPLETE.equals(operation)) {
                 resultData = orderService.completeProcess(orderId);
                 if (LOG.isInfoEnabled()) {
