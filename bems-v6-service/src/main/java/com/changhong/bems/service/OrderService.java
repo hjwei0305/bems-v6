@@ -492,7 +492,7 @@ public class OrderService extends BaseEntityService<Order> {
     @Transactional(rollbackFor = Exception.class)
     public void setProcessStatus(String orderId, boolean processing) {
         // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
-        dao.setProcessStatus(orderId, Boolean.FALSE);
+        dao.setProcessStatus(orderId, processing);
     }
 
     /**
@@ -513,6 +513,7 @@ public class OrderService extends BaseEntityService<Order> {
             // 检查订单状态
             if (OrderStatus.EFFECTING == order.getStatus()) {
                 List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
+                // TODO
                 resultData = this.effectiveUseBudget(order, details);
                 if (resultData.successful()) {
                     // 更新订单状态为:完成

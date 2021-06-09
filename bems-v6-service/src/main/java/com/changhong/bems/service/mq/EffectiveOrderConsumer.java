@@ -43,8 +43,8 @@ public class EffectiveOrderConsumer {
         if (Objects.isNull(record)) {
             return;
         }
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("received key='{}' message = '{}'", record.key(), record.value());
+        if (LOG.isInfoEnabled()) {
+            LOG.info("received key='{}' message = '{}'", record.key(), record.value());
         }
         // 执行业务处理逻辑
         String orderId = null;

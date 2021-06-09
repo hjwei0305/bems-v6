@@ -156,6 +156,7 @@ public class PoolService extends BaseEntityService<Pool> {
             }
             pool.setUse(category.getUse());
             pool.setRoll(category.getRoll());
+            pool.setCreatedDate(LocalDateTime.now());
 
             OperateResultWithData<Pool> result = this.save(pool);
             if (result.notSuccessful()) {

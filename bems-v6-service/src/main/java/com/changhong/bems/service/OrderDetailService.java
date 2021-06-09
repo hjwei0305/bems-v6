@@ -337,9 +337,6 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         } catch (ServiceException e) {
             LOG.error("异步生成单据行项异常", e);
         } finally {
-            // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
-            orderDao.setProcessStatus(orderId, Boolean.FALSE);
-
             executorService.shutdown();
             // 清除缓存
             redisTemplate.delete(HANDLE_CACHE_KEY_PREFIX.concat(orderId));
