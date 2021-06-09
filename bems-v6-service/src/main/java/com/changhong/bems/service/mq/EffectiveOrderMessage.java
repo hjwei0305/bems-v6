@@ -1,8 +1,5 @@
 package com.changhong.bems.service.mq;
 
-import com.changhong.bems.entity.Order;
-import com.changhong.bems.entity.OrderDetail;
-
 import java.io.Serializable;
 import java.util.StringJoiner;
 
@@ -15,28 +12,28 @@ import java.util.StringJoiner;
 public class EffectiveOrderMessage implements Serializable {
     private static final long serialVersionUID = -6753321214394856181L;
 
-    private Order order;
-    private OrderDetail orderDetail;
+    private String orderId;
+    private String orderDetailId;
     private String operation;
     private String userId;
     private String account;
     private String userName;
     private String tenantCode;
 
-    public Order getOrder() {
-        return order;
+    public String getOrderId() {
+        return orderId;
     }
 
-    public void setOrder(Order order) {
-        this.order = order;
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
     }
 
-    public OrderDetail getOrderDetail() {
-        return orderDetail;
+    public String getOrderDetailId() {
+        return orderDetailId;
     }
 
-    public void setOrderDetail(OrderDetail orderDetail) {
-        this.orderDetail = orderDetail;
+    public void setOrderDetailId(String orderDetailId) {
+        this.orderDetailId = orderDetailId;
     }
 
     public String getOperation() {
@@ -82,7 +79,8 @@ public class EffectiveOrderMessage implements Serializable {
     @Override
     public String toString() {
         return new StringJoiner(", ", EffectiveOrderMessage.class.getSimpleName() + "[", "]")
-                .add("orderDetail='" + orderDetail + "'")
+                .add("orderId='" + orderId + "'")
+                .add("orderDetailId='" + orderDetailId + "'")
                 .add("operation='" + operation + "'")
                 .add("tenantCode='" + tenantCode + "'")
                 .add("account='" + account + "'")

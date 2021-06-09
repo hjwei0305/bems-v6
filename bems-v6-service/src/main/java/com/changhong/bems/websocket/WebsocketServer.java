@@ -108,10 +108,12 @@ public class WebsocketServer {
         if (LOG.isDebugEnabled()) {
             LOG.debug("发送消息: {}", resultData);
         }
-        try {
-            session.getBasicRemote().sendText(JsonUtils.toJson(resultData));
-        } catch (Exception e) {
-            LOG.error("Websocket发送异常: " + e.getMessage());
+        synchronized (session) {
+            try {
+                session.getBasicRemote().sendText(JsonUtils.toJson(resultData));
+            } catch (Exception e) {
+                // LOG.error("Websocket发送异常: " + e.getMessage());
+            }
         }
     }
 }

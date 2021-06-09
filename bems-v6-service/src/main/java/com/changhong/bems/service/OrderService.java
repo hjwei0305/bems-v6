@@ -549,8 +549,8 @@ public class OrderService extends BaseEntityService<Order> {
                 for (OrderDetail detail : details) {
                     // 发送队列消息
                     EffectiveOrderMessage message = new EffectiveOrderMessage();
-                    message.setOrder(order);
-                    message.setOrderDetail(detail);
+                    message.setOrderId(orderId);
+                    message.setOrderDetailId(detail.getId());
                     message.setOperation(Constants.ORDER_OPERATION_EFFECTIVE);
                     SessionUser sessionUser = ContextUtil.getSessionUser();
                     message.setUserId(sessionUser.getUserId());
@@ -692,12 +692,6 @@ public class OrderService extends BaseEntityService<Order> {
      * @return 返回处理结果
      */
     public ResultData<Void> checkDetailHasErr(String orderId) {
-//        if (CollectionUtils.isNotEmpty(details)) {
-//            if (details.parallelStream().anyMatch(OrderDetail::getHasErr)) {
-//                // 存在错误行项未处理
-//                return ResultData.fail(ContextUtil.getMessage("order_detail_00008"));
-//            }
-//        }
         long hasErrCount = orderDetailService.getHasErrCount(orderId);
         if (hasErrCount == 0) {
             return ResultData.success();
@@ -711,19 +705,24 @@ public class OrderService extends BaseEntityService<Order> {
      * 直接生效预算处理
      * 规则:更新或创建预算池
      *
-     * @param orderId  预算申请单
-     * @param detail 预算申请单行项
+     * @param detailId 预算申请单行项id
      * @return 返回处理结果
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> effectiveUseBudget(String orderId, OrderDetail detail) {
-        // 更新行项的处理状态为处理完成
-        orderDetailService.setProcessed(detail.getId());
+    public ResultData<Void> effectiveUseBudget(String detailId) {
+        OrderDetail detail = orderDetailService.findOne(detailId);
+        if (Objects.isNull(detail)) {
+            // 行项不存在
+            return ResultData.fail(ContextUtil.getMessage("order_detail_00009"));
+        }
+        String orderId = detail.getOrderId();
         Order order = dao.findOne(orderId);
         if (Objects.isNull(order)) {
             // 订单不存在
             return ResultData.fail(ContextUtil.getMessage("order_00001"));
         }
+        // 更新行项的处理状态为处理完成
+        orderDetailService.setProcessed(detailId);
         OrderStatus status = order.getStatus();
         if (OrderStatus.EFFECTING == status || OrderStatus.PARTIALLY_COMPLETED == status) {
             String remark;
@@ -830,9 +829,6 @@ public class OrderService extends BaseEntityService<Order> {
                 long processingCount = orderDetailService.getProcessingCount(orderId);
                 if (processingCount == 0) {
                     dao.updateStatus(orderId, OrderStatus.COMPLETED);
-                } else {
-                    // 生效失败,更新订单状态为:部分完成
-                    dao.updateStatus(orderId, OrderStatus.PARTIALLY_COMPLETED);
                 }
             } else {
                 // 生效失败,更新订单状态为:部分完成

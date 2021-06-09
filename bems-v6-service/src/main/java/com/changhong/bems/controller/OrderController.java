@@ -550,7 +550,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                     // 以线性队列方式,避免预算池并发问题
                     // 发送队列消息
                     EffectiveOrderMessage message = new EffectiveOrderMessage();
-                    message.setOrder(order);
+                    message.setOrderId(orderId);
                     message.setOperation(Constants.ORDER_OPERATION_COMPLETE);
                     SessionUser sessionUser = ContextUtil.getSessionUser();
                     message.setUserId(sessionUser.getUserId());

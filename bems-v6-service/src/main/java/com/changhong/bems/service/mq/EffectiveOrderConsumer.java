@@ -52,10 +52,9 @@ public class EffectiveOrderConsumer {
         String message = record.value();
         EffectiveOrderMessage orderMessage = JsonUtils.fromJson(message, EffectiveOrderMessage.class);
 
-        Order order = orderMessage.getOrder();
         // 执行业务处理逻辑
-        String orderId = order.getId();
-        OrderDetail orderDetail = orderMessage.getOrderDetail();
+        String orderId = orderMessage.getOrderId();
+        String orderDetailId = orderMessage.getOrderDetailId();
 
         // 操作类型
         String operation = orderMessage.getOperation();
@@ -72,7 +71,7 @@ public class EffectiveOrderConsumer {
             mockUser.mock(sessionUser);
 
             if (Constants.ORDER_OPERATION_EFFECTIVE.equals(operation)) {
-                resultData = orderService.effectiveUseBudget(orderId, orderDetail);
+                resultData = orderService.effectiveUseBudget(orderDetailId);
                 if (LOG.isInfoEnabled()) {
                     LOG.info("预算申请单生效结果: {}", resultData);
                 }
