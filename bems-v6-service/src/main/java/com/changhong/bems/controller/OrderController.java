@@ -43,7 +43,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -296,49 +295,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      */
     @Override
     public ResultData<Void> effectiveOrder(String orderId) {
-        final Order order = service.findOne(orderId);
-        if (Objects.isNull(order)) {
-            // 订单[{0}]不存在!
-            return ResultData.fail(ContextUtil.getMessage("order_00001"));
-        }
-
-        // 检查订单状态
-        if (OrderStatus.PREFAB == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
-            List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
-            // 更新状态为生效中
-            service.updateStatus(orderId, OrderStatus.EFFECTING);
-            // 更新订单总金额
-            service.updateAmount(orderId);
-            // 检查是否存在错误行项
-            ResultData<Void> resultData = service.checkDetailHasErr(details);
-            if (resultData.successful()) {
-                asyncRunUtil.runAsync(() -> {
-                    // 以线性队列方式,避免预算池并发问题
-                    try {
-                        // 休眠1s,防止状态事务还未更新
-                        TimeUnit.SECONDS.sleep(1);
-                    } catch (InterruptedException ignored) {
-                    }
-                    // 发送队列消息
-                    EffectiveOrderMessage message = new EffectiveOrderMessage();
-                    message.setOrderId(orderId);
-                    message.setOperation(Constants.ORDER_OPERATION_EFFECTIVE);
-                    SessionUser sessionUser = ContextUtil.getSessionUser();
-                    message.setUserId(sessionUser.getUserId());
-                    message.setAccount(sessionUser.getAccount());
-                    message.setUserName(sessionUser.getUserName());
-                    message.setTenantCode(sessionUser.getTenantCode());
-                    producer.send(JsonUtils.toJson(message));
-                    if (LOG.isInfoEnabled()) {
-                        LOG.info("预算申请单[{}]-直接生效消息发送队列成功.", message);
-                    }
-                });
-            }
-            return resultData;
-        } else {
-            // 订单状态为[{0}],不允许操作!
-            return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
-        }
+        return service.effective(orderId);
     }
 
     /**
@@ -593,7 +550,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                     // 以线性队列方式,避免预算池并发问题
                     // 发送队列消息
                     EffectiveOrderMessage message = new EffectiveOrderMessage();
-                    message.setOrderId(orderId);
+                    message.setOrder(order);
                     message.setOperation(Constants.ORDER_OPERATION_COMPLETE);
                     SessionUser sessionUser = ContextUtil.getSessionUser();
                     message.setUserId(sessionUser.getUserId());

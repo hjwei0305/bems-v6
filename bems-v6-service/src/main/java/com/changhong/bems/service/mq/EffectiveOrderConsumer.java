@@ -2,6 +2,8 @@ package com.changhong.bems.service.mq;
 
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.OrderStatus;
+import com.changhong.bems.entity.Order;
+import com.changhong.bems.entity.OrderDetail;
 import com.changhong.bems.service.OrderService;
 import com.changhong.sei.core.context.SessionUser;
 import com.changhong.sei.core.context.mock.LocalMockUser;
@@ -46,16 +48,20 @@ public class EffectiveOrderConsumer {
         if (LOG.isInfoEnabled()) {
             LOG.info("received key='{}' message = '{}'", record.key(), record.value());
         }
+
+        String message = record.value();
+        EffectiveOrderMessage orderMessage = JsonUtils.fromJson(message, EffectiveOrderMessage.class);
+
+        Order order = orderMessage.getOrder();
         // 执行业务处理逻辑
-        String orderId = null;
+        String orderId = order.getId();
+        OrderDetail orderDetail = orderMessage.getOrderDetail();
+
         // 操作类型
-        String operation = null;
+        String operation = orderMessage.getOperation();
+        ResultData<Void> resultData;
         try {
             ThreadLocalHolder.begin();
-
-            String message = record.value();
-            EffectiveOrderMessage orderMessage = JsonUtils.fromJson(message, EffectiveOrderMessage.class);
-
             // 模拟用户
             MockUser mockUser = new LocalMockUser();
             SessionUser sessionUser = new SessionUser();
@@ -65,18 +71,20 @@ public class EffectiveOrderConsumer {
             sessionUser.setUserName(orderMessage.getUserName());
             mockUser.mock(sessionUser);
 
-            orderId = orderMessage.getOrderId();
-            operation = orderMessage.getOperation();
-            ResultData<Void> resultData;
             if (Constants.ORDER_OPERATION_EFFECTIVE.equals(operation)) {
-                resultData = orderService.effective(orderId);
+                resultData = orderService.effectiveUseBudget(order, orderDetail);
                 if (LOG.isInfoEnabled()) {
                     LOG.info("预算申请单生效结果: {}", resultData);
                 }
+                OrderStatus status;
                 if (resultData.failed()) {
                     // 生效失败,更新订单状态为:草稿
-                    orderService.updateStatus(orderId, OrderStatus.DRAFT);
+                    status = OrderStatus.DRAFT;
+                } else {
+                    // 更新订单状态为:完成
+                    status = OrderStatus.COMPLETED;
                 }
+                orderService.updateStatus(orderId, status);
             } else if (Constants.ORDER_OPERATION_COMPLETE.equals(operation)) {
                 resultData = orderService.completeProcess(orderId);
                 if (LOG.isInfoEnabled()) {

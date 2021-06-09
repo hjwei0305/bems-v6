@@ -1,5 +1,8 @@
 package com.changhong.bems.service.mq;
 
+import com.changhong.bems.entity.Order;
+import com.changhong.bems.entity.OrderDetail;
+
 import java.io.Serializable;
 import java.util.StringJoiner;
 
@@ -12,71 +15,74 @@ import java.util.StringJoiner;
 public class EffectiveOrderMessage implements Serializable {
     private static final long serialVersionUID = -6753321214394856181L;
 
-    private String orderId;
+    private Order order;
+    private OrderDetail orderDetail;
     private String operation;
     private String userId;
     private String account;
     private String userName;
     private String tenantCode;
 
-    public String getOrderId() {
-        return orderId;
+    public Order getOrder() {
+        return order;
     }
 
-    public EffectiveOrderMessage setOrderId(String orderId) {
-        this.orderId = orderId;
-        return this;
+    public void setOrder(Order order) {
+        this.order = order;
+    }
+
+    public OrderDetail getOrderDetail() {
+        return orderDetail;
+    }
+
+    public void setOrderDetail(OrderDetail orderDetail) {
+        this.orderDetail = orderDetail;
     }
 
     public String getOperation() {
         return operation;
     }
 
-    public EffectiveOrderMessage setOperation(String operation) {
+    public void setOperation(String operation) {
         this.operation = operation;
-        return this;
     }
 
     public String getUserId() {
         return userId;
     }
 
-    public EffectiveOrderMessage setUserId(String userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
-        return this;
     }
 
     public String getAccount() {
         return account;
     }
 
-    public EffectiveOrderMessage setAccount(String account) {
+    public void setAccount(String account) {
         this.account = account;
-        return this;
     }
 
     public String getUserName() {
         return userName;
     }
 
-    public EffectiveOrderMessage setUserName(String userName) {
+    public void setUserName(String userName) {
         this.userName = userName;
-        return this;
     }
 
     public String getTenantCode() {
         return tenantCode;
     }
 
-    public EffectiveOrderMessage setTenantCode(String tenantCode) {
+    public void setTenantCode(String tenantCode) {
         this.tenantCode = tenantCode;
-        return this;
     }
 
     @Override
     public String toString() {
         return new StringJoiner(", ", EffectiveOrderMessage.class.getSimpleName() + "[", "]")
-                .add("orderId='" + orderId + "'")
+                .add("orderDetail='" + orderDetail + "'")
                 .add("operation='" + operation + "'")
                 .add("tenantCode='" + tenantCode + "'")
                 .add("account='" + account + "'")

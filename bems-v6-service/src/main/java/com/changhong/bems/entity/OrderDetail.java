@@ -9,6 +9,7 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.StringJoiner;
 
 /**
  * 预算行项(OrderDetail)实体类
@@ -154,6 +155,23 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
             e.printStackTrace();
             return null;
         }
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", OrderDetail.class.getSimpleName() + "[", "]")
+                .add("orderId='" + orderId + "'")
+                .add("amount=" + amount)
+                .add("period='" + period + "'")
+                .add("item='" + item + "'")
+                .add("org='" + org + "'")
+                .add("project='" + project + "'")
+                .add("udf1='" + udf1 + "'")
+                .add("udf2='" + udf2 + "'")
+                .add("udf3='" + udf3 + "'")
+                .add("udf4='" + udf4 + "'")
+                .add("udf5='" + udf5 + "'")
+                .toString();
     }
 
     @Override
