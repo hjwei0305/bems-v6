@@ -32,6 +32,11 @@ public enum OrderStatus {
     /**
      * 已完成
      */
+    @Remark("部分完成")
+    PARTIALLY_COMPLETED,
+    /**
+     * 已完成
+     */
     @Remark("已完成")
     COMPLETED
 }

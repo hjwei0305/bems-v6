@@ -1,8 +1,6 @@
 package com.changhong.bems.service;
 
-import com.changhong.bems.dao.OrderDao;
 import com.changhong.bems.dao.OrderDetailDao;
-import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.dto.OrderCategory;
 import com.changhong.bems.dto.OrderStatistics;
 import com.changhong.bems.dto.SplitDetailQuickQueryParam;
@@ -52,10 +50,6 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
     @Autowired
     private OrderDetailDao dao;
     @Autowired
-    private OrderDao orderDao;
-    @Autowired
-    private CategoryService categoryService;
-    @Autowired
     private PoolService poolService;
     @Autowired
     private DimensionAttributeService dimensionAttributeService;
@@ -81,6 +75,49 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
      */
     public List<OrderDetail> getOrderItems(String orderId) {
         return dao.findListByProperty(OrderDetail.FIELD_ORDER_ID, orderId);
+    }
+
+    /**
+     * 检查行项是否有错误未处理
+     *
+     * @param orderId 订单头id
+     * @return 错误数
+     */
+    public long getHasErrCount(String orderId) {
+        return dao.getHasErrCount(orderId);
+    }
+
+    /**
+     * 按订单id设置所有行项的处理状态为处理中
+     *
+     * @param orderId 订单头id
+     * @return
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void setProcessing4All(String orderId) {
+        dao.setProcessing4All(orderId);
+    }
+
+    /**
+     * 更新行项的处理状态为处理完成
+     *
+     * @param detailId 订单行项id
+     * @return
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void setProcessed(String detailId) {
+        dao.setProcessed(detailId);
+    }
+
+
+    /**
+     * 检查行项是否有处理中的行项
+     *
+     * @param orderId 订单头id
+     * @return 处理中的行项数
+     */
+    public long getProcessingCount(String orderId) {
+        return dao.getProcessingCount(orderId);
     }
 
     /**

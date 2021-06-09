@@ -34,4 +34,40 @@ public interface OrderDetailDao extends BaseEntityDao<OrderDetail>, OrderDetailE
      */
     @Query("select sum(d.amount) from OrderDetail d where d.orderId = :orderId")
     double getSumAmount(@Param("orderId") String orderId);
+
+    /**
+     * 检查行项是否有错误未处理
+     *
+     * @param orderId 订单头id
+     * @return 错误数
+     */
+    @Query("select count(d.id) from OrderDetail d where d.orderId = :orderId and d.hasErr = true ")
+    long getHasErrCount(@Param("orderId") String orderId);
+
+    /**
+     * 按订单id设置所有行项的处理状态为处理中
+     * @param orderId 订单头id
+     * @return
+     */
+    @Modifying
+    @Query("update OrderDetail d set d.processing = true where d.orderId = :orderId")
+    int setProcessing4All(@Param("orderId") String orderId);
+
+    /**
+     * 更新行项的处理状态为处理完成
+     * @param detailId 订单行项id
+     * @return
+     */
+    @Modifying
+    @Query("update OrderDetail d set d.processing = false where d.id = :detailId")
+    int setProcessed(@Param("detailId") String detailId);
+
+    /**
+     * 检查行项是否有处理中的行项
+     *
+     * @param orderId 订单头id
+     * @return 处理中的行项数
+     */
+    @Query("select count(d.id) from OrderDetail d where d.orderId = :orderId and d.processing = true ")
+    long getProcessingCount(@Param("orderId") String orderId);
 }

@@ -67,6 +67,12 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
     @Column(name = "err_msg")
     private String errMsg;
     /**
+     * 是否正在异步处理行项数据
+     * 如果是,在编辑时进入socket状态显示页面
+     */
+    @Column(name = "processing")
+    private Boolean processing = Boolean.FALSE;
+    /**
      * 租户代码
      */
     @Column(name = "tenant_code")
@@ -135,6 +141,14 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
 
     public void setErrMsg(String errMsg) {
         this.errMsg = errMsg;
+    }
+
+    public Boolean getProcessing() {
+        return processing;
+    }
+
+    public void setProcessing(Boolean processing) {
+        this.processing = processing;
     }
 
     @Override

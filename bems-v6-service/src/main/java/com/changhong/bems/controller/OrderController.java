@@ -602,7 +602,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         if (OrderStatus.PROCESSING == order.getStatus()) {
             if (!SeiLockHelper.checkLocked("bems-v6:submit:" + orderId)) {
                 // 检查是否存在错误行项
-                ResultData<Void> resultData = service.checkDetailHasErr(details);
+                ResultData<Void> resultData = service.checkDetailHasErr(orderId);
                 if (resultData.successful()) {
                     asyncRunUtil.runAsync(() -> service.submitProcess(order, details, taskActDefId));
                     return ResultData.success(Boolean.TRUE);
