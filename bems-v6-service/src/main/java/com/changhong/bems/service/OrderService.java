@@ -547,6 +547,9 @@ public class OrderService extends BaseEntityService<Order> {
                         }
                     }
                     for (OrderDetail detail : details) {
+                        if (LOG.isInfoEnabled()) {
+                            LOG.info("预算申请单直接生效消息发送 - [{}]", detail);
+                        }
                         asyncRunUtil.runAsync(() -> {
                             // 发送队列消息
                             EffectiveOrderMessage message = new EffectiveOrderMessage();
