@@ -100,14 +100,11 @@ class OrderServiceTest extends BaseUnit5Test {
     }
 
     @Test
-    void submitProcess() {
+    void confirmUseBudget() {
         StopWatch stopWatch = StopWatch.createStarted();
 
-        String orderId = "1979E1C4-AFC8-11EB-B9C2-0242C0A84427";
-        String taskActDefId = "ReceiveTask_2";
-        Order order = service.findOne(orderId);
-        List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
-        ResultData<Void> resultData = service.submitProcess(order, details, taskActDefId);
+        String detailId = "32665FCC-CA01-11EB-B8C5-0242C0A84427";
+        ResultData<Void> resultData = service.confirmUseBudget(detailId);
         stopWatch.stop();
         System.out.println("耗时: " + stopWatch.getTime());
         System.out.println(resultData);

@@ -43,7 +43,7 @@ public class BudgetOrderConsumer {
      *
      * @param record 消息纪录
      */
-    @KafkaListener(topics = "${sei.mq.bemsv6.topic}", concurrency = "3")
+    @KafkaListener(topics = "${sei.mq.bemsv6.topic}")
     public void processMessage(ConsumerRecord<String, String> record) {
         if (Objects.isNull(record)) {
             return;
