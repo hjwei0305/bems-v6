@@ -531,6 +531,8 @@ public class OrderService extends BaseEntityService<Order> {
                 // 更新订单处理状态
                 order.setProcessing(Boolean.TRUE);
                 dao.save(order);
+                // 按订单id设置所有行项的处理状态为处理中
+                orderDetailService.setProcessing4All(orderId);
 
                 OrderStatistics statistics = new OrderStatistics(details.size(), LocalDateTime.now());
                 BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
@@ -578,6 +580,8 @@ public class OrderService extends BaseEntityService<Order> {
             // 更新订单处理状态
             order.setProcessing(Boolean.TRUE);
             dao.save(order);
+            // 按订单id设置所有行项的处理状态为处理中
+            orderDetailService.setProcessing4All(orderId);
 
             OrderStatistics statistics = new OrderStatistics(details.size(), LocalDateTime.now());
             BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
@@ -615,13 +619,7 @@ public class OrderService extends BaseEntityService<Order> {
                 // 订单[{0}]生效失败: 无订单行项
                 return ResultData.fail(ContextUtil.getMessage("order_00007", order.getCode()));
             }
-            // 更新状态为生效中
-            order.setStatus(OrderStatus.EFFECTING);
-            // 更新订单为手动生效标示
-            order.setManuallyEffective(Boolean.TRUE);
-            dao.save(order);
-            // 更新订单总金额
-            dao.updateAmount(orderId);
+
             // 检查是否存在错误行项
             ResultData<Void> resultData = this.checkDetailHasErr(orderId);
             if (resultData.successful()) {
@@ -635,6 +633,16 @@ public class OrderService extends BaseEntityService<Order> {
                         return ResultData.fail(ContextUtil.getMessage("order_00006", adjustBalance));
                     }
                 }
+
+                // 更新状态为生效中
+                order.setStatus(OrderStatus.EFFECTING);
+                // 更新订单为手动生效标示
+                order.setManuallyEffective(Boolean.TRUE);
+                dao.save(order);
+                // 更新订单总金额
+                dao.updateAmount(orderId);
+                // 按订单id设置所有行项的处理状态为处理中
+                orderDetailService.setProcessing4All(orderId);
 
                 OrderStatistics statistics = new OrderStatistics(details.size(), LocalDateTime.now());
                 BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));

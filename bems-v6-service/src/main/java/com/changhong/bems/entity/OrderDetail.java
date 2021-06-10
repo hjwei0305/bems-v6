@@ -8,6 +8,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.StringJoiner;
 
@@ -80,6 +81,11 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
      */
     @Column(name = "err_msg")
     private String errMsg;
+    /**
+     * 创建时间
+     */
+    @Column(name = "created_date", updatable = false)
+    protected LocalDateTime createdDate;
     /**
      * 租户代码
      */
@@ -165,6 +171,14 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
 
     public void setState(Short state) {
         this.state = state;
+    }
+
+    public LocalDateTime getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(LocalDateTime createdDate) {
+        this.createdDate = createdDate;
     }
 
     @Override

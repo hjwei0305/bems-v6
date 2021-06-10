@@ -365,6 +365,8 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                         detail.setHasErr(Boolean.TRUE);
                         detail.setErrMsg(result.getMessage());
                     }
+                    // 创建时间
+                    detail.setCreatedDate(LocalDateTime.now());
                     this.save(detail);
                     OrderStatistics finalStatistics = statistics;
                     CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);

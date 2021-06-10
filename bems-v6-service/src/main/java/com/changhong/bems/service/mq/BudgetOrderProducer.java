@@ -70,8 +70,6 @@ public class BudgetOrderProducer {
             // 为避免事务冲突,延时发送消息
             TimeUnit.SECONDS.sleep(1);
 
-            // 按订单id设置所有行项的处理状态为处理中
-            orderDetailService.setProcessing4All(orderId);
             EffectiveOrderMessage message;
             for (OrderDetail detail : details) {
                 // 发送队列消息
