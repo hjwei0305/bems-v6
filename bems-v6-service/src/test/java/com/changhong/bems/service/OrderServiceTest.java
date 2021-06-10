@@ -93,7 +93,7 @@ class OrderServiceTest extends BaseUnit5Test {
 //        Order order = service.findOne(orderId);
 //        List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
 
-        ResultData<Void> resultData = service.effective(orderId);
+        ResultData<Order> resultData = service.effective(orderId);
         stopWatch.stop();
         System.out.println("耗时: " + stopWatch.getTime());
         System.out.println(resultData);

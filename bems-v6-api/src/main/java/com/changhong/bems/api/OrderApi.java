@@ -234,7 +234,7 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
      */
     @PostMapping(path = "confirmOrder")
     @ApiOperation(value = "确认预算申请单", notes = "确认预算申请单.预算余额检查并预占用")
-    ResultData<Void> confirmOrder(@RequestParam("orderId") String orderId);
+    ResultData<OrderDto> confirmOrder(@RequestParam("orderId") String orderId);
 
     /**
      * 撤销已确认的预算申请单
@@ -245,7 +245,7 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
      */
     @PostMapping(path = "cancelConfirm")
     @ApiOperation(value = "撤销已确认的预算申请单", notes = "撤销已确认的预算申请单.释放预占用")
-    ResultData<Void> cancelConfirmOrder(@RequestParam("orderId") String orderId);
+    ResultData<OrderDto> cancelConfirmOrder(@RequestParam("orderId") String orderId);
 
     /**
      * 已确认的预算申请单直接生效
@@ -255,7 +255,7 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
      */
     @PostMapping(path = "effectiveOrder")
     @ApiOperation(value = "预算申请单生效", notes = "已确认的预算申请单直接生效")
-    ResultData<Void> effectiveOrder(@RequestParam("orderId") String orderId);
+    ResultData<OrderDto> effectiveOrder(@RequestParam("orderId") String orderId);
 
     ///////////////////////流程集成 start//////////////////////////////
 

@@ -497,7 +497,7 @@ public class OrderService extends BaseEntityService<Order> {
      * @return 返回处理结果
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> confirm(String orderId) {
+    public ResultData<Order> confirm(String orderId) {
         final Order order = dao.findOne(orderId);
         if (Objects.isNull(order)) {
             // 订单[{0}]不存在!
@@ -539,9 +539,10 @@ public class OrderService extends BaseEntityService<Order> {
 
                 // 发送kafka消息
                 producer.sendConfirmMessage(orderId, details, ContextUtil.getSessionUser());
-                resultData = ResultData.success();
+                return ResultData.success(order);
+            } else {
+                return ResultData.fail(resultData.getMessage());
             }
-            return resultData;
         } else {
             // 订单状态为[{0}],不允许操作!
             return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
@@ -556,7 +557,7 @@ public class OrderService extends BaseEntityService<Order> {
      * @return 返回处理结果
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> cancelConfirm(String orderId) {
+    public ResultData<Order> cancelConfirm(String orderId) {
         final Order order = dao.findOne(orderId);
         if (Objects.isNull(order)) {
             // 订单[{0}]不存在!
@@ -585,7 +586,7 @@ public class OrderService extends BaseEntityService<Order> {
 
             // 发送kafka消息
             producer.sendCancelMessage(orderId, details, ContextUtil.getSessionUser());
-            return ResultData.success();
+            return ResultData.success(order);
         } else {
             // 订单状态为[{0}],不允许操作!
             return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
@@ -599,7 +600,7 @@ public class OrderService extends BaseEntityService<Order> {
      * @return 返回处理结果
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> effective(String orderId) {
+    public ResultData<Order> effective(String orderId) {
         final Order order = dao.findOne(orderId);
         if (Objects.isNull(order)) {
             // 订单[{0}]不存在!
@@ -642,9 +643,10 @@ public class OrderService extends BaseEntityService<Order> {
 
                 // 发送kafka消息
                 producer.sendEffectiveMessage(orderId, details, ContextUtil.getSessionUser());
-                resultData = ResultData.success();
+                return ResultData.success(order);
+            } else {
+                return ResultData.fail(resultData.getMessage());
             }
-            return resultData;
         } else {
             // 订单状态为[{0}],不允许操作!
             return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));

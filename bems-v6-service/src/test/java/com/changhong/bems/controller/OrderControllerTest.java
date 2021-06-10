@@ -120,7 +120,7 @@ class OrderControllerTest extends BaseUnit5Test {
     @Test
     void effectiveOrder() {
         String orderId = "0BEDBC77-B266-11EB-A8DD-6E883C5EFC87";
-        ResultData<Void> resultData = controller.effectiveOrder(orderId);
+        ResultData<OrderDto> resultData = controller.effectiveOrder(orderId);
         System.out.println(resultData);
     }
 

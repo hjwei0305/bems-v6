@@ -428,8 +428,13 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      * @return 返回处理结果
      */
     @Override
-    public ResultData<Void> confirmOrder(String orderId) {
-        return service.confirm(orderId);
+    public ResultData<OrderDto> confirmOrder(String orderId) {
+        ResultData<Order> resultData = service.confirm(orderId);
+        if (resultData.successful()) {
+            return ResultData.success(modelMapper.map(resultData.getData(), OrderDto.class));
+        } else {
+            return ResultData.fail(resultData.getMessage());
+        }
     }
 
     /**
@@ -440,8 +445,13 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      * @return 返回处理结果
      */
     @Override
-    public ResultData<Void> cancelConfirmOrder(String orderId) {
-        return service.cancelConfirm(orderId);
+    public ResultData<OrderDto> cancelConfirmOrder(String orderId) {
+        ResultData<Order> resultData = service.cancelConfirm(orderId);
+        if (resultData.successful()) {
+            return ResultData.success(modelMapper.map(resultData.getData(), OrderDto.class));
+        } else {
+            return ResultData.fail(resultData.getMessage());
+        }
     }
 
     /**
@@ -451,8 +461,13 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      * @return 返回处理结果
      */
     @Override
-    public ResultData<Void> effectiveOrder(String orderId) {
-        return service.effective(orderId);
+    public ResultData<OrderDto> effectiveOrder(String orderId) {
+        ResultData<Order> resultData = service.effective(orderId);
+        if (resultData.successful()) {
+            return ResultData.success(modelMapper.map(resultData.getData(), OrderDto.class));
+        } else {
+            return ResultData.fail(resultData.getMessage());
+        }
     }
 
     ///////////////////////流程集成 start//////////////////////////////

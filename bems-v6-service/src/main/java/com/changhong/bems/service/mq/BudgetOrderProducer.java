@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 实现功能：
@@ -65,27 +66,34 @@ public class BudgetOrderProducer {
     }
 
     private void sendMessage(String orderId, List<OrderDetail> details, SessionUser sessionUser, String operation) {
-        // 按订单id设置所有行项的处理状态为处理中
-        orderDetailService.setProcessing4All(orderId);
-        EffectiveOrderMessage message;
-        for (OrderDetail detail : details) {
-            // 发送队列消息
-            message = new EffectiveOrderMessage();
-            message.setOrderId(orderId);
-            message.setOrderDetailId(detail.getId());
-            message.setOperation(operation);
-            message.setUserId(sessionUser.getUserId());
-            message.setAccount(sessionUser.getAccount());
-            message.setUserName(sessionUser.getUserName());
-            message.setTenantCode(sessionUser.getTenantCode());
+        try {
+            // 为避免事务冲突,延时发送消息
+            TimeUnit.SECONDS.sleep(1);
 
-            if (StringUtils.isBlank(topic)) {
-                throw new ServiceException("应用配置中没有消息队列的主题【sei.mq.topic】！");
+            // 按订单id设置所有行项的处理状态为处理中
+            orderDetailService.setProcessing4All(orderId);
+            EffectiveOrderMessage message;
+            for (OrderDetail detail : details) {
+                // 发送队列消息
+                message = new EffectiveOrderMessage();
+                message.setOrderId(orderId);
+                message.setOrderDetailId(detail.getId());
+                message.setOperation(operation);
+                message.setUserId(sessionUser.getUserId());
+                message.setAccount(sessionUser.getAccount());
+                message.setUserName(sessionUser.getUserName());
+                message.setTenantCode(sessionUser.getTenantCode());
+
+                if (StringUtils.isBlank(topic)) {
+                    throw new ServiceException("应用配置中没有消息队列的主题【sei.mq.topic】！");
+                }
+                kafkaTemplate.send(topic, IdGenerator.uuid(), JsonUtils.toJson(message));
+                if (LOG.isInfoEnabled()) {
+                    LOG.info("预算申请单[{}]-直接生效消息发送队列成功.", message);
+                }
             }
-            kafkaTemplate.send(topic, IdGenerator.uuid(), JsonUtils.toJson(message));
-            if (LOG.isInfoEnabled()) {
-                LOG.info("预算申请单[{}]-直接生效消息发送队列成功.", message);
-            }
+        } catch (Exception e) {
+            LOG.error("MQ队列消息发送异常.", e);
         }
     }
 }
