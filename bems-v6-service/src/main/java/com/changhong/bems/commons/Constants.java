@@ -105,4 +105,9 @@ public final class Constants {
      * 消息队列处理类型-订单生效
      */
     public static final String ORDER_OPERATION_EFFECTIVE = "EFFECTIVE";
+
+    /**
+     * redis key 订单处理状态缓存key
+     */
+    public static final String HANDLE_CACHE_KEY_PREFIX = "bems-v6:order:handle:";
 }

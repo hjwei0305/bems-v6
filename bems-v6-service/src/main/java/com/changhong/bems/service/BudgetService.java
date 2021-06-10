@@ -160,7 +160,8 @@ public class BudgetService {
         // 按预算占用参数获取预算池大致范围
         final List<PoolAttributeView> poolAttributes = poolService.getBudgetPools(attribute, useDate, useBudget, otherDimFilters);
         if (CollectionUtils.isEmpty(poolAttributes)) {
-            return ResultData.fail(ContextUtil.getMessage("pool_00009", JsonUtils.toJson(useBudget)));
+            // 预算占用时,未找到满足条件的预算池!
+            return ResultData.fail(ContextUtil.getMessage("pool_00009"));
         }
 
         // 获取最优预算池
@@ -449,8 +450,8 @@ public class BudgetService {
         }
 
         if (CollectionUtils.isEmpty(pools)) {
-            // 预算占用时,未找到满足条件[{0}]的预算池!
-            return ResultData.fail(ContextUtil.getMessage("pool_00009", useBudget));
+            // 预算占用时,未找到满足条件的预算池!
+            return ResultData.fail(ContextUtil.getMessage("pool_00009"));
         }
         // 按期间类型下标进行排序: 下标值越大优先级越高
         pools = pools.stream().sorted(Comparator.comparingInt(p -> p.getPeriodType().ordinal())).collect(Collectors.toList());

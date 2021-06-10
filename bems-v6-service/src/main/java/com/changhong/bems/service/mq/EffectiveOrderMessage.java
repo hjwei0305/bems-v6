@@ -12,12 +12,21 @@ import java.util.StringJoiner;
 public class EffectiveOrderMessage implements Serializable {
     private static final long serialVersionUID = -6753321214394856181L;
 
+    private String orderId;
     private String orderDetailId;
     private String operation;
     private String userId;
     private String account;
     private String userName;
     private String tenantCode;
+
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
+    }
 
     public String getOrderDetailId() {
         return orderDetailId;
@@ -70,6 +79,7 @@ public class EffectiveOrderMessage implements Serializable {
     @Override
     public String toString() {
         return new StringJoiner(", ", EffectiveOrderMessage.class.getSimpleName() + "[", "]")
+                .add("orderId='" + orderId + "'")
                 .add("orderDetailId='" + orderDetailId + "'")
                 .add("operation='" + operation + "'")
                 .add("tenantCode='" + tenantCode + "'")

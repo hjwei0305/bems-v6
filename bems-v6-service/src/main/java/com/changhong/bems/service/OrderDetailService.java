@@ -1,5 +1,6 @@
 package com.changhong.bems.service;
 
+import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.OrderDetailDao;
 import com.changhong.bems.dto.OrderCategory;
 import com.changhong.bems.dto.OrderStatistics;
@@ -55,8 +56,6 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
     private DimensionAttributeService dimensionAttributeService;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
-
-    public static final String HANDLE_CACHE_KEY_PREFIX = "bems-v6:order:handle:";
 
     /**
      * 分组大小
@@ -239,7 +238,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
      * @param isCover 出现重复行项时,是否覆盖原有记录
      */
     @Async
-    @SuppressWarnings({"ResultOfMethodCallIgnored", "UnnecessaryLocalVariable"})
+    @SuppressWarnings({"UnnecessaryLocalVariable"})
     public void addOrderItems(Order order, List<OrderDetail> details, boolean isCover) {
         if (Objects.isNull(order)) {
             //添加单据行项时,订单头不能为空.
@@ -255,7 +254,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         }
 
         OrderStatistics statistics = new OrderStatistics(details.size(), LocalDateTime.now());
-        BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+        BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
         // 设置默认过期时间:1天
         operations.set(statistics, 1, TimeUnit.DAYS);
 
@@ -376,7 +375,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         } finally {
             executorService.shutdown();
             // 清除缓存
-            redisTemplate.delete(HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+            redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
         }
     }
 

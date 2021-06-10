@@ -1,6 +1,7 @@
 package com.changhong.bems.service.mq;
 
 import com.changhong.bems.commons.Constants;
+import com.changhong.bems.dto.OrderStatistics;
 import com.changhong.bems.service.OrderService;
 import com.changhong.sei.core.context.SessionUser;
 import com.changhong.sei.core.context.mock.LocalMockUser;
@@ -11,6 +12,9 @@ import com.changhong.sei.util.thread.ThreadLocalHolder;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.BoundValueOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -27,6 +31,8 @@ public class BudgetOrderConsumer {
     private static final Logger LOG = LoggerFactory.getLogger(BudgetOrderConsumer.class);
 
     private final OrderService orderService;
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     public BudgetOrderConsumer(OrderService orderService) {
         this.orderService = orderService;
@@ -50,6 +56,7 @@ public class BudgetOrderConsumer {
         EffectiveOrderMessage orderMessage = JsonUtils.fromJson(message, EffectiveOrderMessage.class);
 
         // 执行业务处理逻辑
+        String orderId = orderMessage.getOrderId();
         String orderDetailId = orderMessage.getOrderDetailId();
 
         // 操作类型
@@ -84,13 +91,23 @@ public class BudgetOrderConsumer {
                 if (LOG.isInfoEnabled()) {
                     LOG.info("预算申请单生效结果: {}", resultData);
                 }
+            } else {
+                resultData = ResultData.fail("不支持的消息处理类型");
+            }
+            OrderStatistics statistics;
+            BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+            statistics = (OrderStatistics) operations.get();
+            if (Objects.nonNull(statistics)) {
+                if (resultData.successful()) {
+                    statistics.addSuccesses();
+                } else {
+                    statistics.addFailures();
+                }
+                // 设置默认过期时间:1天
+                operations.set(statistics);
             }
         } catch (Exception e) {
             LOG.error("预算申请单生效处理异常.", e);
-//            if (Constants.ORDER_OPERATION_EFFECTIVE.equals(operation)) {
-//                // 异常时,回滚状态为:草稿
-//                orderService.updateStatus(orderId, OrderStatus.DRAFT);
-//            }
         } finally {
             // 释放资源
             ThreadLocalHolder.end();

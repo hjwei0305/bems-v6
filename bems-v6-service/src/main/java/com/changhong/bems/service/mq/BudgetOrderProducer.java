@@ -71,6 +71,7 @@ public class BudgetOrderProducer {
         for (OrderDetail detail : details) {
             // 发送队列消息
             message = new EffectiveOrderMessage();
+            message.setOrderId(orderId);
             message.setOrderDetailId(detail.getId());
             message.setOperation(operation);
             message.setUserId(sessionUser.getUserId());
