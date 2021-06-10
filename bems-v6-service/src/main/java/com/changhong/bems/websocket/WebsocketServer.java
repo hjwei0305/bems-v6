@@ -1,7 +1,7 @@
 package com.changhong.bems.websocket;
 
+import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.OrderStatistics;
-import com.changhong.bems.service.OrderDetailService;
 import com.changhong.bems.service.OrderService;
 import com.changhong.bems.websocket.config.MyEndpointConfigure;
 import com.changhong.sei.core.dto.ResultData;
@@ -51,7 +51,7 @@ public class WebsocketServer {
         SESSION_MAP.put(session.getId(), session);
 
         try {
-            BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(OrderDetailService.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+            BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
             OrderStatistics statistics = (OrderStatistics) operations.get();
             while (Objects.nonNull(statistics)) {
                 if (LOG.isDebugEnabled()) {
