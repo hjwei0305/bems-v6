@@ -19,12 +19,10 @@ import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.log.LogUtil;
-import com.changhong.sei.core.mq.MqProducer;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.util.JsonUtils;
 import com.changhong.sei.util.ArithUtils;
 import com.changhong.sei.util.EnumUtils;
-import com.changhong.sei.utils.AsyncRunUtil;
 import io.swagger.annotations.Api;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -65,10 +63,6 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     private DimensionComponentService dimensionComponentService;
     @Autowired
     private ModelMapper modelMapper;
-    @Autowired
-    private AsyncRunUtil asyncRunUtil;
-    @Autowired
-    private MqProducer producer;
 
     @Override
     public BaseEntityService<Order> getService() {
@@ -535,7 +529,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             case INIT:
                 // 流程终止或退出
                 // 检查订单状态
-                if (OrderStatus.APPROVALING == order.getStatus()) {
+                if (OrderStatus.APPROVING == order.getStatus()) {
                     service.cancelConfirm(orderId);
                 } else {
                     // 订单状态为[{0}],不允许操作!
@@ -546,7 +540,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                 // 流程启动或流程中
                 if (OrderStatus.PREFAB == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
                     // 状态更新为流程中
-                    service.updateStatus(orderId, OrderStatus.APPROVALING);
+                    service.updateStatus(orderId, OrderStatus.APPROVING);
                 } else {
                     // 订单状态为[{0}],不允许操作!
                     return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
@@ -555,7 +549,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             case COMPLETED:
                 // 流程正常完成
                 // 检查订单状态
-                if (OrderStatus.APPROVALING == order.getStatus()) {
+                if (OrderStatus.APPROVING == order.getStatus()) {
                     service.effective(orderId);
                 } else {
                     // 订单状态为[{0}],不允许操作!

@@ -471,16 +471,6 @@ public class OrderService extends BaseEntityService<Order> {
     }
 
     /**
-     * 更新订单总金额
-     *
-     * @param id 订单id
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public void updateAmount(String id) {
-        dao.updateAmount(id);
-    }
-
-    /**
      * 更新订单是否正在异步处理行项数据
      * 如果是,在编辑时进入socket状态显示页面
      *
@@ -602,7 +592,7 @@ public class OrderService extends BaseEntityService<Order> {
 
         OrderStatus status = order.getStatus();
         // 检查订单状态: 已确认的,审批中的,生效中的可进行生效操作
-        if (OrderStatus.CONFIRMED == status || OrderStatus.APPROVALING == status || OrderStatus.EFFECTING == status) {
+        if (OrderStatus.CONFIRMED == status || OrderStatus.APPROVING == status || OrderStatus.EFFECTING == status) {
             List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
             if (CollectionUtils.isEmpty(details)) {
                 // 订单[{0}]生效失败: 无订单行项
@@ -1121,7 +1111,7 @@ public class OrderService extends BaseEntityService<Order> {
         ResultData<Void> resultData;
         OrderStatus status = order.getStatus();
         // 已确认的,审批中的,生效中的可进行生效操作
-        if (OrderStatus.CONFIRMED == status || OrderStatus.APPROVALING == status || OrderStatus.EFFECTING == status) {
+        if (OrderStatus.CONFIRMED == status || OrderStatus.APPROVING == status || OrderStatus.EFFECTING == status) {
             String remark;
             String poolCode;
             ExecutionRecord record;
