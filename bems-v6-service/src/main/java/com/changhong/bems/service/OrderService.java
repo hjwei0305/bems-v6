@@ -602,7 +602,7 @@ public class OrderService extends BaseEntityService<Order> {
 
         OrderStatus status = order.getStatus();
         // 检查订单状态: 已确认的,审批中的,生效中的可进行生效操作
-        if (OrderStatus.CONFIRMED == status || OrderStatus.APPROVAL == status || OrderStatus.EFFECTING == status) {
+        if (OrderStatus.CONFIRMED == status || OrderStatus.APPROVALING == status || OrderStatus.EFFECTING == status) {
             List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
             if (CollectionUtils.isEmpty(details)) {
                 // 订单[{0}]生效失败: 无订单行项
@@ -1121,7 +1121,7 @@ public class OrderService extends BaseEntityService<Order> {
         ResultData<Void> resultData;
         OrderStatus status = order.getStatus();
         // 已确认的,审批中的,生效中的可进行生效操作
-        if (OrderStatus.CONFIRMED == status || OrderStatus.APPROVAL == status || OrderStatus.EFFECTING == status) {
+        if (OrderStatus.CONFIRMED == status || OrderStatus.APPROVALING == status || OrderStatus.EFFECTING == status) {
             String remark;
             String poolCode;
             ExecutionRecord record;

@@ -38,7 +38,7 @@ public enum OrderStatus {
      * 审批中
      */
     @Remark("审批中")
-    APPROVAL,
+    APPROVING,
     /**
      * 生效中
      */

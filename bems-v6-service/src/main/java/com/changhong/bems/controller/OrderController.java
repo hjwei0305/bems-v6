@@ -535,7 +535,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             case INIT:
                 // 流程终止或退出
                 // 检查订单状态
-                if (OrderStatus.APPROVAL == order.getStatus()) {
+                if (OrderStatus.APPROVALING == order.getStatus()) {
                     service.cancelConfirm(orderId);
                 } else {
                     // 订单状态为[{0}],不允许操作!
@@ -546,7 +546,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                 // 流程启动或流程中
                 if (OrderStatus.PREFAB == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
                     // 状态更新为流程中
-                    service.updateStatus(orderId, OrderStatus.APPROVAL);
+                    service.updateStatus(orderId, OrderStatus.APPROVALING);
                 } else {
                     // 订单状态为[{0}],不允许操作!
                     return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
@@ -555,7 +555,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             case COMPLETED:
                 // 流程正常完成
                 // 检查订单状态
-                if (OrderStatus.APPROVAL == order.getStatus()) {
+                if (OrderStatus.APPROVALING == order.getStatus()) {
                     service.effective(orderId);
                 } else {
                     // 订单状态为[{0}],不允许操作!
