@@ -2,7 +2,6 @@ package com.changhong.bems.controller;
 
 import com.alibaba.excel.EasyExcel;
 import com.changhong.bems.api.OrderApi;
-import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
@@ -11,9 +10,7 @@ import com.changhong.bems.service.CategoryService;
 import com.changhong.bems.service.DimensionComponentService;
 import com.changhong.bems.service.OrderDetailService;
 import com.changhong.bems.service.OrderService;
-import com.changhong.bems.service.mq.EffectiveOrderMessage;
 import com.changhong.sei.core.context.ContextUtil;
-import com.changhong.sei.core.context.SessionUser;
 import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.flow.FlowInvokeParams;
@@ -21,7 +18,6 @@ import com.changhong.sei.core.dto.flow.FlowStatus;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
-import com.changhong.sei.core.limiter.support.lock.SeiLockHelper;
 import com.changhong.sei.core.log.LogUtil;
 import com.changhong.sei.core.mq.MqProducer;
 import com.changhong.sei.core.service.BaseEntityService;
@@ -265,37 +261,20 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     @Override
     public ResultData<OrderDto> saveOrder(OrderDto request) {
         Order order = convertToEntity(request);
-        switch (order.getStatus()) {
-            case PREFAB:
-            case DRAFT:
-                // 更新状态为草稿状态
-                order.setStatus(OrderStatus.DRAFT);
-                break;
-            case PROCESSING:
-            case COMPLETED:
-                // 订单状态为[{0}],不允许操作
-                return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
-            default:
-                // 不支持的订单状态
-                return ResultData.fail(ContextUtil.getMessage("order_00005", order.getStatus()));
-        }
-        ResultData<Order> resultData = service.saveOrder(order, null);
-        if (resultData.successful()) {
-            return ResultData.success(dtoModelMapper.map(resultData.getData(), OrderDto.class));
+        OrderStatus status = order.getStatus();
+        if (OrderStatus.PREFAB == status || OrderStatus.DRAFT == status) {
+            // 更新状态为草稿状态
+            order.setStatus(OrderStatus.DRAFT);
+            ResultData<Order> resultData = service.saveOrder(order, null);
+            if (resultData.successful()) {
+                return ResultData.success(dtoModelMapper.map(resultData.getData(), OrderDto.class));
+            } else {
+                return ResultData.fail(resultData.getMessage());
+            }
         } else {
-            return ResultData.fail(resultData.getMessage());
+            // 订单状态为[{0}],不允许操作
+            return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
         }
-    }
-
-    /**
-     * 生效预算申请单
-     *
-     * @param orderId 申请单id
-     * @return 返回处理结果
-     */
-    @Override
-    public ResultData<Void> effectiveOrder(String orderId) {
-        return service.effective(orderId);
     }
 
     /**
@@ -447,6 +426,41 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         return dimensionComponentService.getDimensionValues(subjectId, dimCode);
     }
 
+    /**
+     * 确认预算申请单
+     * 预算余额检查并预占用
+     *
+     * @param orderId 申请单id
+     * @return 返回处理结果
+     */
+    @Override
+    public ResultData<Void> confirmOrder(String orderId) {
+        return service.confirm(orderId);
+    }
+
+    /**
+     * 撤销已确认的预算申请单
+     * 释放预占用
+     *
+     * @param orderId 申请单id
+     * @return 返回处理结果
+     */
+    @Override
+    public ResultData<Void> cancelConfirmOrder(String orderId) {
+        return service.cancelConfirm(orderId);
+    }
+
+    /**
+     * 已确认的预算申请单直接生效
+     *
+     * @param orderId 申请单id
+     * @return 返回处理结果
+     */
+    @Override
+    public ResultData<Void> effectiveOrder(String orderId) {
+        return service.effective(orderId);
+    }
+
     ///////////////////////流程集成 start//////////////////////////////
 
     /**
@@ -521,13 +535,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             case INIT:
                 // 流程终止或退出
                 // 检查订单状态
-                if (OrderStatus.PROCESSING == order.getStatus()) {
-                    if (!SeiLockHelper.checkLocked("bems-v6:cancel:" + orderId)) {
-                        asyncRunUtil.runAsync(() -> service.cancelProcess(order));
-                    } else {
-                        // 订单[{0}]正在提交流程处理过程中,请稍后.
-                        return ResultData.fail(ContextUtil.getMessage("order_00008", order.getCode()));
-                    }
+                if (OrderStatus.APPROVAL == order.getStatus()) {
+                    service.cancelConfirm(orderId);
                 } else {
                     // 订单状态为[{0}],不允许操作!
                     return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
@@ -537,7 +546,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                 // 流程启动或流程中
                 if (OrderStatus.PREFAB == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
                     // 状态更新为流程中
-                    service.updateStatus(orderId, OrderStatus.PROCESSING);
+                    service.updateStatus(orderId, OrderStatus.APPROVAL);
                 } else {
                     // 订单状态为[{0}],不允许操作!
                     return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
@@ -546,21 +555,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             case COMPLETED:
                 // 流程正常完成
                 // 检查订单状态
-                if (OrderStatus.PROCESSING == order.getStatus()) {
-                    // 以线性队列方式,避免预算池并发问题
-                    // 发送队列消息
-                    EffectiveOrderMessage message = new EffectiveOrderMessage();
-                    message.setOrderId(orderId);
-                    message.setOperation(Constants.ORDER_OPERATION_COMPLETE);
-                    SessionUser sessionUser = ContextUtil.getSessionUser();
-                    message.setUserId(sessionUser.getUserId());
-                    message.setAccount(sessionUser.getAccount());
-                    message.setUserName(sessionUser.getUserName());
-                    message.setTenantCode(sessionUser.getTenantCode());
-                    producer.send(JsonUtils.toJson(message));
-                    if (LOG.isInfoEnabled()) {
-                        LOG.info("预算申请单[{}]-流程审批完成消息发送队列成功.", message);
-                    }
+                if (OrderStatus.APPROVAL == order.getStatus()) {
+                    service.effective(orderId);
                 } else {
                     // 订单状态为[{0}],不允许操作!
                     return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
@@ -573,46 +569,26 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     }
 
     /**
-     * 预算申请单提交流程占用预算事件
+     * 预算申请单提交审批,流程启动检查事件
      *
      * @param flowInvokeParams 服务、事件输入参数VO
      * @return 操作结果
      */
     @Override
-    public ResultData<Boolean> submitProcessEvent(FlowInvokeParams flowInvokeParams) {
+    public ResultData<Boolean> flowBeforeEvent(FlowInvokeParams flowInvokeParams) {
         // 业务id
         String orderId = flowInvokeParams.getId();
-        // 流程接收任务回调id
-        final String taskActDefId = flowInvokeParams.getTaskActDefId();
         if (LOG.isDebugEnabled()) {
-            LOG.debug("流程状态变化接口. 单据id: {}, 回调id: {}", orderId, taskActDefId);
+            LOG.debug("流程状态变化接口. 单据id: {}", orderId);
         }
         final Order order = service.findOne(orderId);
         if (Objects.isNull(order)) {
             // 订单[{0}]不存在!
             return ResultData.fail(ContextUtil.getMessage("order_00001"));
         }
-        List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
-        if (CollectionUtils.isEmpty(details)) {
-            // 订单行项不存在!
-            return ResultData.fail(ContextUtil.getMessage("order_detail_00009"));
-        }
-
         // 检查订单状态
-        if (OrderStatus.PROCESSING == order.getStatus()) {
-            if (!SeiLockHelper.checkLocked("bems-v6:submit:" + orderId)) {
-                // 检查是否存在错误行项
-                ResultData<Void> resultData = service.checkDetailHasErr(orderId);
-                if (resultData.successful()) {
-                    asyncRunUtil.runAsync(() -> service.submitProcess(order, details, taskActDefId));
-                    return ResultData.success(Boolean.TRUE);
-                } else {
-                    return ResultData.fail(resultData.getMessage());
-                }
-            } else {
-                // 订单[{0}]正在提交流程处理过程中,请稍后.
-                return ResultData.fail(ContextUtil.getMessage("order_00008", order.getCode()));
-            }
+        if (OrderStatus.CONFIRMED == order.getStatus()) {
+            return ResultData.success(Boolean.TRUE);
         } else {
             // 订单状态为[{0}],不允许操作!
             return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));

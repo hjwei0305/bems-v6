@@ -29,7 +29,7 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
     /**
      * 预算申请单id
      */
-    @Column(name = "order_id")
+    @Column(name = "order_id", updatable = false)
     private String orderId;
     /**
      * 金额
@@ -57,6 +57,20 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
     @Column(name = "origin_pool_amount")
     private Double originPoolAmount = 0d;
     /**
+     * 是否正在异步处理行项数据
+     * 如果是,在编辑时进入socket状态显示页面
+     */
+    @Column(name = "processing")
+    private Boolean processing = Boolean.FALSE;
+    /**
+     * 状态:
+     * -1: 初始
+     * 0:已确认(预占用)
+     * 1:已生效
+     */
+    @Column(name = "state")
+    private Short state = -1;
+    /**
      * 是否错误
      */
     @Column(name = "has_err")
@@ -66,12 +80,6 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
      */
     @Column(name = "err_msg")
     private String errMsg;
-    /**
-     * 是否正在异步处理行项数据
-     * 如果是,在编辑时进入socket状态显示页面
-     */
-    @Column(name = "processing")
-    private Boolean processing = Boolean.FALSE;
     /**
      * 租户代码
      */
@@ -149,6 +157,14 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
 
     public void setProcessing(Boolean processing) {
         this.processing = processing;
+    }
+
+    public Short getState() {
+        return state;
+    }
+
+    public void setState(Short state) {
+        this.state = state;
     }
 
     @Override

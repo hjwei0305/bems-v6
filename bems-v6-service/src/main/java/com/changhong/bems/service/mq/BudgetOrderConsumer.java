@@ -1,9 +1,6 @@
 package com.changhong.bems.service.mq;
 
 import com.changhong.bems.commons.Constants;
-import com.changhong.bems.dto.OrderStatus;
-import com.changhong.bems.entity.Order;
-import com.changhong.bems.entity.OrderDetail;
 import com.changhong.bems.service.OrderService;
 import com.changhong.sei.core.context.SessionUser;
 import com.changhong.sei.core.context.mock.LocalMockUser;
@@ -26,12 +23,12 @@ import java.util.Objects;
  * @version 1.0.00  2021-05-15 17:34
  */
 @Component
-public class EffectiveOrderConsumer {
-    private static final Logger LOG = LoggerFactory.getLogger(EffectiveOrderConsumer.class);
+public class BudgetOrderConsumer {
+    private static final Logger LOG = LoggerFactory.getLogger(BudgetOrderConsumer.class);
 
     private final OrderService orderService;
 
-    public EffectiveOrderConsumer(OrderService orderService) {
+    public BudgetOrderConsumer(OrderService orderService) {
         this.orderService = orderService;
     }
 
@@ -40,7 +37,7 @@ public class EffectiveOrderConsumer {
      *
      * @param record 消息纪录
      */
-    @KafkaListener(topics = "${sei.mq.topic}")
+    @KafkaListener(topics = "${sei.mq.bemsv6.topic}")
     public void processMessage(ConsumerRecord<String, String> record) {
         if (Objects.isNull(record)) {
             return;
@@ -53,7 +50,6 @@ public class EffectiveOrderConsumer {
         EffectiveOrderMessage orderMessage = JsonUtils.fromJson(message, EffectiveOrderMessage.class);
 
         // 执行业务处理逻辑
-        String orderId = orderMessage.getOrderId();
         String orderDetailId = orderMessage.getOrderDetailId();
 
         // 操作类型
@@ -70,23 +66,31 @@ public class EffectiveOrderConsumer {
             sessionUser.setUserName(orderMessage.getUserName());
             mockUser.mock(sessionUser);
 
-            if (Constants.ORDER_OPERATION_EFFECTIVE.equals(operation)) {
+            if (Constants.ORDER_OPERATION_CONFIRM.equals(operation)) {
+                // 订单确认
+                resultData = orderService.confirmUseBudget(orderDetailId);
+                if (LOG.isInfoEnabled()) {
+                    LOG.info("预算申请单生效结果: {}", resultData);
+                }
+            } else if (Constants.ORDER_OPERATION_CANCEL.equals(operation)) {
+                // 订单取消确认
+                resultData = orderService.cancelConfirmUseBudget(orderDetailId);
+                if (LOG.isInfoEnabled()) {
+                    LOG.info("预算申请单流程完成处理结果: {}", resultData);
+                }
+            } else if (Constants.ORDER_OPERATION_EFFECTIVE.equals(operation)) {
+                // 订单生效
                 resultData = orderService.effectiveUseBudget(orderDetailId);
                 if (LOG.isInfoEnabled()) {
                     LOG.info("预算申请单生效结果: {}", resultData);
                 }
-            } else if (Constants.ORDER_OPERATION_COMPLETE.equals(operation)) {
-                resultData = orderService.completeProcess(orderId);
-                if (LOG.isInfoEnabled()) {
-                    LOG.info("预算申请单流程完成处理结果: {}", resultData);
-                }
             }
         } catch (Exception e) {
             LOG.error("预算申请单生效处理异常.", e);
-            if (Constants.ORDER_OPERATION_EFFECTIVE.equals(operation)) {
-                // 异常时,回滚状态为:草稿
-                orderService.updateStatus(orderId, OrderStatus.DRAFT);
-            }
+//            if (Constants.ORDER_OPERATION_EFFECTIVE.equals(operation)) {
+//                // 异常时,回滚状态为:草稿
+//                orderService.updateStatus(orderId, OrderStatus.DRAFT);
+//            }
         } finally {
             // 释放资源
             ThreadLocalHolder.end();

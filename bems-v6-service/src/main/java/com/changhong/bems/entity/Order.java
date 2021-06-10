@@ -136,7 +136,7 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
     /**
      * 租户代码
      */
-    @Column(name = "tenant_code", updatable = false)
+    @Column(name = "tenant_code")
     private String tenantCode;
 
     @Override

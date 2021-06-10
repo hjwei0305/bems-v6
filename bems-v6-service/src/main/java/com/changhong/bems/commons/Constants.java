@@ -93,6 +93,16 @@ public final class Constants {
      */
     public static final String EVENT_SPLIT_COMPLETE = "SPLIT_COMPLETE";
 
-    public static final String ORDER_OPERATION_COMPLETE = "PROCESS_COMPLETE";
-    public static final String ORDER_OPERATION_EFFECTIVE = "EFFECTIVE_ORDER";
+    /**
+     * 消息队列处理类型-订单确认
+     */
+    public static final String ORDER_OPERATION_CONFIRM = "CONFIRM";
+    /**
+     * 消息队列处理类型-订单撤销确认
+     */
+    public static final String ORDER_OPERATION_CANCEL = "CANCEL";
+    /**
+     * 消息队列处理类型-订单生效
+     */
+    public static final String ORDER_OPERATION_EFFECTIVE = "EFFECTIVE";
 }

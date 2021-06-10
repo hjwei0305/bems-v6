@@ -110,7 +110,7 @@ public class ExecutionRecordView extends BaseEntity implements ITenant, Serializ
     /**
      * 租户代码
      */
-    @Column(name = "tenant_code", updatable = false)
+    @Column(name = "tenant_code")
     private String tenantCode;
 
     public String getSubjectId() {

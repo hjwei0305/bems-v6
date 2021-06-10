@@ -150,16 +150,6 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     ResultData<OrderDto> saveOrder(@RequestBody @Valid OrderDto order);
 
     /**
-     * 预算申请单生效
-     *
-     * @param orderId 申请单id
-     * @return 返回处理结果
-     */
-    @PostMapping(path = "effectiveOrder")
-    @ApiOperation(value = "预算申请单生效", notes = "预算申请单直接生效")
-    ResultData<Void> effectiveOrder(@RequestParam("orderId") String orderId);
-
-    /**
      * 检查是否存在注入类型预制单
      *
      * @return 返回检查结果
@@ -235,6 +225,37 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     @ApiOperation(value = "获取预算维度主数据", notes = "获取预算维度主数据(导入用)")
     ResultData<Map<String, Object>> getDimensionValues(@RequestParam("subjectId") String subjectId, @RequestParam("dimCode") String dimCode);
 
+    /**
+     * 确认预算申请单
+     * 预算余额检查并预占用
+     *
+     * @param orderId 申请单id
+     * @return 返回处理结果
+     */
+    @PostMapping(path = "confirmOrder")
+    @ApiOperation(value = "确认预算申请单", notes = "确认预算申请单.预算余额检查并预占用")
+    ResultData<Void> confirmOrder(@RequestParam("orderId") String orderId);
+
+    /**
+     * 撤销已确认的预算申请单
+     * 释放预占用
+     *
+     * @param orderId 申请单id
+     * @return 返回处理结果
+     */
+    @PostMapping(path = "cancelConfirm")
+    @ApiOperation(value = "撤销已确认的预算申请单", notes = "撤销已确认的预算申请单.释放预占用")
+    ResultData<Void> cancelConfirmOrder(@RequestParam("orderId") String orderId);
+
+    /**
+     * 已确认的预算申请单直接生效
+     *
+     * @param orderId 申请单id
+     * @return 返回处理结果
+     */
+    @PostMapping(path = "effectiveOrder")
+    @ApiOperation(value = "预算申请单生效", notes = "已确认的预算申请单直接生效")
+    ResultData<Void> effectiveOrder(@RequestParam("orderId") String orderId);
 
     ///////////////////////流程集成 start//////////////////////////////
 
@@ -288,14 +309,14 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
                                    @RequestParam("status") String status);
 
     /**
-     * 预算申请单提交流程占用预算事件
+     * 预算申请单提交审批,流程启动检查事件
      *
      * @param flowInvokeParams 服务、事件输入参数VO
      * @return 操作结果
      */
-    @PostMapping(path = "submitProcessEvent", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "预算申请单提交流程占用预算事件", notes = "预算申请单提交流程占用预算事件")
-    ResultData<Boolean> submitProcessEvent(@RequestBody FlowInvokeParams flowInvokeParams);
+    @PostMapping(path = "flowBeforeEvent", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "预算申请单提交审批事件", notes = "预算申请单提交审批,流程启动检查事件")
+    ResultData<Boolean> flowBeforeEvent(@RequestBody FlowInvokeParams flowInvokeParams);
 
 
     /**
