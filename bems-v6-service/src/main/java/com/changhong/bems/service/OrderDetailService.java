@@ -4,6 +4,7 @@ import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.OrderDetailDao;
 import com.changhong.bems.dto.OrderCategory;
 import com.changhong.bems.dto.OrderMessage;
+import com.changhong.bems.dto.OrderStatistics;
 import com.changhong.bems.dto.SplitDetailQuickQueryParam;
 import com.changhong.bems.entity.*;
 import com.changhong.sei.core.context.ContextUtil;
@@ -22,7 +23,8 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.BoundValueOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,8 +32,10 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -51,10 +55,8 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
     private PoolService poolService;
     @Autowired
     private DimensionAttributeService dimensionAttributeService;
-    //    @Autowired
-//    private RedisTemplate<String, Object> redisTemplate;
     @Autowired
-    private StringRedisTemplate stringRedisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     /**
      * 分组大小
@@ -253,10 +255,9 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         }
 
         OrderMessage orderMessage = new OrderMessage(orderId, details.size(), LocalDateTime.now());
-        stringRedisTemplate.convertAndSend(Constants.TOPIC, JsonUtils.toJson(orderMessage));
-//        BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+        BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
         // 设置默认过期时间:1天
-//        operations.set(statistics, 1, TimeUnit.DAYS);
+        operations.set(orderMessage, 10, TimeUnit.HOURS);
 
         // 通过预算类型获取预算维度组合
         ResultData<String> resultData = dimensionAttributeService.getAttribute(order.getCategoryId());
@@ -315,9 +316,8 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                         // 错误数加1
                         orderMessage.addFailures();
                         // 更新缓存
-                        stringRedisTemplate.convertAndSend(Constants.TOPIC, JsonUtils.toJson(orderMessage));
-//                        OrderStatistics finalStatistics = orderMessage;
-//                        CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
+                        OrderMessage finalStatistics = orderMessage;
+                        CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
                         continue;
                     }
 
@@ -331,9 +331,8 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                         // 错误数加1
                         orderMessage.addFailures();
                         // 更新缓存
-                        stringRedisTemplate.convertAndSend(Constants.TOPIC, JsonUtils.toJson(orderMessage));
-//                        OrderStatistics finalStatistics = orderMessage;
-//                        CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
+                        OrderMessage finalStatistics = orderMessage;
+                        CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
                         continue;
                     } else {
                         // 记录hash值
@@ -370,9 +369,8 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     // 创建时间
                     detail.setCreatedDate(LocalDateTime.now());
                     this.save(detail);
-                    stringRedisTemplate.convertAndSend(Constants.TOPIC, JsonUtils.toJson(orderMessage));
-//                    OrderStatistics finalStatistics = orderMessage;
-//                    CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
+                    OrderMessage finalStatistics = orderMessage;
+                    CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
                 }
             }
         } catch (ServiceException e) {
@@ -380,7 +378,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         } finally {
             executorService.shutdown();
             // 清除缓存
-//            redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+            redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
         }
     }
 

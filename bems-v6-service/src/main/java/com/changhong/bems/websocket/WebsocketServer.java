@@ -1,15 +1,17 @@
 package com.changhong.bems.websocket;
 
+import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.OrderStatistics;
 import com.changhong.bems.service.OrderService;
 import com.changhong.bems.websocket.config.MyEndpointConfigure;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.util.JsonUtils;
-import com.google.common.cache.Cache;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.BoundValueOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
@@ -17,6 +19,7 @@ import javax.websocket.server.ServerEndpoint;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 实现功能：
@@ -32,10 +35,8 @@ public class WebsocketServer {
      * 连接集合
      */
     private static final Map<String, Session> SESSION_MAP = new ConcurrentHashMap<>();
-    //    @Autowired
-//    private RedisTemplate<String, Object> redisTemplate;
     @Autowired
-    private Cache<String, String> memoryCache;
+    private RedisTemplate<String, Object> redisTemplate;
     @Autowired
     private OrderService orderService;
 
@@ -50,27 +51,8 @@ public class WebsocketServer {
         SESSION_MAP.put(session.getId(), session);
 
         try {
-//            BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
-//            OrderStatistics statistics = (OrderStatistics) operations.get();
-//            while (Objects.nonNull(statistics)) {
-//                if (LOG.isDebugEnabled()) {
-//                    LOG.debug("预算申请单id[{}]当前处理状态: {}", orderId, statistics);
-//                }
-//                if (statistics.getFinish()) {
-//                    break;
-//                }
-//                // 输出最新日志
-//                send(session, ResultData.success(statistics));
-//                TimeUnit.SECONDS.sleep(2);
-//                statistics = (OrderStatistics) operations.get();
-//            }
-//            statistics = new OrderStatistics();
-//            send(session, ResultData.success(statistics));
-//            // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
-//            orderService.setProcessStatus(orderId, Boolean.FALSE);
-
-            String message = memoryCache.asMap().get(orderId);
-            OrderStatistics statistics = JsonUtils.fromJson(message, OrderStatistics.class);
+            BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+            OrderStatistics statistics = (OrderStatistics) operations.get();
             while (Objects.nonNull(statistics)) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("预算申请单id[{}]当前处理状态: {}", orderId, statistics);
@@ -80,8 +62,8 @@ public class WebsocketServer {
                 }
                 // 输出最新日志
                 send(session, ResultData.success(statistics));
-                message = memoryCache.asMap().get(orderId);
-                statistics = JsonUtils.fromJson(message, OrderStatistics.class);
+                TimeUnit.SECONDS.sleep(2);
+                statistics = (OrderStatistics) operations.get();
             }
             statistics = new OrderStatistics();
             send(session, ResultData.success(statistics));

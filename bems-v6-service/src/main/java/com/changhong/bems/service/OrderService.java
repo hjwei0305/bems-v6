@@ -27,13 +27,15 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.BoundValueOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 预算申请单(Order)业务逻辑实现类
@@ -60,10 +62,8 @@ public class OrderService extends BaseEntityService<Order> {
     private PoolService poolService;
     @Autowired
     private BudgetOrderProducer producer;
-    //    @Autowired
-//    private RedisTemplate<String, Object> redisTemplate;
     @Autowired
-    private StringRedisTemplate stringRedisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Override
     protected BaseEntityDao<Order> getDao() {
@@ -535,10 +535,9 @@ public class OrderService extends BaseEntityService<Order> {
                 orderDetailService.setProcessing4All(orderId);
 
                 OrderMessage orderMessage = new OrderMessage(orderId, details.size(), LocalDateTime.now());
-                stringRedisTemplate.convertAndSend(Constants.TOPIC, JsonUtils.toJson(orderMessage));
-//                BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+                BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
                 // 设置默认过期时间:1天
-//                operations.set(statistics, 1, TimeUnit.DAYS);
+                operations.set(orderMessage, 10, TimeUnit.HOURS);
 
                 // 发送kafka消息
                 producer.sendConfirmMessage(orderId, details, ContextUtil.getSessionUser());
@@ -585,10 +584,9 @@ public class OrderService extends BaseEntityService<Order> {
             orderDetailService.setProcessing4All(orderId);
 
             OrderMessage orderMessage = new OrderMessage(orderId, details.size(), LocalDateTime.now());
-            stringRedisTemplate.convertAndSend(Constants.TOPIC, JsonUtils.toJson(orderMessage));
-//            BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
-//            // 设置默认过期时间:1天
-//            operations.set(statistics, 1, TimeUnit.DAYS);
+            BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+            // 设置默认过期时间:1天
+            operations.set(orderMessage, 10, TimeUnit.HOURS);
 
             // 发送kafka消息
             producer.sendCancelMessage(orderId, details, ContextUtil.getSessionUser());
@@ -648,10 +646,9 @@ public class OrderService extends BaseEntityService<Order> {
                 // 按订单id设置所有行项的处理状态为处理中
                 orderDetailService.setProcessing4All(orderId);
                 OrderMessage orderMessage = new OrderMessage(orderId, details.size(), LocalDateTime.now());
-                stringRedisTemplate.convertAndSend(Constants.TOPIC, JsonUtils.toJson(orderMessage));
-//                BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+                BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
                 // 设置默认过期时间:1天
-//                operations.set(statistics, 1, TimeUnit.DAYS);
+                operations.set(orderMessage, 10, TimeUnit.HOURS);
 
                 // 发送kafka消息
                 producer.sendEffectiveMessage(orderId, details, ContextUtil.getSessionUser());
@@ -845,7 +842,7 @@ public class OrderService extends BaseEntityService<Order> {
             dao.updateStatus(orderId, OrderStatus.CONFIRMED);
 
             // 清除缓存
-//            redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+            redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
         }
         return resultData;
     }
@@ -977,7 +974,7 @@ public class OrderService extends BaseEntityService<Order> {
             dao.updateStatus(orderId, OrderStatus.DRAFT);
 
             // 清除缓存
-//            redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+            redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
         }
         return resultData;
     }
@@ -1120,7 +1117,7 @@ public class OrderService extends BaseEntityService<Order> {
             dao.updateStatus(orderId, OrderStatus.COMPLETED);
 
             // 清除缓存
-//            redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+            redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
         }
         return resultData;
     }

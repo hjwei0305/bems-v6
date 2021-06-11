@@ -19,6 +19,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 实现功能：
@@ -104,7 +105,7 @@ public class BudgetOrderConsumer {
                     statistics.addFailures();
                 }
                 // 设置默认过期时间:1天
-                operations.set(statistics);
+                operations.set(statistics, 10, TimeUnit.HOURS);
             }
         } catch (Exception e) {
             LOG.error("预算申请单生效处理异常.", e);
