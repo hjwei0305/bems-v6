@@ -1,6 +1,9 @@
 package com.changhong.bems.service.mq;
 
-import com.changhong.sei.core.cache.impl.LocalCacheProviderImpl;
+import com.changhong.bems.dto.OrderMessage;
+import com.changhong.sei.core.util.JsonUtils;
+import com.google.common.cache.Cache;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -18,14 +21,16 @@ public class OrderStateSubscribeListener implements MessageListener {
      */
     public static final String TOPIC = "bems-v6:order:state";
 
+    @Autowired
+    private Cache<String, String> memoryCache;
     private final StringRedisTemplate stringRedisTemplate;
 
     public OrderStateSubscribeListener(StringRedisTemplate stringRedisTemplate) {
         this.stringRedisTemplate = stringRedisTemplate;
     }
 
-    public void send(String message) {
-        stringRedisTemplate.convertAndSend(TOPIC, message);
+    public void send(OrderMessage message) {
+        stringRedisTemplate.convertAndSend(TOPIC, JsonUtils.toJson(message));
     }
 
     /**
@@ -36,13 +41,8 @@ public class OrderStateSubscribeListener implements MessageListener {
      */
     @Override
     public void onMessage(Message message, byte[] pattern) {
-        String body = new String(message.getBody());
-        String channel = new String(message.getChannel());
-        String patternStr = new String(pattern);
-
-        System.out.println(body);
-        System.out.println(channel);
-        // 如果是 ChannelTopic, 则 channel 字段与 pattern 字段值相同
-        System.out.println(patternStr);
+        String messageJson = new String(message.getBody());
+        OrderMessage orderMessage = JsonUtils.fromJson(messageJson, OrderMessage.class);
+        memoryCache.put(orderMessage.getOrderId(), messageJson);
     }
 }

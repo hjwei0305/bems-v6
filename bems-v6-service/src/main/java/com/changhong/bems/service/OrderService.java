@@ -10,6 +10,7 @@ import com.changhong.bems.entity.Pool;
 import com.changhong.bems.entity.vo.TemplateHeadVo;
 import com.changhong.bems.service.client.OrganizationManager;
 import com.changhong.bems.service.mq.BudgetOrderProducer;
+import com.changhong.bems.service.mq.OrderStateSubscribeListener;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
@@ -62,8 +63,10 @@ public class OrderService extends BaseEntityService<Order> {
     private PoolService poolService;
     @Autowired
     private BudgetOrderProducer producer;
+//    @Autowired
+//    private RedisTemplate<String, Object> redisTemplate;
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private OrderStateSubscribeListener subscribeListener;
 
     @Override
     protected BaseEntityDao<Order> getDao() {
@@ -534,10 +537,11 @@ public class OrderService extends BaseEntityService<Order> {
                 // 按订单id设置所有行项的处理状态为处理中
                 orderDetailService.setProcessing4All(orderId);
 
-                OrderStatistics statistics = new OrderStatistics(details.size(), LocalDateTime.now());
-                BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+                OrderMessage orderMessage = new OrderMessage(orderId, details.size(), LocalDateTime.now());
+                subscribeListener.send(orderMessage);
+//                BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
                 // 设置默认过期时间:1天
-                operations.set(statistics, 1, TimeUnit.DAYS);
+//                operations.set(statistics, 1, TimeUnit.DAYS);
 
                 // 发送kafka消息
                 producer.sendConfirmMessage(orderId, details, ContextUtil.getSessionUser());
@@ -583,10 +587,11 @@ public class OrderService extends BaseEntityService<Order> {
             // 按订单id设置所有行项的处理状态为处理中
             orderDetailService.setProcessing4All(orderId);
 
-            OrderStatistics statistics = new OrderStatistics(details.size(), LocalDateTime.now());
-            BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
-            // 设置默认过期时间:1天
-            operations.set(statistics, 1, TimeUnit.DAYS);
+            OrderMessage orderMessage = new OrderMessage(orderId, details.size(), LocalDateTime.now());
+            subscribeListener.send(orderMessage);
+//            BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+//            // 设置默认过期时间:1天
+//            operations.set(statistics, 1, TimeUnit.DAYS);
 
             // 发送kafka消息
             producer.sendCancelMessage(orderId, details, ContextUtil.getSessionUser());
@@ -638,16 +643,18 @@ public class OrderService extends BaseEntityService<Order> {
                 order.setStatus(OrderStatus.EFFECTING);
                 // 更新订单为手动生效标示
                 order.setManuallyEffective(Boolean.TRUE);
+                // 更新订单处理状态
+                order.setProcessing(Boolean.TRUE);
                 dao.save(order);
                 // 更新订单总金额
                 dao.updateAmount(orderId);
                 // 按订单id设置所有行项的处理状态为处理中
                 orderDetailService.setProcessing4All(orderId);
-
-                OrderStatistics statistics = new OrderStatistics(details.size(), LocalDateTime.now());
-                BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+                OrderMessage orderMessage = new OrderMessage(orderId, details.size(), LocalDateTime.now());
+                subscribeListener.send(orderMessage);
+//                BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
                 // 设置默认过期时间:1天
-                operations.set(statistics, 1, TimeUnit.DAYS);
+//                operations.set(statistics, 1, TimeUnit.DAYS);
 
                 // 发送kafka消息
                 producer.sendEffectiveMessage(orderId, details, ContextUtil.getSessionUser());
@@ -676,145 +683,6 @@ public class OrderService extends BaseEntityService<Order> {
             return ResultData.fail(ContextUtil.getMessage("order_detail_00008"));
         }
     }
-
-//    /**
-//     * 直接生效预算处理
-//     * 规则:更新或创建预算池
-//     *
-//     * @param detailId 预算申请单行项id
-//     * @return 返回处理结果
-//     */
-//    @Transactional(rollbackFor = Exception.class)
-//    public ResultData<Void> effectiveUseBudget(String detailId) {
-//        OrderDetail detail = orderDetailService.findOne(detailId);
-//        if (Objects.isNull(detail)) {
-//            // 行项不存在
-//            return ResultData.fail(ContextUtil.getMessage("order_detail_00009"));
-//        }
-//        String orderId = detail.getOrderId();
-//        Order order = dao.findOne(orderId);
-//        if (Objects.isNull(order)) {
-//            // 订单不存在
-//            return ResultData.fail(ContextUtil.getMessage("order_00001"));
-//        }
-//        // 更新行项的处理状态为处理完成
-//        orderDetailService.setProcessed(detailId);
-//        if (OrderStatus.CONFIRMED == order.getStatus()) {
-//            String remark;
-//            String poolCode;
-//            ExecutionRecord record;
-//            ResultData<Void> resultData = ResultData.success();
-//            OperationType operation = OperationType.RELEASE;
-//            // 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
-//            switch (order.getOrderCategory()) {
-//                case INJECTION:
-//                    if (detail.getAmount() < 0) {
-//                        resultData = orderDetailService.checkInjectionDetail(order, detail);
-//                        if (resultData.failed()) {
-//                            break;
-//                        }
-//                    }
-//                    poolCode = detail.getPoolCode();
-//                    if (StringUtils.isBlank(poolCode)) {
-//                        // 预算池不存在,需要创建预算池
-//                        ResultData<Pool> result = poolService.createPool(order, detail);
-//                        if (result.failed()) {
-//                            resultData = ResultData.fail(result.getMessage());
-//                            break;
-//                        }
-//                        Pool pool = result.getData();
-//                        poolCode = pool.getCode();
-//                        detail.setPoolCode(poolCode);
-//                        detail.setPoolAmount(pool.getBalance());
-//                    }
-//                    // 记录预算池执行日志
-//                    record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_INJECTION_EFFECTIVE);
-//                    record.setSubjectId(order.getSubjectId());
-//                    record.setAttributeCode(detail.getAttributeCode());
-//                    record.setBizCode(order.getCode());
-//                    record.setBizId(detail.getId());
-//                    remark = order.getRemark();
-//                    record.setBizRemark("直接生效" + (StringUtils.isBlank(remark) ? "" : remark));
-//                    poolService.recordLog(record);
-//                    break;
-//                case ADJUSTMENT:
-//                    resultData = orderDetailService.checkAdjustmentDetail(order, detail);
-//                    if (resultData.failed()) {
-//                        break;
-//                    }
-//                    poolCode = detail.getPoolCode();
-//                    // 记录预算池执行日志
-//                    record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_ADJUSTMENT_EFFECTIVE);
-//                    record.setSubjectId(order.getSubjectId());
-//                    record.setAttributeCode(detail.getAttributeCode());
-//                    record.setBizCode(order.getCode());
-//                    record.setBizId(detail.getId());
-//                    remark = order.getRemark();
-//                    record.setBizRemark("直接生效" + (StringUtils.isBlank(remark) ? "" : remark));
-//                    poolService.recordLog(record);
-//                    break;
-//                case SPLIT:
-//                    // 预算分解
-//                    resultData = orderDetailService.checkSplitDetail(order, detail);
-//                    if (resultData.successful()) {
-//                        // 当前预算池
-//                        poolCode = detail.getPoolCode();
-//                        if (StringUtils.isBlank(poolCode)) {
-//                            // 预算池不存在,需要创建预算池
-//                            ResultData<Pool> result = poolService.createPool(order, detail);
-//                            if (result.failed()) {
-//                                resultData = ResultData.fail(result.getMessage());
-//                                break;
-//                            }
-//                            Pool pool = result.getData();
-//                            poolCode = pool.getCode();
-//                            detail.setPoolCode(poolCode);
-//                            detail.setPoolAmount(pool.getBalance());
-//                        }
-//                        // 记录预算池执行日志
-//                        record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_SPLIT_EFFECTIVE);
-//                        record.setSubjectId(order.getSubjectId());
-//                        record.setAttributeCode(detail.getAttributeCode());
-//                        record.setBizCode(order.getCode());
-//                        record.setBizId(detail.getId());
-//                        remark = order.getRemark();
-//                        record.setBizRemark("直接生效" + (StringUtils.isBlank(remark) ? "" : remark));
-//                        poolService.recordLog(record);
-//                        // 源预算池
-//                        String originPoolCode = detail.getOriginPoolCode();
-//                        // 记录预算池执行日志
-//                        record = new ExecutionRecord(originPoolCode, operation, -detail.getAmount(), Constants.EVENT_SPLIT_EFFECTIVE);
-//                        record.setSubjectId(order.getSubjectId());
-//                        record.setAttributeCode(detail.getAttributeCode());
-//                        record.setBizCode(order.getCode());
-//                        record.setBizId(detail.getId());
-//                        remark = order.getRemark();
-//                        record.setBizRemark("直接生效" + (StringUtils.isBlank(remark) ? "" : remark));
-//                        poolService.recordLog(record);
-//                        break;
-//                    } else {
-//                        break;
-//                    }
-//                default:
-//                    // 不支持的订单类型
-//                    resultData = ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
-//            }
-//            if (resultData.successful()) {
-//                // 更新订单状态为:完成
-//                long processingCount = orderDetailService.getProcessingCount(orderId);
-//                if (processingCount == 0) {
-//                    dao.updateStatus(orderId, OrderStatus.COMPLETED);
-//                }
-//            } else {
-//                // 生效失败,更新订单状态为:部分完成
-//                dao.updateStatus(orderId, OrderStatus.PARTIALLY_COMPLETED);
-//            }
-//            return resultData;
-//        } else {
-//            // 订单状态为[{0}],不允许操作!
-//            return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
-//        }
-//    }
 
     /**
      * 确认预算申请单
@@ -980,7 +848,7 @@ public class OrderService extends BaseEntityService<Order> {
             dao.updateStatus(orderId, OrderStatus.CONFIRMED);
 
             // 清除缓存
-            redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+//            redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
         }
         return resultData;
     }
@@ -1112,7 +980,7 @@ public class OrderService extends BaseEntityService<Order> {
             dao.updateStatus(orderId, OrderStatus.DRAFT);
 
             // 清除缓存
-            redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+//            redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
         }
         return resultData;
     }
@@ -1255,7 +1123,7 @@ public class OrderService extends BaseEntityService<Order> {
             dao.updateStatus(orderId, OrderStatus.COMPLETED);
 
             // 清除缓存
-            redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+//            redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
         }
         return resultData;
     }
