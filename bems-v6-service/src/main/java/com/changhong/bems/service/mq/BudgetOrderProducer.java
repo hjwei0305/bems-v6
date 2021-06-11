@@ -2,7 +2,6 @@ package com.changhong.bems.service.mq;
 
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.entity.OrderDetail;
-import com.changhong.bems.service.OrderDetailService;
 import com.changhong.sei.core.context.SessionUser;
 import com.changhong.sei.core.util.JsonUtils;
 import com.changhong.sei.exception.ServiceException;
@@ -32,8 +31,6 @@ public class BudgetOrderProducer {
 
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
-    @Autowired
-    private OrderDetailService orderDetailService;
 
     @Value("${sei.mq.bemsv6.topic}")
     private String topic;
