@@ -3,7 +3,6 @@ package com.changhong.bems.service;
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.OrderDetailDao;
 import com.changhong.bems.dto.OrderCategory;
-import com.changhong.bems.dto.OrderMessage;
 import com.changhong.bems.dto.OrderStatistics;
 import com.changhong.bems.dto.SplitDetailQuickQueryParam;
 import com.changhong.bems.entity.*;
@@ -254,10 +253,10 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             return;
         }
 
-        OrderMessage orderMessage = new OrderMessage(orderId, details.size(), LocalDateTime.now());
+        OrderStatistics statistics = new OrderStatistics(orderId, details.size(), LocalDateTime.now());
         BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
         // 设置默认过期时间:1天
-        operations.set(orderMessage, 10, TimeUnit.HOURS);
+        operations.set(statistics, 10, TimeUnit.HOURS);
 
         // 通过预算类型获取预算维度组合
         ResultData<String> resultData = dimensionAttributeService.getAttribute(order.getCategoryId());
@@ -314,9 +313,9 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                         // 对导入时数据校验结果持久化处理
                         this.save(detail);
                         // 错误数加1
-                        orderMessage.addFailures();
+                        statistics.addFailures();
                         // 更新缓存
-                        OrderMessage finalStatistics = orderMessage;
+                        OrderStatistics finalStatistics = statistics;
                         CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
                         continue;
                     }
@@ -329,9 +328,9 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                         detail.setErrMsg(ContextUtil.getMessage("order_detail_00006"));
                         this.save(detail);
                         // 错误数加1
-                        orderMessage.addFailures();
+                        statistics.addFailures();
                         // 更新缓存
-                        OrderMessage finalStatistics = orderMessage;
+                        OrderStatistics finalStatistics = statistics;
                         CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
                         continue;
                     } else {
@@ -359,9 +358,9 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                         result = ResultData.fail(ExceptionUtils.getRootCauseMessage(e));
                     }
                     if (result.successful()) {
-                        orderMessage.addSuccesses();
+                        statistics.addSuccesses();
                     } else {
-                        orderMessage.addFailures();
+                        statistics.addFailures();
                         // 有错误的
                         detail.setHasErr(Boolean.TRUE);
                         detail.setErrMsg(result.getMessage());
@@ -369,7 +368,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     // 创建时间
                     detail.setCreatedDate(LocalDateTime.now());
                     this.save(detail);
-                    OrderMessage finalStatistics = orderMessage;
+                    OrderStatistics finalStatistics = statistics;
                     CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
                 }
             }

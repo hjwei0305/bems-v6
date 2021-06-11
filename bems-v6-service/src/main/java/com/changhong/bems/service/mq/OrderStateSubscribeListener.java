@@ -1,6 +1,6 @@
 package com.changhong.bems.service.mq;
 
-import com.changhong.bems.dto.OrderMessage;
+import com.changhong.bems.dto.OrderStatistics;
 import com.changhong.sei.core.util.JsonUtils;
 import com.google.common.cache.Cache;
 import org.springframework.data.redis.connection.Message;
@@ -30,7 +30,7 @@ public class OrderStateSubscribeListener implements MessageListener {
     @Override
     public void onMessage(Message message, byte[] pattern) {
         String messageJson = new String(message.getBody());
-        OrderMessage orderMessage = JsonUtils.fromJson(messageJson, OrderMessage.class);
-        memoryCache.put(orderMessage.getOrderId(), messageJson);
+        OrderStatistics statistics = JsonUtils.fromJson(messageJson, OrderStatistics.class);
+        memoryCache.put(statistics.getOrderId(), messageJson);
     }
 }

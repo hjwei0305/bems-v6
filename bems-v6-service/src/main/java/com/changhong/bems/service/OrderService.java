@@ -534,10 +534,10 @@ public class OrderService extends BaseEntityService<Order> {
                 // 按订单id设置所有行项的处理状态为处理中
                 orderDetailService.setProcessing4All(orderId);
 
-                OrderMessage orderMessage = new OrderMessage(orderId, details.size(), LocalDateTime.now());
+                OrderStatistics statistics = new OrderStatistics(orderId, details.size(), LocalDateTime.now());
                 BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
                 // 设置默认过期时间:1天
-                operations.set(orderMessage, 10, TimeUnit.HOURS);
+                operations.set(statistics, 10, TimeUnit.HOURS);
 
                 // 发送kafka消息
                 producer.sendConfirmMessage(orderId, details, ContextUtil.getSessionUser());
@@ -583,10 +583,10 @@ public class OrderService extends BaseEntityService<Order> {
             // 按订单id设置所有行项的处理状态为处理中
             orderDetailService.setProcessing4All(orderId);
 
-            OrderMessage orderMessage = new OrderMessage(orderId, details.size(), LocalDateTime.now());
+            OrderStatistics statistics = new OrderStatistics(orderId, details.size(), LocalDateTime.now());
             BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
             // 设置默认过期时间:1天
-            operations.set(orderMessage, 10, TimeUnit.HOURS);
+            operations.set(statistics, 10, TimeUnit.HOURS);
 
             // 发送kafka消息
             producer.sendCancelMessage(orderId, details, ContextUtil.getSessionUser());
@@ -645,10 +645,10 @@ public class OrderService extends BaseEntityService<Order> {
                 dao.updateAmount(orderId);
                 // 按订单id设置所有行项的处理状态为处理中
                 orderDetailService.setProcessing4All(orderId);
-                OrderMessage orderMessage = new OrderMessage(orderId, details.size(), LocalDateTime.now());
+                OrderStatistics statistics = new OrderStatistics(orderId, details.size(), LocalDateTime.now());
                 BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
                 // 设置默认过期时间:1天
-                operations.set(orderMessage, 10, TimeUnit.HOURS);
+                operations.set(statistics, 10, TimeUnit.HOURS);
 
                 // 发送kafka消息
                 producer.sendEffectiveMessage(orderId, details, ContextUtil.getSessionUser());
