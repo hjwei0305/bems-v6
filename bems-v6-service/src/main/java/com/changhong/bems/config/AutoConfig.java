@@ -63,9 +63,9 @@ public class AutoConfig {
     public Cache<String, String> memoryCache() {
         return CacheBuilder.newBuilder()
                 // 设置缓存最大容量为100，超过100之后就会按照LRU最近最少使用算法来移除缓存项
-                .maximumSize(512)
-                // 设置写缓存后8秒钟过期  最后一次写入后的一段时间移出
-                .expireAfterWrite(60, TimeUnit.SECONDS)
+                .maximumSize(1024)
+                // 设置写缓存后3秒钟过期  最后一次写入后的一段时间移出
+                .expireAfterWrite(3, TimeUnit.SECONDS)
 
                 // 设置并发级别为8，并发级别是指可以同时写缓存的线程数
                 .concurrencyLevel(16)

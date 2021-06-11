@@ -3,10 +3,8 @@ package com.changhong.bems.service.mq;
 import com.changhong.bems.dto.OrderMessage;
 import com.changhong.sei.core.util.JsonUtils;
 import com.google.common.cache.Cache;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
  * 实现功能：
