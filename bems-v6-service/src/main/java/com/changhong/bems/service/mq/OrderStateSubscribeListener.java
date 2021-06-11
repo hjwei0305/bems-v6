@@ -16,21 +16,11 @@ import org.springframework.data.redis.core.StringRedisTemplate;
  * @version 1.0.00  2021-06-01 11:36
  */
 public class OrderStateSubscribeListener implements MessageListener {
-    /**
-     * 发布/订阅 的 Topic
-     */
-    public static final String TOPIC = "bems-v6:order:state";
 
-    @Autowired
-    private Cache<String, String> memoryCache;
-    private final StringRedisTemplate stringRedisTemplate;
+    private final Cache<String, String> memoryCache;
 
-    public OrderStateSubscribeListener(StringRedisTemplate stringRedisTemplate) {
-        this.stringRedisTemplate = stringRedisTemplate;
-    }
-
-    public void send(OrderMessage message) {
-        stringRedisTemplate.convertAndSend(TOPIC, JsonUtils.toJson(message));
+    public OrderStateSubscribeListener(Cache<String, String> memoryCache) {
+        this.memoryCache = memoryCache;
     }
 
     /**

@@ -110,4 +110,9 @@ public final class Constants {
      * redis key 订单处理状态缓存key
      */
     public static final String HANDLE_CACHE_KEY_PREFIX = "bems-v6:order:handle:";
+
+    /**
+     * 发布/订阅 的 Topic
+     */
+    public static final String TOPIC = "bems-v6:order:state";
 }

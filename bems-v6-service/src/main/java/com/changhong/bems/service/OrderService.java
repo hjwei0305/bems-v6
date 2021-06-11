@@ -10,7 +10,6 @@ import com.changhong.bems.entity.Pool;
 import com.changhong.bems.entity.vo.TemplateHeadVo;
 import com.changhong.bems.service.client.OrganizationManager;
 import com.changhong.bems.service.mq.BudgetOrderProducer;
-import com.changhong.bems.service.mq.OrderStateSubscribeListener;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
@@ -28,15 +27,13 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.BoundValueOperations;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 预算申请单(Order)业务逻辑实现类
@@ -63,10 +60,10 @@ public class OrderService extends BaseEntityService<Order> {
     private PoolService poolService;
     @Autowired
     private BudgetOrderProducer producer;
-//    @Autowired
+    //    @Autowired
 //    private RedisTemplate<String, Object> redisTemplate;
     @Autowired
-    private OrderStateSubscribeListener subscribeListener;
+    private StringRedisTemplate stringRedisTemplate;
 
     @Override
     protected BaseEntityDao<Order> getDao() {
@@ -538,7 +535,7 @@ public class OrderService extends BaseEntityService<Order> {
                 orderDetailService.setProcessing4All(orderId);
 
                 OrderMessage orderMessage = new OrderMessage(orderId, details.size(), LocalDateTime.now());
-                subscribeListener.send(orderMessage);
+                stringRedisTemplate.convertAndSend(Constants.TOPIC, JsonUtils.toJson(orderMessage));
 //                BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
                 // 设置默认过期时间:1天
 //                operations.set(statistics, 1, TimeUnit.DAYS);
@@ -588,7 +585,7 @@ public class OrderService extends BaseEntityService<Order> {
             orderDetailService.setProcessing4All(orderId);
 
             OrderMessage orderMessage = new OrderMessage(orderId, details.size(), LocalDateTime.now());
-            subscribeListener.send(orderMessage);
+            stringRedisTemplate.convertAndSend(Constants.TOPIC, JsonUtils.toJson(orderMessage));
 //            BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
 //            // 设置默认过期时间:1天
 //            operations.set(statistics, 1, TimeUnit.DAYS);
@@ -651,7 +648,7 @@ public class OrderService extends BaseEntityService<Order> {
                 // 按订单id设置所有行项的处理状态为处理中
                 orderDetailService.setProcessing4All(orderId);
                 OrderMessage orderMessage = new OrderMessage(orderId, details.size(), LocalDateTime.now());
-                subscribeListener.send(orderMessage);
+                stringRedisTemplate.convertAndSend(Constants.TOPIC, JsonUtils.toJson(orderMessage));
 //                BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
                 // 设置默认过期时间:1天
 //                operations.set(statistics, 1, TimeUnit.DAYS);

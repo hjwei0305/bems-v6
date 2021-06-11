@@ -1,5 +1,6 @@
 package com.changhong.bems.config;
 
+import com.changhong.bems.commons.Constants;
 import com.changhong.bems.service.PoolService;
 import com.changhong.bems.service.mq.OrderStateSubscribeListener;
 import com.changhong.bems.service.strategy.*;
@@ -11,7 +12,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -40,20 +40,20 @@ public class AutoConfig {
      * 配置消息监听器
      */
     @Bean
-    public OrderStateSubscribeListener orderStateListener(StringRedisTemplate stringRedisTemplate) {
-        return new OrderStateSubscribeListener(stringRedisTemplate);
+    public OrderStateSubscribeListener orderStateListener(Cache<String, String> memoryCache) {
+        return new OrderStateSubscribeListener(memoryCache);
     }
 
     /**
      * 将消息监听器绑定到消息容器
      */
     @Bean
-    public RedisMessageListenerContainer messageListenerContainer(StringRedisTemplate stringRedisTemplate) {
+    public RedisMessageListenerContainer messageListenerContainer(Cache<String, String> memoryCache) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(redisConnectionFactory);
 
         //  MessageListener 监听数据
-        container.addMessageListener(orderStateListener(stringRedisTemplate), ChannelTopic.of(OrderStateSubscribeListener.TOPIC));
+        container.addMessageListener(orderStateListener(memoryCache), ChannelTopic.of(Constants.TOPIC));
         return container;
     }
 

@@ -1,11 +1,11 @@
 package com.changhong.bems.service;
 
+import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.OrderDetailDao;
 import com.changhong.bems.dto.OrderCategory;
 import com.changhong.bems.dto.OrderMessage;
 import com.changhong.bems.dto.SplitDetailQuickQueryParam;
 import com.changhong.bems.entity.*;
-import com.changhong.bems.service.mq.OrderStateSubscribeListener;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
@@ -22,6 +22,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,7 +54,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
     //    @Autowired
 //    private RedisTemplate<String, Object> redisTemplate;
     @Autowired
-    private OrderStateSubscribeListener subscribeListener;
+    private StringRedisTemplate stringRedisTemplate;
 
     /**
      * 分组大小
@@ -252,7 +253,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         }
 
         OrderMessage orderMessage = new OrderMessage(orderId, details.size(), LocalDateTime.now());
-        subscribeListener.send(orderMessage);
+        stringRedisTemplate.convertAndSend(Constants.TOPIC, JsonUtils.toJson(orderMessage));
 //        BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
         // 设置默认过期时间:1天
 //        operations.set(statistics, 1, TimeUnit.DAYS);
@@ -314,7 +315,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                         // 错误数加1
                         orderMessage.addFailures();
                         // 更新缓存
-                        subscribeListener.send(orderMessage);
+                        stringRedisTemplate.convertAndSend(Constants.TOPIC, JsonUtils.toJson(orderMessage));
 //                        OrderStatistics finalStatistics = orderMessage;
 //                        CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
                         continue;
@@ -330,7 +331,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                         // 错误数加1
                         orderMessage.addFailures();
                         // 更新缓存
-                        subscribeListener.send(orderMessage);
+                        stringRedisTemplate.convertAndSend(Constants.TOPIC, JsonUtils.toJson(orderMessage));
 //                        OrderStatistics finalStatistics = orderMessage;
 //                        CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
                         continue;
@@ -369,7 +370,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     // 创建时间
                     detail.setCreatedDate(LocalDateTime.now());
                     this.save(detail);
-                    subscribeListener.send(orderMessage);
+                    stringRedisTemplate.convertAndSend(Constants.TOPIC, JsonUtils.toJson(orderMessage));
 //                    OrderStatistics finalStatistics = orderMessage;
 //                    CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
                 }
