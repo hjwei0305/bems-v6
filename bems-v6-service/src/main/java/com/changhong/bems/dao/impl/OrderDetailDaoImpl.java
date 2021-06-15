@@ -6,7 +6,7 @@ import com.changhong.bems.entity.OrderDetail;
 import com.changhong.sei.core.dao.impl.BaseEntityDaoImpl;
 import com.changhong.sei.core.dao.impl.PageResultUtil;
 import com.changhong.sei.core.dto.serach.PageResult;
-import com.changhong.sei.core.dto.serach.Search;
+import com.changhong.sei.core.dto.serach.SearchOrder;
 import com.changhong.sei.core.entity.search.QuerySql;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -56,12 +56,18 @@ public class OrderDetailDaoImpl extends BaseEntityDaoImpl<OrderDetail> implement
                     .append(" or d.udf1Name like :value or d.udf2Name like :value or d.udf3Name like :value or d.udf4Name like :value or d.udf5Name like :value) ");
             sqlParams.put("value", "%" + quickSearchValue + "%");
         }
-        fromAndWhere.append(" and d.originPoolCode is not null group by d.originPoolCode) ");
-        QuerySql querySql = new QuerySql(select, fromAndWhere.toString());
+        // fromAndWhere.append(" and d.originPoolCode is not null ");
+        fromAndWhere.append(" group by d.originPoolCode) ");
         // 默认排序
-        if (CollectionUtils.isEmpty(param.getSortOrders())) {
-            querySql.setOrderBy("order by od.originPoolCode");
+        fromAndWhere.append("order by od.originPoolCode");
+        if (CollectionUtils.isNotEmpty(param.getSortOrders())) {
+            List<SearchOrder> searchOrders = param.getSortOrders();
+            for (SearchOrder searchOrder : searchOrders) {
+                fromAndWhere.append(",").append(searchOrder.getProperty()).append(" ").append(searchOrder.getDirection());
+            }
+            param.setSortOrders(null);
         }
+        QuerySql querySql = new QuerySql(select, fromAndWhere.toString());
         return PageResultUtil.getResult(entityManager, querySql, sqlParams, param);
     }
 }
