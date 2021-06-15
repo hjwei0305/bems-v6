@@ -1,5 +1,6 @@
 package com.changhong.bems.entity;
 
+import com.changhong.bems.commons.Constants;
 import com.changhong.sei.core.entity.ITenant;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -51,7 +52,7 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
      * 来源预算池编码
      */
     @Column(name = "origin_pool_code")
-    private String originPoolCode;
+    private String originPoolCode = Constants.NONE;
     /**
      * 来源预算池金额
      */
