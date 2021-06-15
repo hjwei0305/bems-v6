@@ -6,6 +6,7 @@ import com.changhong.bems.entity.OrderDetail;
 import com.changhong.sei.core.dao.impl.BaseEntityDaoImpl;
 import com.changhong.sei.core.dao.impl.PageResultUtil;
 import com.changhong.sei.core.dto.serach.PageResult;
+import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.dto.serach.SearchOrder;
 import com.changhong.sei.core.entity.search.QuerySql;
 import org.apache.commons.collections.CollectionUtils;
@@ -58,8 +59,17 @@ public class OrderDetailDaoImpl extends BaseEntityDaoImpl<OrderDetail> implement
         }
         // fromAndWhere.append(" and d.originPoolCode is not null ");
         fromAndWhere.append(" group by d.originPoolCode) ");
+        List<SearchFilter> filters = param.getFilters();
+        if (CollectionUtils.isNotEmpty(filters)) {
+            for (SearchFilter filter : filters) {
+                // 默认只支持错误状态查询
+                if ("hasErr".equals(filter.getFieldName())) {
+                    fromAndWhere.append(" and od.hasErr = ").append(filter.getValue()).append(" ");
+                }
+            }
+        }
         // 默认排序
-        fromAndWhere.append("order by od.originPoolCode");
+        fromAndWhere.append(" order by od.originPoolCode");
         if (CollectionUtils.isNotEmpty(param.getSortOrders())) {
             List<SearchOrder> searchOrders = param.getSortOrders();
             for (SearchOrder searchOrder : searchOrders) {

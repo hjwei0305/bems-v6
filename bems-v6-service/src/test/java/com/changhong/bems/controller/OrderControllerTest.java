@@ -62,7 +62,7 @@ class OrderControllerTest extends BaseUnit5Test {
 
     @Test
     void querySplitGroup() {
-        String json = "{\"orderId\":\"4289695D-CD88-11EB-88A2-0242C0A8442C\",\"quickSearchValue\":\"\",\"quickSearchProperties\":[\"item\",\"itemName\",\"periodName\",\"projectName\",\"orgName\",\"udf1Name\",\"udf2Name\",\"udf3Name\",\"udf4Name\",\"udf5Name\"],\"pageInfo\":{\"page\":1,\"rows\":10},\"sortOrders\":[{\"property\":\"period\",\"direction\":\"ASC\"},{\"property\":\"itemName\",\"direction\":\"ASC\"}],\"filters\":[]}";
+        String json = "{\"orderId\":\"4289695D-CD88-11EB-88A2-0242C0A8442C\",\"quickSearchValue\":\"\",\"quickSearchProperties\":[\"item\",\"itemName\",\"periodName\",\"projectName\",\"orgName\",\"udf1Name\",\"udf2Name\",\"udf3Name\",\"udf4Name\",\"udf5Name\"],\"pageInfo\":{\"page\":1,\"rows\":10},\"sortOrders\":[{\"property\":\"period\",\"direction\":\"ASC\"},{\"property\":\"itemName\",\"direction\":\"ASC\"}],\"filters\":[{\"fieldName\":\"hasErr\",\"operator\":\"EQ\",\"value\":true}]}";
         SplitDetailQuickQueryParam param = JsonUtils.fromJson(json, SplitDetailQuickQueryParam.class);
         ResultData<PageResult<OrderDetailDto>> resultData = controller.querySplitGroup(param);
         System.out.println(resultData);

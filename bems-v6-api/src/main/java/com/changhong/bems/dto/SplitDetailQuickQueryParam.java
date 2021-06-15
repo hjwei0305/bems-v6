@@ -1,10 +1,12 @@
 package com.changhong.bems.dto;
 
 import com.changhong.sei.core.dto.serach.QuickQueryParam;
+import com.changhong.sei.core.dto.serach.SearchFilter;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotBlank;
+import java.util.List;
 
 /**
  * 实现功能：
@@ -23,11 +25,24 @@ public class SplitDetailQuickQueryParam extends QuickQueryParam {
     @ApiModelProperty(value = "订单id", required = true)
     private String orderId;
 
+    /**
+     * 筛选字段
+     */
+    private List<SearchFilter> filters;
+
     public String getOrderId() {
         return orderId;
     }
 
     public void setOrderId(String orderId) {
         this.orderId = orderId;
+    }
+
+    public List<SearchFilter> getFilters() {
+        return filters;
+    }
+
+    public void setFilters(List<SearchFilter> filters) {
+        this.filters = filters;
     }
 }
