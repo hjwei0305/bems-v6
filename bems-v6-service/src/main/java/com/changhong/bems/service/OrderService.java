@@ -741,11 +741,11 @@ public class OrderService extends BaseEntityService<Order> {
                         // 记录预算池执行日志
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
                                 detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, operation);
-                    } else {
-                        poolCode = detail.getPoolCode();
-                        // 记录预算池执行日志
-                        poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, operation);
+//                    } else {
+//                        poolCode = detail.getPoolCode();
+//                        // 记录预算池执行日志
+//                        poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
+//                                detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, operation);
                     }
                     break;
                 case ADJUSTMENT:
@@ -782,9 +782,9 @@ public class OrderService extends BaseEntityService<Order> {
                         if (detail.getAmount() >= 0) {
                             // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
 
-                            // 记录预算池执行日志
-                            poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                    detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, operation);
+//                            // 记录预算池执行日志
+//                            poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
+//                                    detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, operation);
 
                             // 源预算池
                             String originPoolCode = detail.getOriginPoolCode();
@@ -887,17 +887,17 @@ public class OrderService extends BaseEntityService<Order> {
             switch (order.getOrderCategory()) {
                 case INJECTION:
                     // 记录预算池执行日志
-//                    if (detail.getAmount() >= 0) {
-//                        // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
-//
+                    if (detail.getAmount() >= 0) {
+                        // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
+
 //                        // 记录预算池执行日志
 //                        poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
 //                                -detail.getAmount(), Constants.EVENT_BUDGET_CANCEL, operation);
-//                    } else {
-//                        poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-//                                -detail.getAmount(), Constants.EVENT_BUDGET_CANCEL, operation);
-//                    }
-//                    break;
+                    } else {
+                        poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
+                                -detail.getAmount(), Constants.EVENT_BUDGET_CANCEL, operation);
+                    }
+                    break;
                 case ADJUSTMENT:
                     // 记录预算池执行日志
                     if (detail.getAmount() >= 0) {
@@ -915,8 +915,8 @@ public class OrderService extends BaseEntityService<Order> {
                     if (detail.getAmount() >= 0) {
                         // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
 
-                        poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                -detail.getAmount(), Constants.EVENT_BUDGET_CANCEL, operation);
+//                        poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
+//                                -detail.getAmount(), Constants.EVENT_BUDGET_CANCEL, operation);
 
                         // 源预算池
                         String originPoolCode = detail.getOriginPoolCode();
@@ -1021,22 +1021,22 @@ public class OrderService extends BaseEntityService<Order> {
                         poolCode = pool.getCode();
                         detail.setPoolCode(poolCode);
                     }
-//                    // 记录预算池执行日志
-//                    if (detail.getAmount() >= 0) {
-//                        // 订单状态由流程中变为已完成,金额小于等于0在提交流程时已提前占用,故此时不再重复占用,只记录日志
+                    // 记录预算池执行日志
+                    if (detail.getAmount() >= 0) {
+                        // 订单状态由流程中变为已完成,金额小于等于0在提交流程时已提前占用,故此时不再重复占用,只记录日志
 //                        poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
 //                                -detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, operation);
-//
-//                        poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-//                                detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, operation);
-//                    } else {
-//                        poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-//                                -detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, operation);
-//
-//                        poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-//                                detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, operation);
-//                    }
-//                    break;
+
+                        poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
+                                detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, operation);
+                    } else {
+                        poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
+                                -detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, operation);
+
+                        poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
+                                detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, operation);
+                    }
+                    break;
                 case ADJUSTMENT:
                     // 记录预算池执行日志
                     if (detail.getAmount() >= 0) {
@@ -1069,8 +1069,8 @@ public class OrderService extends BaseEntityService<Order> {
                     }
                     // 记录预算池执行日志
                     if (detail.getAmount() >= 0) {
-                        poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                -detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, operation);
+//                        poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
+//                                -detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, operation);
 
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
                                 detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, operation);
