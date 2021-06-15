@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -79,89 +80,25 @@ public class EventService extends BaseEntityService<Event> {
 
             Event event;
             event = new Event();
-            event.setCode(Constants.EVENT_INJECTION_EFFECTIVE);
-            event.setName("预算下达生效");
+            event.setCode(Constants.EVENT_BUDGET_CONFIRM);
+            event.setName("预算确认(预占用)");
             event.setBizFrom(appCode);
             event.setRank(1);
             super.save(event);
             eventList.add(event);
             event = new Event();
-            event.setCode(Constants.EVENT_INJECTION_SUBMIT);
-            event.setName("预算下达提交流程");
+            event.setCode(Constants.EVENT_BUDGET_CANCEL);
+            event.setName("撤销预算确认(预占用)");
             event.setBizFrom(appCode);
             event.setRank(2);
             super.save(event);
             eventList.add(event);
             event = new Event();
-            event.setCode(Constants.EVENT_INJECTION_CANCEL);
-            event.setName("预算下达终止流程");
+            event.setCode(Constants.EVENT_BUDGET_EFFECTIVE);
+            event.setName("预算下达生效");
             event.setBizFrom(appCode);
             event.setRank(3);
             super.save(event);
-            eventList.add(event);
-            event = new Event();
-            event.setCode(Constants.EVENT_INJECTION_COMPLETE);
-            event.setName("预算下达流程完成");
-            event.setBizFrom(appCode);
-            event.setRank(4);
-            super.save(event);
-            eventList.add(event);
-            event = new Event();
-            event.setCode(Constants.EVENT_ADJUSTMENT_EFFECTIVE);
-            event.setName("预算调整生效");
-            event.setBizFrom(appCode);
-            event.setRank(5);
-            super.save(event);
-            eventList.add(event);
-            event = new Event();
-            event.setCode(Constants.EVENT_ADJUSTMENT_SUBMIT);
-            event.setName("预算调整提交流程");
-            event.setBizFrom(appCode);
-            event.setRank(6);
-            super.save(event);
-            eventList.add(event);
-            event = new Event();
-            event.setCode(Constants.EVENT_ADJUSTMENT_CANCEL);
-            event.setName("预算调整终止流程");
-            event.setBizFrom(appCode);
-            event.setRank(7);
-            super.save(event);
-            eventList.add(event);
-            event = new Event();
-            event.setCode(Constants.EVENT_ADJUSTMENT_COMPLETE);
-            event.setName("预算调整流程完成");
-            event.setBizFrom(appCode);
-            event.setRank(8);
-            super.save(event);
-            eventList.add(event);
-            event = new Event();
-            event.setCode(Constants.EVENT_SPLIT_EFFECTIVE);
-            event.setName("预算分解生效");
-            event.setBizFrom(appCode);
-            event.setRank(9);
-            super.save(event);
-            eventList.add(event);
-            event = new Event();
-            event.setCode(Constants.EVENT_SPLIT_SUBMIT);
-            event.setName("预算分解提交流程");
-            event.setBizFrom(appCode);
-            event.setRank(10);
-            super.save(event);
-            eventList.add(event);
-            event = new Event();
-            event.setCode(Constants.EVENT_SPLIT_CANCEL);
-            event.setName("预算分解终止流程");
-            event.setBizFrom(appCode);
-            event.setRank(11);
-            super.save(event);
-            eventList.add(event);
-            event = new Event();
-            event.setCode(Constants.EVENT_SPLIT_COMPLETE);
-            event.setName("预算分解流程完成");
-            event.setBizFrom(appCode);
-            event.setRank(12);
-            super.save(event);
-            eventList.add(event);
         }
         return ResultData.success(eventList);
     }
@@ -227,7 +164,8 @@ public class EventService extends BaseEntityService<Event> {
      * @return 预算事件对象
      */
     @Cacheable(key = "#code")
-    public Event findByCode(String code) {
-        return dao.findFirstByProperty(Event.CODE_FIELD, code);
+    public String getEventName(String code) {
+        Event event = dao.findFirstByProperty(Event.CODE_FIELD, code);
+        return Objects.isNull(event) ? "" : event.getName();
     }
 }

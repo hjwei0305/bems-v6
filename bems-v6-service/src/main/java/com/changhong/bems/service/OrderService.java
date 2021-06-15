@@ -61,6 +61,8 @@ public class OrderService extends BaseEntityService<Order> {
     @Autowired
     private PoolService poolService;
     @Autowired
+    private EventService eventService;
+    @Autowired
     private BudgetOrderProducer producer;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -735,7 +737,7 @@ public class OrderService extends BaseEntityService<Order> {
                     }
 
                     // 记录预算池执行日志
-                    record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_INJECTION_SUBMIT);
+                    record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM);
                     if (detail.getAmount() >= 0) {
                         // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
                         record.setIsPoolAmount(Boolean.FALSE);
@@ -745,7 +747,7 @@ public class OrderService extends BaseEntityService<Order> {
                     record.setBizCode(order.getCode());
                     record.setBizId(detail.getId());
                     remark = order.getRemark();
-                    record.setBizRemark("检查确认-" + (StringUtils.isBlank(remark) ? "" : remark));
+                    record.setBizRemark(StringUtils.isBlank(remark) ? eventService.getEventName(Constants.EVENT_BUDGET_CONFIRM) : remark);
                     poolService.recordLog(record);
                     break;
                 case ADJUSTMENT:
@@ -767,7 +769,7 @@ public class OrderService extends BaseEntityService<Order> {
                     }
 
                     // 记录预算池执行日志
-                    record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_ADJUSTMENT_SUBMIT);
+                    record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM);
                     if (detail.getAmount() >= 0) {
                         // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
                         record.setIsPoolAmount(Boolean.FALSE);
@@ -777,7 +779,7 @@ public class OrderService extends BaseEntityService<Order> {
                     record.setBizCode(order.getCode());
                     record.setBizId(detail.getId());
                     remark = order.getRemark();
-                    record.setBizRemark("检查确认" + (StringUtils.isBlank(remark) ? "" : remark));
+                    record.setBizRemark(StringUtils.isBlank(remark) ? eventService.getEventName(Constants.EVENT_BUDGET_CONFIRM) : remark);
                     poolService.recordLog(record);
                     break;
                 case SPLIT:
@@ -787,7 +789,7 @@ public class OrderService extends BaseEntityService<Order> {
                         // 当前预算池
                         poolCode = detail.getPoolCode();
                         // 记录预算池执行日志
-                        record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_SPLIT_SUBMIT);
+                        record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM);
                         if (detail.getAmount() >= 0) {
                             // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
                             record.setIsPoolAmount(Boolean.FALSE);
@@ -797,13 +799,13 @@ public class OrderService extends BaseEntityService<Order> {
                         record.setBizCode(order.getCode());
                         record.setBizId(detail.getId());
                         remark = order.getRemark();
-                        record.setBizRemark("检查确认" + (StringUtils.isBlank(remark) ? "" : remark));
+                        record.setBizRemark(StringUtils.isBlank(remark) ? eventService.getEventName(Constants.EVENT_BUDGET_CONFIRM) : remark);
                         poolService.recordLog(record);
 
                         // 源预算池
                         String originPoolCode = detail.getOriginPoolCode();
                         // 记录预算池执行日志
-                        record = new ExecutionRecord(originPoolCode, operation, -detail.getAmount(), Constants.EVENT_SPLIT_SUBMIT);
+                        record = new ExecutionRecord(originPoolCode, operation, -detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM);
                         if (-detail.getAmount() >= 0) {
                             // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
                             record.setIsPoolAmount(Boolean.FALSE);
@@ -813,7 +815,7 @@ public class OrderService extends BaseEntityService<Order> {
                         record.setBizCode(order.getCode());
                         record.setBizId(detail.getId());
                         remark = order.getRemark();
-                        record.setBizRemark("检查确认" + (StringUtils.isBlank(remark) ? "" : remark));
+                        record.setBizRemark(StringUtils.isBlank(remark) ? eventService.getEventName(Constants.EVENT_BUDGET_CONFIRM) : remark);
                         poolService.recordLog(record);
                         break;
                     }
@@ -880,16 +882,16 @@ public class OrderService extends BaseEntityService<Order> {
         // 撤销中的,确认中的,已确认的可进行撤销操作
         if (OrderStatus.CANCELING == status || OrderStatus.CONFIRMING == status || OrderStatus.CONFIRMED == status) {
             String remark;
-            String poolCode;
+            // 当前预算池
+            String poolCode = detail.getPoolCode();
             ExecutionRecord record;
             resultData = ResultData.success();
             OperationType operation = OperationType.RELEASE;
             // 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
             switch (order.getOrderCategory()) {
                 case INJECTION:
-                    poolCode = detail.getPoolCode();
                     // 记录预算池执行日志
-                    record = new ExecutionRecord(poolCode, operation, -detail.getAmount(), Constants.EVENT_INJECTION_CANCEL);
+                    record = new ExecutionRecord(poolCode, operation, -detail.getAmount(), Constants.EVENT_BUDGET_CANCEL);
                     if (detail.getAmount() >= 0) {
                         // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
                         record.setIsPoolAmount(Boolean.FALSE);
@@ -899,13 +901,12 @@ public class OrderService extends BaseEntityService<Order> {
                     record.setBizCode(order.getCode());
                     record.setBizId(detail.getId());
                     remark = order.getRemark();
-                    record.setBizRemark("撤销确认 " + (StringUtils.isBlank(remark) ? "" : remark));
+                    record.setBizRemark(StringUtils.isBlank(remark) ? eventService.getEventName(Constants.EVENT_BUDGET_CANCEL) : remark);
                     poolService.recordLog(record);
                     break;
                 case ADJUSTMENT:
-                    poolCode = detail.getPoolCode();
                     // 记录预算池执行日志
-                    record = new ExecutionRecord(poolCode, operation, -detail.getAmount(), Constants.EVENT_ADJUSTMENT_CANCEL);
+                    record = new ExecutionRecord(poolCode, operation, -detail.getAmount(), Constants.EVENT_BUDGET_CANCEL);
                     if (detail.getAmount() >= 0) {
                         // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
                         record.setIsPoolAmount(Boolean.FALSE);
@@ -915,15 +916,13 @@ public class OrderService extends BaseEntityService<Order> {
                     record.setBizCode(order.getCode());
                     record.setBizId(detail.getId());
                     remark = order.getRemark();
-                    record.setBizRemark("撤销确认 " + (StringUtils.isBlank(remark) ? "" : remark));
+                    record.setBizRemark(StringUtils.isBlank(remark) ? eventService.getEventName(Constants.EVENT_BUDGET_CANCEL) : remark);
                     poolService.recordLog(record);
                     break;
                 case SPLIT:
                     // 预算分解
-                    // 当前预算池
-                    poolCode = detail.getPoolCode();
                     // 记录预算池执行日志
-                    record = new ExecutionRecord(poolCode, operation, -detail.getAmount(), Constants.EVENT_SPLIT_CANCEL);
+                    record = new ExecutionRecord(poolCode, operation, -detail.getAmount(), Constants.EVENT_BUDGET_CANCEL);
                     if (detail.getAmount() >= 0) {
                         // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
                         record.setIsPoolAmount(Boolean.FALSE);
@@ -933,13 +932,13 @@ public class OrderService extends BaseEntityService<Order> {
                     record.setBizCode(order.getCode());
                     record.setBizId(detail.getId());
                     remark = order.getRemark();
-                    record.setBizRemark("撤销确认 " + (StringUtils.isBlank(remark) ? "" : remark));
+                    record.setBizRemark(StringUtils.isBlank(remark) ? eventService.getEventName(Constants.EVENT_BUDGET_CANCEL) : remark);
                     poolService.recordLog(record);
 
                     // 源预算池
                     String originPoolCode = detail.getOriginPoolCode();
                     // 记录预算池执行日志
-                    record = new ExecutionRecord(originPoolCode, operation, detail.getAmount(), Constants.EVENT_SPLIT_CANCEL);
+                    record = new ExecutionRecord(originPoolCode, operation, detail.getAmount(), Constants.EVENT_BUDGET_CANCEL);
                     if (-detail.getAmount() >= 0) {
                         // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
                         record.setIsPoolAmount(Boolean.FALSE);
@@ -949,7 +948,7 @@ public class OrderService extends BaseEntityService<Order> {
                     record.setBizCode(order.getCode());
                     record.setBizId(detail.getId());
                     remark = order.getRemark();
-                    record.setBizRemark("撤销确认 " + (StringUtils.isBlank(remark) ? "" : remark));
+                    record.setBizRemark(StringUtils.isBlank(remark) ? eventService.getEventName(Constants.EVENT_BUDGET_CANCEL) : remark);
                     poolService.recordLog(record);
                     break;
                 default:
@@ -1016,14 +1015,14 @@ public class OrderService extends BaseEntityService<Order> {
         // 已确认的,审批中的,生效中的可进行生效操作
         if (OrderStatus.CONFIRMED == status || OrderStatus.APPROVING == status || OrderStatus.EFFECTING == status) {
             String remark;
-            String poolCode;
+            // 当前预算池
+            String poolCode = detail.getPoolCode();
             ExecutionRecord record;
             resultData = ResultData.success();
             OperationType operation = OperationType.RELEASE;
             // 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
             switch (order.getOrderCategory()) {
                 case INJECTION:
-                    poolCode = detail.getPoolCode();
                     if (StringUtils.isBlank(poolCode)) {
                         // 预算池不存在,需要创建预算池
                         ResultData<Pool> result = poolService.createPool(order, detail);
@@ -1034,7 +1033,7 @@ public class OrderService extends BaseEntityService<Order> {
                         poolCode = pool.getCode();
                     }
                     // 记录预算池执行日志
-                    record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_INJECTION_COMPLETE);
+                    record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE);
                     if (detail.getAmount() <= 0) {
                         // 订单状态由流程中变为已完成,金额小于等于0在提交流程时已提前占用,故此时不再重复占用,只记录日志
                         record.setIsPoolAmount(Boolean.FALSE);
@@ -1044,13 +1043,12 @@ public class OrderService extends BaseEntityService<Order> {
                     record.setBizCode(order.getCode());
                     record.setBizId(detail.getId());
                     remark = order.getRemark();
-                    record.setBizRemark("预算生效" + (StringUtils.isBlank(remark) ? "" : remark));
+                    record.setBizRemark(StringUtils.isBlank(remark) ? eventService.getEventName(Constants.EVENT_BUDGET_EFFECTIVE) : remark);
                     poolService.recordLog(record);
                     break;
                 case ADJUSTMENT:
-                    poolCode = detail.getPoolCode();
                     // 记录预算池执行日志
-                    record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_ADJUSTMENT_COMPLETE);
+                    record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE);
                     if (detail.getAmount() <= 0) {
                         // 订单状态由流程中变为已完成,金额小于等于0在提交流程时已提前占用,故此时不再重复占用,只记录日志
                         record.setIsPoolAmount(Boolean.FALSE);
@@ -1060,31 +1058,34 @@ public class OrderService extends BaseEntityService<Order> {
                     record.setBizCode(order.getCode());
                     record.setBizId(detail.getId());
                     remark = order.getRemark();
-                    record.setBizRemark("预算生效" + (StringUtils.isBlank(remark) ? "" : remark));
+                    record.setBizRemark(StringUtils.isBlank(remark) ? eventService.getEventName(Constants.EVENT_BUDGET_EFFECTIVE) : remark);
                     poolService.recordLog(record);
                     break;
                 case SPLIT:
                     // 预算分解
-                    // 当前预算池
-                    poolCode = detail.getPoolCode();
-                    // 记录预算池执行日志
-                    record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_SPLIT_COMPLETE);
-                    if (detail.getAmount() <= 0) {
-                        // 订单状态由流程中变为已完成,金额小于等于0在提交流程时已提前占用,故此时不再重复占用,只记录日志
-                        record.setIsPoolAmount(Boolean.FALSE);
+                    if (StringUtils.isBlank(poolCode)) {
+                        // 预算池不存在,需要创建预算池
+                        ResultData<Pool> result = poolService.createPool(order, detail);
+                        if (result.failed()) {
+                            return ResultData.fail(result.getMessage());
+                        }
+                        Pool pool = result.getData();
+                        poolCode = pool.getCode();
                     }
+                    // 记录预算池执行日志
+                    record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE);
                     record.setSubjectId(order.getSubjectId());
                     record.setAttributeCode(detail.getAttributeCode());
                     record.setBizCode(order.getCode());
                     record.setBizId(detail.getId());
                     remark = order.getRemark();
-                    record.setBizRemark("预算生效" + (StringUtils.isBlank(remark) ? "" : remark));
+                    record.setBizRemark(StringUtils.isBlank(remark) ? eventService.getEventName(Constants.EVENT_BUDGET_EFFECTIVE) : remark);
                     poolService.recordLog(record);
 
                     // 源预算池
                     String originPoolCode = detail.getOriginPoolCode();
                     // 记录预算池执行日志
-                    record = new ExecutionRecord(originPoolCode, operation, -detail.getAmount(), Constants.EVENT_SPLIT_COMPLETE);
+                    record = new ExecutionRecord(originPoolCode, operation, -detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE);
                     if (-detail.getAmount() <= 0) {
                         // 订单状态由流程中变为已完成,金额小于等于0在提交流程时已提前占用,故此时不再重复占用,只记录日志
                         record.setIsPoolAmount(Boolean.FALSE);
@@ -1094,7 +1095,7 @@ public class OrderService extends BaseEntityService<Order> {
                     record.setBizCode(order.getCode());
                     record.setBizId(detail.getId());
                     remark = order.getRemark();
-                    record.setBizRemark("预算生效" + (StringUtils.isBlank(remark) ? "" : remark));
+                    record.setBizRemark(StringUtils.isBlank(remark) ? eventService.getEventName(Constants.EVENT_BUDGET_EFFECTIVE) : remark);
                     poolService.recordLog(record);
                     break;
                 default:

@@ -41,7 +41,7 @@ public class BudgetOrderProducer {
     @Async
     @Transactional(rollbackFor = Exception.class)
     public void sendConfirmMessage(String orderId, List<OrderDetail> details, SessionUser sessionUser) {
-        this.sendMessage(orderId, details, sessionUser, Constants.ORDER_OPERATION_CONFIRM);
+        this.sendMessage(orderId, details, sessionUser, Constants.EVENT_BUDGET_CONFIRM);
     }
 
     /**
@@ -50,7 +50,7 @@ public class BudgetOrderProducer {
     @Async
     @Transactional(rollbackFor = Exception.class)
     public void sendCancelMessage(String orderId, List<OrderDetail> details, SessionUser sessionUser) {
-        this.sendMessage(orderId, details, sessionUser, Constants.ORDER_OPERATION_CANCEL);
+        this.sendMessage(orderId, details, sessionUser, Constants.EVENT_BUDGET_CANCEL);
     }
 
     /**
@@ -59,7 +59,7 @@ public class BudgetOrderProducer {
     @Async
     @Transactional(rollbackFor = Exception.class)
     public void sendEffectiveMessage(String orderId, List<OrderDetail> details, SessionUser sessionUser) {
-        this.sendMessage(orderId, details, sessionUser, Constants.ORDER_OPERATION_EFFECTIVE);
+        this.sendMessage(orderId, details, sessionUser, Constants.EVENT_BUDGET_EFFECTIVE);
     }
 
     private void sendMessage(String orderId, List<OrderDetail> details, SessionUser sessionUser, String operation) {

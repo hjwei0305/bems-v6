@@ -45,66 +45,17 @@ public final class Constants {
     }
 
     /**
-     * 预算下达生效事件
+     * 预算确认事件
      */
-    public static final String EVENT_INJECTION_EFFECTIVE = "INJECTION_EFFECTIVE";
+    public static final String EVENT_BUDGET_CONFIRM = "BUDGET_CONFIRM";
     /**
-     * 预算调整生效事件
+     * 预算撤销确认事件
      */
-    public static final String EVENT_ADJUSTMENT_EFFECTIVE = "ADJUSTMENT_EFFECTIVE";
+    public static final String EVENT_BUDGET_CANCEL = "BUDGET_CANCEL_CONFIRM";
     /**
-     * 预算分解生效事件
+     * 预算生效事件
      */
-    public static final String EVENT_SPLIT_EFFECTIVE = "SPLIT_EFFECTIVE";
-    /**
-     * 预算下达提交流程事件
-     */
-    public static final String EVENT_INJECTION_SUBMIT = "INJECTION_SUBMIT";
-    /**
-     * 预算调整提交流程事件
-     */
-    public static final String EVENT_ADJUSTMENT_SUBMIT = "ADJUSTMENT_SUBMIT";
-    /**
-     * 预算分解提交流程事件
-     */
-    public static final String EVENT_SPLIT_SUBMIT = "SPLIT_SUBMIT";
-    /**
-     * 预算下达终止流程事件
-     */
-    public static final String EVENT_INJECTION_CANCEL = "INJECTION_CANCEL";
-    /**
-     * 预算调整终止流程事件
-     */
-    public static final String EVENT_ADJUSTMENT_CANCEL = "ADJUSTMENT_CANCEL";
-    /**
-     * 预算分解终止流程事件
-     */
-    public static final String EVENT_SPLIT_CANCEL = "SPLIT_CANCEL";
-    /**
-     * 预算下达流程完成事件
-     */
-    public static final String EVENT_INJECTION_COMPLETE = "INJECTION_COMPLETE";
-    /**
-     * 预算调整流程完成事件
-     */
-    public static final String EVENT_ADJUSTMENT_COMPLETE = "ADJUSTMENT_COMPLETE";
-    /**
-     * 预算分解流程完成事件
-     */
-    public static final String EVENT_SPLIT_COMPLETE = "SPLIT_COMPLETE";
-
-    /**
-     * 消息队列处理类型-订单确认
-     */
-    public static final String ORDER_OPERATION_CONFIRM = "CONFIRM";
-    /**
-     * 消息队列处理类型-订单撤销确认
-     */
-    public static final String ORDER_OPERATION_CANCEL = "CANCEL";
-    /**
-     * 消息队列处理类型-订单生效
-     */
-    public static final String ORDER_OPERATION_EFFECTIVE = "EFFECTIVE";
+    public static final String EVENT_BUDGET_EFFECTIVE = "BUDGET_EFFECTIVE";
 
     /**
      * redis key 订单处理状态缓存key

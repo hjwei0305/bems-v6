@@ -74,19 +74,19 @@ public class BudgetOrderConsumer {
             sessionUser.setUserName(orderMessage.getUserName());
             mockUser.mock(sessionUser);
 
-            if (Constants.ORDER_OPERATION_CONFIRM.equals(operation)) {
+            if (Constants.EVENT_BUDGET_CONFIRM.equals(operation)) {
                 // 订单确认
                 resultData = orderService.confirmUseBudget(orderDetailId);
                 if (LOG.isInfoEnabled()) {
                     LOG.info("预算申请单生效结果: {}", resultData);
                 }
-            } else if (Constants.ORDER_OPERATION_CANCEL.equals(operation)) {
+            } else if (Constants.EVENT_BUDGET_CANCEL.equals(operation)) {
                 // 订单取消确认
                 resultData = orderService.cancelConfirmUseBudget(orderDetailId);
                 if (LOG.isInfoEnabled()) {
                     LOG.info("预算申请单流程完成处理结果: {}", resultData);
                 }
-            } else if (Constants.ORDER_OPERATION_EFFECTIVE.equals(operation)) {
+            } else if (Constants.EVENT_BUDGET_EFFECTIVE.equals(operation)) {
                 // 订单生效
                 resultData = orderService.effectiveUseBudget(orderDetailId);
                 if (LOG.isInfoEnabled()) {
