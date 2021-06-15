@@ -436,17 +436,18 @@ public class OrderService extends BaseEntityService<Order> {
         if (StringUtils.isNotBlank(order.getId())) {
             Order entity = dao.findOne(order.getId());
             if (Objects.nonNull(entity)) {
-                order.setCode(entity.getCode());
+                // 预制单状态不生成订单号
+                if (StringUtils.isBlank(entity.getCode()) && OrderStatus.PREFAB != order.getStatus()) {
+                    order.setCode(serialService.getNumber(Order.class, ContextUtil.getTenantCode()));
+                } else {
+                    order.setCode(entity.getCode());
+                }
                 order.setCreatorId(entity.getCreatorId());
                 order.setCreatorAccount(entity.getCreatorAccount());
                 order.setCreatorName(entity.getCreatorName());
                 order.setCreatedDate(entity.getCreatedDate());
                 order.setApplyAmount(entity.getApplyAmount());
             }
-        }
-        // 预制单状态不生成订单号
-        if (StringUtils.isBlank(order.getCode()) && OrderStatus.PREFAB != order.getStatus()) {
-            order.setCode(serialService.getNumber(Order.class, ContextUtil.getTenantCode()));
         }
         OperateResultWithData<Order> result = this.save(order);
         if (result.successful()) {

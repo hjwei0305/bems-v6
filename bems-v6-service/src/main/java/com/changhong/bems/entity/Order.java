@@ -32,7 +32,7 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
     /**
      * 申请单号
      */
-    @Column(name = "code", updatable = false)
+    @Column(name = "code")
     private String code;
     /**
      * 预算主体id
