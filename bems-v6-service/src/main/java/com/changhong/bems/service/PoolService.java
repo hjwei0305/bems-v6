@@ -3,6 +3,7 @@ package com.changhong.bems.service;
 import com.changhong.bems.dao.PoolAttributeViewDao;
 import com.changhong.bems.dao.PoolDao;
 import com.changhong.bems.dto.BudgetUse;
+import com.changhong.bems.dto.OperationType;
 import com.changhong.bems.dto.PeriodType;
 import com.changhong.bems.entity.*;
 import com.changhong.sei.core.context.ContextUtil;
@@ -192,6 +193,43 @@ public class PoolService extends BaseEntityService<Pool> {
     }
 
     /**
+     * 记录影响预算池余额的日志
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void poolAmountLog(String subjectId, long attributeCode, String poolCode,
+                              String bizId, String bizCode, String remark, double amount,
+                              String eventCode, OperationType operation) {
+        ExecutionRecord record = new ExecutionRecord(poolCode, operation, amount, eventCode);
+        record.setIsPoolAmount(Boolean.TRUE);
+        record.setSubjectId(subjectId);
+        record.setAttributeCode(attributeCode);
+        record.setBizCode(bizCode);
+        record.setBizId(bizId);
+        record.setBizRemark(remark);
+        this.recordLog(record);
+    }
+
+    /**
+     * 记录不影响预算池余额的日志
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void nonPoolAmountLog(String subjectId, long attributeCode, String poolCode,
+                                 String bizId, String bizCode, String remark, double amount,
+                                 String eventCode, OperationType operation) {
+        ExecutionRecord record = new ExecutionRecord(poolCode, operation, amount, eventCode);
+        record.setIsPoolAmount(Boolean.FALSE);
+        record.setSubjectId(subjectId);
+        record.setAttributeCode(attributeCode);
+        record.setBizCode(bizCode);
+        record.setBizId(bizId);
+        record.setBizRemark(remark);
+        this.recordLog(record);
+    }
+
+    /**
+     * 预算执行日志分为两类:一种是影响预算池余额的日志,另一种是仅记录日志而不影响预算池余额
+     * 如:在预占用时,金额大于0,则不影响预算池可用余额;仅当小于0时,才影响预算池可用余额
+     *
      * @param record 执行记录
      */
     @Transactional(rollbackFor = Exception.class)

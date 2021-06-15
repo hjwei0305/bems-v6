@@ -90,7 +90,7 @@ public class WebsocketServer {
      */
     @OnError
     public void onError(Session session, Throwable error) {
-        LOG.error("Websocket发生异常: " + error.getMessage());
+        LOG.error("Websocket发生异常: ", error);
     }
 
     /**
