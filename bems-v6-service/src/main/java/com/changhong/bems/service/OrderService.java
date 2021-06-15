@@ -535,7 +535,7 @@ public class OrderService extends BaseEntityService<Order> {
                 order.setStatus(OrderStatus.CONFIRMING);
                 // 更新订单处理状态
                 order.setProcessing(Boolean.TRUE);
-                dao.save(order);
+                dao.updateOrderStatus(orderId, OrderStatus.CONFIRMING, Boolean.TRUE);
                 // 按订单id设置所有行项的处理状态为处理中
                 orderDetailService.setProcessing4All(orderId);
 
@@ -584,7 +584,7 @@ public class OrderService extends BaseEntityService<Order> {
             order.setStatus(OrderStatus.CANCELING);
             // 更新订单处理状态
             order.setProcessing(Boolean.TRUE);
-            dao.save(order);
+            dao.updateOrderStatus(orderId, OrderStatus.CANCELING, Boolean.TRUE);
             // 按订单id设置所有行项的处理状态为处理中
             orderDetailService.setProcessing4All(orderId);
 
@@ -844,7 +844,7 @@ public class OrderService extends BaseEntityService<Order> {
         long processingCount = orderDetailService.getProcessingCount(orderId);
         if (processingCount == 0) {
             // 更新订单状态为:已确认
-            dao.updateStatus(orderId, OrderStatus.CONFIRMED);
+            dao.updateOrderStatus(orderId, OrderStatus.CONFIRMED, Boolean.FALSE);
 
             // 清除缓存
             redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
@@ -973,7 +973,7 @@ public class OrderService extends BaseEntityService<Order> {
         long processingCount = orderDetailService.getProcessingCount(orderId);
         if (processingCount == 0) {
             // 更新订单状态为:已确认
-            dao.updateStatus(orderId, OrderStatus.DRAFT);
+            dao.updateOrderStatus(orderId, OrderStatus.DRAFT, Boolean.FALSE);
 
             // 清除缓存
             redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
@@ -1031,6 +1031,7 @@ public class OrderService extends BaseEntityService<Order> {
                         }
                         Pool pool = result.getData();
                         poolCode = pool.getCode();
+                        detail.setPoolCode(poolCode);
                     }
                     // 记录预算池执行日志
                     record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE);
@@ -1071,6 +1072,7 @@ public class OrderService extends BaseEntityService<Order> {
                         }
                         Pool pool = result.getData();
                         poolCode = pool.getCode();
+                        detail.setPoolCode(poolCode);
                     }
                     // 记录预算池执行日志
                     record = new ExecutionRecord(poolCode, operation, detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE);
@@ -1118,7 +1120,7 @@ public class OrderService extends BaseEntityService<Order> {
         long processingCount = orderDetailService.getProcessingCount(orderId);
         if (processingCount == 0) {
             // 更新订单状态为:已生效
-            dao.updateStatus(orderId, OrderStatus.COMPLETED);
+            dao.updateOrderStatus(orderId, OrderStatus.COMPLETED, Boolean.FALSE);
 
             // 清除缓存
             redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));

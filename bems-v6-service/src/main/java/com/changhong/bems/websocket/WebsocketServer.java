@@ -112,7 +112,7 @@ public class WebsocketServer {
             try {
                 session.getBasicRemote().sendText(JsonUtils.toJson(resultData));
             } catch (Exception e) {
-                // LOG.error("Websocket发送异常: " + e.getMessage());
+                LOG.error("Websocket发送异常", e);
             }
         }
     }

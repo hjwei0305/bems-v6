@@ -66,4 +66,15 @@ public interface OrderDao extends BaseEntityDao<Order> {
     @Modifying
     @Query("update Order o set o.processing = :processing where o.id = :id ")
     void setProcessStatus(@Param("id") String id, @Param("processing") boolean processing);
+
+    /**
+     * 更新订单是否正在异步处理行项数据
+     * 如果是,在编辑时进入socket状态显示页面
+     *
+     * @param id         订单id
+     * @param processing 是否正在异步处理行项数据
+     */
+    @Modifying
+    @Query("update Order o set o.status = :status, o.processing = :processing where o.id = :id ")
+    void updateOrderStatus(@Param("id") String id, @Param("status") OrderStatus status, @Param("processing") boolean processing);
 }
