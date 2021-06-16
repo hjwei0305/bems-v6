@@ -136,6 +136,7 @@ public class PeriodService extends BaseEntityService<Period> {
      *
      * @return 操作结果
      */
+    @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> closingOverduePeriod() {
         dao.closingOverduePeriod(LocalDate.now());
         return ResultData.success();

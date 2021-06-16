@@ -3,9 +3,7 @@ package com.changhong.bems.service;
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.OrderDao;
 import com.changhong.bems.dto.*;
-import com.changhong.bems.entity.Order;
-import com.changhong.bems.entity.OrderDetail;
-import com.changhong.bems.entity.Pool;
+import com.changhong.bems.entity.*;
 import com.changhong.bems.entity.vo.TemplateHeadVo;
 import com.changhong.bems.service.client.OrganizationManager;
 import com.changhong.bems.service.mq.BudgetOrderProducer;
@@ -36,6 +34,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * 预算申请单(Order)业务逻辑实现类
@@ -55,6 +54,8 @@ public class OrderService extends BaseEntityService<Order> {
     private OrderDetailService orderDetailService;
     @Autowired
     private CategoryService categoryService;
+    @Autowired
+    private PeriodService periodService;
     @Autowired
     private OrganizationManager organizationManager;
     @Autowired(required = false)
@@ -310,6 +311,12 @@ public class OrderService extends BaseEntityService<Order> {
             //添加单据行项时,预算类型不能为空.
             return ResultData.fail(ContextUtil.getMessage("order_detail_00003"));
         }
+        Category category = categoryService.findOne(categoryId);
+        if (Objects.isNull(category)) {
+            //预算类型[{0}]不存在.
+            return ResultData.fail(ContextUtil.getMessage("category_00004", categoryId));
+        }
+
         // 通过单据Id检查预算主体和类型是否被修改
         ResultData<String> resultData = this.checkDimension(orderDto.getId(), orderDto.getSubjectId(), categoryId);
         if (resultData.failed()) {
@@ -348,6 +355,14 @@ public class OrderService extends BaseEntityService<Order> {
             // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
             this.setProcessStatus(orderId, Boolean.TRUE);
 
+            List<Period> periods = periodService.findBySubjectUnclosed(order.getSubjectId(), category.getPeriodType());
+            Map<String, String> periodMap;
+            if (CollectionUtils.isNotEmpty(periods)) {
+                periodMap = periods.parallelStream().collect(Collectors.toMap(Period::getId, Period::getName));
+            } else {
+                // 预算期间不存在
+                return ResultData.fail(ContextUtil.getMessage("period_00002"));
+            }
             try {
                 OrderDetail detail;
                 List<OrderDetail> orderDetails = new ArrayList<>();
@@ -368,9 +383,17 @@ public class OrderService extends BaseEntityService<Order> {
                             detail.setErrMsg(ContextUtil.getMessage("order_detail_00015"));
                         } else {
                             if (Constants.DIMENSION_CODE_PERIOD.equals(headVo.getFiled())) {
-                                detail.setPeriod(temp);
-                            } else if (Constants.DIMENSION_CODE_PERIOD.concat("Name").equals(headVo.getFiled())) {
-                                detail.setPeriodName(temp);
+                                String periodName = periodMap.get(temp);
+                                if (StringUtils.isNotBlank(periodName)) {
+                                    detail.setPeriod(temp);
+                                    detail.setPeriodName(periodName);
+                                } else {
+                                    detail.setHasErr(Boolean.TRUE);
+                                    // 导入的期间数据不是当前预算类型要求的
+                                    detail.setErrMsg(ContextUtil.getMessage("order_detail_00017"));
+                                }
+//                            } else if (Constants.DIMENSION_CODE_PERIOD.concat("Name").equals(headVo.getFiled())) {
+//                                detail.setPeriodName(temp);
                             } else if (Constants.DIMENSION_CODE_ITEM.equals(headVo.getFiled())) {
                                 detail.setItem(temp);
                             } else if (Constants.DIMENSION_CODE_ITEM.concat("Name").equals(headVo.getFiled())) {
@@ -497,6 +520,12 @@ public class OrderService extends BaseEntityService<Order> {
     public void setProcessStatus(String orderId, boolean processing) {
         // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
         dao.setProcessStatus(orderId, processing);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void updateOrderStatus(String orderId, OrderStatus status, boolean processing) {
+        // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
+        dao.updateOrderStatus(orderId, status, processing);
     }
 
     /**
@@ -836,15 +865,6 @@ public class OrderService extends BaseEntityService<Order> {
             // 订单状态为[{0}],不允许操作!
             resultData = ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
         }
-        // 获取处理中的订单行项数.等于0表示处理完订单所有行项
-        long processingCount = orderDetailService.getProcessingCount(orderId);
-        if (processingCount == 0) {
-            // 更新订单状态为:已确认
-            dao.updateOrderStatus(orderId, OrderStatus.CONFIRMED, Boolean.FALSE);
-
-            // 清除缓存
-            redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
-        }
         return resultData;
     }
 
@@ -956,15 +976,7 @@ public class OrderService extends BaseEntityService<Order> {
             // 订单状态为[{0}],不允许操作!
             resultData = ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
         }
-        // 获取处理中的订单行项数.等于0表示处理完订单所有行项
-        long processingCount = orderDetailService.getProcessingCount(orderId);
-        if (processingCount == 0) {
-            // 更新订单状态为:已确认
-            dao.updateOrderStatus(orderId, OrderStatus.DRAFT, Boolean.FALSE);
 
-            // 清除缓存
-            redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
-        }
         return resultData;
     }
 
@@ -1118,15 +1130,6 @@ public class OrderService extends BaseEntityService<Order> {
         } else {
             // 订单状态为[{0}],不允许操作!
             resultData = ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
-        }
-        // 获取处理中的订单行项数.等于0表示处理完订单所有行项
-        long processingCount = orderDetailService.getProcessingCount(orderId);
-        if (processingCount == 0) {
-            // 更新订单状态为:已生效
-            dao.updateOrderStatus(orderId, OrderStatus.COMPLETED, Boolean.FALSE);
-
-            // 清除缓存
-            redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
         }
         return resultData;
     }

@@ -2,6 +2,8 @@ package com.changhong.bems.service.mq;
 
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.OrderStatistics;
+import com.changhong.bems.dto.OrderStatus;
+import com.changhong.bems.service.OrderDetailService;
 import com.changhong.bems.service.OrderService;
 import com.changhong.sei.core.context.SessionUser;
 import com.changhong.sei.core.context.mock.LocalMockUser;
@@ -32,11 +34,13 @@ public class BudgetOrderConsumer {
     private static final Logger LOG = LoggerFactory.getLogger(BudgetOrderConsumer.class);
 
     private final OrderService orderService;
+    private final OrderDetailService orderDetailService;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    public BudgetOrderConsumer(OrderService orderService) {
+    public BudgetOrderConsumer(OrderService orderService, OrderDetailService orderDetailService) {
         this.orderService = orderService;
+        this.orderDetailService = orderDetailService;
     }
 
     /**
@@ -74,38 +78,55 @@ public class BudgetOrderConsumer {
             sessionUser.setUserName(orderMessage.getUserName());
             mockUser.mock(sessionUser);
 
+            OrderStatus status;
             if (Constants.EVENT_BUDGET_CONFIRM.equals(operation)) {
                 // 订单确认
                 resultData = orderService.confirmUseBudget(orderDetailId);
                 if (LOG.isInfoEnabled()) {
                     LOG.info("预算申请单生效结果: {}", resultData);
                 }
+                // 若处理完成,则更新订单状态为:已确认
+                status = OrderStatus.CONFIRMED;
             } else if (Constants.EVENT_BUDGET_CANCEL.equals(operation)) {
                 // 订单取消确认
                 resultData = orderService.cancelConfirmUseBudget(orderDetailId);
                 if (LOG.isInfoEnabled()) {
                     LOG.info("预算申请单流程完成处理结果: {}", resultData);
                 }
+                // 若处理完成,则更新订单状态为:草稿
+                status = OrderStatus.DRAFT;
             } else if (Constants.EVENT_BUDGET_EFFECTIVE.equals(operation)) {
                 // 订单生效
                 resultData = orderService.effectiveUseBudget(orderDetailId);
                 if (LOG.isInfoEnabled()) {
                     LOG.info("预算申请单生效结果: {}", resultData);
                 }
+                // 若处理完成,则更新订单状态为:已生效
+                status = OrderStatus.COMPLETED;
             } else {
                 resultData = ResultData.fail("不支持的消息处理类型");
+                status = OrderStatus.DRAFT;
             }
-            OrderStatistics statistics;
-            BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
-            statistics = (OrderStatistics) operations.get();
-            if (Objects.nonNull(statistics)) {
-                if (resultData.successful()) {
-                    statistics.addSuccesses();
-                } else {
-                    statistics.addFailures();
+
+            String key = Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId);
+            // 获取处理中的订单行项数.等于0表示处理完订单所有行项
+            long processingCount = orderDetailService.getProcessingCount(orderId);
+            if (processingCount == 0) {
+                orderService.updateOrderStatus(orderId, status, Boolean.FALSE);
+                // 清除缓存
+                redisTemplate.delete(key);
+            } else {
+                BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(key);
+                OrderStatistics statistics = (OrderStatistics) operations.get();
+                if (Objects.nonNull(statistics)) {
+                    if (resultData.successful()) {
+                        statistics.addSuccesses();
+                    } else {
+                        statistics.addFailures();
+                    }
+                    // 设置默认过期时间:1天
+                    operations.set(statistics, 10, TimeUnit.HOURS);
                 }
-                // 设置默认过期时间:1天
-                operations.set(statistics, 10, TimeUnit.HOURS);
             }
         } catch (Exception e) {
             LOG.error("预算申请单生效处理异常.", e);
