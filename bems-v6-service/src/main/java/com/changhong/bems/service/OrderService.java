@@ -46,6 +46,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class OrderService extends BaseEntityService<Order> {
     private static final Logger LOG = LoggerFactory.getLogger(OrderService.class);
+    private static final String NUM_REGEX = "-?[0-9]+.?[0-9]*";
     @Autowired
     private OrderDao dao;
     @Autowired
@@ -407,8 +408,8 @@ public class OrderService extends BaseEntityService<Order> {
                             } else if (Constants.DIMENSION_CODE_UDF5.concat("Name").equals(headVo.getFiled())) {
                                 detail.setUdf5Name(temp);
                             } else if (OrderDetail.FIELD_AMOUNT.equals(headVo.getFiled())) {
-                                if (StringUtils.isNumeric(temp)) {
-                                    detail.setAmount(Double.valueOf(temp));
+                                if (temp.matches(NUM_REGEX)) {
+                                    detail.setAmount(Double.parseDouble(temp));
                                 } else {
                                     detail.setHasErr(Boolean.TRUE);
                                     // 导入的金额不是数字

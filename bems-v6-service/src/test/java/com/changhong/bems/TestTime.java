@@ -1,5 +1,6 @@
 package com.changhong.bems;
 
+import org.apache.commons.lang.StringUtils;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -34,6 +35,37 @@ public class TestTime {
         String temp = "/四川长虹电子控股集团有限公司/消费者BG/长虹多媒体公司/智慧业务BG/四川虹信软件股份有限公司";
 //        String temp = "四川虹信软件股份有限公司";
         System.out.println(temp.substring(temp.lastIndexOf("/") + 1));
+    }
+
+    @Test
+    public void isNumeric() {
+        System.out.println(StringUtils.isNumeric("4500"));
+        System.out.println(StringUtils.isNumeric("4500."));
+        System.out.println(StringUtils.isNumeric("4500.00"));
+        System.out.println(StringUtils.isNumeric("4500.12"));
+        System.out.println(StringUtils.isNumeric("-4500.12"));
+        System.out.println("  \"-?[0-9]+.?[0-9]*\"   ");
+        System.out.println(isNumeric("4500"));
+        System.out.println(isNumeric("4500."));
+        System.out.println(isNumeric("4500.00"));
+        System.out.println(isNumeric("4500.12"));
+        System.out.println(isNumeric("-4500.12"));
+        System.out.println("Double.parseDouble()");
+        System.out.println(Double.parseDouble("4500"));
+        System.out.println(Double.parseDouble("4500."));
+        System.out.println(Double.parseDouble("4500.00"));
+        System.out.println(Double.parseDouble("4500.12"));
+        System.out.println(Double.parseDouble("-4500.12"));
+    }
+
+    private static boolean isNumeric(String str) {
+        Boolean strResult = str.matches("-?[0-9]+.?[0-9]*");
+        if(strResult) {
+            System.out.println("Is Number!");
+        } else {
+            System.out.println("Is not Number!");
+        }
+        return strResult;
     }
 
     @Test
