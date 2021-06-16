@@ -14,6 +14,7 @@ import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.dto.serach.SearchOrder;
+import com.changhong.sei.core.limiter.support.lock.SeiLock;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResultWithData;
 import com.changhong.sei.exception.ServiceException;
@@ -283,6 +284,7 @@ public class PoolService extends BaseEntityService<Pool> {
      *
      * @return 滚动结果
      */
+    @SeiLock(key = "'trundle:pool'")
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> trundlePool() {
         // TODO 滚动预算池

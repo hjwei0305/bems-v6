@@ -26,7 +26,9 @@ public class TestTime {
         int year = 2021;
         LocalDate localDate = LocalDate.of(year, 1, 1);
         System.out.println(localDate);
-        LocalDate localDate1 = localDate.withMonth(2);
+        LocalDate localDate1 = LocalDate.now();
+        System.out.println(localDate1.lengthOfMonth());
+        System.out.println(localDate1.getDayOfMonth());
         System.out.println(localDate1.withDayOfMonth(localDate1.lengthOfMonth()));
     }
 

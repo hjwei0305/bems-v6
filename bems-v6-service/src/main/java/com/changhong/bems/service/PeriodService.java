@@ -11,6 +11,7 @@ import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.dto.serach.SearchOrder;
+import com.changhong.sei.core.limiter.support.lock.SeiLock;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
 import com.changhong.sei.util.EnumUtils;
@@ -139,6 +140,7 @@ public class PeriodService extends BaseEntityService<Period> {
      *
      * @return 操作结果
      */
+    @SeiLock(key = "'closing:overdue:period'")
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> closingOverduePeriod() {
         int num = dao.closingOverduePeriod(LocalDate.now());
