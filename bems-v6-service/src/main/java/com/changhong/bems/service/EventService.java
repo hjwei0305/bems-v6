@@ -94,11 +94,19 @@ public class EventService extends BaseEntityService<Event> {
             super.save(event);
             eventList.add(event);
             event = new Event();
-            event.setCode(Constants.EVENT_BUDGET_EFFECTIVE);
-            event.setName("预算下达生效");
+            event.setCode(Constants.EVENT_BUDGET_FREED);
+            event.setName("预算生效释放预占用");
             event.setBizFrom(appCode);
             event.setRank(3);
             super.save(event);
+            eventList.add(event);
+            event = new Event();
+            event.setCode(Constants.EVENT_BUDGET_EFFECTIVE);
+            event.setName("预算下达生效");
+            event.setBizFrom(appCode);
+            event.setRank(4);
+            super.save(event);
+            eventList.add(event);
         }
         return ResultData.success(eventList);
     }

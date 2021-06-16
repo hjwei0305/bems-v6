@@ -1025,13 +1025,13 @@ public class OrderService extends BaseEntityService<Order> {
                     if (detail.getAmount() >= 0) {
                         // 订单状态由流程中变为已完成,金额小于等于0在提交流程时已提前占用,故此时不再重复占用,只记录日志
 //                        poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-//                                -detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, operation);
+//                                -detail.getAmount(), Constants.EVENT_BUDGET_FREED, operation);
 
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
                                 detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, operation);
                     } else {
                         poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                -detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, operation);
+                                -detail.getAmount(), Constants.EVENT_BUDGET_FREED, operation);
 
                         poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
                                 detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, operation);
@@ -1042,13 +1042,13 @@ public class OrderService extends BaseEntityService<Order> {
                     if (detail.getAmount() >= 0) {
                         // 订单状态由流程中变为已完成,金额小于等于0在提交流程时已提前占用,故此时不再重复占用,只记录日志
                         poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                -detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, operation);
+                                -detail.getAmount(), Constants.EVENT_BUDGET_FREED, operation);
 
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
                                 detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, operation);
                     } else {
                         poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                -detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, operation);
+                                -detail.getAmount(), Constants.EVENT_BUDGET_FREED, operation);
 
                         poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
                                 detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, operation);
@@ -1070,7 +1070,7 @@ public class OrderService extends BaseEntityService<Order> {
                     // 记录预算池执行日志
                     if (detail.getAmount() >= 0) {
 //                        poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-//                                -detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, operation);
+//                                -detail.getAmount(), Constants.EVENT_BUDGET_FREED, operation);
 
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
                                 detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, operation);
@@ -1078,13 +1078,13 @@ public class OrderService extends BaseEntityService<Order> {
                         // 源预算池
                         String originPoolCode = detail.getOriginPoolCode();
                         poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, operation);
+                                detail.getAmount(), Constants.EVENT_BUDGET_FREED, operation);
 
                         poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
                                 -detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, operation);
                     } else {
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                -detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, operation);
+                                -detail.getAmount(), Constants.EVENT_BUDGET_FREED, operation);
 
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
                                 detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, operation);
@@ -1092,7 +1092,7 @@ public class OrderService extends BaseEntityService<Order> {
                         // 源预算池
                         String originPoolCode = detail.getOriginPoolCode();
                         poolService.nonPoolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, operation);
+                                detail.getAmount(), Constants.EVENT_BUDGET_FREED, operation);
 
                         poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
                                 -detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, operation);

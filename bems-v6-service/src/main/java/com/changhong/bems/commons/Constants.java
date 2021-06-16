@@ -53,6 +53,10 @@ public final class Constants {
      */
     public static final String EVENT_BUDGET_CANCEL = "BUDGET_CANCEL_CONFIRM";
     /**
+     * 预算生效释放预占用事件
+     */
+    public static final String EVENT_BUDGET_FREED = "BUDGET_FREED";
+    /**
      * 预算生效事件
      */
     public static final String EVENT_BUDGET_EFFECTIVE = "BUDGET_EFFECTIVE";
