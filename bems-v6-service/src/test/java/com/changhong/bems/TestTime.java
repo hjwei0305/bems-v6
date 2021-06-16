@@ -30,6 +30,13 @@ public class TestTime {
     }
 
     @Test
+    public void testSplit() {
+        String temp = "/四川长虹电子控股集团有限公司/消费者BG/长虹多媒体公司/智慧业务BG/四川虹信软件股份有限公司";
+//        String temp = "四川虹信软件股份有限公司";
+        System.out.println(temp.substring(temp.lastIndexOf("/") + 1));
+    }
+
+    @Test
     public void testDuration() {
         LocalDateTime startTime = LocalDateTime.of(2021, 5, 8, 8, 50, 0);
         LocalDateTime endTime = LocalDateTime.now();
@@ -37,7 +44,7 @@ public class TestTime {
         System.out.println(endTime);
         Duration duration = Duration.between(startTime, endTime);
         System.out.println("耗时(ms): " + duration.toMillis());
-        System.out.println("耗时(s)" + duration.toMillis()/1000);
+        System.out.println("耗时(s)" + duration.toMillis() / 1000);
         System.out.println("耗时(s)" + duration.toMinutes());
     }
 }

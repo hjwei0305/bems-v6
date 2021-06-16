@@ -12,6 +12,7 @@ import com.changhong.bems.service.mq.BudgetOrderProducer;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
+import com.changhong.sei.core.dto.TreeEntity;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
@@ -376,7 +377,11 @@ public class OrderService extends BaseEntityService<Order> {
                             } else if (Constants.DIMENSION_CODE_ORG.equals(headVo.getFiled())) {
                                 detail.setOrg(temp);
                             } else if (Constants.DIMENSION_CODE_ORG.concat("Name").equals(headVo.getFiled())) {
-                                detail.setOrgName(temp);
+                                try {
+                                    detail.setOrgName(temp.substring(temp.lastIndexOf(TreeEntity.NAME_DELIMITER) + 1));
+                                } catch (Exception e) {
+                                    detail.setOrgName(temp);
+                                }
                             } else if (Constants.DIMENSION_CODE_PROJECT.equals(headVo.getFiled())) {
                                 detail.setProject(temp);
                             } else if (Constants.DIMENSION_CODE_PROJECT.concat("Name").equals(headVo.getFiled())) {
