@@ -17,6 +17,8 @@ import com.changhong.sei.util.EnumUtils;
 import com.changhong.sei.util.IdGenerator;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +36,7 @@ import java.util.stream.Collectors;
  */
 @Service
 public class PeriodService extends BaseEntityService<Period> {
+    private static final Logger LOG = LoggerFactory.getLogger(PeriodService.class);
     @Autowired
     private PeriodDao dao;
     @Autowired
@@ -138,7 +141,8 @@ public class PeriodService extends BaseEntityService<Period> {
      */
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> closingOverduePeriod() {
-        dao.closingOverduePeriod(LocalDate.now());
+        int num = dao.closingOverduePeriod(LocalDate.now());
+        LOG.info("关闭过期的预算期间: {}个", num);
         return ResultData.success();
     }
 

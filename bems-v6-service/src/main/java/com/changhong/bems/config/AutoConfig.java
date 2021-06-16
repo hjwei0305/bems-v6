@@ -1,22 +1,13 @@
 package com.changhong.bems.config;
 
-import com.changhong.bems.commons.Constants;
 import com.changhong.bems.service.PoolService;
-import com.changhong.bems.service.mq.OrderStateSubscribeListener;
 import com.changhong.bems.service.strategy.*;
 import com.changhong.bems.service.strategy.impl.*;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.listener.ChannelTopic;
-import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.scheduling.annotation.EnableAsync;
-
-import java.util.concurrent.TimeUnit;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * 实现功能：
@@ -25,6 +16,7 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0.00  2021-05-05 22:50
  */
 @EnableAsync
+@EnableScheduling
 @Configuration
 public class AutoConfig {
 //    private final RedisConnectionFactory redisConnectionFactory;

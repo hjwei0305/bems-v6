@@ -883,6 +883,7 @@ public class OrderService extends BaseEntityService<Order> {
             return ResultData.fail(ContextUtil.getMessage("order_detail_00009"));
         }
         if (detail.getState() < 0) {
+            orderDetailService.setProcessed(detailId);
             // 未成功预占用,不用做释放
             return ResultData.success();
         }

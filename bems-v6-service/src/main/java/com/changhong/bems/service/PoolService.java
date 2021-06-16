@@ -279,6 +279,17 @@ public class PoolService extends BaseEntityService<Pool> {
     }
 
     /**
+     * 滚动预算池
+     *
+     * @return 滚动结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ResultData<Void> trundlePool() {
+        // TODO 滚动预算池
+        return ResultData.success();
+    }
+
+    /**
      * 分页查询预算执行日志
      *
      * @param search 查询参数

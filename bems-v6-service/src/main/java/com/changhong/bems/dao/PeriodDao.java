@@ -35,5 +35,5 @@ public interface PeriodDao extends BaseEntityDao<Period> {
      */
     @Modifying
     @Query("update Period p set p.closed = true where p.closed = false and p.endDate < :endDate")
-    void closingOverduePeriod(@Param("endDate") LocalDate endDate);
+    int closingOverduePeriod(@Param("endDate") LocalDate endDate);
 }
