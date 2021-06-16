@@ -547,8 +547,8 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             // 分解(年度到月度,总额不变.允许目标预算池不存在,源预算池必须存在)
             // 源预算池代码
             String originPoolCode = detail.getOriginPoolCode();
-            if (StringUtils.isBlank(originPoolCode)) {
-                // 上级期间预算池不存在.
+            if (StringUtils.isBlank(originPoolCode) || StringUtils.equals(Constants.NONE, originPoolCode)) {
+                // 分解源预算池不存在.
                 return ResultData.fail(ContextUtil.getMessage("order_detail_00010"));
             }
             // 当前预算池余额. 检查预算池可用余额是否满足本次发生金额(主要存在注入负数调减的金额)
