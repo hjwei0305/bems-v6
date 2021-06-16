@@ -135,9 +135,9 @@ class OrderControllerTest extends BaseUnit5Test {
     @Test
     @Rollback
     void importBudge() {
-        String json = "{\"subjectId\":\"C81A4E58-BBD4-11EB-A896-0242C0A84429\",\"currencyCode\":\"CNY\",\"currencyName\":\"人民币\",\"applyOrgId\":\"877035BF-A40C-11E7-A8B9-02420B99179E\",\"applyOrgCode\":\"10607\",\"categoryId\":\"1883C92C-BBD5-11EB-A896-0242C0A84429\",\"orderCategory\":\"INJECTION\",\"periodType\":\"MONTHLY\",\"subjectName\":\"四川虹信软件股份有限公司\",\"applyOrgName\":\"四川长虹电子控股集团有限公司\",\"categoryName\":\"月度预算\"}";
+        String json = " {\"id\":null,\"subjectId\":\"C81A4E58-BBD4-11EB-A896-0242C0A84429\",\"subjectName\":\"四川虹信软件股份有限公司\",\"currencyCode\":\"CNY\",\"currencyName\":\"人民币\",\"categoryId\":\"18A3D44E-BBD5-11EB-A896-0242C0A84429\",\"categoryName\":\"月度预算\",\"periodType\":\"MONTHLY\",\"orderCategory\":\"SPLIT\",\"applyOrgId\":\"877035BF-A40C-11E7-A8B9-02420B99179E\",\"applyOrgCode\":\"10607\",\"applyOrgName\":\"四川长虹电子控股集团有限公司\",\"managerOrgId\":null,\"managerOrgCode\":null,\"managerOrgName\":null,\"remark\":null,\"period\":[],\"item\":[],\"org\":[],\"project\":[],\"udf1\":[],\"udf2\":[],\"udf3\":[],\"udf4\":[],\"udf5\":[]}";
         AddOrderDetail order = JsonUtils.fromJson(json, AddOrderDetail.class);
-        File file = new File("/Users/chaoma/Downloads/预算导入测试.xlsx");
+        File file = new File("/Users/chaoma/Downloads/月度预算导入模板 (1).xlsx");
         MultipartFile multipartFile = null;
         try {
             multipartFile = new MockMultipartFile(file.getName(), file.getName(), null, FileUtils.readFileToByteArray(file));

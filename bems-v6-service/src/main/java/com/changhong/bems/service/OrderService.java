@@ -842,8 +842,8 @@ public class OrderService extends BaseEntityService<Order> {
                             poolService.nonPoolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
                                     -detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, operation);
                         }
-                        break;
                     }
+                    break;
                 default:
                     // 不支持的订单类型
                     resultData = ResultData.fail(ContextUtil.getMessage("order_detail_00007"));

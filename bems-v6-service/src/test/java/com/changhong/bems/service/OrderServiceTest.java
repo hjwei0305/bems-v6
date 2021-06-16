@@ -103,7 +103,7 @@ class OrderServiceTest extends BaseUnit5Test {
     void confirmUseBudget() {
         StopWatch stopWatch = StopWatch.createStarted();
 
-        String detailId = "16837168-CD9B-11EB-A68D-0242C0A84429";
+        String detailId = "F5B05C90-CE7A-11EB-997A-0242C0A8442C";
         ResultData<Void> resultData = service.confirmUseBudget(detailId);
         stopWatch.stop();
         System.out.println("耗时: " + stopWatch.getTime());
