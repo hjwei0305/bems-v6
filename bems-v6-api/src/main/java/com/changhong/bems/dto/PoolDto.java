@@ -57,6 +57,11 @@ public class PoolDto extends BaseEntityDto {
     @ApiModelProperty(value = "期间分类")
     private PeriodType periodType;
     /**
+     * 所属年度
+     */
+    @ApiModelProperty(value = "所属年度")
+    private Integer year;
+    /**
      * 起始日期
      */
     @ApiModelProperty(value = "起始日期", example = "2021-04-22")
@@ -156,6 +161,14 @@ public class PoolDto extends BaseEntityDto {
 
     public void setPeriodType(PeriodType periodType) {
         this.periodType = periodType;
+    }
+
+    public Integer getYear() {
+        return year;
+    }
+
+    public void setYear(Integer year) {
+        this.year = year;
     }
 
     public LocalDate getStartDate() {

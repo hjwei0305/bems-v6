@@ -59,4 +59,10 @@ class PoolServiceTest extends BaseUnit5Test {
         ResultData<PoolAttributeView> pool = service.getNextPeriodBudgetPool("282CABA0-CE7A-11EB-8C70-0242C0A84429", false);
         System.out.println(pool);
     }
+
+    @Test
+    void trundlePool() {
+        ResultData<String> resultData = service.trundlePool();
+        System.out.println(resultData);
+    }
 }

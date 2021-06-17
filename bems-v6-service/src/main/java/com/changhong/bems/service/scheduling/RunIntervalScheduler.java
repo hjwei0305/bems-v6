@@ -51,7 +51,7 @@ public class RunIntervalScheduler {
     @Scheduled(cron = "0 3 1 * * ?")
     public void trundle() {
         LOG.info("启动定时任务-预算池自动结转");
-        ResultData<Void> resultData = poolService.trundlePool();
+        ResultData<String> resultData = poolService.trundlePool();
         LOG.info("预算池自动结转任务完成: {}", resultData);
     }
 }

@@ -11,6 +11,8 @@ import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
+import com.changhong.sei.util.DateUtils;
+import com.changhong.sei.util.IdGenerator;
 import io.swagger.annotations.Api;
 import org.apache.commons.collections.CollectionUtils;
 import org.modelmapper.ModelMapper;
@@ -19,10 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -112,7 +111,9 @@ public class PoolController implements PoolApi {
     @Override
     public ResultData<Void> trundlePool(String poolId) {
         Pool pool = service.findOne(poolId);
-        return service.trundlePool(pool);
+        String bizId = IdGenerator.uuid2();
+        String bizCode = DateUtils.formatDate(new Date(), DateUtils.FULL_SEQ_FORMAT);
+        return service.trundlePool(bizId, bizCode, pool);
     }
 
     /**

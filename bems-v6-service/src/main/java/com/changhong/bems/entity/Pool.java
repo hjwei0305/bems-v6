@@ -26,8 +26,11 @@ public class Pool extends BaseEntity implements ITenant, ICodeUnique, Serializab
     private static final long serialVersionUID = 345291355065499642L;
     public static final String FIELD_SUBJECT_ID = "subjectId";
     public static final String FIELD_ATTRIBUTE_CODE = "attributeCode";
+    public static final String FIELD_PERIOD_TYPE = "periodType";
+    public static final String FIELD_ROLL = "roll";
     public static final String FIELD_ACTIVED = "actived";
-    public static final String CREATED_DATE = "createdDate";
+    public static final String FIELD_CREATED_DATE = "createdDate";
+    public static final String FIELD_BALANCE = "balance";
 
     /**
      * 代码
@@ -70,6 +73,11 @@ public class Pool extends BaseEntity implements ITenant, ICodeUnique, Serializab
     @Column(name = "period_category", updatable = false)
     @Enumerated(EnumType.STRING)
     private PeriodType periodType;
+    /**
+     * 所属年度
+     */
+    @Column(name = "year")
+    private Integer year;
     /**
      * 起始日期
      */
@@ -180,6 +188,14 @@ public class Pool extends BaseEntity implements ITenant, ICodeUnique, Serializab
 
     public void setPeriodType(PeriodType periodType) {
         this.periodType = periodType;
+    }
+
+    public Integer getYear() {
+        return year;
+    }
+
+    public void setYear(Integer year) {
+        this.year = year;
     }
 
     public LocalDate getStartDate() {

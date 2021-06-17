@@ -24,6 +24,7 @@ import com.changhong.sei.util.DateUtils;
 import com.changhong.sei.util.IdGenerator;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -149,6 +150,9 @@ public class PoolService extends BaseEntityService<Pool> {
                 // 预算期间不存在
                 return ResultData.fail(ContextUtil.getMessage("period_00002"));
             }
+            // 所属年度
+            pool.setYear(period.getYear());
+            // 有效期
             pool.setStartDate(period.getStartDate());
             pool.setEndDate(period.getEndDate());
             Category category = categoryService.findOne(order.getCategoryId());
@@ -303,11 +307,39 @@ public class PoolService extends BaseEntityService<Pool> {
      *
      * @return 滚动结果
      */
-    @SeiLock(key = "'trundle:pool'")
-    @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> trundlePool() {
-        // TODO 滚动预算池
-        return ResultData.success();
+    public ResultData<String> trundlePool() {
+        String message = "本次滚动结转预算池: 共%d个, 成功%d个, 失败%d个";
+        int sum = 0;
+        int success = 0;
+        int fail = 0;
+        LocalDate localDate = LocalDate.now();
+        PeriodType[] periodTypes = new PeriodType[]{PeriodType.SEMIANNUAL, PeriodType.QUARTER, PeriodType.MONTHLY};
+        List<Pool> poolList = dao.findExpirePools(localDate.getYear(), localDate, periodTypes);
+        if (CollectionUtils.isNotEmpty(poolList)) {
+            sum = poolList.size();
+            ResultData<Void> resultData;
+            String bizId = IdGenerator.uuid2();
+            String bizCode = DateUtils.formatDate(new Date(), DateUtils.FULL_SEQ_FORMAT);
+            // 为了启用事务,特以此获取bean再调用
+            PoolService service = ContextUtil.getBean(PoolService.class);
+            for (Pool pool : poolList) {
+                try {
+                    resultData = service.trundlePool(bizId, bizCode, pool);
+                    if (LOG.isInfoEnabled()) {
+                        LOG.info("{} 预算滚动结转结果: {}", pool.getCode(), resultData);
+                    }
+                } catch (Exception e) {
+                    resultData = ResultData.fail(pool.getCode() + "预算滚动结转异常" + ExceptionUtils.getRootCauseMessage(e));
+                    LOG.error(pool.getCode() + " 预算滚动结转异常", e);
+                }
+                if (resultData.successful()) {
+                    success++;
+                } else {
+                    fail++;
+                }
+            }
+        }
+        return ResultData.success(String.format(message, sum, success, fail));
     }
 
     /**
@@ -316,8 +348,9 @@ public class PoolService extends BaseEntityService<Pool> {
      * @param pool 预算池
      * @return 滚动结果
      */
+    @SeiLock(key = "'trundle:pool:' + #pool.id")
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> trundlePool(Pool pool) {
+    public ResultData<Void> trundlePool(String bizId, String bizCode, Pool pool) {
         if (Objects.isNull(pool)) {
             // 未找到预算池
             return ResultData.fail(ContextUtil.getMessage("pool_00001"));
@@ -333,8 +366,6 @@ public class PoolService extends BaseEntityService<Pool> {
             return ResultData.fail(resultData.getMessage());
         } else {
             PoolAttributeView nextPool = resultData.getData();
-            String bizId = IdGenerator.uuid2();
-            String bizCode = DateUtils.formatDate(new Date(), DateUtils.FULL_SEQ_FORMAT);
             // 获取当前预算池余额
             double balance = this.getPoolBalanceByCode(pool.getCode());
             // 当前预算池
@@ -343,7 +374,7 @@ public class PoolService extends BaseEntityService<Pool> {
                     -balance, Constants.EVENT_BUDGET_TRUNDLE, OperationType.RELEASE);
             // 目标预算池
             this.poolAmountLog(nextPool.getSubjectId(), nextPool.getAttributeCode(), nextPool.getCode(),
-                    bizId, bizCode, ContextUtil.getMessage("pool_00020", pool.getCode()),
+                    bizId, bizCode, ContextUtil.getMessage("pool_00021", pool.getCode()),
                     balance, Constants.EVENT_BUDGET_TRUNDLE, OperationType.RELEASE);
         }
         return ResultData.success();

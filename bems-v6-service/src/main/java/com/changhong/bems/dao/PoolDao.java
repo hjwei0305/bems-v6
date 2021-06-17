@@ -1,11 +1,15 @@
 package com.changhong.bems.dao;
 
+import com.changhong.bems.dto.PeriodType;
 import com.changhong.bems.entity.Pool;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.time.LocalDate;
+import java.util.List;
 
 /**
  * 预算池(Pool)数据库访问类
@@ -34,5 +38,16 @@ public interface PoolDao extends BaseEntityDao<Pool> {
      */
     @Modifying
     @Query("update Pool p set p.actived = :actived where p.id = :id ")
-    void updateActiveStatus(String id, boolean actived);
+    void updateActiveStatus(@Param("id") String id, @Param("actived") boolean actived);
+
+    /**
+     * 获取超过指定日期的可结转预算池
+     *
+     * @param year  所属年度
+     * @param date  当前日期
+     * @param types 期间类型
+     * @return 返回满足条件的预算池
+     */
+    @Query("select p from Pool p where p.year = :year and p.endDate <= :date and p.periodType in :types and p.roll = true and p.actived = true and p.balance <> 0")
+    List<Pool> findExpirePools(@Param("year") int year, @Param("date") LocalDate date, @Param("types") PeriodType[] types);
 }
