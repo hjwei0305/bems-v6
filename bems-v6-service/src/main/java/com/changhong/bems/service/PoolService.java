@@ -290,7 +290,7 @@ public class PoolService extends BaseEntityService<Pool> {
                     // 解冻预算池
                     this.nonPoolAmountLog(pool.getSubjectId(), pool.getAttributeCode(), pool.getCode(),
                             bizId, bizCode, ContextUtil.getMessage("pool_00023"),
-                            pool.getBalance(), Constants.EVENT_BUDGET_FREEZE, OperationType.RELEASE);
+                            pool.getBalance(), Constants.EVENT_BUDGET_UNFREEZE, OperationType.RELEASE);
                 } else {
                     // 冻结预算池
                     this.nonPoolAmountLog(pool.getSubjectId(), pool.getAttributeCode(), pool.getCode(),

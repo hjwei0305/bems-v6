@@ -269,7 +269,6 @@ public class PeriodService extends BaseEntityService<Period> {
         } else {
             period.setCode(String.valueOf(IdGenerator.nextId()));
         }
-        // TODO 检查同主体自定义期间交差
 
         this.save(period);
         return ResultData.success();
@@ -378,7 +377,12 @@ public class PeriodService extends BaseEntityService<Period> {
                 return ResultData.fail(ContextUtil.getMessage("pool_00016"));
             }
         }
-        return ResultData.success(nextPeriod);
+        if (Objects.isNull(nextPeriod)) {
+            // 未找到[{}]的下一期间
+            return ResultData.fail(ContextUtil.getMessage("period_00006", currentPeriod.getName()));
+        } else {
+            return ResultData.success(nextPeriod);
+        }
     }
 
     /**

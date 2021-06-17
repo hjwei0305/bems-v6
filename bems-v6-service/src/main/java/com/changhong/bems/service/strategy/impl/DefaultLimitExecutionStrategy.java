@@ -24,7 +24,6 @@ public class DefaultLimitExecutionStrategy extends BaseExecutionStrategy impleme
         super(poolService);
     }
 
-
     /**
      * 执行预算执行策略
      *
@@ -34,7 +33,7 @@ public class DefaultLimitExecutionStrategy extends BaseExecutionStrategy impleme
      * @return 返回执行结果
      */
     @Override
-    @Transactional(rollbackFor = Exception.class) // todo 测试事务
+    @Transactional(rollbackFor = Exception.class)
     public ResultData<BudgetResponse> execution(PoolAttributeView optimalPool, BudgetUse useBudget, Collection<SearchFilter> otherDimFilters) {
         // 占用总金额
         double useAmount = useBudget.getAmount();

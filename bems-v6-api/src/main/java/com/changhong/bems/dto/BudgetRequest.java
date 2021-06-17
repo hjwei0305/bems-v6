@@ -3,6 +3,7 @@ package com.changhong.bems.dto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.Valid;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,8 +18,10 @@ import java.util.List;
 public class BudgetRequest implements Serializable {
     private static final long serialVersionUID = -3676168862062617480L;
 
+    @Valid
     @ApiModelProperty(value = "预算占用清单")
     private List<BudgetUse> useList;
+    @Valid
     @ApiModelProperty(value = "预算释放清单")
     private List<BudgetFree> freeList;
 
