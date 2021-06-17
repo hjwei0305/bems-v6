@@ -129,7 +129,7 @@ public class OrderService extends BaseEntityService<Order> {
      *
      * @return 返回检查结果
      */
-    public Order getPrefabExist(OrderCategory category) {
+    public List<Order> getPrefabExist(OrderCategory category) {
         Search search = Search.createSearch();
         // 创建人
         search.addFilter(new SearchFilter(Order.FIELD_CREATOR_ID, ContextUtil.getUserId()));
@@ -137,7 +137,7 @@ public class OrderService extends BaseEntityService<Order> {
         search.addFilter(new SearchFilter(Order.FIELD_ORDER_CATEGORY, category));
         // 预制状态
         search.addFilter(new SearchFilter(Order.FIELD_STATUS, OrderStatus.PREFAB));
-        return dao.findFirstByFilters(search);
+        return dao.findByFilters(search);
     }
 
     /**
@@ -466,17 +466,17 @@ public class OrderService extends BaseEntityService<Order> {
         if (StringUtils.isNotBlank(order.getId())) {
             Order entity = dao.findOne(order.getId());
             if (Objects.nonNull(entity)) {
-                // 预制单状态不生成订单号
-                if (StringUtils.isBlank(entity.getCode()) && OrderStatus.PREFAB != order.getStatus()) {
-                    order.setCode(serialService.getNumber(Order.class, ContextUtil.getTenantCode()));
-                } else {
-                    order.setCode(entity.getCode());
-                }
+                order.setCode(entity.getCode());
                 order.setCreatorId(entity.getCreatorId());
                 order.setCreatorAccount(entity.getCreatorAccount());
                 order.setCreatorName(entity.getCreatorName());
                 order.setCreatedDate(entity.getCreatedDate());
                 order.setApplyAmount(entity.getApplyAmount());
+            }
+        } else {
+            // 生成订单号
+            if (StringUtils.isBlank(order.getCode())) {
+                order.setCode(serialService.getNumber(Order.class, ContextUtil.getTenantCode()));
             }
         }
         OperateResultWithData<Order> result = this.save(order);
@@ -1085,34 +1085,34 @@ public class OrderService extends BaseEntityService<Order> {
                         poolCode = pool.getCode();
                         detail.setPoolCode(poolCode);
                     }
+                    // 源预算池
+                    String originPoolCode = detail.getOriginPoolCode();
                     // 记录预算池执行日志
                     if (detail.getAmount() >= 0) {
 //                        poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
 //                                -detail.getAmount(), Constants.EVENT_BUDGET_FREED, operation);
 
-                        poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
+                        poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark + " " + originPoolCode,
                                 detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, operation);
 
                         // 源预算池
-                        String originPoolCode = detail.getOriginPoolCode();
                         poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
                                 detail.getAmount(), Constants.EVENT_BUDGET_FREED, operation);
 
-                        poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
+                        poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark + " " + poolCode,
                                 -detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, operation);
                     } else {
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
                                 -detail.getAmount(), Constants.EVENT_BUDGET_FREED, operation);
 
-                        poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
+                        poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark + " " + originPoolCode,
                                 detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, operation);
 
                         // 源预算池
-                        String originPoolCode = detail.getOriginPoolCode();
                         poolService.nonPoolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
                                 detail.getAmount(), Constants.EVENT_BUDGET_FREED, operation);
 
-                        poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
+                        poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark + " " + poolCode,
                                 -detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, operation);
                     }
                     break;

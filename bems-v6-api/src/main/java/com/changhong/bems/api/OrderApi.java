@@ -156,7 +156,7 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
      */
     @GetMapping(path = "checkInjectPrefab")
     @ApiOperation(value = "检查是否存在注入类型预制单", notes = "检查是否存在注入类型预制单")
-    ResultData<OrderDto> checkInjectPrefab();
+    ResultData<List<OrderDto>> checkInjectPrefab();
 
     /**
      * 检查是否存在调整类型预制单
@@ -165,7 +165,7 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
      */
     @GetMapping(path = "checkAdjustPrefab")
     @ApiOperation(value = "检查是否存在调整类型预制单", notes = "检查是否存在调整类型预制单")
-    ResultData<OrderDto> checkAdjustPrefab();
+    ResultData<List<OrderDto>> checkAdjustPrefab();
 
     /**
      * 检查是否存在分解类型预制单
@@ -174,7 +174,7 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
      */
     @GetMapping(path = "checkSplitPrefab")
     @ApiOperation(value = "检查是否存在分解类型预制单", notes = "检查是否存在分解类型预制单")
-    ResultData<OrderDto> checkSplitPrefab();
+    ResultData<List<OrderDto>> checkSplitPrefab();
 
     /**
      * 获取申请单调整数据

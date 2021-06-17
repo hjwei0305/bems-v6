@@ -60,6 +60,18 @@ public final class Constants {
      * 预算生效事件
      */
     public static final String EVENT_BUDGET_EFFECTIVE = "BUDGET_EFFECTIVE";
+    /**
+     * 预算滚动结转事件
+     */
+    public static final String EVENT_BUDGET_TRUNDLE = "BUDGET_TRUNDLE";
+    /**
+     * 预算滚动结转事件
+     */
+    public static final String EVENT_BUDGET_FREEZE = "BUDGET_FREEZE";
+    /**
+     * 预算滚动结转事件
+     */
+    public static final String EVENT_BUDGET_UNFREEZE = "BUDGET_UNFREEZE";
 
     /**
      * redis key 订单处理状态缓存key

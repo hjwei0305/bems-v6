@@ -277,13 +277,13 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      * @return 返回检查结果
      */
     @Override
-    public ResultData<OrderDto> checkInjectPrefab() {
-        OrderDto dto = null;
-        Order order = service.getPrefabExist(OrderCategory.INJECTION);
-        if (Objects.nonNull(order)) {
-            dto = convertToDto(order);
+    public ResultData<List<OrderDto>> checkInjectPrefab() {
+        List<OrderDto> dtoList = null;
+        List<Order> orders = service.getPrefabExist(OrderCategory.INJECTION);
+        if (CollectionUtils.isNotEmpty(orders)) {
+            dtoList = orders.stream().map(this::convertToDto).collect(Collectors.toList());
         }
-        return ResultData.success(dto);
+        return ResultData.success(dtoList);
     }
 
     /**
@@ -292,13 +292,13 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      * @return 返回检查结果
      */
     @Override
-    public ResultData<OrderDto> checkAdjustPrefab() {
-        OrderDto dto = null;
-        Order order = service.getPrefabExist(OrderCategory.ADJUSTMENT);
-        if (Objects.nonNull(order)) {
-            dto = convertToDto(order);
+    public ResultData<List<OrderDto>> checkAdjustPrefab() {
+        List<OrderDto> dtoList = null;
+        List<Order> orders = service.getPrefabExist(OrderCategory.ADJUSTMENT);
+        if (CollectionUtils.isNotEmpty(orders)) {
+            dtoList = orders.stream().map(this::convertToDto).collect(Collectors.toList());
         }
-        return ResultData.success(dto);
+        return ResultData.success(dtoList);
     }
 
     /**
@@ -307,13 +307,13 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      * @return 返回检查结果
      */
     @Override
-    public ResultData<OrderDto> checkSplitPrefab() {
-        OrderDto dto = null;
-        Order order = service.getPrefabExist(OrderCategory.SPLIT);
-        if (Objects.nonNull(order)) {
-            dto = convertToDto(order);
+    public ResultData<List<OrderDto>> checkSplitPrefab() {
+        List<OrderDto> dtoList = null;
+        List<Order> orders = service.getPrefabExist(OrderCategory.SPLIT);
+        if (CollectionUtils.isNotEmpty(orders)) {
+            dtoList = orders.stream().map(this::convertToDto).collect(Collectors.toList());
         }
-        return ResultData.success(dto);
+        return ResultData.success(dtoList);
     }
 
     /**

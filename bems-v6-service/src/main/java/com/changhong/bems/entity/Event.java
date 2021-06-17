@@ -52,6 +52,11 @@ public class Event extends BaseAuditableEntity implements ITenant, ICodeUnique, 
     @Column(name = "frozen_")
     private Boolean frozen = Boolean.FALSE;
     /**
+     * 系统必要
+     */
+    @Column(name = "required")
+    private Boolean required = Boolean.FALSE;
+    /**
      * 排序
      */
     @Column(name = "rank_")
@@ -105,6 +110,14 @@ public class Event extends BaseAuditableEntity implements ITenant, ICodeUnique, 
     @Override
     public void setFrozen(Boolean frozen) {
         this.frozen = frozen;
+    }
+
+    public Boolean getRequired() {
+        return required;
+    }
+
+    public void setRequired(Boolean required) {
+        this.required = required;
     }
 
     @Override

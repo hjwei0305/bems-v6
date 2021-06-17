@@ -84,6 +84,7 @@ public class EventService extends BaseEntityService<Event> {
             event.setName("预算确认(预占用)");
             event.setBizFrom(appCode);
             event.setRank(1);
+            event.setRequired(Boolean.TRUE);
             super.save(event);
             eventList.add(event);
             event = new Event();
@@ -91,6 +92,7 @@ public class EventService extends BaseEntityService<Event> {
             event.setName("撤销预算确认(预占用)");
             event.setBizFrom(appCode);
             event.setRank(2);
+            event.setRequired(Boolean.TRUE);
             super.save(event);
             eventList.add(event);
             event = new Event();
@@ -98,6 +100,7 @@ public class EventService extends BaseEntityService<Event> {
             event.setName("预算生效释放预占用");
             event.setBizFrom(appCode);
             event.setRank(3);
+            event.setRequired(Boolean.TRUE);
             super.save(event);
             eventList.add(event);
             event = new Event();
@@ -105,6 +108,31 @@ public class EventService extends BaseEntityService<Event> {
             event.setName("预算下达生效");
             event.setBizFrom(appCode);
             event.setRank(4);
+            event.setRequired(Boolean.TRUE);
+            super.save(event);
+            eventList.add(event);
+            event = new Event();
+            event.setCode(Constants.EVENT_BUDGET_TRUNDLE);
+            event.setName("预算滚动结转");
+            event.setBizFrom(appCode);
+            event.setRank(5);
+            event.setRequired(Boolean.TRUE);
+            super.save(event);
+            eventList.add(event);
+            event = new Event();
+            event.setCode(Constants.EVENT_BUDGET_FREEZE);
+            event.setName("预算冻结");
+            event.setBizFrom(appCode);
+            event.setRank(6);
+            event.setRequired(Boolean.TRUE);
+            super.save(event);
+            eventList.add(event);
+            event = new Event();
+            event.setCode(Constants.EVENT_BUDGET_UNFREEZE);
+            event.setName("预算解冻");
+            event.setBizFrom(appCode);
+            event.setRank(7);
+            event.setRequired(Boolean.TRUE);
             super.save(event);
             eventList.add(event);
         }

@@ -196,6 +196,22 @@ public class PeriodService extends BaseEntityService<Period> {
     }
 
     /**
+     * 按预算主体获取期间(未关闭的)
+     *
+     * @param subjectId 预算主体id
+     * @return 期间清单
+     */
+    public Period findByCodeAndYear(String subjectId, String code, Integer year) {
+        Search search = Search.createSearch();
+        search.addFilter(new SearchFilter(Period.FIELD_SUBJECT_ID, subjectId));
+        search.addFilter(new SearchFilter(Period.FIELD_CODE, code));
+        //年份
+        search.addFilter(new SearchFilter(Period.FIELD_YEAR, year));
+        search.addFilter(new SearchFilter(Period.FIELD_CLOSED, Boolean.FALSE));
+        return dao.findFirstByFilters(search);
+    }
+
+    /**
      * 设置预算期间状态
      *
      * @param id     预算期间id
@@ -251,12 +267,118 @@ public class PeriodService extends BaseEntityService<Period> {
                 return ResultData.fail(ContextUtil.getMessage("period_00004"));
             }
         } else {
-            period.setCode("" + IdGenerator.nextId());
+            period.setCode(String.valueOf(IdGenerator.nextId()));
         }
         // TODO 检查同主体自定义期间交差
 
         this.save(period);
         return ResultData.success();
+    }
+
+    /**
+     * 通过当前预算期间获取下一预算期间
+     *
+     * @param periodId 当前预算期间(非自定义类型预算期间)
+     * @return 返回下一预算期间对象
+     */
+    public ResultData<Period> getNextPeriod(String periodId, boolean isAcrossYear) {
+        Period currentPeriod = dao.findOne(periodId);
+        if (Objects.isNull(currentPeriod)) {
+            // 预算期间未找到
+            return ResultData.fail(ContextUtil.getMessage("period_00002"));
+        }
+        //当前期间类型
+        PeriodType currentPeriodType = currentPeriod.getType();
+        if (PeriodType.CUSTOMIZE == currentPeriodType) {
+            // 自定义期间类型无下级期间
+            return ResultData.fail(ContextUtil.getMessage("period_00005"));
+        }
+
+        // 预算主体
+        String subjectId = currentPeriod.getSubjectId();
+        // 下一预算期间
+        Period nextPeriod = null;
+        // 通过标准期间的code规则递增
+        String periodCode = currentPeriod.getCode();
+        // 所属年
+        Integer year = currentPeriod.getYear();
+        //月度
+        if (PeriodType.MONTHLY == currentPeriodType) {
+            if (PeriodCode.M1.name().equals(periodCode)) {
+                nextPeriod = this.findByCodeAndYear(subjectId, PeriodCode.M2.name(), year);
+            } else if (PeriodCode.M2.name().equals(periodCode)) {
+                nextPeriod = this.findByCodeAndYear(subjectId, PeriodCode.M3.name(), year);
+            } else if (PeriodCode.M3.name().equals(periodCode)) {
+                nextPeriod = this.findByCodeAndYear(subjectId, PeriodCode.M4.name(), year);
+            } else if (PeriodCode.M4.name().equals(periodCode)) {
+                nextPeriod = this.findByCodeAndYear(subjectId, PeriodCode.M5.name(), year);
+            } else if (PeriodCode.M5.name().equals(periodCode)) {
+                nextPeriod = this.findByCodeAndYear(subjectId, PeriodCode.M6.name(), year);
+            } else if (PeriodCode.M6.name().equals(periodCode)) {
+                nextPeriod = this.findByCodeAndYear(subjectId, PeriodCode.M7.name(), year);
+            } else if (PeriodCode.M7.name().equals(periodCode)) {
+                nextPeriod = this.findByCodeAndYear(subjectId, PeriodCode.M8.name(), year);
+            } else if (PeriodCode.M8.name().equals(periodCode)) {
+                nextPeriod = this.findByCodeAndYear(subjectId, PeriodCode.M9.name(), year);
+            } else if (PeriodCode.M9.name().equals(periodCode)) {
+                nextPeriod = this.findByCodeAndYear(subjectId, PeriodCode.M10.name(), year);
+            } else if (PeriodCode.M10.name().equals(periodCode)) {
+                nextPeriod = this.findByCodeAndYear(subjectId, PeriodCode.M11.name(), year);
+            } else if (PeriodCode.M11.name().equals(periodCode)) {
+                nextPeriod = this.findByCodeAndYear(subjectId, PeriodCode.M12.name(), year);
+            } else if (PeriodCode.M12.name().equals(periodCode)) {
+                // 跨年度结转控制
+                if (isAcrossYear) {
+                    nextPeriod = this.findByCodeAndYear(subjectId, PeriodCode.M1.name(), year + 1);
+                } else {
+                    // 不允许跨年度获取下一期间
+                    return ResultData.fail(ContextUtil.getMessage("pool_00016"));
+                }
+            }
+        }
+        //季度
+        else if (PeriodType.QUARTER == currentPeriodType) {
+            if (PeriodCode.Q1.name().equals(periodCode)) {
+                nextPeriod = this.findByCodeAndYear(subjectId, PeriodCode.Q2.name(), year);
+            } else if (PeriodCode.Q2.name().equals(periodCode)) {
+                nextPeriod = this.findByCodeAndYear(subjectId, PeriodCode.Q3.name(), year);
+            } else if (PeriodCode.Q3.name().equals(periodCode)) {
+                nextPeriod = this.findByCodeAndYear(subjectId, PeriodCode.Q4.name(), year);
+            } else if (PeriodCode.Q4.name().equals(periodCode)) {
+                // 跨年度结转控制
+                if (isAcrossYear) {
+                    nextPeriod = this.findByCodeAndYear(subjectId, PeriodCode.Q1.name(), year + 1);
+                } else {
+                    // 不允许跨年度获取下一期间
+                    return ResultData.fail(ContextUtil.getMessage("pool_00016"));
+                }
+            }
+        }
+        //半年度
+        else if (PeriodType.SEMIANNUAL == currentPeriodType) {
+            if (PeriodCode.H1.name().equals(periodCode)) {
+                nextPeriod = this.findByCodeAndYear(subjectId, PeriodCode.H2.name(), year);
+            } else if (PeriodCode.H2.name().equals(periodCode)) {
+                // 跨年度结转控制
+                if (isAcrossYear) {
+                    nextPeriod = this.findByCodeAndYear(subjectId, PeriodCode.H1.name(), year + 1);
+                } else {
+                    // 不允许跨年度获取下一期间
+                    return ResultData.fail(ContextUtil.getMessage("pool_00016"));
+                }
+            }
+        }
+        //年度
+        else if (PeriodType.ANNUAL == currentPeriodType) {
+            // 跨年度结转控制
+            if (isAcrossYear) {
+                nextPeriod = this.findByCodeAndYear(subjectId, PeriodCode.Y.name(), year + 1);
+            } else {
+                // 不允许跨年度获取下一期间
+                return ResultData.fail(ContextUtil.getMessage("pool_00016"));
+            }
+        }
+        return ResultData.success(nextPeriod);
     }
 
     /**

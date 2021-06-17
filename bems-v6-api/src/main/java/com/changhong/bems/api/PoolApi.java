@@ -68,6 +68,16 @@ public interface PoolApi {
     ResultData<Void> disable(@RequestBody Set<String> ids);
 
     /**
+     * 滚动预算池
+     *
+     * @param id 预算池id
+     * @return 滚动结果
+     */
+    @PostMapping(path = "trundle", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "滚动预算池", notes = "通过Id滚动预算池")
+    ResultData<Void> trundlePool(@RequestParam("id") String id);
+
+    /**
      * 分页查询预算执行日志
      *
      * @param search 查询参数

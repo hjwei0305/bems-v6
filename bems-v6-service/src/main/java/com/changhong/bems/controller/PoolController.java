@@ -3,8 +3,8 @@ package com.changhong.bems.controller;
 import com.changhong.bems.api.PoolApi;
 import com.changhong.bems.dto.ExecutionRecordDto;
 import com.changhong.bems.dto.PoolAttributeDto;
-import com.changhong.bems.entity.ExecutionRecord;
 import com.changhong.bems.entity.ExecutionRecordView;
+import com.changhong.bems.entity.Pool;
 import com.changhong.bems.entity.PoolAttributeView;
 import com.changhong.bems.service.PoolService;
 import com.changhong.sei.core.context.ContextUtil;
@@ -101,6 +101,18 @@ public class PoolController implements PoolApi {
     @Override
     public ResultData<Void> disable(Set<String> ids) {
         return service.updateActiveStatus(ids, Boolean.FALSE);
+    }
+
+    /**
+     * 滚动预算池
+     *
+     * @param poolId 预算池id
+     * @return 滚动结果
+     */
+    @Override
+    public ResultData<Void> trundlePool(String poolId) {
+        Pool pool = service.findOne(poolId);
+        return service.trundlePool(pool);
     }
 
     /**

@@ -42,6 +42,11 @@ public class EventDto extends BaseEntityDto implements Serializable {
     @ApiModelProperty(value = "冻结")
     private Boolean frozen = Boolean.FALSE;
     /**
+     * 系统必要
+     */
+    @ApiModelProperty(value = "系统必要")
+    private Boolean required = Boolean.FALSE;
+    /**
      * 排序
      */
     @ApiModelProperty(value = "排序")
@@ -85,6 +90,14 @@ public class EventDto extends BaseEntityDto implements Serializable {
 
     public void setFrozen(Boolean frozen) {
         this.frozen = frozen;
+    }
+
+    public Boolean getRequired() {
+        return required;
+    }
+
+    public void setRequired(Boolean required) {
+        this.required = required;
     }
 
     public Integer getRank() {
