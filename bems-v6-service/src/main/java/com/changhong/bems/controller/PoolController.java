@@ -110,10 +110,9 @@ public class PoolController implements PoolApi {
      */
     @Override
     public ResultData<Void> trundlePool(String poolId) {
-        Pool pool = service.findOne(poolId);
         String bizId = IdGenerator.uuid2();
         String bizCode = DateUtils.formatDate(new Date(), DateUtils.FULL_SEQ_FORMAT);
-        return service.trundlePool(bizId, bizCode, pool);
+        return service.trundlePool(bizId, bizCode, poolId);
     }
 
     /**

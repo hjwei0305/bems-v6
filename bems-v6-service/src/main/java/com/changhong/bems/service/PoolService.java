@@ -324,7 +324,7 @@ public class PoolService extends BaseEntityService<Pool> {
             PoolService service = ContextUtil.getBean(PoolService.class);
             for (Pool pool : poolList) {
                 try {
-                    resultData = service.trundlePool(bizId, bizCode, pool);
+                    resultData = service.trundlePool(bizId, bizCode, pool.getId());
                     if (LOG.isInfoEnabled()) {
                         LOG.info("{} 预算滚动结转结果: {}", pool.getCode(), resultData);
                     }
@@ -345,12 +345,13 @@ public class PoolService extends BaseEntityService<Pool> {
     /**
      * 滚动预算池
      *
-     * @param pool 预算池
+     * @param poolId 预算池id
      * @return 滚动结果
      */
-    @SeiLock(key = "'trundle:pool:' + #pool.id")
+    @SeiLock(key = "'trundle:pool:' + #pool.id", fallback = "trundlePoolFallback")
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> trundlePool(String bizId, String bizCode, Pool pool) {
+    public ResultData<Void> trundlePool(String bizId, String bizCode, String poolId) {
+        Pool pool = dao.findOne(poolId);
         if (Objects.isNull(pool)) {
             // 未找到预算池
             return ResultData.fail(ContextUtil.getMessage("pool_00001"));
@@ -358,6 +359,12 @@ public class PoolService extends BaseEntityService<Pool> {
         if (!pool.getRoll()) {
             // 预算池不允许滚动结转
             return ResultData.fail(ContextUtil.getMessage("pool_00015", pool.getCode()));
+        }
+        if (pool.getBalance() == 0) {
+            if (LOG.isInfoEnabled()) {
+                LOG.info("预算池[{}]可用余额为0,无需结转.", pool.getCode());
+            }
+            return ResultData.success();
         }
 
         // 获取下一预算池
@@ -378,6 +385,13 @@ public class PoolService extends BaseEntityService<Pool> {
                     balance, Constants.EVENT_BUDGET_TRUNDLE, OperationType.RELEASE);
         }
         return ResultData.success();
+    }
+
+    /**
+     * trundlePool方法的降级处理
+     */
+    public ResultData<Void> trundlePoolFallback(String bizId, String bizCode, String poolId) {
+        return ResultData.fail("预算池[" + poolId + "]正在结转处理中.");
     }
 
     /**
