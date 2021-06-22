@@ -140,7 +140,6 @@ public class PeriodService extends BaseEntityService<Period> {
      *
      * @return 操作结果
      */
-    @SeiLock(key = "'closing:overdue:period'")
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> closingOverduePeriod() {
         int num = dao.closingOverduePeriod(LocalDate.now());

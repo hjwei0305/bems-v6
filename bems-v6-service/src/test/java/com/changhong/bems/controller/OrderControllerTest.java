@@ -38,7 +38,9 @@ class OrderControllerTest extends BaseUnit5Test {
 
     @Test
     void findInjectionByPage() {
-        Search search = Search.createSearch();
+//        Search search = Search.createSearch();
+        String json = "{\"quickSearchValue\":\"\",\"quickSearchProperties\":[\"code\",\"remark\"],\"pageInfo\":{\"page\":1,\"rows\":30},\"sortOrders\":[{\"property\":\"createdDate\",\"direction\":\"DESC\"}],\"filters\":[{\"fieldName\":\"createdDate\",\"operator\":\"GE\",\"value\":\"2021-06-22 00:00:00\"},{\"fieldName\":\"createdDate\",\"operator\":\"LE\",\"fieldType\":\"date\",\"value\":\"2021-06-22 23:59:59\"}]}";
+        Search search = JsonUtils.fromJson(json, Search.class);
         search.addFilter(new SearchFilter(Order.FIELD_ORDER_CATEGORY, OrderCategory.INJECTION));
         ResultData<PageResult<OrderDto>> resultData = controller.findInjectionByPage(search);
         System.out.println(resultData);

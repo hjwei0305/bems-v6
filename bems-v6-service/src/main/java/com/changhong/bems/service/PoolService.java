@@ -9,6 +9,8 @@ import com.changhong.bems.dto.PeriodType;
 import com.changhong.bems.entity.*;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.context.SessionUser;
+import com.changhong.sei.core.context.mock.LocalMockUser;
+import com.changhong.sei.core.context.mock.MockUser;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
@@ -22,6 +24,7 @@ import com.changhong.sei.exception.ServiceException;
 import com.changhong.sei.serial.sdk.SerialService;
 import com.changhong.sei.util.DateUtils;
 import com.changhong.sei.util.IdGenerator;
+import com.changhong.sei.util.thread.ThreadLocalHolder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -322,8 +325,18 @@ public class PoolService extends BaseEntityService<Pool> {
             String bizCode = DateUtils.formatDate(new Date(), DateUtils.FULL_SEQ_FORMAT);
             // 为了启用事务,特以此获取bean再调用
             PoolService service = ContextUtil.getBean(PoolService.class);
+            // 模拟用户
+            MockUser mockUser = new LocalMockUser();
             for (Pool pool : poolList) {
                 try {
+                    ThreadLocalHolder.begin();
+                    SessionUser sessionUser = new SessionUser();
+                    sessionUser.setTenantCode(pool.getTenantCode());
+                    sessionUser.setUserId("sys");
+                    sessionUser.setAccount("sys");
+                    sessionUser.setUserName("sys");
+                    mockUser.mock(sessionUser);
+
                     resultData = service.trundlePool(bizId, bizCode, pool.getId());
                     if (LOG.isInfoEnabled()) {
                         LOG.info("{} 预算滚动结转结果: {}", pool.getCode(), resultData);
@@ -331,6 +344,8 @@ public class PoolService extends BaseEntityService<Pool> {
                 } catch (Exception e) {
                     resultData = ResultData.fail(pool.getCode() + "预算滚动结转异常" + ExceptionUtils.getRootCauseMessage(e));
                     LOG.error(pool.getCode() + " 预算滚动结转异常", e);
+                } finally {
+                    ThreadLocalHolder.end();
                 }
                 if (resultData.successful()) {
                     success++;
@@ -348,7 +363,7 @@ public class PoolService extends BaseEntityService<Pool> {
      * @param poolId 预算池id
      * @return 滚动结果
      */
-    @SeiLock(key = "'trundle:pool:' + #pool.id", fallback = "trundlePoolFallback")
+    @SeiLock(key = "'trundle:pool:' + #poolId", fallback = "trundlePoolFallback")
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> trundlePool(String bizId, String bizCode, String poolId) {
         Pool pool = dao.findOne(poolId);
