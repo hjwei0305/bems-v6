@@ -140,11 +140,19 @@ public class PeriodService extends BaseEntityService<Period> {
      *
      * @return 操作结果
      */
+    @SeiLock(key = "'bemsv6:closingOverduePeriod'", fallback = "closingOverduePeriodFallback")
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> closingOverduePeriod() {
         int num = dao.closingOverduePeriod(LocalDate.now());
         LOG.info("关闭过期的预算期间: {}个", num);
         return ResultData.success();
+    }
+
+    /**
+     * closingOverduePeriod方法的降级处理
+     */
+    public ResultData<Void> closingOverduePeriodFallback() {
+        return ResultData.fail("关闭过期预算期间调度定时任务正在结转处理中.");
     }
 
     /**

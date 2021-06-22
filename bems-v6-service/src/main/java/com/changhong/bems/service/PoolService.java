@@ -363,7 +363,7 @@ public class PoolService extends BaseEntityService<Pool> {
      * @param poolId 预算池id
      * @return 滚动结果
      */
-    @SeiLock(key = "'trundle:pool:' + #poolId", fallback = "trundlePoolFallback")
+    @SeiLock(key = "'bemsv6:trundle:pool:' + #poolId", fallback = "trundlePoolFallback")
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> trundlePool(String bizId, String bizCode, String poolId) {
         Pool pool = dao.findOne(poolId);
