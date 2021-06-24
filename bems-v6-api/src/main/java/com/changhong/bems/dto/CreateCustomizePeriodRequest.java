@@ -5,6 +5,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.time.LocalDate;
 
@@ -18,20 +21,26 @@ import java.time.LocalDate;
 public class CreateCustomizePeriodRequest extends BaseEntityDto implements Serializable {
     private static final long serialVersionUID = -6612468820644741725L;
 
-    @ApiModelProperty(value = "预算主体id")
+    @NotBlank
+    @Size(max = 36)
+    @ApiModelProperty(value = "预算主体id", required = true)
     private String subjectId;
+    @NotBlank
+    @Size(max = 50)
     @ApiModelProperty(value = "期间名称")
     private String name;
     /**
      * 起始日期
      */
-    @ApiModelProperty(value = "起始日期", example = "2021-04-22")
+    @NotNull
+    @ApiModelProperty(value = "起始日期", example = "2021-04-22", required = true)
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate startDate;
     /**
      * 截止日期
      */
-    @ApiModelProperty(value = "截止日期", example = "2021-04-22")
+    @NotNull
+    @ApiModelProperty(value = "截止日期", example = "2021-04-22", required = true)
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate endDate;
 

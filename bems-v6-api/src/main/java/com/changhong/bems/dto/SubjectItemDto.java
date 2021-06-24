@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 /**
  * 预算科目(Item)DTO类
@@ -19,7 +20,8 @@ public class SubjectItemDto extends ItemDto {
      * 预算主体id
      */
     @NotBlank
-    @ApiModelProperty(value = "预算主体id")
+    @Size(max = 36)
+    @ApiModelProperty(value = "预算主体id", required = true)
     private String subjectId;
     /**
      * 执行策略id

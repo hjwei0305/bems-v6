@@ -3,6 +3,10 @@ package com.changhong.bems.dto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
 
 /**
@@ -14,12 +18,15 @@ import java.io.Serializable;
 @ApiModel(description = "创建标准期间DTO")
 public class CreateNormalPeriodRequest implements Serializable {
     private static final long serialVersionUID = -6612468820644741725L;
-
-    @ApiModelProperty(value = "预算主体id")
+    @NotBlank
+    @Size(max = 36)
+    @ApiModelProperty(value = "预算主体id", required = true)
     private String subjectId;
-    @ApiModelProperty(value = "年份", example = "2020")
+    @Pattern(regexp = "^([1-9][0-9]{4})$", message = "年份不正确")
+    @ApiModelProperty(value = "年份", example = "2020", required = true)
     private int year;
-    @ApiModelProperty(value = "要创建的期间类型")
+    @NotNull
+    @ApiModelProperty(value = "要创建的期间类型", required = true)
     private PeriodType[] periodTypes;
 
     public String getSubjectId() {

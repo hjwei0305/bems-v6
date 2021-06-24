@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  * 预算策略(Strategy)DTO类
@@ -19,29 +20,34 @@ public class StrategyDto extends BaseEntityDto {
     /**
      * 策略代码
      */
-    @ApiModelProperty(value = "策略代码")
+    @NotBlank
+    @Size(max = 30)
+    @ApiModelProperty(value = "策略代码", required = true)
     private String code;
     /**
      * 策略名称
      */
     @NotBlank
-    @ApiModelProperty(value = "策略名称")
+    @Size(max = 50)
+    @ApiModelProperty(value = "策略名称", required = true)
     private String name;
     /**
      * 策略类路径
      */
     @NotBlank
-    @ApiModelProperty(value = "策略类路径")
+    @Size(max = 100)
+    @ApiModelProperty(value = "策略类路径", required = true)
     private String classPath;
     /**
      * 策略类别
      */
     @NotNull
-    @ApiModelProperty(value = "策略类别")
+    @ApiModelProperty(value = "策略类别", required = true)
     private StrategyCategory category;
     /**
      * 策略描述
      */
+    @Size(max = 200)
     @ApiModelProperty(value = "策略描述")
     private String remark;
     /**

@@ -3,8 +3,10 @@ package com.changhong.bems.dto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.StringJoiner;
 
@@ -22,33 +24,40 @@ public class BudgetUse implements Serializable {
      * 公司代码
      */
     @NotBlank
-    @ApiModelProperty(value = "公司代码")
+    @Size(max = 30)
+    @ApiModelProperty(value = "公司代码", required = true)
     private String corpCode;
     /**
      * 占用金额
      */
+    @Digits(integer = 10, fraction = 2)
     @ApiModelProperty(value = "占用金额")
     private double amount = 0;
     /**
      * 业务事件
      */
     @NotBlank
-    @ApiModelProperty(value = "业务事件")
+    @Size(max = 30)
+    @ApiModelProperty(value = "业务事件", required = true)
     private String eventCode;
     /**
      * 业务id
      */
     @NotBlank
-    @ApiModelProperty(value = "业务id")
+    @Size(max = 36)
+    @ApiModelProperty(value = "业务id", required = true)
     private String bizId;
     /**
      * 业务代码
      */
-    @ApiModelProperty(value = "业务代码")
+    @NotBlank
+    @Size(max = 30)
+    @ApiModelProperty(value = "业务代码", required = true)
     private String bizCode;
     /**
      * 业务描述
      */
+    @Size(max = 200)
     @ApiModelProperty(value = "业务描述")
     private String bizRemark;
     /**
@@ -56,47 +65,55 @@ public class BudgetUse implements Serializable {
      */
     @NotBlank
     @Pattern(regexp = "^[0-9]{4}-[0-9]{2}-[0-9]{2}$", message = "占用日期格式yyyy-MM-dd不正确")
-    @ApiModelProperty(value = "占用日期", example = "2021-05-13")
+    @ApiModelProperty(value = "占用日期", example = "2021-05-13", required = true)
     private String date;
     /**
      * 预算科目代码
      */
     @NotBlank
-    @ApiModelProperty(value = "预算科目代码")
+    @Size(max = 30)
+    @ApiModelProperty(value = "预算科目代码", required = true)
     private String item;
     /**
      * 组织ID
      */
+    @Size(max = 36)
     @ApiModelProperty(value = "组织ID")
     private String org;
     /**
      * 项目
      */
+    @Size(max = 36)
     @ApiModelProperty(value = "项目")
     private String project;
     /**
      * 自定义1
      */
+    @Size(max = 50)
     @ApiModelProperty(value = "自定义1")
     private String udf1;
     /**
      * 自定义2
      */
+    @Size(max = 50)
     @ApiModelProperty(value = "自定义2")
     private String udf2;
     /**
      * 自定义3
      */
+    @Size(max = 50)
     @ApiModelProperty(value = "自定义3")
     private String udf3;
     /**
      * 自定义4
      */
+    @Size(max = 50)
     @ApiModelProperty(value = "自定义4")
     private String udf4;
     /**
      * 自定义5
      */
+    @Size(max = 50)
     @ApiModelProperty(value = "自定义5")
     private String udf5;
 

@@ -4,6 +4,9 @@ import com.changhong.sei.core.dto.BaseEntityDto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
+
 /**
  * 预算维度(Dimension)DTO类
  *
@@ -16,27 +19,37 @@ public class DimensionDto extends BaseEntityDto {
     /**
      * 维度代码
      */
-    @ApiModelProperty(value = "维度代码")
+    @NotBlank
+    @Size(max = 30)
+    @ApiModelProperty(value = "维度代码", required = true)
     private String code;
     /**
      * 维度名称
      */
-    @ApiModelProperty(value = "维度名称")
+    @NotBlank
+    @Size(max = 50)
+    @ApiModelProperty(value = "维度名称", required = true)
     private String name;
     /**
      * UI组件名
      */
-    @ApiModelProperty(value = "UI组件名")
+    @NotBlank
+    @Size(max = 50)
+    @ApiModelProperty(value = "UI组件名", required = true)
     private String uiComponent;
     /**
      * 维度策略id
      */
-    @ApiModelProperty(value = "维度策略id")
+    @NotBlank
+    @Size(max = 36)
+    @ApiModelProperty(value = "维度策略id", required = true)
     private String strategyId;
     /**
      * 维度策略名称
      */
-    @ApiModelProperty(value = "维度策略名称")
+    @NotBlank
+    @Size(max = 50)
+    @ApiModelProperty(value = "维度策略名称", required = true)
     private String strategyName;
     /**
      * 系统必要

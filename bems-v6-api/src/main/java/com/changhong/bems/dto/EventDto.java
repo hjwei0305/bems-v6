@@ -4,6 +4,8 @@ import com.changhong.sei.core.dto.BaseEntityDto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
 
 /**
@@ -19,12 +21,16 @@ public class EventDto extends BaseEntityDto implements Serializable {
     /**
      * 代码
      */
-    @ApiModelProperty(value = "代码")
+    @NotBlank
+    @Size(max = 30)
+    @ApiModelProperty(value = "代码", required = true)
     private String code;
     /**
      * 名称
      */
-    @ApiModelProperty(value = "名称")
+    @NotBlank
+    @Size(max = 50)
+    @ApiModelProperty(value = "名称", required = true)
     private String name;
     /**
      * 标签名(多个用逗号分隔)
@@ -34,7 +40,9 @@ public class EventDto extends BaseEntityDto implements Serializable {
     /**
      * 业务来源
      */
-    @ApiModelProperty(value = "业务来源")
+    @NotBlank
+    @Size(max = 50)
+    @ApiModelProperty(value = "业务来源", required = true)
     private String bizFrom;
     /**
      * 冻结

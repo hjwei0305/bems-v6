@@ -3,6 +3,7 @@ package com.changhong.bems.dto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.util.StringJoiner;
@@ -21,17 +22,18 @@ public class BudgetFree implements Serializable {
      * 业务事件
      */
     @NotBlank
-    @ApiModelProperty(value = "业务事件")
+    @ApiModelProperty(value = "业务事件", required = true)
     private String eventCode;
     /**
      * 业务id
      */
     @NotBlank
-    @ApiModelProperty(value = "业务id")
+    @ApiModelProperty(value = "业务id", required = true)
     private String bizId;
     /**
      * 占用金额
      */
+    @Digits(integer = 10, fraction = 2)
     @ApiModelProperty(value = "占用金额")
     private double amount = 0;
 

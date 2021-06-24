@@ -4,7 +4,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Set;
 
@@ -21,13 +21,13 @@ public class AssigneItemRequest implements Serializable {
      * 预算主体id
      */
     @NotBlank
-    @ApiModelProperty(value = "预算主体id")
+    @ApiModelProperty(value = "预算主体id", required = true)
     private String subjectId;
     /**
      * 维度代码清单
      */
-    @NotEmpty
-    @ApiModelProperty(value = "科目代码清单")
+    @NotNull
+    @ApiModelProperty(value = "科目代码清单", required = true)
     private Set<String> itemCodes;
 
     public String getSubjectId() {

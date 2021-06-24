@@ -4,9 +4,8 @@ import com.changhong.sei.core.dto.BaseEntityDto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import org.hibernate.validator.constraints.Length;
 
-import javax.validation.constraints.Digits;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Date;
@@ -24,14 +23,13 @@ public class OrderDto extends BaseEntityDto {
     /**
      * 申请单号
      */
-    @Length(max = 10)
     @ApiModelProperty(value = "申请单号")
     private String code;
     /**
      * 预算主体id
      */
-    @Size(max = 36)
-    @ApiModelProperty(value = "预算主体id")
+    @NotBlank
+    @ApiModelProperty(value = "预算主体id", required = true)
     private String subjectId;
     /**
      * 预算主体名称
@@ -41,7 +39,8 @@ public class OrderDto extends BaseEntityDto {
     /**
      * 币种代码
      */
-    @ApiModelProperty(value = "币种代码")
+    @NotBlank
+    @ApiModelProperty(value = "币种代码", required = true)
     private String currencyCode;
     /**
      * 币种名称
@@ -51,8 +50,8 @@ public class OrderDto extends BaseEntityDto {
     /**
      * 预算类型id
      */
-    @Size(max = 36)
-    @ApiModelProperty(value = "预算类型id")
+    @NotBlank
+    @ApiModelProperty(value = "预算类型id", required = true)
     private String categoryId;
     /**
      * 预算类型名称
@@ -63,25 +62,24 @@ public class OrderDto extends BaseEntityDto {
      * 期间分类
      */
     @NotNull
-    @ApiModelProperty(value = "期间分类")
+    @ApiModelProperty(value = "期间分类", required = true)
     private PeriodType periodType;
     /**
      * 订单类型
      */
     @NotNull
-    @ApiModelProperty(value = "订单类型")
+    @ApiModelProperty(value = "订单类型", required = true)
     private OrderCategory orderCategory;
     /**
      * 申请金额
      */
-    @Digits(integer = 10, fraction = 2)
     @ApiModelProperty(value = "申请金额")
     private Double applyAmount = 0d;
     /**
      * 申请组织id
      */
-    @Size(max = 36)
-    @ApiModelProperty(value = "申请组织id")
+    @NotBlank
+    @ApiModelProperty(value = "申请组织id", required = true)
     private String applyOrgId;
     /**
      * 申请组织代码
@@ -122,6 +120,7 @@ public class OrderDto extends BaseEntityDto {
     /**
      * 备注说明
      */
+    @Size(max = 200)
     @ApiModelProperty(value = "备注说明")
     private String remark;
     /**

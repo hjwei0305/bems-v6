@@ -4,6 +4,10 @@ import com.changhong.sei.core.dto.BaseEntityDto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
 /**
  * 预算类型(Category)DTO类
  *
@@ -16,17 +20,22 @@ public class CategoryDto extends BaseEntityDto {
     /**
      * 名称
      */
-    @ApiModelProperty(value = "名称")
+    @NotBlank
+    @Size(max = 50)
+    @ApiModelProperty(value = "名称", required = true)
     private String name;
     /**
      * 类型分类
      */
-    @ApiModelProperty(value = "类型分类")
+    @NotNull
+    @ApiModelProperty(value = "类型分类", required = true)
     private CategoryType type;
     /**
      * 预算主体id
      */
-    @ApiModelProperty(value = "预算主体id")
+    @NotBlank
+    @Size(max = 36)
+    @ApiModelProperty(value = "预算主体id", required = true)
     private String subjectId;
     /**
      * 预算主体名称
@@ -36,7 +45,8 @@ public class CategoryDto extends BaseEntityDto {
     /**
      * 期间类型
      */
-    @ApiModelProperty(value = "期间类型")
+    @NotNull
+    @ApiModelProperty(value = "期间类型", required = true)
     private PeriodType periodType;
     /**
      * 管理类型(订单类型)
@@ -47,17 +57,17 @@ public class CategoryDto extends BaseEntityDto {
      * 允许使用(业务可用)
      */
     @ApiModelProperty(value = "允许使用(业务可用)")
-    private Boolean use;
+    private Boolean use = Boolean.FALSE;
     /**
      * 允许结转
      */
     @ApiModelProperty(value = "允许结转")
-    private Boolean roll;
+    private Boolean roll = Boolean.FALSE;
     /**
      * 是否冻结
      */
     @ApiModelProperty(value = "是否冻结")
-    private Boolean frozen;
+    private Boolean frozen = Boolean.FALSE;
     /**
      * 参考id
      */

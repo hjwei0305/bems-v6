@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 /**
  * 预算科目(Item)DTO类
@@ -19,12 +20,15 @@ public class ItemDto extends BaseEntityDto {
      * 代码
      */
     @NotBlank
-    @ApiModelProperty(value = "代码")
+    @Size(max = 30)
+    @ApiModelProperty(value = "代码", required = true)
     private String code;
     /**
      * 名称
      */
-    @ApiModelProperty(value = "名称")
+    @NotBlank
+    @Size(max = 50)
+    @ApiModelProperty(value = "名称", required = true)
     private String name;
 
     public String getCode() {

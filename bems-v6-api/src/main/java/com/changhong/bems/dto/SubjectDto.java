@@ -4,6 +4,9 @@ import com.changhong.sei.core.dto.BaseEntityDto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
+
 /**
  * 预算主体(Subject)DTO类
  *
@@ -16,56 +19,72 @@ public class SubjectDto extends BaseEntityDto {
     /**
      * 主体代码
      */
-    @ApiModelProperty(value = "主体代码")
+    @NotBlank
+    @Size(max = 30)
+    @ApiModelProperty(value = "主体代码", required = true)
     private String code;
     /**
      * 主体名称
      */
-    @ApiModelProperty(value = "主体名称")
+    @NotBlank
+    @Size(max = 50)
+    @ApiModelProperty(value = "主体名称", required = true)
     private String name;
     /**
      * 公司代码
      */
-    @ApiModelProperty(value = "公司代码")
+    @NotBlank
+    @Size(max = 30)
+    @ApiModelProperty(value = "公司代码", required = true)
     private String corporationCode;
     /**
      * 公司名称
      */
+    @Size(max = 50)
     @ApiModelProperty(value = "公司名称")
     private String corporationName;
     /**
      * 组织ID
      */
-    @ApiModelProperty(value = "组织ID")
+    @NotBlank
+    @Size(max = 36)
+    @ApiModelProperty(value = "组织ID", required = true)
     private String orgId;
     /**
      * 组织代码
      */
+    @Size(max = 30)
     @ApiModelProperty(value = "组织代码")
     private String orgCode;
     /**
      * 组织名称
      */
+    @Size(max = 50)
     @ApiModelProperty(value = "组织名称")
     private String orgName;
     /**
      * 币种代码
      */
+    @Size(max = 30)
     @ApiModelProperty(value = "币种代码")
     private String currencyCode;
     /**
      * 币种名称
      */
+    @Size(max = 50)
     @ApiModelProperty(value = "币种名称")
     private String currencyName;
     /**
      * 执行策略id
      */
-    @ApiModelProperty(value = "执行策略id")
+    @NotBlank
+    @Size(max = 36)
+    @ApiModelProperty(value = "执行策略id", required = true)
     private String strategyId;
     /**
      * 执行策略名称
      */
+    @Size(max = 50)
     @ApiModelProperty(value = "执行策略名称")
     private String strategyName;
     /**

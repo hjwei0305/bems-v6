@@ -4,7 +4,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Set;
 
@@ -21,13 +21,13 @@ public class AssigneDimensionRequest implements Serializable {
      * 预算类型id
      */
     @NotBlank
-    @ApiModelProperty(value = "预算类型id")
+    @ApiModelProperty(value = "预算类型id", required = true)
     private String categoryId;
     /**
      * 维度代码清单
      */
-    @NotEmpty
-    @ApiModelProperty(value = "维度代码清单")
+    @NotNull
+    @ApiModelProperty(value = "维度代码清单", required = true)
     private Set<String> dimensionCodes;
 
     public String getCategoryId() {
