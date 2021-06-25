@@ -564,18 +564,47 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                 break;
             case COMPLETED:
                 // 流程正常完成
-                // 检查订单状态
-                if (OrderStatus.APPROVING == order.getStatus()) {
-                    service.effective(orderId);
-                } else {
-                    // 订单状态为[{0}],不允许操作!
-                    return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(Constants.I18N_ORDER_STATUS_PREFIX + order.getStatus())));
-                }
+
                 break;
             default:
 
         }
         return ResultData.success(Boolean.TRUE);
+    }
+
+    /**
+     * 流程结束事件,生效预算申请单
+     *
+     * @param flowInvokeParams 服务、事件输入参数VO
+     * @return 操作结果
+     */
+    @Override
+    public ResultData<Boolean> flowEndEvent(FlowInvokeParams flowInvokeParams) {
+        // 业务id
+        String orderId = flowInvokeParams.getId();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("流程状态变化接口. 单据id: {}", orderId);
+        }
+
+        //终止时
+        Map<String, String> otherParam = flowInvokeParams.getParams();
+        if (otherParam != null) {
+            String endSign = otherParam.get("endSign");
+            // 等于0：表示根据流程图走到了流程的结束节点
+            if ("0".equals(endSign)) {
+                ResultData<Order> resultData = service.effective(orderId);
+                // 检查订单状态
+                if (resultData.failed()) {
+                    return ResultData.fail(resultData.getMessage());
+                }
+            } else {
+                // 状态更新为提交流程前的已确认状态
+                service.updateStatus(orderId, OrderStatus.CONFIRMED);
+            }
+            return ResultData.success(Boolean.TRUE);
+        } else {
+            return ResultData.fail("流程结束标识符不存在");
+        }
     }
 
     /**

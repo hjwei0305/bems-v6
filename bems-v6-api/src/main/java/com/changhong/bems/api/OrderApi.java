@@ -309,6 +309,17 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
                                    @RequestParam("status") String status);
 
     /**
+     * 流程结束事件,生效预算申请单
+     *
+     * @param flowInvokeParams 服务、事件输入参数VO
+     * @return 操作结果
+     */
+    @PostMapping(path = "flowEndEvent", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "预算流程结束事件", notes = "流程结束事件,生效预算申请单")
+    ResultData<Boolean> flowEndEvent(@RequestBody FlowInvokeParams flowInvokeParams);
+
+
+    /**
      * 移动端页面属性
      */
     @GetMapping("formPropertiesAndValues")
