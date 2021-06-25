@@ -530,8 +530,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      */
     @Override
     public ResultData<Boolean> resetState(String businessModelCode, String id, String status) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("流程状态变化接口. 订单类型: {}, 单据id: {}, 状态: {}", businessModelCode, id, status);
+        if (LOG.isInfoEnabled()) {
+            LOG.info("流程状态变化接口. 订单类型: {}, 单据id: {}, 状态: {}", businessModelCode, id, status);
         }
         Order order = service.findOne(id);
         if (Objects.isNull(order)) {
