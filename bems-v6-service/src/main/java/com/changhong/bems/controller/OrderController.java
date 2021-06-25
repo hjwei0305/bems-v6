@@ -215,7 +215,9 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             // 订单不存在
             return ResultData.fail(ContextUtil.getMessage("order_00001"));
         }
-        if (OrderStatus.PREFAB == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
+        OrderStatus status = order.getStatus();
+        // 允许流程中修改金额
+        if (OrderStatus.PREFAB == status || OrderStatus.DRAFT == status || OrderStatus.APPROVING == status) {
             ResultData<OrderDetail> resultData = orderDetailService.updateDetailAmount(order, detail, amount);
             if (resultData.successful()) {
                 return ResultData.success(dtoModelMapper.map(resultData.getData(), OrderDetailDto.class));

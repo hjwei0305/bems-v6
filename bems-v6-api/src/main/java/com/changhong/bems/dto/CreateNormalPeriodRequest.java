@@ -22,7 +22,6 @@ public class CreateNormalPeriodRequest implements Serializable {
     @Size(max = 36)
     @ApiModelProperty(value = "预算主体id", required = true)
     private String subjectId;
-    @Pattern(regexp = "^([1-9][0-9]{4})$", message = "年份不正确")
     @ApiModelProperty(value = "年份", example = "2020", required = true)
     private int year;
     @NotNull
