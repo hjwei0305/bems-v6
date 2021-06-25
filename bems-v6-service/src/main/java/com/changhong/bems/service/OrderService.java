@@ -586,7 +586,7 @@ public class OrderService extends BaseEntityService<Order> {
             }
         } else {
             // 订单状态为[{0}],不允许操作!
-            return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+            return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(Constants.I18N_ORDER_STATUS_PREFIX + order.getStatus())));
         }
     }
 
@@ -632,7 +632,7 @@ public class OrderService extends BaseEntityService<Order> {
             return ResultData.success(order);
         } else {
             // 订单状态为[{0}],不允许操作!
-            return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+            return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(Constants.I18N_ORDER_STATUS_PREFIX + order.getStatus())));
         }
     }
 
@@ -697,7 +697,7 @@ public class OrderService extends BaseEntityService<Order> {
             }
         } else {
             // 订单状态为[{0}],不允许操作!
-            return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+            return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(Constants.I18N_ORDER_STATUS_PREFIX + order.getStatus())));
         }
     }
 
@@ -863,7 +863,7 @@ public class OrderService extends BaseEntityService<Order> {
         } else {
             // 可能已发起取消确认动作,故不作任何处理
             // 订单状态为[{0}],不允许操作!
-            resultData = ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+            resultData = ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(Constants.I18N_ORDER_STATUS_PREFIX + order.getStatus())));
         }
         return resultData;
     }
@@ -975,7 +975,7 @@ public class OrderService extends BaseEntityService<Order> {
             orderDetailService.save(detail);
         } else {
             // 订单状态为[{0}],不允许操作!
-            resultData = ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+            resultData = ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(Constants.I18N_ORDER_STATUS_PREFIX + order.getStatus())));
         }
 
         return resultData;
@@ -1130,7 +1130,7 @@ public class OrderService extends BaseEntityService<Order> {
             orderDetailService.save(detail);
         } else {
             // 订单状态为[{0}],不允许操作!
-            resultData = ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+            resultData = ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(Constants.I18N_ORDER_STATUS_PREFIX + order.getStatus())));
         }
         return resultData;
     }

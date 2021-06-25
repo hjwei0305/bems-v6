@@ -2,6 +2,7 @@ package com.changhong.bems.controller;
 
 import com.alibaba.excel.EasyExcel;
 import com.changhong.bems.api.OrderApi;
+import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
@@ -223,7 +224,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             }
         } else {
             // 订单状态为[{0}],不允许操作
-            return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+            return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(Constants.I18N_ORDER_STATUS_PREFIX + order.getStatus())));
         }
     }
 
@@ -267,7 +268,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             }
         } else {
             // 订单状态为[{0}],不允许操作
-            return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+            return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(Constants.I18N_ORDER_STATUS_PREFIX + order.getStatus())));
         }
     }
 
@@ -548,17 +549,17 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                     service.cancelConfirm(orderId);
                 } else {
                     // 订单状态为[{0}],不允许操作!
-                    return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+                    return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(Constants.I18N_ORDER_STATUS_PREFIX + order.getStatus())));
                 }
                 break;
             case INPROCESS:
                 // 流程启动或流程中
-                if (OrderStatus.PREFAB == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
+                if (OrderStatus.CONFIRMED == order.getStatus()) {
                     // 状态更新为流程中
                     service.updateStatus(orderId, OrderStatus.APPROVING);
                 } else {
                     // 订单状态为[{0}],不允许操作!
-                    return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+                    return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(Constants.I18N_ORDER_STATUS_PREFIX + order.getStatus())));
                 }
                 break;
             case COMPLETED:
@@ -568,40 +569,13 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                     service.effective(orderId);
                 } else {
                     // 订单状态为[{0}],不允许操作!
-                    return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
+                    return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(Constants.I18N_ORDER_STATUS_PREFIX + order.getStatus())));
                 }
                 break;
             default:
 
         }
         return ResultData.success(Boolean.TRUE);
-    }
-
-    /**
-     * 预算申请单提交审批,流程启动检查事件
-     *
-     * @param flowInvokeParams 服务、事件输入参数VO
-     * @return 操作结果
-     */
-    @Override
-    public ResultData<Boolean> flowBeforeEvent(FlowInvokeParams flowInvokeParams) {
-        // 业务id
-        String orderId = flowInvokeParams.getId();
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("流程状态变化接口. 单据id: {}", orderId);
-        }
-        final Order order = service.findOne(orderId);
-        if (Objects.isNull(order)) {
-            // 订单[{0}]不存在!
-            return ResultData.fail(ContextUtil.getMessage("order_00001"));
-        }
-        // 检查订单状态
-        if (OrderStatus.CONFIRMED == order.getStatus()) {
-            return ResultData.success(Boolean.TRUE);
-        } else {
-            // 订单状态为[{0}],不允许操作!
-            return ResultData.fail(ContextUtil.getMessage("order_00004", order.getStatus()));
-        }
     }
 
     /**
