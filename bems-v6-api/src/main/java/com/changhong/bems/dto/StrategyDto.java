@@ -20,8 +20,7 @@ public class StrategyDto extends BaseEntityDto {
     /**
      * 策略代码
      */
-    @NotBlank
-    @Size(max = 30)
+    @Size(max = 50)
     @ApiModelProperty(value = "策略代码", required = true)
     private String code;
     /**
