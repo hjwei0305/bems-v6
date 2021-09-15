@@ -108,15 +108,17 @@ public class StrategyService extends BaseEntityService<Strategy> {
     @Override
     protected OperateResultWithData<Strategy> preInsert(Strategy entity) {
         OperateResultWithData<Strategy> result = super.preInsert(entity);
-        Strategy existed = dao.findByProperty(Strategy.FIELD_NAME, entity.getName());
-        if (Objects.nonNull(existed)) {
-            // 已存在策略
-            return OperateResultWithData.operationFailure("strategy_00005", existed.getName());
-        }
-        existed = dao.findByProperty(Strategy.FIELD_CLASSPATH, entity.getClassPath());
-        if (Objects.nonNull(existed)) {
-            // 已存在类路径的策略
-            return OperateResultWithData.operationFailure("strategy_00006", existed.getClassPath(), existed.getName());
+        if (result.successful()) {
+            Strategy existed = dao.findByProperty(Strategy.FIELD_NAME, entity.getName());
+            if (Objects.nonNull(existed)) {
+                // 已存在策略
+                return OperateResultWithData.operationFailure("strategy_00005", existed.getName());
+            }
+            existed = dao.findByProperty(Strategy.FIELD_CLASSPATH, entity.getClassPath());
+            if (Objects.nonNull(existed)) {
+                // 已存在类路径的策略
+                return OperateResultWithData.operationFailure("strategy_00006", existed.getClassPath(), existed.getName());
+            }
         }
         return result;
     }
@@ -129,15 +131,17 @@ public class StrategyService extends BaseEntityService<Strategy> {
     @Override
     protected OperateResultWithData<Strategy> preUpdate(Strategy entity) {
         OperateResultWithData<Strategy> result = super.preUpdate(entity);
-        Strategy existed = dao.findByProperty(Strategy.FIELD_NAME, entity.getName());
-        if (Objects.nonNull(existed) && !StringUtils.equals(entity.getId(), existed.getId())) {
-            // 已存在策略
-            return OperateResultWithData.operationFailure("strategy_00005", existed.getName());
-        }
-        existed = dao.findByProperty(Strategy.FIELD_CLASSPATH, entity.getClassPath());
-        if (Objects.nonNull(existed) && !StringUtils.equals(entity.getId(), existed.getId())) {
-            // 已存在类路径的策略
-            return OperateResultWithData.operationFailure("strategy_00006", existed.getClassPath(), existed.getName());
+        if (result.successful()) {
+            Strategy existed = dao.findByProperty(Strategy.FIELD_NAME, entity.getName());
+            if (Objects.nonNull(existed) && !StringUtils.equals(entity.getId(), existed.getId())) {
+                // 已存在策略
+                return OperateResultWithData.operationFailure("strategy_00005", existed.getName());
+            }
+            existed = dao.findByProperty(Strategy.FIELD_CLASSPATH, entity.getClassPath());
+            if (Objects.nonNull(existed) && !StringUtils.equals(entity.getId(), existed.getId())) {
+                // 已存在类路径的策略
+                return OperateResultWithData.operationFailure("strategy_00006", existed.getClassPath(), existed.getName());
+            }
         }
         return result;
     }

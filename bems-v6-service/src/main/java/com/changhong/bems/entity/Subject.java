@@ -27,6 +27,7 @@ public class Subject extends BaseAuditableEntity implements ITenant, IRank, ICod
     private static final long serialVersionUID = 851011858666429840L;
     public static final String FIELD_STRATEGY_ID = "strategyId";
     public static final String FIELD_CORP_CODE = "corporationCode";
+    public static final String FIELD_NAME = "name";
     /**
      * 主体代码
      */

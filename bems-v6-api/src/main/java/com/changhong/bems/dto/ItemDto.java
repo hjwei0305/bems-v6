@@ -30,6 +30,11 @@ public class ItemDto extends BaseEntityDto {
     @Size(max = 50)
     @ApiModelProperty(value = "名称", required = true)
     private String name;
+    /**
+     * 租户代码
+     */
+    @ApiModelProperty(value = "租户代码")
+    private String tenantCode;
 
     public String getCode() {
         return code;
@@ -45,5 +50,13 @@ public class ItemDto extends BaseEntityDto {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getTenantCode() {
+        return tenantCode;
+    }
+
+    public void setTenantCode(String tenantCode) {
+        this.tenantCode = tenantCode;
     }
 }

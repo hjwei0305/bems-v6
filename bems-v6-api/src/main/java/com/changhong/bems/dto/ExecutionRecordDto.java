@@ -77,6 +77,11 @@ public class ExecutionRecordDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "业务描述")
     private String bizRemark;
+    /**
+     * 租户代码
+     */
+    @ApiModelProperty(value = "租户代码")
+    private String tenantCode;
 
     public String getPoolCode() {
         return poolCode;
@@ -174,4 +179,11 @@ public class ExecutionRecordDto extends BaseEntityDto {
         this.bizRemark = bizRemark;
     }
 
+    public String getTenantCode() {
+        return tenantCode;
+    }
+
+    public void setTenantCode(String tenantCode) {
+        this.tenantCode = tenantCode;
+    }
 }

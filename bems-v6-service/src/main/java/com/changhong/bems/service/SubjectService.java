@@ -4,10 +4,7 @@ import com.changhong.bems.dao.SubjectDao;
 import com.changhong.bems.dto.CorporationDto;
 import com.changhong.bems.dto.CurrencyDto;
 import com.changhong.bems.dto.OrganizationDto;
-import com.changhong.bems.entity.Category;
-import com.changhong.bems.entity.Period;
-import com.changhong.bems.entity.Subject;
-import com.changhong.bems.entity.SubjectItem;
+import com.changhong.bems.entity.*;
 import com.changhong.bems.service.client.CorporationManager;
 import com.changhong.bems.service.client.CurrencyManager;
 import com.changhong.bems.service.client.OrganizationManager;
@@ -18,6 +15,8 @@ import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.DataAuthEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
+import com.changhong.sei.core.service.bo.OperateResultWithData;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -124,6 +123,42 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
         }
         // 通过组织机构id获取组织机构清单
         return organizationManager.getChildrenNodes4Unfrozen(subject.getOrgId());
+    }
+
+    /**
+     * 创建数据保存数据之前额外操作回调方法 默认为空逻辑，子类根据需要覆写添加逻辑即可
+     *
+     * @param entity 待创建数据对象
+     */
+    @Override
+    protected OperateResultWithData<Subject> preInsert(Subject entity) {
+        OperateResultWithData<Subject> result = super.preInsert(entity);
+        if (result.successful()) {
+            Subject existed = dao.findByProperty(Subject.FIELD_NAME, entity.getName());
+            if (Objects.nonNull(existed)) {
+                // 已存在预算主体
+                return OperateResultWithData.operationFailure("subject_00005", existed.getName());
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 更新数据保存数据之前额外操作回调方法 默认为空逻辑，子类根据需要覆写添加逻辑即可
+     *
+     * @param entity 待更新数据对象
+     */
+    @Override
+    protected OperateResultWithData<Subject> preUpdate(Subject entity) {
+        OperateResultWithData<Subject> result = super.preUpdate(entity);
+        if (result.successful()) {
+            Subject existed = dao.findByProperty(Subject.FIELD_NAME, entity.getName());
+            if (Objects.nonNull(existed) && !StringUtils.equals(entity.getId(), existed.getId())) {
+                // 已存在预算主体
+                return OperateResultWithData.operationFailure("subject_00005", existed.getName());
+            }
+        }
+        return result;
     }
 
     /**

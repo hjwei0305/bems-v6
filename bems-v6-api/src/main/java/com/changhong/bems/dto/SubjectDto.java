@@ -92,6 +92,11 @@ public class SubjectDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "排序")
     private Integer rank = 0;
+    /**
+     * 租户代码
+     */
+    @ApiModelProperty(value = "租户代码")
+    private String tenantCode;
 
     public String getCode() {
         return code;
@@ -187,5 +192,13 @@ public class SubjectDto extends BaseEntityDto {
 
     public void setRank(Integer rank) {
         this.rank = rank;
+    }
+
+    public String getTenantCode() {
+        return tenantCode;
+    }
+
+    public void setTenantCode(String tenantCode) {
+        this.tenantCode = tenantCode;
     }
 }

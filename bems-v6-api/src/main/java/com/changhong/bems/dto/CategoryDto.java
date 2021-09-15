@@ -73,6 +73,11 @@ public class CategoryDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "参考id")
     private String referenceId;
+    /**
+     * 租户代码
+     */
+    @ApiModelProperty(value = "租户代码")
+    private String tenantCode;
 
     public String getName() {
         return name;
@@ -154,4 +159,11 @@ public class CategoryDto extends BaseEntityDto {
         this.referenceId = referenceId;
     }
 
+    public String getTenantCode() {
+        return tenantCode;
+    }
+
+    public void setTenantCode(String tenantCode) {
+        this.tenantCode = tenantCode;
+    }
 }

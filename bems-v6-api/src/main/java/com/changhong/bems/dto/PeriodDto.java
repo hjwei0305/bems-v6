@@ -58,6 +58,11 @@ public class PeriodDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "是否已关闭")
     private Boolean closed;
+    /**
+     * 租户代码
+     */
+    @ApiModelProperty(value = "租户代码")
+    private String tenantCode;
 
     public String getSubjectId() {
         return subjectId;
@@ -123,4 +128,11 @@ public class PeriodDto extends BaseEntityDto {
         this.closed = closed;
     }
 
+    public String getTenantCode() {
+        return tenantCode;
+    }
+
+    public void setTenantCode(String tenantCode) {
+        this.tenantCode = tenantCode;
+    }
 }
