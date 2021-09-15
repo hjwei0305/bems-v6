@@ -142,6 +142,11 @@ public class OrderDto extends BaseEntityDto {
 
     @ApiModelProperty(value = "维度")
     private List<DimensionDto> dimensions;
+    /**
+     * 附件id
+     */
+    @ApiModelProperty(value = "附件id")
+    private List<String> docIds;
 
     public String getCode() {
         return code;
@@ -334,5 +339,13 @@ public class OrderDto extends BaseEntityDto {
 
     public void setDimensions(List<DimensionDto> dimensions) {
         this.dimensions = dimensions;
+    }
+
+    public List<String> getDocIds() {
+        return docIds;
+    }
+
+    public void setDocIds(List<String> docIds) {
+        this.docIds = docIds;
     }
 }

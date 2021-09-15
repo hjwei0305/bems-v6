@@ -24,6 +24,7 @@ public class Period extends BaseAuditableEntity implements ITenant, Serializable
     private static final long serialVersionUID = 102445924899681422L;
     public static final String FIELD_SUBJECT_ID = "subjectId";
     public static final String FIELD_CODE = "code";
+    public static final String FIELD_NAME = "name";
     public static final String FIELD_TYPE = "type";
     public static final String FIELD_YEAR = "year";
     public static final String FIELD_CLOSED = "closed";

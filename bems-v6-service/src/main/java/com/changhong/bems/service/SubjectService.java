@@ -168,17 +168,17 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
      */
     @Override
     protected OperateResult preDelete(String id) {
-        SubjectItem item = subjectItemService.findByProperty(SubjectItem.FIELD_SUBJECT_ID, id);
+        SubjectItem item = subjectItemService.findFirstByProperty(SubjectItem.FIELD_SUBJECT_ID, id);
         if (Objects.nonNull(item)) {
             // 已被预算科目[{0}]使用,禁止删除!
             return OperateResult.operationFailure("subject_00004", item.getName());
         }
-        Period period = periodService.findByProperty(Period.FIELD_SUBJECT_ID, id);
+        Period period = periodService.findFirstByProperty(Period.FIELD_SUBJECT_ID, id);
         if (Objects.nonNull(period)) {
             // 已被预算期间[{0}]使用,禁止删除!
             return OperateResult.operationFailure("subject_00002", period.getName());
         }
-        Category category = categoryService.findByProperty(Category.FIELD_SUBJECT_ID, id);
+        Category category = categoryService.findFirstByProperty(Category.FIELD_SUBJECT_ID, id);
         if (Objects.nonNull(category)) {
             // 已被预算类型[{0}]使用,禁止删除!
             return OperateResult.operationFailure("subject_00001", category.getName());

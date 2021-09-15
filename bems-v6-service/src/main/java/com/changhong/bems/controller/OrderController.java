@@ -22,6 +22,7 @@ import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.log.LogUtil;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.util.JsonUtils;
+import com.changhong.sei.edm.sdk.DocumentManager;
 import com.changhong.sei.util.ArithUtils;
 import com.changhong.sei.util.EnumUtils;
 import io.swagger.annotations.Api;
@@ -64,6 +65,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     private DimensionComponentService dimensionComponentService;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private DocumentManager documentManager;
 
     @Override
     public BaseEntityService<Order> getService() {
@@ -257,6 +260,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      */
     @Override
     public ResultData<OrderDto> saveOrder(OrderDto request) {
+        List<String> docIds = request.getDocIds();
         Order order = convertToEntity(request);
         OrderStatus status = order.getStatus();
         if (OrderStatus.PREFAB == status || OrderStatus.DRAFT == status) {
@@ -264,7 +268,13 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             order.setStatus(OrderStatus.DRAFT);
             ResultData<Order> resultData = service.saveOrder(order, null);
             if (resultData.successful()) {
-                return ResultData.success(dtoModelMapper.map(resultData.getData(), OrderDto.class));
+                try {
+                    // 绑定业务实体的文档
+                    documentManager.bindBusinessDocuments(order.getId(), docIds);
+                    return ResultData.success(dtoModelMapper.map(resultData.getData(), OrderDto.class));
+                } catch (Exception e) {
+                    return ResultData.fail(ContextUtil.getMessage("order_00005"));
+                }
             } else {
                 return ResultData.fail(resultData.getMessage());
             }

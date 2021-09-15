@@ -5,6 +5,7 @@ import com.changhong.bems.dto.PeriodCode;
 import com.changhong.bems.dto.PeriodType;
 import com.changhong.bems.entity.DimensionAttribute;
 import com.changhong.bems.entity.Period;
+import com.changhong.bems.entity.Subject;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
@@ -14,6 +15,7 @@ import com.changhong.sei.core.dto.serach.SearchOrder;
 import com.changhong.sei.core.limiter.support.lock.SeiLock;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
+import com.changhong.sei.core.service.bo.OperateResultWithData;
 import com.changhong.sei.util.EnumUtils;
 import com.changhong.sei.util.IdGenerator;
 import org.apache.commons.collections.CollectionUtils;
@@ -268,12 +270,26 @@ public class PeriodService extends BaseEntityService<Period> {
     public ResultData<Void> saveCustomizePeriod(Period period) {
         String id = period.getId();
         period.setType(PeriodType.CUSTOMIZE);
+
+        Search search = Search.createSearch();
+        search.addFilter(new SearchFilter(Period.FIELD_SUBJECT_ID, period.getSubjectId()));
+        search.addFilter(new SearchFilter(Period.FIELD_NAME, period.getName()));
+        Period existed = dao.findFirstByFilters(search);
         if (StringUtils.isNotBlank(id)) {
+            if (Objects.nonNull(existed) && !StringUtils.equals(period.getId(), existed.getId())) {
+                // 已存在预算期间
+                return ResultData.fail(ContextUtil.getMessage("period_00007", existed.getName()));
+            }
             if (!checkCustomizePeriod(id)) {
                 // 预算期间已被使用,禁止修改!
                 return ResultData.fail(ContextUtil.getMessage("period_00004"));
             }
         } else {
+            if (Objects.nonNull(existed)) {
+                // 已存在预算期间
+                return ResultData.fail(ContextUtil.getMessage("period_00007", existed.getName()));
+            }
+
             period.setCode(String.valueOf(IdGenerator.nextId()));
         }
 
@@ -393,7 +409,7 @@ public class PeriodService extends BaseEntityService<Period> {
     }
 
     /**
-     * 检查自定义期间是否配使用
+     * 检查自定义期间是否被使用
      *
      * @return 检查结果
      */
