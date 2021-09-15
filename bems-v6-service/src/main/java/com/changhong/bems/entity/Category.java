@@ -82,11 +82,6 @@ public class Category extends BaseAuditableEntity implements ITenant, IFrozen, S
     @Column(name = "reference_id")
     private String referenceId;
     /**
-     * 是否被引用
-     */
-    @Column(name = "is_referenced")
-    private Boolean referenced = Boolean.FALSE;
-    /**
      * 租户代码
      */
     @Column(name = "tenant_code")
@@ -173,14 +168,6 @@ public class Category extends BaseAuditableEntity implements ITenant, IFrozen, S
 
     public void setReferenceId(String referenceId) {
         this.referenceId = referenceId;
-    }
-
-    public Boolean getReferenced() {
-        return referenced;
-    }
-
-    public void setReferenced(Boolean referenced) {
-        this.referenced = referenced;
     }
 
     @Override

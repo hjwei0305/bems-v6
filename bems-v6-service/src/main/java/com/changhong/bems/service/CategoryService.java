@@ -106,6 +106,7 @@ public class CategoryService extends BaseEntityService<Category> {
         }
         search.addFilter(new SearchFilter(Category.FIELD_SUBJECT_ID, entity.getSubjectId()));
         search.addFilter(new SearchFilter(Category.FIELD_NAME, entity.getName()));
+        search.addFilter(new SearchFilter(Category.FIELD_ORDER_CATEGORY, entity.getOrderCategory()));
         Category existed = dao.findFirstByFilters(search);
         if (Objects.nonNull(existed)) {
             // 已存在预算类型
@@ -193,11 +194,12 @@ public class CategoryService extends BaseEntityService<Category> {
         privateCategory.setUse(category.getUse());
         privateCategory.setRoll(category.getRoll());
         privateCategory.setReferenceId(id);
-        this.save(privateCategory);
-
-        category.setReferenced(Boolean.TRUE);
-        this.save(category);
-        return ResultData.success();
+        OperateResultWithData<Category> result = this.save(privateCategory);
+        if (result.successful()) {
+            return ResultData.success();
+        } else {
+            return ResultData.fail(result.getMessage());
+        }
     }
 
     /**

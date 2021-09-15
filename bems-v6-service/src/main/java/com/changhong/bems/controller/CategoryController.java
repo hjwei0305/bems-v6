@@ -7,6 +7,7 @@ import com.changhong.bems.service.CategoryService;
 import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.service.BaseEntityService;
+import com.changhong.sei.core.service.bo.OperateResultWithData;
 import com.changhong.sei.util.EnumUtils;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,11 +49,15 @@ public class CategoryController extends BaseEntityController<Category, CategoryD
     @Override
     public ResultData<Void> create(CreateCategoryDto dto) {
         try {
+            OperateResultWithData<Category> result;
             OrderCategory[] categories = dto.getOrderCategories();
             for (OrderCategory category : categories) {
                 Category entity = entityModelMapper.map(dto, Category.class);
                 entity.setOrderCategory(category);
-                service.save(entity);
+                result = service.save(entity);
+                if (result.notSuccessful()) {
+                    return ResultData.fail(result.getMessage());
+                }
             }
             return ResultData.success();
         } catch (Exception e) {
