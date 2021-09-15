@@ -24,6 +24,8 @@ import java.util.Objects;
 public class Strategy extends BaseAuditableEntity implements ICodeUnique, IRank, Serializable {
     private static final long serialVersionUID = -28243258893909771L;
     public static final String FIELD_CATEGORY = "category";
+    public static final String FIELD_NAME = "name";
+    public static final String FIELD_CLASSPATH = "classPath";
     /**
      * 策略代码
      */

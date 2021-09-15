@@ -101,6 +101,48 @@ public class StrategyService extends BaseEntityService<Strategy> {
     }
 
     /**
+     * 创建数据保存数据之前额外操作回调方法 默认为空逻辑，子类根据需要覆写添加逻辑即可
+     *
+     * @param entity 待创建数据对象
+     */
+    @Override
+    protected OperateResultWithData<Strategy> preInsert(Strategy entity) {
+        OperateResultWithData<Strategy> result = super.preInsert(entity);
+        Strategy existed = dao.findByProperty(Strategy.FIELD_NAME, entity.getName());
+        if (Objects.nonNull(existed)) {
+            // 已存在策略
+            return OperateResultWithData.operationFailure("strategy_00005", existed.getName());
+        }
+        existed = dao.findByProperty(Strategy.FIELD_CLASSPATH, entity.getClassPath());
+        if (Objects.nonNull(existed)) {
+            // 已存在类路径的策略
+            return OperateResultWithData.operationFailure("strategy_00006", existed.getClassPath(), existed.getName());
+        }
+        return result;
+    }
+
+    /**
+     * 更新数据保存数据之前额外操作回调方法 默认为空逻辑，子类根据需要覆写添加逻辑即可
+     *
+     * @param entity 待更新数据对象
+     */
+    @Override
+    protected OperateResultWithData<Strategy> preUpdate(Strategy entity) {
+        OperateResultWithData<Strategy> result = super.preUpdate(entity);
+        Strategy existed = dao.findByProperty(Strategy.FIELD_NAME, entity.getName());
+        if (Objects.nonNull(existed) && !StringUtils.equals(entity.getId(), existed.getId())) {
+            // 已存在策略
+            return OperateResultWithData.operationFailure("strategy_00005", existed.getName());
+        }
+        existed = dao.findByProperty(Strategy.FIELD_CLASSPATH, entity.getClassPath());
+        if (Objects.nonNull(existed) && !StringUtils.equals(entity.getId(), existed.getId())) {
+            // 已存在类路径的策略
+            return OperateResultWithData.operationFailure("strategy_00006", existed.getClassPath(), existed.getName());
+        }
+        return result;
+    }
+
+    /**
      * 检查和初始化数据
      * 当检测到租户下不存在维度数据时,默认初始化预制的维度数据
      */
