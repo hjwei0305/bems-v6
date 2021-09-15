@@ -104,7 +104,7 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
         Subject subject = dao.findOne(subjectId);
         if (Objects.isNull(subject)) {
             // 未找到预算主体
-            return ResultData.fail(ContextUtil.getMessage("subject_item_00004", subjectId));
+            return ResultData.fail(ContextUtil.getMessage("subject_00003", subjectId));
         }
         // 控制组织的范围只能是预算主体指定的组织及下级
         return organizationManager.getTree4Unfrozen(subject.getOrgId());
@@ -119,7 +119,7 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
         Subject subject = dao.findOne(subjectId);
         if (Objects.isNull(subject)) {
             // 未找到预算主体
-            return ResultData.fail(ContextUtil.getMessage("subject_item_00004", subjectId));
+            return ResultData.fail(ContextUtil.getMessage("subject_00003"));
         }
         // 通过组织机构id获取组织机构清单
         return organizationManager.getChildrenNodes4Unfrozen(subject.getOrgId());

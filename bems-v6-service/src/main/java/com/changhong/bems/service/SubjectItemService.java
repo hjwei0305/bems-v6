@@ -228,10 +228,16 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
         if (resultData.failed()) {
             return resultData;
         }
-        List<SubjectItem> subjectItems = findBySubject(referenceId);
+
+        Subject subject = subjectService.findOne(referenceId);
+        if (Objects.isNull(subject)) {
+            // 未找到引用的预算主体
+            return ResultData.fail(ContextUtil.getMessage("subject_item_00004", referenceId));
+        }
+        List<SubjectItem> subjectItems = this.findBySubject(referenceId);
         if (CollectionUtils.isEmpty(subjectItems)) {
             // 预算主体[{0}]还未维护科目!
-            return ResultData.fail(ContextUtil.getMessage("subject_item_00003", referenceId));
+            return ResultData.fail(ContextUtil.getMessage("subject_item_00003", subject.getName()));
         }
         SubjectItem subjectItem;
         List<SubjectItem> itemList = new ArrayList<>();
