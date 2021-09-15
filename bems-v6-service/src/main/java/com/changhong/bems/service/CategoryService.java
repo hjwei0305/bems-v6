@@ -26,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
 /**
  * 预算类型(Category)业务逻辑实现类
  *
@@ -95,13 +94,24 @@ public class CategoryService extends BaseEntityService<Category> {
             return OperateResultWithData.operationFailure("category_00003");
         }
 
+        Search search = Search.createSearch();
         boolean isNew = isNew(entity);
         if (isNew) {
             // 创建前设置租户代码
             if (StringUtils.isBlank(entity.getTenantCode())) {
                 entity.setTenantCode(ContextUtil.getTenantCode());
             }
+        } else {
+            search.addFilter(new SearchFilter(Category.ID, entity.getId(), SearchFilter.Operator.NE));
         }
+        search.addFilter(new SearchFilter(Category.FIELD_SUBJECT_ID, entity.getSubjectId()));
+        search.addFilter(new SearchFilter(Category.FIELD_NAME, entity.getName()));
+        Category existed = dao.findFirstByFilters(search);
+        if (Objects.nonNull(existed)) {
+            // 已存在预算类型
+            return OperateResultWithData.operationFailure("category_00006", existed.getName());
+        }
+
         Category saveEntity = dao.save(entity);
         if (isNew) {
             categoryDimensionService.addRequiredDimension(entity.getId());

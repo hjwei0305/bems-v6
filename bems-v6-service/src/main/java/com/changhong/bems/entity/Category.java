@@ -27,6 +27,7 @@ public class Category extends BaseAuditableEntity implements ITenant, IFrozen, S
     public static final String FIELD_SUBJECT_ID = "subjectId";
     public static final String FIELD_ORDER_CATEGORY = "orderCategory";
     public static final String FIELD_TYPE = "type";
+    public static final String FIELD_NAME = "name";
     /**
      * 名称
      */
