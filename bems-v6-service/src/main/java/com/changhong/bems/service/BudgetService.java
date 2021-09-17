@@ -87,13 +87,20 @@ public class BudgetService {
             if (CollectionUtils.isNotEmpty(useList)) {
                 List<BudgetResponse> responses = new ArrayList<>();
                 boolean success = true;
+                BudgetResponse budgetResponse;
                 ResultData<BudgetResponse> resultData;
                 for (BudgetUse budgetUse : useList) {
                     resultData = this.useBudget(budgetUse);
                     success = resultData.successful();
                     if (success) {
-                        responses.add(resultData.getData());
+                        budgetResponse = resultData.getData();
+                        responses.add(budgetResponse);
                     } else {
+                        budgetResponse = new BudgetResponse();
+                        budgetResponse.setBizId(budgetUse.getBizId());
+                        budgetResponse.setSuccess(false);
+                        budgetResponse.setMessage(resultData.getMessage());
+                        responses.add(budgetResponse);
                         result = ResultData.fail(resultData.getMessage());
                         // 回滚事务
                         TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
