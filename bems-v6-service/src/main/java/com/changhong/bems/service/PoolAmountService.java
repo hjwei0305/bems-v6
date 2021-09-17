@@ -4,12 +4,14 @@ import com.changhong.bems.dao.PoolAmountDao;
 import com.changhong.bems.dto.OperationType;
 import com.changhong.bems.entity.Pool;
 import com.changhong.bems.entity.PoolAmount;
-import com.changhong.sei.core.dao.BaseEntityDao;
+import com.changhong.bems.entity.PoolAmountQuotaDto;
+import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
-import com.changhong.sei.core.service.BaseEntityService;
+import com.changhong.sei.exception.ServiceException;
 import com.changhong.sei.util.ArithUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,14 +27,9 @@ import java.util.Objects;
  * @since 2021-04-25 15:14:01
  */
 @Service
-public class PoolAmountService extends BaseEntityService<PoolAmount> {
+public class PoolAmountService {
     @Autowired
     private PoolAmountDao dao;
-
-    @Override
-    protected BaseEntityDao<PoolAmount> getDao() {
-        return dao;
-    }
 
     /**
      * 按预算池id查询预算池当前余额
@@ -42,7 +39,8 @@ public class PoolAmountService extends BaseEntityService<PoolAmount> {
      */
     public BigDecimal getPoolBalanceByPoolId(String poolId) {
         List<PoolAmount> amounts = dao.findListByProperty(PoolAmount.FIELD_POOL_ID, poolId);
-        return this.getPoolBalance(amounts);
+        PoolAmountQuotaDto quota = this.getPoolAmountQuota(amounts);
+        return quota.getBalance();
     }
 
     /**
@@ -53,7 +51,19 @@ public class PoolAmountService extends BaseEntityService<PoolAmount> {
      */
     public BigDecimal getPoolBalanceByPoolCode(String poolCode) {
         List<PoolAmount> amounts = dao.findListByProperty(PoolAmount.FIELD_POOL_CODE, poolCode);
-        return this.getPoolBalance(amounts);
+        PoolAmountQuotaDto quota = this.getPoolAmountQuota(amounts);
+        return quota.getBalance();
+    }
+
+    /**
+     * 按预算池id查询预算池当前余额
+     *
+     * @param poolCode 预算池编码
+     * @return 当前预算池可用余额
+     */
+    public PoolAmountQuotaDto getPoolAmountQuota(String poolCode) {
+        List<PoolAmount> amounts = dao.findListByProperty(PoolAmount.FIELD_POOL_CODE, poolCode);
+        return this.getPoolAmountQuota(amounts);
     }
 
     /**
@@ -76,7 +86,7 @@ public class PoolAmountService extends BaseEntityService<PoolAmount> {
             poolAmount.setOperation(operation);
         }
         poolAmount.setAmount(ArithUtils.add(poolAmount.getAmount(), amount.doubleValue()));
-        this.save(poolAmount);
+        dao.save(poolAmount);
     }
 
     /**
@@ -86,26 +96,36 @@ public class PoolAmountService extends BaseEntityService<PoolAmount> {
      * @param amounts 预算池金额
      * @return 当前余额
      */
-    private BigDecimal getPoolBalance(List<PoolAmount> amounts) {
-        BigDecimal balance = BigDecimal.ZERO;
+    private PoolAmountQuotaDto getPoolAmountQuota(List<PoolAmount> amounts) {
+        PoolAmountQuotaDto quota = new PoolAmountQuotaDto();
+        //BigDecimal balance = BigDecimal.ZERO;
         if (CollectionUtils.isNotEmpty(amounts)) {
+            String poolCode = amounts.get(0).getPoolCode();
             // 注入金额 + 释放(使用)金额 - 使用金额
             for (PoolAmount amount : amounts) {
+                if (!StringUtils.equals(poolCode, amount.getPoolCode())) {
+                    // 预算池金额计算异常:不是同一个预算池
+                    throw new ServiceException(ContextUtil.getMessage("pool_00024"));
+                }
                 switch (amount.getOperation()) {
                     case RELEASE:
                         // 注入下达
                     case FREED:
                         // 释放
-                        balance = ArithUtils.add(balance, amount.getAmount().doubleValue());
+                        // balance = ArithUtils.add(balance, amount.getAmount().doubleValue());
+                        quota.addTotalAmount(amount.getAmount());
                         break;
                     case USE:
                         // 使用
-                        balance = ArithUtils.sub(balance, amount.getAmount().doubleValue());
+                        // balance = ArithUtils.sub(balance, amount.getAmount().doubleValue());
+                        quota.addUseAmount(amount.getAmount());
                         break;
                     default:
                 }
             }
+            quota.setPoolCode(poolCode);
         }
-        return balance;
+        // return balance;
+        return quota;
     }
 }

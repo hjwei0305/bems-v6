@@ -81,7 +81,7 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
      * 申请金额
      */
     @Column(name = "apply_amount")
-    private BigDecimal applyAmount = new BigDecimal("0");
+    private BigDecimal applyAmount = BigDecimal.ZERO;
     /**
      * 申请组织id
      */

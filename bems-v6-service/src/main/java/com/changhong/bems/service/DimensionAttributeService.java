@@ -6,11 +6,9 @@ import com.changhong.bems.entity.BaseAttribute;
 import com.changhong.bems.entity.DimensionAttribute;
 import com.changhong.sei.core.cache.CacheBuilder;
 import com.changhong.sei.core.context.ContextUtil;
-import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
-import com.changhong.sei.core.service.BaseEntityService;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,18 +26,13 @@ import java.util.concurrent.TimeUnit;
  * @since 2021-04-22 12:54:29
  */
 @Service
-public class DimensionAttributeService extends BaseEntityService<DimensionAttribute> {
+public class DimensionAttributeService {
     @Autowired
     private DimensionAttributeDao dao;
     @Autowired
     private CategoryService categoryService;
     @Autowired
     private CacheBuilder cacheBuilder;
-
-    @Override
-    protected BaseEntityDao<DimensionAttribute> getDao() {
-        return dao;
-    }
 
     /**
      * 添加一个预算维度属性
@@ -58,10 +51,14 @@ public class DimensionAttributeService extends BaseEntityService<DimensionAttrib
         DimensionAttribute attr = this.getAttribute(subjectId, attribute.getAttributeCode());
         if (Objects.isNull(attr)) {
             DimensionAttribute dimensionAttribute = new DimensionAttribute(attribute);
+            // 租户代码
+            dimensionAttribute.setTenantCode(ContextUtil.getTenantCode());
+            // 预算主体
             dimensionAttribute.setSubjectId(subjectId);
             // 刷新hash值
             dimensionAttribute.getAttributeCode();
-            this.save(dimensionAttribute);
+            // 持久化
+            dao.save(dimensionAttribute);
             attr = dimensionAttribute;
         }
         return ResultData.success(attr);
@@ -103,6 +100,17 @@ public class DimensionAttributeService extends BaseEntityService<DimensionAttrib
             }
         }
         return attribute;
+    }
+
+    /**
+     * 按属性查询
+     *
+     * @param property 维度属性字段名
+     * @param value    维度属性值
+     * @return 返回其中一个
+     */
+    public DimensionAttribute getFirstByProperty(String property, String value) {
+        return dao.findFirstByProperty(property, value);
     }
 
     private String getKey(String subjectId, long code) {

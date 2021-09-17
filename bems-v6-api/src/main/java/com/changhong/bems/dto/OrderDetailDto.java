@@ -24,7 +24,7 @@ public class OrderDetailDto extends BaseAttributeDto {
      * 金额
      */
     @ApiModelProperty(value = "金额")
-    private BigDecimal amount = new BigDecimal("0");
+    private BigDecimal amount = BigDecimal.ZERO;
     /**
      * 预算池编码
      */
@@ -34,7 +34,7 @@ public class OrderDetailDto extends BaseAttributeDto {
      * 预算池金额
      */
     @ApiModelProperty(value = "预算池金额")
-    private BigDecimal poolAmount = new BigDecimal("0");
+    private BigDecimal poolAmount = BigDecimal.ZERO;
     /**
      * 来源预算池编码
      */
@@ -44,7 +44,7 @@ public class OrderDetailDto extends BaseAttributeDto {
      * 来源预算池金额
      */
     @ApiModelProperty(value = "来源预算池金额")
-    private BigDecimal originPoolAmount = new BigDecimal("0");
+    private BigDecimal originPoolAmount = BigDecimal.ZERO;
     /**
      * 是否错误
      */

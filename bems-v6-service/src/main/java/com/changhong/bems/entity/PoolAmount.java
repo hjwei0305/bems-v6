@@ -45,7 +45,7 @@ public class PoolAmount extends BaseEntity implements Serializable {
      * 金额
      */
     @Column(name = "amount")
-    private BigDecimal amount = new BigDecimal("0");
+    private BigDecimal amount = BigDecimal.ZERO;
 
 
     public String getPoolId() {

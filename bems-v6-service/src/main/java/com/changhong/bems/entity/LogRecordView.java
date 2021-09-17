@@ -52,7 +52,7 @@ public class LogRecordView extends BaseEntity implements ITenant, Serializable {
      * 金额
      */
     @Column(name = "amount", updatable = false)
-    private BigDecimal amount = new BigDecimal("0");
+    private BigDecimal amount = BigDecimal.ZERO;
     /**
      * 是预算池金额
      */

@@ -31,7 +31,7 @@ public class LogRecordDto extends BaseEntityDto {
      * 金额
      */
     @ApiModelProperty(value = "金额")
-    private BigDecimal amount = new BigDecimal("0");
+    private BigDecimal amount = BigDecimal.ZERO;
     /**
      * 操作时间
      */

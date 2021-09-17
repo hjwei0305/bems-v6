@@ -75,7 +75,7 @@ public class OrderDto extends BaseEntityDto {
      * 申请金额
      */
     @ApiModelProperty(value = "申请金额")
-    private BigDecimal applyAmount = new BigDecimal("0");
+    private BigDecimal applyAmount = BigDecimal.ZERO;
     /**
      * 申请组织id
      */

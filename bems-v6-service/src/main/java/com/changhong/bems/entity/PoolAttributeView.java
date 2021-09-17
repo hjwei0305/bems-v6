@@ -111,12 +111,12 @@ public class PoolAttributeView extends BaseAttribute implements ITenant, Seriali
      * 总额
      */
     @Column(name = "total")
-    private BigDecimal total = new BigDecimal("0");
+    private BigDecimal total = BigDecimal.ZERO;
     /**
      * 可用余额
      */
     @Column(name = "balance")
-    private BigDecimal balance = new BigDecimal("0");
+    private BigDecimal balance = BigDecimal.ZERO;
     /**
      * 租户代码
      */

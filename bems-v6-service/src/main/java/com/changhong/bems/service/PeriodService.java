@@ -5,7 +5,6 @@ import com.changhong.bems.dto.PeriodCode;
 import com.changhong.bems.dto.PeriodType;
 import com.changhong.bems.entity.DimensionAttribute;
 import com.changhong.bems.entity.Period;
-import com.changhong.bems.entity.Subject;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
@@ -15,7 +14,6 @@ import com.changhong.sei.core.dto.serach.SearchOrder;
 import com.changhong.sei.core.limiter.support.lock.SeiLock;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
-import com.changhong.sei.core.service.bo.OperateResultWithData;
 import com.changhong.sei.util.EnumUtils;
 import com.changhong.sei.util.IdGenerator;
 import org.apache.commons.collections.CollectionUtils;
@@ -414,7 +412,7 @@ public class PeriodService extends BaseEntityService<Period> {
      * @return 检查结果
      */
     private boolean checkCustomizePeriod(String id) {
-        DimensionAttribute attribute = dimensionAttributeService.findFirstByProperty(DimensionAttribute.FIELD_PERIOD, id);
+        DimensionAttribute attribute = dimensionAttributeService.getFirstByProperty(DimensionAttribute.FIELD_PERIOD, id);
         return !Objects.nonNull(attribute);
     }
 

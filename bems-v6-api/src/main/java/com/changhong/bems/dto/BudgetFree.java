@@ -36,7 +36,7 @@ public class BudgetFree implements Serializable {
      */
     @Digits(integer = 10, fraction = 2)
     @ApiModelProperty(value = "占用金额")
-    private BigDecimal amount = new BigDecimal("0");
+    private BigDecimal amount = BigDecimal.ZERO;
 
     public BudgetFree() {
     }

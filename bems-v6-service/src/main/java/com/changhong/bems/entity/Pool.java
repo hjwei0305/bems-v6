@@ -113,12 +113,12 @@ public class Pool extends BaseEntity implements ITenant, ICodeUnique, Serializab
      * 总额
      */
     @Column(name = "total")
-    private BigDecimal total = new BigDecimal("0");
+    private BigDecimal total = BigDecimal.ZERO;
     /**
      * 当前可用余额
      */
     @Column(name = "balance")
-    private BigDecimal balance = new BigDecimal("0");
+    private BigDecimal balance = BigDecimal.ZERO;
     /**
      * 创建时间
      */

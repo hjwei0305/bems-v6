@@ -29,7 +29,7 @@ public class BudgetFree implements Serializable {
      * 占用金额
      */
     @Digits(integer = 10, fraction = 2)
-    private BigDecimal amount = new BigDecimal("0");
+    private BigDecimal amount = BigDecimal.ZERO;
 
     public BudgetFree() {
     }

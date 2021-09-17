@@ -38,7 +38,7 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
      * 金额
      */
     @Column(name = "amount")
-    private BigDecimal amount = new BigDecimal("0");
+    private BigDecimal amount = BigDecimal.ZERO;
     /**
      * 预算池编码
      */
@@ -48,7 +48,7 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
      * 预算池金额
      */
     @Column(name = "pool_amount")
-    private BigDecimal poolAmount = new BigDecimal("0");
+    private BigDecimal poolAmount = BigDecimal.ZERO;
     /**
      * 来源预算池编码
      */
@@ -58,7 +58,7 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
      * 来源预算池金额
      */
     @Column(name = "origin_pool_amount")
-    private BigDecimal originPoolAmount = new BigDecimal("0");
+    private BigDecimal originPoolAmount = BigDecimal.ZERO;
     /**
      * 是否正在异步处理行项数据
      * 如果是,在编辑时进入socket状态显示页面
