@@ -12,20 +12,21 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * 预算执行记录(ExecutionRecordView)实体类
+ * 预算执行记录(LogRecord)实体类
  *
  * @author sei
  * @since 2021-04-25 15:10:03
  */
 @Entity
-@Table(name = "view_execution_record")
+@Table(name = "log_record")
 @DynamicInsert
 @DynamicUpdate
-public class ExecutionRecordView extends BaseEntity implements ITenant, Serializable {
+public class LogRecord extends BaseEntity implements ITenant, Serializable, Cloneable {
     private static final long serialVersionUID = -28943145565423431L;
-    public static final String FIELD_EVENT_CODE = "bizEvent";
+    public static final String FIELD_EVENT_CODE = "eventCode";
     public static final String FIELD_BIZ_ID = "bizId";
     public static final String FIELD_OPERATION = "operation";
+    public static final String FIELD_IS_FREED = "isFreed";
     public static final String FIELD_TIMESTAMP = "timestamp";
     /**
      * 预算主体id
@@ -82,17 +83,7 @@ public class ExecutionRecordView extends BaseEntity implements ITenant, Serializ
      * 业务事件
      */
     @Column(name = "biz_event", updatable = false)
-    private String bizEvent;
-    /**
-     * 业务事件
-     */
-    @Column(name = "biz_event_name", updatable = false)
-    private String eventName;
-    /**
-     * 业务来源系统
-     */
-    @Column(name = "biz_from", updatable = false)
-    private String bizFrom;
+    private String eventCode;
     /**
      * 业务单id
      */
@@ -109,10 +100,26 @@ public class ExecutionRecordView extends BaseEntity implements ITenant, Serializ
     @Column(name = "biz_remark", updatable = false)
     private String bizRemark;
     /**
+     * 是否已被释放
+     * 为保证占用的幂等性,通过此标记避免被重复释放
+     */
+    @Column(name = "is_freed")
+    private Boolean isFreed = Boolean.FALSE;
+    /**
      * 租户代码
      */
     @Column(name = "tenant_code")
     private String tenantCode;
+
+    public LogRecord() {
+    }
+
+    public LogRecord(String poolCode, OperationType operation, BigDecimal amount, String eventCode) {
+        this.poolCode = poolCode;
+        this.operation = operation;
+        this.amount = amount;
+        this.eventCode = eventCode;
+    }
 
     public String getSubjectId() {
         return subjectId;
@@ -210,28 +217,12 @@ public class ExecutionRecordView extends BaseEntity implements ITenant, Serializ
         this.bizCode = bizCode;
     }
 
-    public String getBizEvent() {
-        return bizEvent;
+    public String getEventCode() {
+        return eventCode;
     }
 
-    public void setBizEvent(String bizEvent) {
-        this.bizEvent = bizEvent;
-    }
-
-    public String getEventName() {
-        return eventName;
-    }
-
-    public void setEventName(String eventName) {
-        this.eventName = eventName;
-    }
-
-    public String getBizFrom() {
-        return bizFrom;
-    }
-
-    public void setBizFrom(String bizFrom) {
-        this.bizFrom = bizFrom;
+    public void setEventCode(String bizEvent) {
+        this.eventCode = bizEvent;
     }
 
     public String getBizRemark() {
@@ -240,6 +231,14 @@ public class ExecutionRecordView extends BaseEntity implements ITenant, Serializ
 
     public void setBizRemark(String bizRemark) {
         this.bizRemark = bizRemark;
+    }
+
+    public Boolean getIsFreed() {
+        return isFreed;
+    }
+
+    public void setIsFreed(Boolean isFreed) {
+        this.isFreed = isFreed;
     }
 
     @Override
@@ -253,9 +252,9 @@ public class ExecutionRecordView extends BaseEntity implements ITenant, Serializ
     }
 
     @Override
-    public ExecutionRecordView clone() {
+    public LogRecord clone() {
         try {
-            return (ExecutionRecordView) super.clone();
+            return (LogRecord) super.clone();
         } catch (CloneNotSupportedException e) {
             e.printStackTrace();
             return null;

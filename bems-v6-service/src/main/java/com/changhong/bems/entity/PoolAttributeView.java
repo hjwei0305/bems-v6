@@ -108,6 +108,11 @@ public class PoolAttributeView extends BaseAttribute implements ITenant, Seriali
     @Column(name = "is_delay")
     private Boolean delay = Boolean.FALSE;
     /**
+     * 总额
+     */
+    @Column(name = "total")
+    private BigDecimal total = new BigDecimal("0");
+    /**
      * 可用余额
      */
     @Column(name = "balance")
@@ -245,6 +250,14 @@ public class PoolAttributeView extends BaseAttribute implements ITenant, Seriali
 
     public void setDelay(Boolean delay) {
         this.delay = delay;
+    }
+
+    public BigDecimal getTotal() {
+        return total;
+    }
+
+    public void setTotal(BigDecimal total) {
+        this.total = total;
     }
 
     public BigDecimal getBalance() {

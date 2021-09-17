@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
  * @since 2021-04-25 15:13:35
  */
 @ApiModel(description = "预算执行记录DTO")
-public class ExecutionRecordDto extends BaseEntityDto {
+public class LogRecordDto extends BaseEntityDto {
     private static final long serialVersionUID = -14976646322413614L;
     /**
      * 预算池编码

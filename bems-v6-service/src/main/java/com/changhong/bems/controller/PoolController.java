@@ -1,9 +1,9 @@
 package com.changhong.bems.controller;
 
 import com.changhong.bems.api.PoolApi;
-import com.changhong.bems.dto.ExecutionRecordDto;
+import com.changhong.bems.dto.LogRecordDto;
 import com.changhong.bems.dto.PoolAttributeDto;
-import com.changhong.bems.entity.ExecutionRecordView;
+import com.changhong.bems.entity.LogRecordView;
 import com.changhong.bems.entity.PoolAttributeView;
 import com.changhong.bems.service.PoolService;
 import com.changhong.sei.core.context.ContextUtil;
@@ -121,12 +121,12 @@ public class PoolController implements PoolApi {
      * @return 分页查询结果
      */
     @Override
-    public ResultData<PageResult<ExecutionRecordDto>> findRecordByPage(Search search) {
-        PageResult<ExecutionRecordView> pageResult = service.findRecordByPage(search);
-        PageResult<ExecutionRecordDto> result = new PageResult<>(pageResult);
-        List<ExecutionRecordView> records = pageResult.getRows();
+    public ResultData<PageResult<LogRecordDto>> findRecordByPage(Search search) {
+        PageResult<LogRecordView> pageResult = service.findRecordByPage(search);
+        PageResult<LogRecordDto> result = new PageResult<>(pageResult);
+        List<LogRecordView> records = pageResult.getRows();
         if (CollectionUtils.isNotEmpty(records)) {
-            result.setRows(records.stream().map(r -> modelMapper.map(r, ExecutionRecordDto.class)).collect(Collectors.toList()));
+            result.setRows(records.stream().map(r -> modelMapper.map(r, LogRecordDto.class)).collect(Collectors.toList()));
         }
         return ResultData.success(result);
     }

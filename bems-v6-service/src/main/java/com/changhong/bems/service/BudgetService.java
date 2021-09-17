@@ -42,7 +42,7 @@ public class BudgetService {
     @Autowired
     private PoolService poolService;
     @Autowired
-    private ExecutionRecordService executionRecordService;
+    private LogRecordService logRecordService;
     @Autowired
     private DimensionService dimensionService;
     @Autowired
@@ -205,12 +205,12 @@ public class BudgetService {
      */
     private void freeBudget(String eventCode, String bizId) {
         // 检查占用是否需要释放
-        List<ExecutionRecord> records = executionRecordService.getUseRecords(eventCode, bizId);
+        List<LogRecord> records = logRecordService.getUseRecords(eventCode, bizId);
         if (CollectionUtils.isNotEmpty(records)) {
-            ExecutionRecord newRecord;
-            for (ExecutionRecord record : records) {
+            LogRecord newRecord;
+            for (LogRecord record : records) {
                 // 为保证占用幂等,避免重复释放,更新记录已释放标记
-                executionRecordService.updateFreed(record.getId());
+                logRecordService.updateFreed(record.getId());
 
                 newRecord = record.clone();
                 newRecord.setOperation(OperationType.FREED);
@@ -233,18 +233,18 @@ public class BudgetService {
      */
     private void freeBudget(String eventCode, String bizId, BigDecimal amount) {
         // 检查占用是否需要释放
-        List<ExecutionRecord> records = executionRecordService.getUseRecords(eventCode, bizId);
+        List<LogRecord> records = logRecordService.getUseRecords(eventCode, bizId);
         if (CollectionUtils.isNotEmpty(records)) {
-            ExecutionRecord newRecord;
+            LogRecord newRecord;
             // 剩余释放金额
             BigDecimal balance = amount;
-            for (ExecutionRecord record : records) {
+            for (LogRecord record : records) {
                 // 不能为负数
                 if (BigDecimal.ZERO.compareTo(balance) >= 0) {
                     continue;
                 }
                 // 为保证占用幂等,避免重复释放,更新记录已释放标记
-                executionRecordService.updateFreed(record.getId());
+                logRecordService.updateFreed(record.getId());
 
                 newRecord = record.clone();
                 if (record.getAmount().compareTo(balance) > 0) {

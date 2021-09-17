@@ -104,6 +104,11 @@ public class PoolAttributeDto extends BaseAttributeDto {
     @ApiModelProperty(value = "是否可延期")
     private Boolean delay;
     /**
+     * 总额
+     */
+    @ApiModelProperty(value = "总额")
+    private BigDecimal total;
+    /**
      * 可用余额
      */
     @ApiModelProperty(value = "可用余额")
@@ -243,6 +248,14 @@ public class PoolAttributeDto extends BaseAttributeDto {
 
     public void setDelay(Boolean delay) {
         this.delay = delay;
+    }
+
+    public BigDecimal getTotal() {
+        return total;
+    }
+
+    public void setTotal(BigDecimal total) {
+        this.total = total;
     }
 
     public BigDecimal getBalance() {

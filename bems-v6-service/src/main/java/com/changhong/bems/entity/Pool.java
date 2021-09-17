@@ -110,12 +110,12 @@ public class Pool extends BaseEntity implements ITenant, ICodeUnique, Serializab
     @Column(name = "is_delay")
     private Boolean delay = Boolean.FALSE;
     /**
-     * 可用余额
+     * 总额
      */
-    @Column(name = "balance")
+    @Column(name = "total")
     private BigDecimal total = new BigDecimal("0");
     /**
-     * 可用余额
+     * 当前可用余额
      */
     @Column(name = "balance")
     private BigDecimal balance = new BigDecimal("0");

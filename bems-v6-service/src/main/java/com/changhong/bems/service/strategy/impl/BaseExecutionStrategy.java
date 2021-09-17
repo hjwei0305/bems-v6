@@ -4,7 +4,7 @@ import com.changhong.bems.dto.BudgetResponse;
 import com.changhong.bems.dto.BudgetUse;
 import com.changhong.bems.dto.BudgetUseResult;
 import com.changhong.bems.dto.OperationType;
-import com.changhong.bems.entity.ExecutionRecord;
+import com.changhong.bems.entity.LogRecord;
 import com.changhong.bems.entity.PoolAttributeView;
 import com.changhong.bems.service.PoolService;
 import org.slf4j.Logger;
@@ -36,7 +36,7 @@ public abstract class BaseExecutionStrategy {
      */
     @Transactional(rollbackFor = Exception.class)
     public void recordUseBudgetPool(BudgetResponse response, PoolAttributeView pool, BudgetUse useBudget, BigDecimal useAmount) {
-        ExecutionRecord record = new ExecutionRecord(pool.getCode(), OperationType.USE, useAmount, useBudget.getEventCode());
+        LogRecord record = new LogRecord(pool.getCode(), OperationType.USE, useAmount, useBudget.getEventCode());
         record.setSubjectId(pool.getSubjectId());
         record.setAttributeCode(pool.getAttributeCode());
         record.setBizId(useBudget.getBizId());

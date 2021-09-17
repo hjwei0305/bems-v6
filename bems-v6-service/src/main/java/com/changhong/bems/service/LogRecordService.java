@@ -1,10 +1,10 @@
 package com.changhong.bems.service;
 
-import com.changhong.bems.dao.ExecutionRecordDao;
-import com.changhong.bems.dao.ExecutionRecordViewDao;
+import com.changhong.bems.dao.LogRecordDao;
+import com.changhong.bems.dao.LogRecordViewDao;
 import com.changhong.bems.dto.OperationType;
-import com.changhong.bems.entity.ExecutionRecord;
-import com.changhong.bems.entity.ExecutionRecordView;
+import com.changhong.bems.entity.LogRecord;
+import com.changhong.bems.entity.LogRecordView;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
@@ -20,20 +20,20 @@ import java.util.Objects;
 
 
 /**
- * 预算执行记录(ExecutionRecord)业务逻辑实现类
+ * 预算执行记录(LogRecord)业务逻辑实现类
  *
  * @author sei
  * @since 2021-04-25 15:10:03
  */
 @Service
-public class ExecutionRecordService extends BaseEntityService<ExecutionRecord> {
+public class LogRecordService extends BaseEntityService<LogRecord> {
     @Autowired
-    private ExecutionRecordDao dao;
+    private LogRecordDao dao;
     @Autowired
-    private ExecutionRecordViewDao viewDao;
+    private LogRecordViewDao viewDao;
 
     @Override
-    protected BaseEntityDao<ExecutionRecord> getDao() {
+    protected BaseEntityDao<LogRecord> getDao() {
         return dao;
     }
 
@@ -44,14 +44,14 @@ public class ExecutionRecordService extends BaseEntityService<ExecutionRecord> {
      * @param bizId     业务id
      * @return 返回满足条件的占用记录
      */
-    public List<ExecutionRecord> getUseRecords(String eventCode, String bizId) {
+    public List<LogRecord> getUseRecords(String eventCode, String bizId) {
         Search search = Search.createSearch();
-        search.addFilter(new SearchFilter(ExecutionRecord.FIELD_BIZ_ID, bizId));
-        search.addFilter(new SearchFilter(ExecutionRecord.FIELD_EVENT_CODE, eventCode));
-        search.addFilter(new SearchFilter(ExecutionRecord.FIELD_OPERATION, OperationType.USE));
-        search.addFilter(new SearchFilter(ExecutionRecord.FIELD_IS_FREED, Boolean.FALSE));
+        search.addFilter(new SearchFilter(LogRecord.FIELD_BIZ_ID, bizId));
+        search.addFilter(new SearchFilter(LogRecord.FIELD_EVENT_CODE, eventCode));
+        search.addFilter(new SearchFilter(LogRecord.FIELD_OPERATION, OperationType.USE));
+        search.addFilter(new SearchFilter(LogRecord.FIELD_IS_FREED, Boolean.FALSE));
         // 为保证释放顺序: 先占用后释放 -> 时间戳倒序
-        search.addSortOrder(SearchOrder.desc(ExecutionRecord.FIELD_TIMESTAMP));
+        search.addSortOrder(SearchOrder.desc(LogRecord.FIELD_TIMESTAMP));
         return dao.findByFilters(search);
     }
 
@@ -67,12 +67,12 @@ public class ExecutionRecordService extends BaseEntityService<ExecutionRecord> {
         dao.updateFreed(id, Boolean.TRUE);
     }
 
-    public PageResult<ExecutionRecordView> findViewByPage(Search search) {
+    public PageResult<LogRecordView> findViewByPage(Search search) {
         if (Objects.isNull(search)) {
             search = Search.createSearch();
         }
         // 按时间戳排序
-        search.addSortOrder(SearchOrder.desc(ExecutionRecordView.FIELD_TIMESTAMP));
+        search.addSortOrder(SearchOrder.desc(LogRecordView.FIELD_TIMESTAMP));
         return viewDao.findByPage(search);
     }
 }

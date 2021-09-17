@@ -62,7 +62,7 @@ public class PoolService extends BaseEntityService<Pool> {
     @Autowired
     private PoolAmountService poolAmountService;
     @Autowired
-    private ExecutionRecordService executionRecordService;
+    private LogRecordService executionRecordService;
     @Autowired(required = false)
     private SerialService serialService;
 
@@ -206,7 +206,7 @@ public class PoolService extends BaseEntityService<Pool> {
     public void poolAmountLog(String subjectId, long attributeCode, String poolCode,
                               String bizId, String bizCode, String remark, BigDecimal amount,
                               String eventCode, OperationType operation) {
-        ExecutionRecord record = new ExecutionRecord(poolCode, operation, amount, eventCode);
+        LogRecord record = new LogRecord(poolCode, operation, amount, eventCode);
         record.setIsPoolAmount(Boolean.TRUE);
         record.setSubjectId(subjectId);
         record.setAttributeCode(attributeCode);
@@ -223,7 +223,7 @@ public class PoolService extends BaseEntityService<Pool> {
     public void nonPoolAmountLog(String subjectId, long attributeCode, String poolCode,
                                  String bizId, String bizCode, String remark, BigDecimal amount,
                                  String eventCode, OperationType operation) {
-        ExecutionRecord record = new ExecutionRecord(poolCode, operation, amount, eventCode);
+        LogRecord record = new LogRecord(poolCode, operation, amount, eventCode);
         record.setIsPoolAmount(Boolean.FALSE);
         record.setSubjectId(subjectId);
         record.setAttributeCode(attributeCode);
@@ -240,7 +240,7 @@ public class PoolService extends BaseEntityService<Pool> {
      * @param record 执行记录
      */
     @Transactional(rollbackFor = Exception.class)
-    public void recordLog(ExecutionRecord record) {
+    public void recordLog(LogRecord record) {
         // 操作时间
         record.setOpTime(LocalDateTime.now());
         record.setTimestamp(System.currentTimeMillis());
@@ -414,7 +414,7 @@ public class PoolService extends BaseEntityService<Pool> {
      * @param search 查询参数
      * @return 分页查询结果
      */
-    public PageResult<ExecutionRecordView> findRecordByPage(Search search) {
+    public PageResult<LogRecordView> findRecordByPage(Search search) {
         return executionRecordService.findViewByPage(search);
     }
 
