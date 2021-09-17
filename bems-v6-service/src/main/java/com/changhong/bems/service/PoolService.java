@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -64,8 +65,6 @@ public class PoolService extends BaseEntityService<Pool> {
     private ExecutionRecordService executionRecordService;
     @Autowired(required = false)
     private SerialService serialService;
-    @Autowired
-    private StrategyService strategyService;
 
     @Override
     protected BaseEntityDao<Pool> getDao() {
@@ -180,7 +179,7 @@ public class PoolService extends BaseEntityService<Pool> {
      *
      * @param poolCode 预算池编码
      */
-    public double getPoolBalanceByCode(String poolCode) {
+    public BigDecimal getPoolBalanceByCode(String poolCode) {
         return poolAmountService.getPoolBalanceByPoolCode(poolCode);
     }
 
@@ -189,13 +188,13 @@ public class PoolService extends BaseEntityService<Pool> {
      *
      * @param pool 预算池
      */
-    public double getPoolBalance(Pool pool) {
+    public BigDecimal getPoolBalance(Pool pool) {
         if (Objects.isNull(pool)) {
             // 未找到预算池
             throw new ServiceException(ContextUtil.getMessage("pool_00001"));
         }
         // 实时计算当前预算池可用金额
-        double amount = poolAmountService.getPoolBalanceByPoolCode(pool.getCode());
+        BigDecimal amount = poolAmountService.getPoolBalanceByPoolCode(pool.getCode());
         pool.setBalance(amount);
         return amount;
     }
@@ -205,7 +204,7 @@ public class PoolService extends BaseEntityService<Pool> {
      */
     @Transactional(rollbackFor = Exception.class)
     public void poolAmountLog(String subjectId, long attributeCode, String poolCode,
-                              String bizId, String bizCode, String remark, double amount,
+                              String bizId, String bizCode, String remark, BigDecimal amount,
                               String eventCode, OperationType operation) {
         ExecutionRecord record = new ExecutionRecord(poolCode, operation, amount, eventCode);
         record.setIsPoolAmount(Boolean.TRUE);
@@ -222,7 +221,7 @@ public class PoolService extends BaseEntityService<Pool> {
      */
     @Transactional(rollbackFor = Exception.class)
     public void nonPoolAmountLog(String subjectId, long attributeCode, String poolCode,
-                                 String bizId, String bizCode, String remark, double amount,
+                                 String bizId, String bizCode, String remark, BigDecimal amount,
                                  String eventCode, OperationType operation) {
         ExecutionRecord record = new ExecutionRecord(poolCode, operation, amount, eventCode);
         record.setIsPoolAmount(Boolean.FALSE);
@@ -265,7 +264,7 @@ public class PoolService extends BaseEntityService<Pool> {
                 // 累计金额
                 poolAmountService.countAmount(pool, record.getOperation(), record.getAmount());
                 // 实时计算当前预算池可用金额
-                double amount = poolAmountService.getPoolBalanceByPoolCode(pool.getCode());
+                BigDecimal amount = poolAmountService.getPoolBalanceByPoolCode(pool.getCode());
                 // 更新预算池金额
                 dao.updateAmount(pool.getId(), amount);
                 return;
@@ -375,7 +374,7 @@ public class PoolService extends BaseEntityService<Pool> {
             // 预算池不允许滚动结转
             return ResultData.fail(ContextUtil.getMessage("pool_00015", pool.getCode()));
         }
-        if (pool.getBalance() == 0) {
+        if (BigDecimal.ZERO.compareTo(pool.getBalance()) == 0) {
             if (LOG.isInfoEnabled()) {
                 LOG.info("预算池[{}]可用余额为0,无需结转.", pool.getCode());
             }
@@ -389,11 +388,11 @@ public class PoolService extends BaseEntityService<Pool> {
         } else {
             PoolAttributeView nextPool = resultData.getData();
             // 获取当前预算池余额
-            double balance = this.getPoolBalanceByCode(pool.getCode());
+            BigDecimal balance = this.getPoolBalanceByCode(pool.getCode());
             // 当前预算池
             this.poolAmountLog(pool.getSubjectId(), pool.getAttributeCode(), pool.getCode(),
                     bizId, bizCode, ContextUtil.getMessage("pool_00020", nextPool.getCode()),
-                    -balance, Constants.EVENT_BUDGET_TRUNDLE, OperationType.RELEASE);
+                    balance.negate(), Constants.EVENT_BUDGET_TRUNDLE, OperationType.RELEASE);
             // 目标预算池
             this.poolAmountLog(nextPool.getSubjectId(), nextPool.getAttributeCode(), nextPool.getCode(),
                     bizId, bizCode, ContextUtil.getMessage("pool_00021", pool.getCode()),

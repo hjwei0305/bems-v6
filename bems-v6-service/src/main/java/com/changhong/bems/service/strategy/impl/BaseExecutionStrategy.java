@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+
 /**
  * 实现功能：执行控制策略基类
  *
@@ -31,10 +33,9 @@ public abstract class BaseExecutionStrategy {
      * @param pool      被占用预算池
      * @param useBudget 预算占用参数
      * @param useAmount 占用金额
-     * @return 返回占用结果
      */
     @Transactional(rollbackFor = Exception.class)
-    public void recordUseBudgetPool(BudgetResponse response, PoolAttributeView pool, BudgetUse useBudget, double useAmount) {
+    public void recordUseBudgetPool(BudgetResponse response, PoolAttributeView pool, BudgetUse useBudget, BigDecimal useAmount) {
         ExecutionRecord record = new ExecutionRecord(pool.getCode(), OperationType.USE, useAmount, useBudget.getEventCode());
         record.setSubjectId(pool.getSubjectId());
         record.setAttributeCode(pool.getAttributeCode());

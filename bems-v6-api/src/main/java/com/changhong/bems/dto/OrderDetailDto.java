@@ -3,6 +3,7 @@ package com.changhong.bems.dto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -23,7 +24,7 @@ public class OrderDetailDto extends BaseAttributeDto {
      * 金额
      */
     @ApiModelProperty(value = "金额")
-    private Double amount = 0d;
+    private BigDecimal amount = new BigDecimal("0");
     /**
      * 预算池编码
      */
@@ -33,7 +34,7 @@ public class OrderDetailDto extends BaseAttributeDto {
      * 预算池金额
      */
     @ApiModelProperty(value = "预算池金额")
-    private Double poolAmount = 0d;
+    private BigDecimal poolAmount = new BigDecimal("0");
     /**
      * 来源预算池编码
      */
@@ -43,7 +44,7 @@ public class OrderDetailDto extends BaseAttributeDto {
      * 来源预算池金额
      */
     @ApiModelProperty(value = "来源预算池金额")
-    private Double originPoolAmount = 0d;
+    private BigDecimal originPoolAmount = new BigDecimal("0");
     /**
      * 是否错误
      */
@@ -67,11 +68,11 @@ public class OrderDetailDto extends BaseAttributeDto {
         this.orderId = orderId;
     }
 
-    public Double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(Double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 
@@ -83,11 +84,11 @@ public class OrderDetailDto extends BaseAttributeDto {
         this.poolCode = poolCode;
     }
 
-    public Double getPoolAmount() {
+    public BigDecimal getPoolAmount() {
         return poolAmount;
     }
 
-    public void setPoolAmount(Double poolAmount) {
+    public void setPoolAmount(BigDecimal poolAmount) {
         this.poolAmount = poolAmount;
     }
 
@@ -99,11 +100,11 @@ public class OrderDetailDto extends BaseAttributeDto {
         this.originPoolCode = originPoolCode;
     }
 
-    public Double getOriginPoolAmount() {
+    public BigDecimal getOriginPoolAmount() {
         return originPoolAmount;
     }
 
-    public void setOriginPoolAmount(Double originPoolAmount) {
+    public void setOriginPoolAmount(BigDecimal originPoolAmount) {
         this.originPoolAmount = originPoolAmount;
     }
 

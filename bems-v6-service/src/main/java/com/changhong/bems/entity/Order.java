@@ -11,6 +11,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * 预算申请单(Order)实体类
@@ -80,7 +81,7 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
      * 申请金额
      */
     @Column(name = "apply_amount")
-    private Double applyAmount = 0d;
+    private BigDecimal applyAmount = new BigDecimal("0");
     /**
      * 申请组织id
      */
@@ -213,11 +214,11 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
         this.orderCategory = orderCategory;
     }
 
-    public Double getApplyAmount() {
+    public BigDecimal getApplyAmount() {
         return applyAmount;
     }
 
-    public void setApplyAmount(Double applyAmount) {
+    public void setApplyAmount(BigDecimal applyAmount) {
         this.applyAmount = applyAmount;
     }
 

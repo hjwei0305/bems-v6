@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -72,7 +73,7 @@ public class BudgetService {
             List<BudgetFree> freeList = request.getFreeList();
             if (CollectionUtils.isNotEmpty(freeList)) {
                 for (BudgetFree free : freeList) {
-                    if (0 == free.getAmount()) {
+                    if (BigDecimal.ZERO.compareTo(free.getAmount()) == 0) {
                         // 按原先占用记录释放全部金额
                         this.freeBudget(free.getEventCode(), free.getBizId());
                     } else {
@@ -230,28 +231,29 @@ public class BudgetService {
      * @param bizId     业务id
      * @param amount    释放金额
      */
-    private void freeBudget(String eventCode, String bizId, double amount) {
+    private void freeBudget(String eventCode, String bizId, BigDecimal amount) {
         // 检查占用是否需要释放
         List<ExecutionRecord> records = executionRecordService.getUseRecords(eventCode, bizId);
         if (CollectionUtils.isNotEmpty(records)) {
             ExecutionRecord newRecord;
             // 剩余释放金额
-            double balance = amount;
+            BigDecimal balance = amount;
             for (ExecutionRecord record : records) {
-                if (balance <= 0) {
+                // 不能为负数
+                if (BigDecimal.ZERO.compareTo(balance) >= 0) {
                     continue;
                 }
                 // 为保证占用幂等,避免重复释放,更新记录已释放标记
                 executionRecordService.updateFreed(record.getId());
 
                 newRecord = record.clone();
-                if (record.getAmount() > balance) {
+                if (record.getAmount().compareTo(balance) > 0) {
                     // 释放当前记录部分金额
                     newRecord.setAmount(balance);
-                    balance = 0;
+                    balance = BigDecimal.ZERO;
                 } else {
                     // 释放当前记录全部金额
-                    balance = ArithUtils.sub(balance, record.getAmount());
+                    balance = ArithUtils.sub(balance, record.getAmount().doubleValue());
                 }
                 newRecord.setId(null);
                 newRecord.setOperation(OperationType.FREED);

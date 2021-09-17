@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiModelProperty;
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.StringJoiner;
 
 /**
@@ -35,7 +36,7 @@ public class BudgetFree implements Serializable {
      */
     @Digits(integer = 10, fraction = 2)
     @ApiModelProperty(value = "占用金额")
-    private double amount = 0;
+    private BigDecimal amount = new BigDecimal("0");
 
     public BudgetFree() {
     }
@@ -63,11 +64,11 @@ public class BudgetFree implements Serializable {
         return this;
     }
 
-    public double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public BudgetFree setAmount(double amount) {
+    public BudgetFree setAmount(BigDecimal amount) {
         this.amount = amount;
         return this;
     }

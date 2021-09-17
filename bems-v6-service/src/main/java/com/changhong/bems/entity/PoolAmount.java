@@ -8,6 +8,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * 预算池金额(PoolAmount)实体类
@@ -44,7 +45,7 @@ public class PoolAmount extends BaseEntity implements Serializable {
      * 金额
      */
     @Column(name = "amount")
-    private Double amount = 0d;
+    private BigDecimal amount = new BigDecimal("0");
 
 
     public String getPoolId() {
@@ -71,11 +72,11 @@ public class PoolAmount extends BaseEntity implements Serializable {
         this.operation = operationType;
     }
 
-    public Double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(Double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 

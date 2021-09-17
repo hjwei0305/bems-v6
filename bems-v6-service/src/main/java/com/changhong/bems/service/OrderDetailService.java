@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -151,9 +152,9 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
      * @return 返回订单头id
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<OrderDetail> updateDetailAmount(Order order, OrderDetail detail, double amount) {
+    public ResultData<OrderDetail> updateDetailAmount(Order order, OrderDetail detail, BigDecimal amount) {
         // 原行项金额
-        double oldAmount = detail.getAmount();
+        BigDecimal oldAmount = detail.getAmount();
         // 设置当前修改金额
         detail.setAmount(amount);
 
@@ -196,7 +197,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> updateAmount(Order order, List<OrderDetail> details) {
         if (CollectionUtils.isNotEmpty(details)) {
-            Map<String, Double> detailMap = details.stream().collect(Collectors.toMap(OrderDetail::getId, OrderDetail::getAmount));
+            Map<String, BigDecimal> detailMap = details.stream().collect(Collectors.toMap(OrderDetail::getId, OrderDetail::getAmount));
             Search search = Search.createSearch();
             search.addFilter(new SearchFilter(OrderDetail.FIELD_ORDER_ID, order.getId()));
             search.addFilter(new SearchFilter(OrderDetail.ID, detailMap.keySet(), SearchFilter.Operator.IN));
@@ -487,16 +488,16 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             }
             if (StringUtils.isNotBlank(poolCode)) {
                 // 当前预算池余额. 检查预算池可用余额是否满足本次发生金额(主要存在注入负数调减的金额)
-                double balance = poolService.getPoolBalanceByCode(poolCode);
+                BigDecimal balance = poolService.getPoolBalanceByCode(poolCode);
                 // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
-                if (balance + detail.getAmount() < 0) {
+                if (BigDecimal.ZERO.compareTo(balance.add(detail.getAmount())) > 0) {
                     // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
                     return ResultData.fail(ContextUtil.getMessage("pool_00002", poolCode, balance, detail.getAmount()));
                 }
                 detail.setPoolAmount(balance);
             } else {
                 // 当预算池不存在时,发生金额不能小于0(不能将预算池值为负数)
-                if (detail.getAmount() < 0) {
+                if (BigDecimal.ZERO.compareTo(detail.getAmount()) > 0) {
                     // 预算池金额不能值为负数[{0}]
                     return ResultData.fail(ContextUtil.getMessage("pool_00004", detail.getAmount()));
                 }
@@ -520,9 +521,9 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             // 预算池编码
             String poolCode = detail.getPoolCode();
             // 当前预算池余额. 检查预算池可用余额是否满足本次发生金额(主要存在注入负数调减的金额)
-            double balance = poolService.getPoolBalanceByCode(poolCode);
+            BigDecimal balance = poolService.getPoolBalanceByCode(poolCode);
             // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
-            if (balance + detail.getAmount() < 0) {
+            if (BigDecimal.ZERO.compareTo(balance.add(detail.getAmount())) > 0) {
                 // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
                 return ResultData.fail(ContextUtil.getMessage("pool_00002", poolCode, balance, detail.getAmount()));
             }
@@ -552,9 +553,9 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                 return ResultData.fail(ContextUtil.getMessage("order_detail_00010"));
             }
             // 当前预算池余额. 检查预算池可用余额是否满足本次发生金额(主要存在注入负数调减的金额)
-            double originBalance = poolService.getPoolBalanceByCode(originPoolCode);
+            BigDecimal originBalance = poolService.getPoolBalanceByCode(originPoolCode);
             // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
-            if (originBalance - detail.getAmount() < 0) {
+            if (BigDecimal.ZERO.compareTo(originBalance.subtract(detail.getAmount())) > 0) {
                 // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
                 return ResultData.fail(ContextUtil.getMessage("pool_00002", originPoolCode, originBalance, detail.getAmount()));
             }
@@ -572,16 +573,16 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             }
             if (StringUtils.isNotBlank(poolCode)) {
                 // 当前预算池余额. 检查预算池可用余额是否满足本次发生金额(主要存在注入负数调减的金额)
-                double balance = poolService.getPoolBalanceByCode(poolCode);
+                BigDecimal balance = poolService.getPoolBalanceByCode(poolCode);
                 // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
-                if (balance + detail.getAmount() < 0) {
+                if (BigDecimal.ZERO.compareTo(balance.add(detail.getAmount())) > 0) {
                     // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
                     return ResultData.fail(ContextUtil.getMessage("pool_00002", poolCode, balance, detail.getAmount()));
                 }
                 detail.setPoolAmount(balance);
             } else {
                 // 当预算池不存在时,发生金额不能小于0(不能将预算池值为负数)
-                if (detail.getAmount() < 0) {
+                if (BigDecimal.ZERO.compareTo(detail.getAmount()) > 0) {
                     // 预算池金额不能值为负数[{0}]
                     return ResultData.fail(ContextUtil.getMessage("pool_00004", detail.getAmount()));
                 }

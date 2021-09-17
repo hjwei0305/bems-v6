@@ -33,5 +33,5 @@ public enum PeriodType {
      * 自定义
      */
     @Remark("自定义")
-    CUSTOMIZE;
+    CUSTOMIZE
 }

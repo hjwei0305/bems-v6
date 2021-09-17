@@ -38,6 +38,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -221,7 +222,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         OrderStatus status = order.getStatus();
         // 允许流程中修改金额
         if (OrderStatus.PREFAB == status || OrderStatus.DRAFT == status || OrderStatus.APPROVING == status) {
-            ResultData<OrderDetail> resultData = orderDetailService.updateDetailAmount(order, detail, amount);
+            ResultData<OrderDetail> resultData = orderDetailService.updateDetailAmount(order, detail, new BigDecimal(Double.toString(amount)));
             if (resultData.successful()) {
                 return ResultData.success(dtoModelMapper.map(resultData.getData(), OrderDetailDto.class));
             } else {
@@ -342,10 +343,17 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         data.put("SUB", 0d);
         List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
         if (CollectionUtils.isNotEmpty(details)) {
-            double sumAdd = details.stream().filter(d -> d.getAmount() > 0).mapToDouble(OrderDetail::getAmount).sum();
-            data.put("ADD", ArithUtils.round(sumAdd, 2));
-            double sumSub = details.stream().filter(d -> d.getAmount() < 0).mapToDouble(OrderDetail::getAmount).sum();
-            data.put("SUB", ArithUtils.round(sumSub, 2));
+            BigDecimal sumAdd = BigDecimal.ZERO;
+            BigDecimal sumSub = BigDecimal.ZERO;
+            for (OrderDetail detail : details) {
+                if (detail.getAmount().compareTo(BigDecimal.ZERO) > 0) {
+                    sumAdd = sumAdd.add(detail.getAmount());
+                } else {
+                    sumSub = sumSub.add(detail.getAmount());
+                }
+            }
+            data.put("ADD", ArithUtils.round(sumAdd.doubleValue(), 2));
+            data.put("SUB", ArithUtils.round(sumSub.doubleValue(), 2));
         }
         return ResultData.success(data);
     }

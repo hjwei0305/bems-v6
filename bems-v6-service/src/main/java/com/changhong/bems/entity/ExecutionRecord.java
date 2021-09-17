@@ -8,6 +8,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -52,7 +53,7 @@ public class ExecutionRecord extends BaseEntity implements ITenant, Serializable
      * 金额
      */
     @Column(name = "amount", updatable = false)
-    private Double amount = 0d;
+    private BigDecimal amount = new BigDecimal("0");
     /**
      * 是预算池金额
      */
@@ -113,7 +114,7 @@ public class ExecutionRecord extends BaseEntity implements ITenant, Serializable
     public ExecutionRecord() {
     }
 
-    public ExecutionRecord(String poolCode, OperationType operation, Double amount, String eventCode) {
+    public ExecutionRecord(String poolCode, OperationType operation, BigDecimal amount, String eventCode) {
         this.poolCode = poolCode;
         this.operation = operation;
         this.amount = amount;
@@ -160,11 +161,11 @@ public class ExecutionRecord extends BaseEntity implements ITenant, Serializable
         isPoolAmount = poolAmount;
     }
 
-    public Double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(Double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -28,7 +29,7 @@ public interface PoolDao extends BaseEntityDao<Pool> {
      */
     @Modifying
     @Query("update Pool p set p.balance = :balance where p.id = :id ")
-    void updateAmount(@Param("id") String id, @Param("balance") double balance);
+    void updateAmount(@Param("id") String id, @Param("balance") BigDecimal balance);
 
     /**
      * 通过Id更新预算池启用禁用状态

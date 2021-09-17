@@ -5,6 +5,7 @@ import com.changhong.sei.core.entity.ITenant;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
@@ -110,7 +111,7 @@ public class PoolAttributeView extends BaseAttribute implements ITenant, Seriali
      * 可用余额
      */
     @Column(name = "balance")
-    private Double balance = 0d;
+    private BigDecimal balance = new BigDecimal("0");
     /**
      * 租户代码
      */
@@ -246,11 +247,11 @@ public class PoolAttributeView extends BaseAttribute implements ITenant, Seriali
         this.delay = delay;
     }
 
-    public Double getBalance() {
+    public BigDecimal getBalance() {
         return balance;
     }
 
-    public void setBalance(Double balance) {
+    public void setBalance(BigDecimal balance) {
         this.balance = balance;
     }
 

@@ -4,7 +4,6 @@ import com.changhong.bems.api.PoolApi;
 import com.changhong.bems.dto.ExecutionRecordDto;
 import com.changhong.bems.dto.PoolAttributeDto;
 import com.changhong.bems.entity.ExecutionRecordView;
-import com.changhong.bems.entity.Pool;
 import com.changhong.bems.entity.PoolAttributeView;
 import com.changhong.bems.service.PoolService;
 import com.changhong.sei.core.context.ContextUtil;

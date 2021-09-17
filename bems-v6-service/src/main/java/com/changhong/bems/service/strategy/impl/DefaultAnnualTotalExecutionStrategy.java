@@ -10,6 +10,7 @@ import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
@@ -43,37 +44,37 @@ public class DefaultAnnualTotalExecutionStrategy extends BaseExecutionStrategy i
         response.setBizId(useBudget.getBizId());
 
         // 占用总金额
-        double amount = useBudget.getAmount();
+        BigDecimal amount = useBudget.getAmount();
         // 当前预算池余额
-        double poolBalance = poolService.getPoolBalanceByCode(optimalPool.getCode());
+        BigDecimal poolBalance = poolService.getPoolBalanceByCode(optimalPool.getCode());
         // 检查当前预算池余额是否满足占用
-        if (amount > poolBalance) {
+        if (amount.compareTo(poolBalance) > 0) {
             // 预算占用日期
             LocalDate useDate = LocalDate.parse(useBudget.getDate(), DateTimeFormatter.ISO_DATE);
             // 获取同期间预算池(含自己但不含占用日期之前的预算池)
             final List<PoolAttributeView> poolAttributes = poolService.getSamePeriodBudgetPool(optimalPool, useDate);
             // 已占用金额
-            double useAmount = 0;
+            BigDecimal useAmount = BigDecimal.ZERO;
             for (PoolAttributeView pool : poolAttributes) {
                 // 需要占用的金额 = 占用总额 -已占额
-                double needAmount = amount - useAmount;
-                if (needAmount == 0) {
+                BigDecimal needAmount = amount.subtract(useAmount);
+                if (BigDecimal.ZERO.compareTo(needAmount) == 0) {
                     break;
                 }
                 // 当前预算池余额
-                double poolAmount = poolService.getPoolBalanceByCode(pool.getCode());
+                BigDecimal poolAmount = poolService.getPoolBalanceByCode(pool.getCode());
                 // 需要占用金额 >= 预算池余额
-                if (needAmount >= poolAmount) {
+                if (needAmount.compareTo(poolAmount) >= 0) {
                     // 占用全部预算池金额
                     this.recordUseBudgetPool(response, pool, useBudget, poolAmount);
-                    useAmount += poolAmount;
+                    useAmount = useAmount.add(poolAmount);
                 } else {
                     // 占用部分预算池金额
                     this.recordUseBudgetPool(response, pool, useBudget, needAmount);
-                    useAmount += needAmount;
+                    useAmount = useAmount.add(needAmount);
                 }
             }
-            if (amount > useAmount || amount < useAmount) {
+            if (amount.compareTo(useAmount) != 0) {
                 // 预算占用时,当前余额[{0}]不满足占用金额[{1}]!
                 return ResultData.fail(ContextUtil.getMessage("pool_00013", useAmount, amount));
             }

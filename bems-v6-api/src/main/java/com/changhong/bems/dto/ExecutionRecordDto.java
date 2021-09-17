@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -30,7 +31,7 @@ public class ExecutionRecordDto extends BaseEntityDto {
      * 金额
      */
     @ApiModelProperty(value = "金额")
-    private Double amount = 0d;
+    private BigDecimal amount = new BigDecimal("0");
     /**
      * 操作时间
      */
@@ -99,11 +100,11 @@ public class ExecutionRecordDto extends BaseEntityDto {
         this.operation = operation;
     }
 
-    public Double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(Double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 

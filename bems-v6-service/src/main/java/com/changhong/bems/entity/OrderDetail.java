@@ -9,6 +9,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.StringJoiner;
@@ -37,7 +38,7 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
      * 金额
      */
     @Column(name = "amount")
-    private Double amount = 0d;
+    private BigDecimal amount = new BigDecimal("0");
     /**
      * 预算池编码
      */
@@ -47,7 +48,7 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
      * 预算池金额
      */
     @Column(name = "pool_amount")
-    private Double poolAmount = 0d;
+    private BigDecimal poolAmount = new BigDecimal("0");
     /**
      * 来源预算池编码
      */
@@ -57,7 +58,7 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
      * 来源预算池金额
      */
     @Column(name = "origin_pool_amount")
-    private Double originPoolAmount = 0d;
+    private BigDecimal originPoolAmount = new BigDecimal("0");
     /**
      * 是否正在异步处理行项数据
      * 如果是,在编辑时进入socket状态显示页面
@@ -102,11 +103,11 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
         this.orderId = orderId;
     }
 
-    public Double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(Double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 
@@ -118,11 +119,11 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
         this.poolCode = poolCode;
     }
 
-    public Double getPoolAmount() {
+    public BigDecimal getPoolAmount() {
         return poolAmount;
     }
 
-    public void setPoolAmount(Double poolAmount) {
+    public void setPoolAmount(BigDecimal poolAmount) {
         this.poolAmount = poolAmount;
     }
 
@@ -134,11 +135,11 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
         this.originPoolCode = originPoolCode;
     }
 
-    public Double getOriginPoolAmount() {
+    public BigDecimal getOriginPoolAmount() {
         return originPoolAmount;
     }
 
-    public void setOriginPoolAmount(Double originPoolAmount) {
+    public void setOriginPoolAmount(BigDecimal originPoolAmount) {
         this.originPoolAmount = originPoolAmount;
     }
 

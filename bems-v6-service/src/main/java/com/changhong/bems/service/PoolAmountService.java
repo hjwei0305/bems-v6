@@ -14,9 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
-
 
 /**
  * 预算池金额(PoolAmount)业务逻辑实现类
@@ -40,7 +40,7 @@ public class PoolAmountService extends BaseEntityService<PoolAmount> {
      * @param poolId 预算池id
      * @return 当前预算池可用余额
      */
-    public double getPoolBalanceByPoolId(String poolId) {
+    public BigDecimal getPoolBalanceByPoolId(String poolId) {
         List<PoolAmount> amounts = dao.findListByProperty(PoolAmount.FIELD_POOL_ID, poolId);
         return this.getPoolBalance(amounts);
     }
@@ -51,7 +51,7 @@ public class PoolAmountService extends BaseEntityService<PoolAmount> {
      * @param poolCode 预算池编码
      * @return 当前预算池可用余额
      */
-    public double getPoolBalanceByPoolCode(String poolCode) {
+    public BigDecimal getPoolBalanceByPoolCode(String poolCode) {
         List<PoolAmount> amounts = dao.findListByProperty(PoolAmount.FIELD_POOL_CODE, poolCode);
         return this.getPoolBalance(amounts);
     }
@@ -64,7 +64,7 @@ public class PoolAmountService extends BaseEntityService<PoolAmount> {
      * @param amount    本次发生金额
      */
     @Transactional(rollbackFor = Exception.class)
-    public void countAmount(Pool pool, OperationType operation, double amount) {
+    public void countAmount(Pool pool, OperationType operation, BigDecimal amount) {
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(PoolAmount.FIELD_POOL_ID, pool.getId()));
         search.addFilter(new SearchFilter(PoolAmount.FIELD_OPERATION, operation));
@@ -75,7 +75,7 @@ public class PoolAmountService extends BaseEntityService<PoolAmount> {
             poolAmount.setPoolCode(pool.getCode());
             poolAmount.setOperation(operation);
         }
-        poolAmount.setAmount(ArithUtils.add(poolAmount.getAmount(), amount));
+        poolAmount.setAmount(ArithUtils.add(poolAmount.getAmount(), amount.doubleValue()));
         this.save(poolAmount);
     }
 
@@ -86,8 +86,8 @@ public class PoolAmountService extends BaseEntityService<PoolAmount> {
      * @param amounts 预算池金额
      * @return 当前余额
      */
-    private double getPoolBalance(List<PoolAmount> amounts) {
-        double balance = 0;
+    private BigDecimal getPoolBalance(List<PoolAmount> amounts) {
+        BigDecimal balance = BigDecimal.ZERO;
         if (CollectionUtils.isNotEmpty(amounts)) {
             // 注入金额 + 释放(使用)金额 - 使用金额
             for (PoolAmount amount : amounts) {
@@ -96,11 +96,11 @@ public class PoolAmountService extends BaseEntityService<PoolAmount> {
                         // 注入下达
                     case FREED:
                         // 释放
-                        balance = ArithUtils.add(balance, amount.getAmount());
+                        balance = ArithUtils.add(balance, amount.getAmount().doubleValue());
                         break;
                     case USE:
                         // 使用
-                        balance = ArithUtils.sub(balance, amount.getAmount());
+                        balance = ArithUtils.sub(balance, amount.getAmount().doubleValue());
                         break;
                     default:
                 }

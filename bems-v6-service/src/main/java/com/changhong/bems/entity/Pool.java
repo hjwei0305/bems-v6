@@ -9,6 +9,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -112,7 +113,12 @@ public class Pool extends BaseEntity implements ITenant, ICodeUnique, Serializab
      * 可用余额
      */
     @Column(name = "balance")
-    private Double balance = 0d;
+    private BigDecimal total = new BigDecimal("0");
+    /**
+     * 可用余额
+     */
+    @Column(name = "balance")
+    private BigDecimal balance = new BigDecimal("0");
     /**
      * 创建时间
      */
@@ -246,11 +252,19 @@ public class Pool extends BaseEntity implements ITenant, ICodeUnique, Serializab
         this.delay = delay;
     }
 
-    public Double getBalance() {
+    public BigDecimal getTotal() {
+        return total;
+    }
+
+    public void setTotal(BigDecimal total) {
+        this.total = total;
+    }
+
+    public BigDecimal getBalance() {
         return balance;
     }
 
-    public void setBalance(Double balance) {
+    public void setBalance(BigDecimal balance) {
         this.balance = balance;
     }
 

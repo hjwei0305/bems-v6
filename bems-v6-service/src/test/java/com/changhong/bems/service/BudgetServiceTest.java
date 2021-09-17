@@ -11,6 +11,7 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +32,7 @@ class BudgetServiceTest extends BaseUnit5Test {
         BudgetUse use = new BudgetUse();
         use.setCorpCode("Q000");
         use.setEventCode("APPLICATION_USE");
-        use.setAmount(60);
+        use.setAmount(BigDecimal.TEN);
         use.setBizId("USE_TEST_1");
         use.setBizCode("USE_TEST_1");
         use.setBizRemark("测试占用");

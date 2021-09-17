@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
@@ -106,7 +107,7 @@ public class PoolAttributeDto extends BaseAttributeDto {
      * 可用余额
      */
     @ApiModelProperty(value = "可用余额")
-    private Double balance;
+    private BigDecimal balance;
 
     public String getCode() {
         return code;
@@ -244,11 +245,11 @@ public class PoolAttributeDto extends BaseAttributeDto {
         this.delay = delay;
     }
 
-    public Double getBalance() {
+    public BigDecimal getBalance() {
         return balance;
     }
 
-    public void setBalance(Double balance) {
+    public void setBalance(BigDecimal balance) {
         this.balance = balance;
     }
 

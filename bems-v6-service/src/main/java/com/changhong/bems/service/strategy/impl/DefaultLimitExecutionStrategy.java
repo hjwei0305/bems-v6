@@ -10,6 +10,7 @@ import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 
 /**
@@ -36,12 +37,12 @@ public class DefaultLimitExecutionStrategy extends BaseExecutionStrategy impleme
     @Transactional(rollbackFor = Exception.class)
     public ResultData<BudgetResponse> execution(PoolAttributeView optimalPool, BudgetUse useBudget, Collection<SearchFilter> otherDimFilters) {
         // 占用总金额
-        double useAmount = useBudget.getAmount();
+        BigDecimal useAmount = useBudget.getAmount();
         // 预算池代码
         String poolCode = optimalPool.getCode();
         // 当前预算池余额
-        double poolBalance = poolService.getPoolBalanceByCode(poolCode);
-        if (useAmount > poolBalance) {
+        BigDecimal poolBalance = poolService.getPoolBalanceByCode(poolCode);
+        if (useAmount.compareTo(poolBalance) > 0) {
             // 预算占用时,当前余额[{0}]不满足占用金额[{1}]!
             String message = ContextUtil.getMessage("pool_00013", poolBalance, useAmount);
             LOG.error(message);

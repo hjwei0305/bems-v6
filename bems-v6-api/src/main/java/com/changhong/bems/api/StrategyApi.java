@@ -2,7 +2,6 @@ package com.changhong.bems.api;
 
 import com.changhong.bems.dto.StrategyDto;
 import com.changhong.sei.core.api.BaseEntityApi;
-import com.changhong.sei.core.api.FindAllApi;
 import com.changhong.sei.core.dto.ResultData;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;

@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * 实现功能：预算占用
@@ -18,9 +19,9 @@ public class BudgetUseResult implements Serializable {
     @ApiModelProperty(value = "占用预算编码")
     private final String poolCode;
     @ApiModelProperty(value = "占用金额")
-    private final double useAmount;
+    private final BigDecimal useAmount;
 
-    public BudgetUseResult(String poolCode, double useAmount) {
+    public BudgetUseResult(String poolCode, BigDecimal useAmount) {
         this.poolCode = poolCode;
         this.useAmount = useAmount;
     }
@@ -29,7 +30,7 @@ public class BudgetUseResult implements Serializable {
         return poolCode;
     }
 
-    public double getUseAmount() {
+    public BigDecimal getUseAmount() {
         return useAmount;
     }
 }

@@ -5,6 +5,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.StringJoiner;
 
 /**
@@ -26,7 +27,7 @@ public class BudgetUse implements Serializable {
      * 占用金额
      */
     @Digits(integer = 10, fraction = 2)
-    private double amount = 0;
+    private BigDecimal amount = new BigDecimal("0");
     /**
      * 业务事件
      */
@@ -101,7 +102,7 @@ public class BudgetUse implements Serializable {
     public BudgetUse() {
     }
 
-    public BudgetUse(String corpCode, String eventCode, String bizId, String date, String item, double amount) {
+    public BudgetUse(String corpCode, String eventCode, String bizId, String date, String item, BigDecimal amount) {
         this.corpCode = corpCode;
         this.amount = amount;
         this.eventCode = eventCode;
@@ -119,11 +120,11 @@ public class BudgetUse implements Serializable {
         return this;
     }
 
-    public double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public BudgetUse setAmount(double amount) {
+    public BudgetUse setAmount(BigDecimal amount) {
         this.amount = amount;
         return this;
     }

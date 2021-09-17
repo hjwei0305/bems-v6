@@ -26,23 +26,15 @@ public final class Constants {
     public static final String DIMENSION_CODE_UDF4 = "udf4";
     public static final String DIMENSION_CODE_UDF5 = "udf5";
 
+    public static final Set<KeyValueDto> DEFAULT_DIMENSION_CODES;
+
     /**
      * 获取所有预制的维度代码
      *
      * @return 策略清单
      */
     public static Set<KeyValueDto> getDimensionCodes() {
-        Set<KeyValueDto> set = new LinkedHashSet<>();
-        set.add(new KeyValueDto(DIMENSION_CODE_PERIOD, "预算期间"));
-        set.add(new KeyValueDto(DIMENSION_CODE_ITEM, "预算科目"));
-        set.add(new KeyValueDto(DIMENSION_CODE_ORG, "组织机构"));
-        set.add(new KeyValueDto(DIMENSION_CODE_PROJECT, "项目"));
-        set.add(new KeyValueDto(DIMENSION_CODE_UDF1, "自定义1"));
-        set.add(new KeyValueDto(DIMENSION_CODE_UDF2, "自定义2"));
-        set.add(new KeyValueDto(DIMENSION_CODE_UDF3, "自定义3"));
-        set.add(new KeyValueDto(DIMENSION_CODE_UDF4, "自定义4"));
-        set.add(new KeyValueDto(DIMENSION_CODE_UDF5, "自定义5"));
-        return set;
+        return DEFAULT_DIMENSION_CODES;
     }
 
     /**
@@ -78,4 +70,17 @@ public final class Constants {
      * redis key 订单处理状态缓存key
      */
     public static final String HANDLE_CACHE_KEY_PREFIX = "bems-v6:order:handle:";
+
+    static {
+        DEFAULT_DIMENSION_CODES = new LinkedHashSet<>();
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_PERIOD, "预算期间"));
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_ITEM, "预算科目"));
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_ORG, "组织机构"));
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_PROJECT, "项目"));
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF1, "自定义1"));
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF2, "自定义2"));
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF3, "自定义3"));
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF4, "自定义4"));
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF5, "自定义5"));
+    }
 }

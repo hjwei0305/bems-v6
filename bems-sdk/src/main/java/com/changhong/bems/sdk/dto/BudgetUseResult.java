@@ -1,6 +1,7 @@
 package com.changhong.bems.sdk.dto;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * 实现功能：预算占用结果
@@ -18,9 +19,9 @@ public class BudgetUseResult implements Serializable {
     /**
      * 占用金额
      */
-    private final double useAmount;
+    private final BigDecimal useAmount;
 
-    public BudgetUseResult(String poolCode, double useAmount) {
+    public BudgetUseResult(String poolCode, BigDecimal useAmount) {
         this.poolCode = poolCode;
         this.useAmount = useAmount;
     }
@@ -29,7 +30,7 @@ public class BudgetUseResult implements Serializable {
         return poolCode;
     }
 
-    public double getUseAmount() {
+    public BigDecimal getUseAmount() {
         return useAmount;
     }
 }

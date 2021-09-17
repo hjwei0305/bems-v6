@@ -8,6 +8,7 @@ import io.swagger.annotations.ApiModelProperty;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -74,7 +75,7 @@ public class OrderDto extends BaseEntityDto {
      * 申请金额
      */
     @ApiModelProperty(value = "申请金额")
-    private Double applyAmount = 0d;
+    private BigDecimal applyAmount = new BigDecimal("0");
     /**
      * 申请组织id
      */
@@ -220,11 +221,11 @@ public class OrderDto extends BaseEntityDto {
         this.orderCategory = orderCategory;
     }
 
-    public Double getApplyAmount() {
+    public BigDecimal getApplyAmount() {
         return applyAmount;
     }
 
-    public void setApplyAmount(Double applyAmount) {
+    public void setApplyAmount(BigDecimal applyAmount) {
         this.applyAmount = applyAmount;
     }
 

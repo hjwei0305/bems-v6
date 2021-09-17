@@ -9,6 +9,7 @@ import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 
 /**
@@ -35,7 +36,7 @@ public class DefaultExcessExecutionStrategy extends BaseExecutionStrategy implem
     @Transactional(rollbackFor = Exception.class)
     public ResultData<BudgetResponse> execution(PoolAttributeView optimalPool, BudgetUse useBudget, Collection<SearchFilter> otherDimFilters) {
         // 占用总金额
-        double useAmount = useBudget.getAmount();
+        BigDecimal useAmount = useBudget.getAmount();
         // 允许超额使用,即直接占用预算,不做余额检查
 
         // 占用结果
