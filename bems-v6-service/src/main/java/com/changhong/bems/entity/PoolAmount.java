@@ -55,6 +55,9 @@ public class PoolAmount extends BaseEntity implements Serializable {
     @Column(name = "amount")
     private BigDecimal amount = BigDecimal.ZERO;
 
+    @Version
+    @Column(name = "optimistic_lock")
+    private Integer version = 0;
 
     public String getPoolId() {
         return poolId;
@@ -96,4 +99,11 @@ public class PoolAmount extends BaseEntity implements Serializable {
         this.amount = amount;
     }
 
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
 }

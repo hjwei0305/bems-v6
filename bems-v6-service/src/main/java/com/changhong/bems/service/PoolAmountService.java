@@ -51,8 +51,8 @@ public class PoolAmountService {
     public void countAmount(Pool pool, boolean internal, OperationType operation, BigDecimal amount) {
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(PoolAmount.FIELD_POOL_ID, pool.getId()));
-        search.addFilter(new SearchFilter(PoolAmount.FIELD_INTERNAL, internal));
         search.addFilter(new SearchFilter(PoolAmount.FIELD_OPERATION, operation));
+        search.addFilter(new SearchFilter(PoolAmount.FIELD_INTERNAL, internal));
         PoolAmount poolAmount = dao.findOneByFilters(search);
         if (Objects.isNull(poolAmount)) {
             poolAmount = new PoolAmount();
