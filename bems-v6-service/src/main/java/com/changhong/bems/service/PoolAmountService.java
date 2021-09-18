@@ -2,9 +2,9 @@ package com.changhong.bems.service;
 
 import com.changhong.bems.dao.PoolAmountDao;
 import com.changhong.bems.dto.OperationType;
+import com.changhong.bems.dto.PoolAmountQuotaDto;
 import com.changhong.bems.entity.Pool;
 import com.changhong.bems.entity.PoolAmount;
-import com.changhong.bems.dto.PoolAmountQuotaDto;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
@@ -34,43 +34,19 @@ public class PoolAmountService {
     /**
      * 按预算池id查询预算池当前余额
      *
-     * @param poolId 预算池id
-     * @return 当前预算池可用余额
-     */
-    public BigDecimal getPoolBalanceByPoolId(String poolId) {
-        List<PoolAmount> amounts = dao.findListByProperty(PoolAmount.FIELD_POOL_ID, poolId);
-        PoolAmountQuotaDto quota = this.getPoolAmountQuota(amounts);
-        return quota.getBalance();
-    }
-
-    /**
-     * 按预算池id查询预算池当前余额
-     *
      * @param poolCode 预算池编码
      * @return 当前预算池可用余额
      */
     public BigDecimal getPoolBalanceByPoolCode(String poolCode) {
-        List<PoolAmount> amounts = dao.findListByProperty(PoolAmount.FIELD_POOL_CODE, poolCode);
-        PoolAmountQuotaDto quota = this.getPoolAmountQuota(amounts);
+        PoolAmountQuotaDto quota = this.getPoolAmountQuota(poolCode);
         return quota.getBalance();
-    }
-
-    /**
-     * 按预算池id查询预算池当前余额
-     *
-     * @param poolCode 预算池编码
-     * @return 当前预算池可用余额
-     */
-    public PoolAmountQuotaDto getPoolAmountQuota(String poolCode) {
-        List<PoolAmount> amounts = dao.findListByProperty(PoolAmount.FIELD_POOL_CODE, poolCode);
-        return this.getPoolAmountQuota(amounts);
     }
 
     /**
      * 按类型累计金额
      *
      * @param pool      预算池
-     * @param operation 操作类型
+     * @param internal  是否是预算内部操作
      * @param operation 操作类型
      * @param amount    本次发生金额
      */
@@ -93,23 +69,26 @@ public class PoolAmountService {
     }
 
     /**
-     * 计算预算池当前余额
+     * 计算预算池金额额度
      * 公式: 注入金额+释放(使用)金额-使用金额
      *
-     * @param amounts 预算池金额
+     * 内部调整:A预算到B预算
+     * 内部分解:年度到月度
+     * 内部结转:1月到2月
+     * 内部使用:A预算扣减,年度预算扣减,1月预算扣减,
+     *
+     * 外部注入:下达全新预算
+     * 外部使用:业务系统使用
+     *
+     * @param poolCode 预算池代码
      * @return 当前余额
      */
-    private PoolAmountQuotaDto getPoolAmountQuota(List<PoolAmount> amounts) {
+    public PoolAmountQuotaDto getPoolAmountQuota(String poolCode) {
         PoolAmountQuotaDto quota = new PoolAmountQuotaDto();
-        //BigDecimal balance = BigDecimal.ZERO;
+        List<PoolAmount> amounts = dao.findListByProperty(PoolAmount.FIELD_POOL_CODE, poolCode);
         if (CollectionUtils.isNotEmpty(amounts)) {
-            String poolCode = amounts.get(0).getPoolCode();
             // 注入金额 + 释放(使用)金额 - 使用金额
             for (PoolAmount amount : amounts) {
-                if (!StringUtils.equals(poolCode, amount.getPoolCode())) {
-                    // 预算池金额计算异常:不是同一个预算池
-                    throw new ServiceException(ContextUtil.getMessage("pool_00024"));
-                }
                 switch (amount.getOperation()) {
                     case RELEASE:
                         // 注入下达
