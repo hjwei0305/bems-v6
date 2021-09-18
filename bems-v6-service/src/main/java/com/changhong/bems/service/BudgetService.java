@@ -67,7 +67,7 @@ public class BudgetService {
         if (LOG.isInfoEnabled()) {
             LOG.info("预算占用: {}", JsonUtils.toJson(request));
         }
-        ResultData<List<BudgetResponse>> result = ResultData.success();
+        ResultData<List<BudgetResponse>> result;
         try {
             // 预算释放数据
             List<BudgetFree> freeList = request.getFreeList();
@@ -87,13 +87,11 @@ public class BudgetService {
             List<BudgetUse> useList = request.getUseList();
             if (CollectionUtils.isNotEmpty(useList)) {
                 List<BudgetResponse> responses = new ArrayList<>();
-                boolean success = true;
                 BudgetResponse budgetResponse;
                 ResultData<BudgetResponse> resultData;
                 for (BudgetUse budgetUse : useList) {
                     resultData = this.useBudget(budgetUse);
-                    success = resultData.successful();
-                    if (success) {
+                    if (resultData.successful()) {
                         budgetResponse = resultData.getData();
                         responses.add(budgetResponse);
                     } else {
@@ -102,14 +100,22 @@ public class BudgetService {
                         budgetResponse.setSuccess(false);
                         budgetResponse.setMessage(resultData.getMessage());
                         responses.add(budgetResponse);
-                        result = ResultData.fail(resultData.getMessage());
                         // 回滚事务
                         TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                         break;
                     }
                 }
-                if (success) {
-                    result = ResultData.success(responses);
+
+                result = ResultData.success(responses);
+                // if (success) {
+                //     result = ResultData.success(responses);
+                // }
+            } else {
+                if (CollectionUtils.isNotEmpty(freeList)) {
+                    // 预算释放成功
+                    result = ResultData.success(ContextUtil.getMessage("pool_00025"), null);
+                } else {
+                    result = ResultData.fail(ContextUtil.getMessage("pool_00026"));
                 }
             }
         } catch (Exception e) {
