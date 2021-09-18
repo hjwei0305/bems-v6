@@ -46,6 +46,7 @@ public abstract class BaseExecutionStrategy {
         // 占用记录
         poolService.recordLog(record);
 
-        response.addUseResult(new BudgetUseResult(record.getPoolCode(), record.getAmount()));
+        response.addUseResult(new BudgetUseResult(record.getPoolCode(), pool.getTotalAmount(), pool.getUsedAmount(),
+                pool.getBalance(), record.getAmount()));
     }
 }

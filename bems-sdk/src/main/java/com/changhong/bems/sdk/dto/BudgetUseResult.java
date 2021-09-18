@@ -2,6 +2,7 @@ package com.changhong.bems.sdk.dto;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.StringJoiner;
 
 /**
  * 实现功能：预算占用结果
@@ -17,17 +18,21 @@ public class BudgetUseResult implements Serializable {
      */
     private String poolCode;
     /**
-     * 占用金额
+     * 当前预算池注入总额
+     */
+    private BigDecimal poolTotalAmount;
+    /**
+     * 当前预算池已使用额度(不含本次使用)
+     */
+    private BigDecimal poolUsedAmount;
+    /**
+     * 当前预算池可用余额(不含本次使用)
+     */
+    private BigDecimal poolBalanceAmount;
+    /**
+     * 本次使用金额
      */
     private BigDecimal useAmount;
-
-    public BudgetUseResult() {
-    }
-
-    public BudgetUseResult(String poolCode, BigDecimal useAmount) {
-        this.poolCode = poolCode;
-        this.useAmount = useAmount;
-    }
 
     public String getPoolCode() {
         return poolCode;
@@ -37,11 +42,46 @@ public class BudgetUseResult implements Serializable {
         this.poolCode = poolCode;
     }
 
+    public BigDecimal getPoolTotalAmount() {
+        return poolTotalAmount;
+    }
+
+    public void setPoolTotalAmount(BigDecimal poolTotalAmount) {
+        this.poolTotalAmount = poolTotalAmount;
+    }
+
+    public BigDecimal getPoolUsedAmount() {
+        return poolUsedAmount;
+    }
+
+    public void setPoolUsedAmount(BigDecimal poolUsedAmount) {
+        this.poolUsedAmount = poolUsedAmount;
+    }
+
+    public BigDecimal getPoolBalanceAmount() {
+        return poolBalanceAmount;
+    }
+
+    public void setPoolBalanceAmount(BigDecimal poolBalanceAmount) {
+        this.poolBalanceAmount = poolBalanceAmount;
+    }
+
     public BigDecimal getUseAmount() {
         return useAmount;
     }
 
     public void setUseAmount(BigDecimal useAmount) {
         this.useAmount = useAmount;
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", BudgetUseResult.class.getSimpleName() + "[", "]")
+                .add("poolCode='" + poolCode + "'")
+                .add("poolTotalAmount=" + poolTotalAmount)
+                .add("poolUsedAmount=" + poolUsedAmount)
+                .add("poolBalanceAmount=" + poolBalanceAmount)
+                .add("useAmount=" + useAmount)
+                .toString();
     }
 }

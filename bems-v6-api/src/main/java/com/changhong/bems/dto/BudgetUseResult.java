@@ -18,16 +18,48 @@ public class BudgetUseResult implements Serializable {
 
     @ApiModelProperty(value = "占用预算编码")
     private final String poolCode;
-    @ApiModelProperty(value = "占用金额")
+    /**
+     * 总额
+     */
+    @ApiModelProperty(value = "当前预算池注入总额")
+    private final BigDecimal poolTotalAmount;
+    /**
+     * 当前预算池已使用额度(不含本次使用)
+     */
+    @ApiModelProperty(value = "当前预算池已使用额度(不含本次使用)")
+    private final BigDecimal poolUsedAmount;
+    /**
+     * 当前预算池可用余额(不含本次使用)
+     */
+    @ApiModelProperty(value = "当前预算池可用余额(不含本次使用)")
+    private final BigDecimal poolBalanceAmount;
+
+    @ApiModelProperty(value = "本次使用金额")
     private final BigDecimal useAmount;
 
-    public BudgetUseResult(String poolCode, BigDecimal useAmount) {
+    public BudgetUseResult(String poolCode, BigDecimal poolTotalAmount, BigDecimal poolUsedAmount,
+                           BigDecimal poolBalanceAmount, BigDecimal useAmount) {
         this.poolCode = poolCode;
+        this.poolTotalAmount = poolTotalAmount;
+        this.poolUsedAmount = poolUsedAmount;
+        this.poolBalanceAmount = poolBalanceAmount;
         this.useAmount = useAmount;
     }
 
     public String getPoolCode() {
         return poolCode;
+    }
+
+    public BigDecimal getPoolTotalAmount() {
+        return poolTotalAmount;
+    }
+
+    public BigDecimal getPoolUsedAmount() {
+        return poolUsedAmount;
+    }
+
+    public BigDecimal getPoolBalanceAmount() {
+        return poolBalanceAmount;
     }
 
     public BigDecimal getUseAmount() {
