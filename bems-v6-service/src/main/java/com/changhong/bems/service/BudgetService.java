@@ -89,15 +89,19 @@ public class BudgetService {
                 List<BudgetResponse> responses = new ArrayList<>();
                 BudgetResponse budgetResponse;
                 ResultData<BudgetResponse> resultData;
+                String successMessage = ContextUtil.getMessage("pool_00027");
                 for (BudgetUse budgetUse : useList) {
                     resultData = this.useBudget(budgetUse);
                     if (resultData.successful()) {
                         budgetResponse = resultData.getData();
+                        budgetResponse.setSuccess(Boolean.TRUE);
+                        budgetResponse.setMessage(successMessage);
                         responses.add(budgetResponse);
                     } else {
+                        responses.clear();
                         budgetResponse = new BudgetResponse();
                         budgetResponse.setBizId(budgetUse.getBizId());
-                        budgetResponse.setSuccess(false);
+                        budgetResponse.setSuccess(Boolean.FALSE);
                         budgetResponse.setMessage(resultData.getMessage());
                         responses.add(budgetResponse);
                         // 回滚事务
@@ -105,17 +109,13 @@ public class BudgetService {
                         break;
                     }
                 }
-
                 result = ResultData.success(responses);
-                // if (success) {
-                //     result = ResultData.success(responses);
-                // }
             } else {
                 if (CollectionUtils.isNotEmpty(freeList)) {
                     // 预算释放成功
                     result = ResultData.success(ContextUtil.getMessage("pool_00025"), null);
                 } else {
-                    result = ResultData.fail(ContextUtil.getMessage("pool_00026"));
+                    result = ResultData.fail(ContextUtil.getMessage("pool_00027"));
                 }
             }
         } catch (Exception e) {
