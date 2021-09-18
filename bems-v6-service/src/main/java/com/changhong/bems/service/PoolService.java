@@ -393,7 +393,7 @@ public class PoolService extends BaseEntityService<Pool> {
             // 当前预算池
             this.poolAmountLog(pool.getSubjectId(), pool.getAttributeCode(), pool.getCode(),
                     bizId, bizCode, ContextUtil.getMessage("pool_00020", nextPool.getCode()),
-                    balance.negate(), Constants.EVENT_BUDGET_TRUNDLE, Boolean.TRUE, OperationType.USE);
+                    balance, Constants.EVENT_BUDGET_TRUNDLE, Boolean.TRUE, OperationType.USE);
             // 目标预算池
             this.poolAmountLog(nextPool.getSubjectId(), nextPool.getAttributeCode(), nextPool.getCode(),
                     bizId, bizCode, ContextUtil.getMessage("pool_00021", pool.getCode()),
