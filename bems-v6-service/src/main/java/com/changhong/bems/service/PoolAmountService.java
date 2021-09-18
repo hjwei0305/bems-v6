@@ -92,22 +92,20 @@ public class PoolAmountService {
                 switch (amount.getOperation()) {
                     case RELEASE:
                         // 注入下达
-                    case FREED:
-                        // 释放
-                        // balance = ArithUtils.add(balance, amount.getAmount().doubleValue());
                         quota.addTotalAmount(amount.getAmount());
                         break;
                     case USE:
                         // 使用
-                        // balance = ArithUtils.sub(balance, amount.getAmount().doubleValue());
                         quota.addUseAmount(amount.getAmount());
+                    case FREED:
+                        // 释放.减去释放金额
+                        quota.addUseAmount(amount.getAmount().negate());
                         break;
                     default:
                 }
             }
             quota.setPoolCode(poolCode);
         }
-        // return balance;
         return quota;
     }
 }
