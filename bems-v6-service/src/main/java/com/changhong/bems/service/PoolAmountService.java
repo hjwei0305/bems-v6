@@ -5,13 +5,10 @@ import com.changhong.bems.dto.OperationType;
 import com.changhong.bems.dto.PoolAmountQuotaDto;
 import com.changhong.bems.entity.Pool;
 import com.changhong.bems.entity.PoolAmount;
-import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
-import com.changhong.sei.exception.ServiceException;
 import com.changhong.sei.util.ArithUtils;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,13 +67,16 @@ public class PoolAmountService {
 
     /**
      * 计算预算池金额额度
-     * 公式: 注入金额+释放(使用)金额-使用金额
-     *
+     * 公式:
+     * 注入总额=注入金额之和
+     * 使用总额=使用金额之和
+     * 可用余额=注入金额-(使用金额-释放(使用)金额)
+     * <p>
      * 内部调整:A预算到B预算
      * 内部分解:年度到月度
      * 内部结转:1月到2月
      * 内部使用:A预算扣减,年度预算扣减,1月预算扣减,
-     *
+     * <p>
      * 外部注入:下达全新预算
      * 外部使用:业务系统使用
      *
@@ -84,7 +84,7 @@ public class PoolAmountService {
      * @return 当前余额
      */
     public PoolAmountQuotaDto getPoolAmountQuota(String poolCode) {
-        PoolAmountQuotaDto quota = new PoolAmountQuotaDto();
+        PoolAmountQuotaDto quota = new PoolAmountQuotaDto(poolCode);
         List<PoolAmount> amounts = dao.findListByProperty(PoolAmount.FIELD_POOL_CODE, poolCode);
         if (CollectionUtils.isNotEmpty(amounts)) {
             // 注入金额 + 释放(使用)金额 - 使用金额
@@ -97,14 +97,14 @@ public class PoolAmountService {
                     case USE:
                         // 使用
                         quota.addUseAmount(amount.getAmount());
+                        break;
                     case FREED:
-                        // 释放.减去释放金额
+                        // 释放.减去释放金额(加上取负的释放金额)
                         quota.addUseAmount(amount.getAmount().negate());
                         break;
                     default:
                 }
             }
-            quota.setPoolCode(poolCode);
         }
         return quota;
     }

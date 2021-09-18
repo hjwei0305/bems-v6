@@ -267,7 +267,7 @@ public class PoolService extends BaseEntityService<Pool> {
                 // 实时计算当前预算池可用金额
                 PoolAmountQuotaDto quota = poolAmountService.getPoolAmountQuota(pool.getCode());
                 // 更新预算池金额
-                dao.updateAmount(pool.getId(), quota.getTotalAmount(), quota.getBalance());
+                dao.updateAmount(pool.getId(), quota.getTotalAmount(), quota.getUseAmount(), quota.getBalance());
                 return;
             }
             LOG.error("预算池[{}]不存在", record.getPoolCode());

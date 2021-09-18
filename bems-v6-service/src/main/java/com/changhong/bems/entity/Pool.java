@@ -31,7 +31,6 @@ public class Pool extends BaseEntity implements ITenant, ICodeUnique, Serializab
     public static final String FIELD_ROLL = "roll";
     public static final String FIELD_ACTIVED = "actived";
     public static final String FIELD_CREATED_DATE = "createdDate";
-    public static final String FIELD_BALANCE = "balance";
 
     /**
      * 代码
@@ -112,8 +111,13 @@ public class Pool extends BaseEntity implements ITenant, ICodeUnique, Serializab
     /**
      * 总额
      */
-    @Column(name = "total")
-    private BigDecimal total = BigDecimal.ZERO;
+    @Column(name = "total_amount")
+    private BigDecimal totalAmount = BigDecimal.ZERO;
+    /**
+     * 使用量
+     */
+    @Column(name = "used_amount")
+    private BigDecimal usedAmount = BigDecimal.ZERO;
     /**
      * 当前可用余额
      */
@@ -252,12 +256,20 @@ public class Pool extends BaseEntity implements ITenant, ICodeUnique, Serializab
         this.delay = delay;
     }
 
-    public BigDecimal getTotal() {
-        return total;
+    public BigDecimal getTotalAmount() {
+        return totalAmount;
     }
 
-    public void setTotal(BigDecimal total) {
-        this.total = total;
+    public void setTotalAmount(BigDecimal totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
+    public BigDecimal getUsedAmount() {
+        return usedAmount;
+    }
+
+    public void setUsedAmount(BigDecimal usedAmount) {
+        this.usedAmount = usedAmount;
     }
 
     public BigDecimal getBalance() {

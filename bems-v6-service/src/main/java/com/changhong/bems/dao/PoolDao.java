@@ -28,8 +28,9 @@ public interface PoolDao extends BaseEntityDao<Pool> {
      * @param balance 金额
      */
     @Modifying
-    @Query("update Pool p set p.total = :total, p.balance = :balance where p.id = :id ")
-    void updateAmount(@Param("id") String id, @Param("total") BigDecimal total, @Param("balance") BigDecimal balance);
+    @Query("update Pool p set p.totalAmount = :total, p.usedAmount = :used, p.balance = :balance where p.id = :id ")
+    void updateAmount(@Param("id") String id, @Param("total") BigDecimal total,
+                      @Param("used") BigDecimal used, @Param("balance") BigDecimal balance);
 
     /**
      * 通过Id更新预算池启用禁用状态

@@ -1,6 +1,7 @@
 package com.changhong.bems.dto;
 
 import java.math.BigDecimal;
+import java.util.StringJoiner;
 
 /**
  * 实现功能：
@@ -12,7 +13,7 @@ public class PoolAmountQuotaDto {
     /**
      * 预算池代码
      */
-    private String poolCode;
+    private final String poolCode;
     /**
      * 总金额
      */
@@ -22,9 +23,6 @@ public class PoolAmountQuotaDto {
      */
     private BigDecimal useAmount = BigDecimal.ZERO;
 
-    public PoolAmountQuotaDto() {
-    }
-
     public PoolAmountQuotaDto(String poolCode) {
         this.poolCode = poolCode;
     }
@@ -33,24 +31,12 @@ public class PoolAmountQuotaDto {
         return poolCode;
     }
 
-    public void setPoolCode(String poolCode) {
-        this.poolCode = poolCode;
-    }
-
     public BigDecimal getTotalAmount() {
         return totalAmount;
     }
 
-    public void setTotalAmount(BigDecimal totalAmount) {
-        this.totalAmount = totalAmount;
-    }
-
     public BigDecimal getUseAmount() {
         return useAmount;
-    }
-
-    public void setUseAmount(BigDecimal useAmount) {
-        this.useAmount = useAmount;
     }
 
     /**
@@ -66,5 +52,15 @@ public class PoolAmountQuotaDto {
 
     public void addUseAmount(BigDecimal amount) {
         useAmount = useAmount.add(amount);
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", PoolAmountQuotaDto.class.getSimpleName() + "[", "]")
+                .add("poolCode='" + poolCode + "'")
+                .add("totalAmount=" + totalAmount)
+                .add("useAmount=" + useAmount)
+                .add("balance=" + getBalance())
+                .toString();
     }
 }

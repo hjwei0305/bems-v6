@@ -107,7 +107,12 @@ public class PoolAttributeDto extends BaseAttributeDto {
      * 总额
      */
     @ApiModelProperty(value = "总额")
-    private BigDecimal total;
+    private BigDecimal totalAmount;
+    /**
+     * 已用金额
+     */
+    @ApiModelProperty(value = "已用金额")
+    private BigDecimal usedAmount;
     /**
      * 可用余额
      */
@@ -250,12 +255,20 @@ public class PoolAttributeDto extends BaseAttributeDto {
         this.delay = delay;
     }
 
-    public BigDecimal getTotal() {
-        return total;
+    public BigDecimal getTotalAmount() {
+        return totalAmount;
     }
 
-    public void setTotal(BigDecimal total) {
-        this.total = total;
+    public void setTotalAmount(BigDecimal totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
+    public BigDecimal getUsedAmount() {
+        return usedAmount;
+    }
+
+    public void setUsedAmount(BigDecimal usedAmount) {
+        this.usedAmount = usedAmount;
     }
 
     public BigDecimal getBalance() {

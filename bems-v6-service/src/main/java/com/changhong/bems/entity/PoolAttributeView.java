@@ -110,8 +110,13 @@ public class PoolAttributeView extends BaseAttribute implements ITenant, Seriali
     /**
      * 总额
      */
-    @Column(name = "total")
-    private BigDecimal total = BigDecimal.ZERO;
+    @Column(name = "total_amount")
+    private BigDecimal totalAmount = BigDecimal.ZERO;
+    /**
+     * 使用量
+     */
+    @Column(name = "used_amount")
+    private BigDecimal usedAmount = BigDecimal.ZERO;
     /**
      * 可用余额
      */
@@ -252,12 +257,20 @@ public class PoolAttributeView extends BaseAttribute implements ITenant, Seriali
         this.delay = delay;
     }
 
-    public BigDecimal getTotal() {
-        return total;
+    public BigDecimal getTotalAmount() {
+        return totalAmount;
     }
 
-    public void setTotal(BigDecimal total) {
-        this.total = total;
+    public void setTotalAmount(BigDecimal totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
+    public BigDecimal getUsedAmount() {
+        return usedAmount;
+    }
+
+    public void setUsedAmount(BigDecimal usedAmount) {
+        this.usedAmount = usedAmount;
     }
 
     public BigDecimal getBalance() {
