@@ -24,6 +24,7 @@ public class PoolAmount extends BaseEntity implements Serializable {
     private static final long serialVersionUID = 434318292053003122L;
     public static final String FIELD_POOL_ID = "poolId";
     public static final String FIELD_POOL_CODE = "poolCode";
+    public static final String FIELD_INTERNAL = "internal";
     public static final String FIELD_OPERATION = "operation";
     /**
      * 预算池id
@@ -35,6 +36,13 @@ public class PoolAmount extends BaseEntity implements Serializable {
      */
     @Column(name = "pool_code")
     private String poolCode;
+    /**
+     * 是否是预算内部操作
+     * 内部操作: 预算调整,预算分解,预算结转
+     * 外部操作: 总额新增注入,外部系统使用
+     */
+    @Column(name = "internal")
+    private Boolean internal = Boolean.TRUE;
     /**
      * 操作类型
      */
@@ -62,6 +70,14 @@ public class PoolAmount extends BaseEntity implements Serializable {
 
     public void setPoolCode(String poolCode) {
         this.poolCode = poolCode;
+    }
+
+    public Boolean getInternal() {
+        return internal;
+    }
+
+    public void setInternal(Boolean internal) {
+        this.internal = internal;
     }
 
     public OperationType getOperation() {

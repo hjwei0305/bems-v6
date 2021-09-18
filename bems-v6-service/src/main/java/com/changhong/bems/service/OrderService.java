@@ -756,7 +756,6 @@ public class OrderService extends BaseEntityService<Order> {
                 remark = eventService.getEventName(Constants.EVENT_BUDGET_CONFIRM);
             }
             long attributeCode = detail.getAttributeCode();
-            OperationType operation = OperationType.RELEASE;
             // 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
             switch (order.getOrderCategory()) {
                 case INJECTION:
@@ -773,14 +772,9 @@ public class OrderService extends BaseEntityService<Order> {
                             break;
                         }
 
-                        // 记录预算池执行日志
+                        // 记录预算池执行日志.从无到有的新增预算,视为外部注入internal = Boolean.TRUE
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, operation);
-//                    } else {
-//                        poolCode = detail.getPoolCode();
-//                        // 记录预算池执行日志
-//                        poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-//                                detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, operation);
+                                detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, Boolean.FALSE, OperationType.RELEASE);
                     }
                     break;
                 case ADJUSTMENT:
@@ -799,12 +793,12 @@ public class OrderService extends BaseEntityService<Order> {
                         }
                         // 记录预算池执行日志
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, operation);
+                                detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, Boolean.TRUE, OperationType.RELEASE);
                     } else {
                         poolCode = detail.getPoolCode();
                         // 记录预算池执行日志
                         poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, operation);
+                                detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, Boolean.TRUE, OperationType.RELEASE);
                     }
                     break;
                 case SPLIT:
@@ -825,7 +819,7 @@ public class OrderService extends BaseEntityService<Order> {
                             String originPoolCode = detail.getOriginPoolCode();
                             // 记录预算池执行日志
                             poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
-                                    detail.getAmount().negate(), Constants.EVENT_BUDGET_CONFIRM, operation);
+                                    detail.getAmount().negate(), Constants.EVENT_BUDGET_CONFIRM, Boolean.TRUE, OperationType.RELEASE);
                         } else {
                             if (StringUtils.isBlank(poolCode)) {
                                 LOG.error("预算池不存在. - " + JsonUtils.toJson(detail));
@@ -835,13 +829,13 @@ public class OrderService extends BaseEntityService<Order> {
                             }
                             // 记录预算池执行日志
                             poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                    detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, operation);
+                                    detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, Boolean.TRUE, OperationType.RELEASE);
 
                             // 源预算池
                             String originPoolCode = detail.getOriginPoolCode();
                             // 记录预算池执行日志
                             poolService.nonPoolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
-                                    detail.getAmount().negate(), Constants.EVENT_BUDGET_CONFIRM, operation);
+                                    detail.getAmount().negate(), Constants.EVENT_BUDGET_CONFIRM, Boolean.TRUE, OperationType.RELEASE);
                         }
                     }
                     break;
@@ -909,7 +903,6 @@ public class OrderService extends BaseEntityService<Order> {
             }
             long attributeCode = detail.getAttributeCode();
             resultData = ResultData.success();
-            OperationType operation = OperationType.RELEASE;
             // 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
             switch (order.getOrderCategory()) {
                 case INJECTION:
@@ -922,7 +915,7 @@ public class OrderService extends BaseEntityService<Order> {
 //                                -detail.getAmount(), Constants.EVENT_BUDGET_CANCEL, operation);
                     } else {
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount().negate(), Constants.EVENT_BUDGET_CANCEL, operation);
+                                detail.getAmount().negate(), Constants.EVENT_BUDGET_CANCEL, Boolean.FALSE, OperationType.RELEASE);
                     }
                     break;
                 case ADJUSTMENT:
@@ -930,10 +923,10 @@ public class OrderService extends BaseEntityService<Order> {
                     if (BigDecimal.ZERO.compareTo(detail.getAmount()) <= 0) {
                         // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
                         poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount().negate(), Constants.EVENT_BUDGET_CANCEL, operation);
+                                detail.getAmount().negate(), Constants.EVENT_BUDGET_CANCEL, Boolean.TRUE, OperationType.RELEASE);
                     } else {
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount().negate(), Constants.EVENT_BUDGET_CANCEL, operation);
+                                detail.getAmount().negate(), Constants.EVENT_BUDGET_CANCEL, Boolean.TRUE, OperationType.RELEASE);
                     }
                     break;
                 case SPLIT:
@@ -948,16 +941,16 @@ public class OrderService extends BaseEntityService<Order> {
                         // 源预算池
                         String originPoolCode = detail.getOriginPoolCode();
                         poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_CANCEL, operation);
+                                detail.getAmount(), Constants.EVENT_BUDGET_CANCEL, Boolean.TRUE, OperationType.RELEASE);
                         break;
                     } else {
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount().negate(), Constants.EVENT_BUDGET_CANCEL, operation);
+                                detail.getAmount().negate(), Constants.EVENT_BUDGET_CANCEL, Boolean.TRUE, OperationType.RELEASE);
 
                         // 源预算池
                         String originPoolCode = detail.getOriginPoolCode();
                         poolService.nonPoolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_CANCEL, operation);
+                                detail.getAmount(), Constants.EVENT_BUDGET_CANCEL, Boolean.TRUE, OperationType.RELEASE);
                         break;
                     }
                 default:
@@ -1025,7 +1018,6 @@ public class OrderService extends BaseEntityService<Order> {
             }
             long attributeCode = detail.getAttributeCode();
             resultData = ResultData.success();
-            OperationType operation = OperationType.RELEASE;
             // 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
             switch (order.getOrderCategory()) {
                 case INJECTION:
@@ -1047,13 +1039,13 @@ public class OrderService extends BaseEntityService<Order> {
 //                                -detail.getAmount(), Constants.EVENT_BUDGET_FREED, operation);
 
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, operation);
+                                detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, Boolean.FALSE, OperationType.RELEASE);
                     } else {
                         poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount().negate(), Constants.EVENT_BUDGET_FREED, operation);
+                                detail.getAmount().negate(), Constants.EVENT_BUDGET_FREED, Boolean.FALSE, OperationType.RELEASE);
 
                         poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, operation);
+                                detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, Boolean.FALSE, OperationType.RELEASE);
                     }
                     break;
                 case ADJUSTMENT:
@@ -1061,16 +1053,16 @@ public class OrderService extends BaseEntityService<Order> {
                     if (BigDecimal.ZERO.compareTo(detail.getAmount()) <= 0) {
                         // 订单状态由流程中变为已完成,金额小于等于0在提交流程时已提前占用,故此时不再重复占用,只记录日志
                         poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount().negate(), Constants.EVENT_BUDGET_FREED, operation);
+                                detail.getAmount().negate(), Constants.EVENT_BUDGET_FREED, Boolean.TRUE, OperationType.RELEASE);
 
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, operation);
+                                detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, Boolean.TRUE, OperationType.RELEASE);
                     } else {
                         poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount().negate(), Constants.EVENT_BUDGET_FREED, operation);
+                                detail.getAmount().negate(), Constants.EVENT_BUDGET_FREED, Boolean.TRUE, OperationType.RELEASE);
 
                         poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, operation);
+                                detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, Boolean.TRUE, OperationType.RELEASE);
                     }
                     break;
                 case SPLIT:
@@ -1094,27 +1086,27 @@ public class OrderService extends BaseEntityService<Order> {
 //                                -detail.getAmount(), Constants.EVENT_BUDGET_FREED, operation);
 
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark + " " + originPoolCode,
-                                detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, operation);
+                                detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, Boolean.TRUE, OperationType.RELEASE);
 
                         // 源预算池
                         poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_FREED, operation);
+                                detail.getAmount(), Constants.EVENT_BUDGET_FREED, Boolean.TRUE, OperationType.RELEASE);
 
                         poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark + " " + poolCode,
-                                detail.getAmount().negate(), Constants.EVENT_BUDGET_EFFECTIVE, operation);
+                                detail.getAmount().negate(), Constants.EVENT_BUDGET_EFFECTIVE, Boolean.TRUE, OperationType.RELEASE);
                     } else {
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount().negate(), Constants.EVENT_BUDGET_FREED, operation);
+                                detail.getAmount().negate(), Constants.EVENT_BUDGET_FREED, Boolean.TRUE, OperationType.RELEASE);
 
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark + " " + originPoolCode,
-                                detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, operation);
+                                detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, Boolean.TRUE, OperationType.RELEASE);
 
                         // 源预算池
                         poolService.nonPoolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_FREED, operation);
+                                detail.getAmount(), Constants.EVENT_BUDGET_FREED, Boolean.TRUE, OperationType.RELEASE);
 
                         poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark + " " + poolCode,
-                                detail.getAmount().negate(), Constants.EVENT_BUDGET_EFFECTIVE, operation);
+                                detail.getAmount().negate(), Constants.EVENT_BUDGET_EFFECTIVE, Boolean.TRUE, OperationType.RELEASE);
                     }
                     break;
                 default:

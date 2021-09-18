@@ -11,9 +11,9 @@ import com.changhong.sei.annotation.Remark;
 public enum OperationType {
 
     /**
-     * 下达
+     * 注入
      */
-    @Remark("下达")
+    @Remark("注入")
     RELEASE,
     /**
      * 使用

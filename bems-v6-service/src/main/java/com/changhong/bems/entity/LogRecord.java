@@ -25,6 +25,7 @@ public class LogRecord extends BaseEntity implements ITenant, Serializable, Clon
     private static final long serialVersionUID = -28943145565423431L;
     public static final String FIELD_EVENT_CODE = "eventCode";
     public static final String FIELD_BIZ_ID = "bizId";
+    public static final String FIELD_INTERNAL = "internal";
     public static final String FIELD_OPERATION = "operation";
     public static final String FIELD_IS_FREED = "isFreed";
     public static final String FIELD_TIMESTAMP = "timestamp";
@@ -43,6 +44,13 @@ public class LogRecord extends BaseEntity implements ITenant, Serializable, Clon
      */
     @Column(name = "pool_code")
     private String poolCode;
+    /**
+     * 是否是预算内部操作
+     * 内部操作: 预算调整,预算分解,预算结转
+     * 外部操作: 总额新增注入,外部系统使用
+     */
+    @Column(name = "internal")
+    private Boolean internal = Boolean.TRUE;
     /**
      * 操作类型
      */
@@ -114,8 +122,9 @@ public class LogRecord extends BaseEntity implements ITenant, Serializable, Clon
     public LogRecord() {
     }
 
-    public LogRecord(String poolCode, OperationType operation, BigDecimal amount, String eventCode) {
+    public LogRecord(String poolCode, boolean internal, OperationType operation, BigDecimal amount, String eventCode) {
         this.poolCode = poolCode;
+        this.internal = internal;
         this.operation = operation;
         this.amount = amount;
         this.eventCode = eventCode;
@@ -143,6 +152,14 @@ public class LogRecord extends BaseEntity implements ITenant, Serializable, Clon
 
     public void setPoolCode(String poolCode) {
         this.poolCode = poolCode;
+    }
+
+    public Boolean getInternal() {
+        return internal;
+    }
+
+    public void setInternal(Boolean internal) {
+        this.internal = internal;
     }
 
     public OperationType getOperation() {

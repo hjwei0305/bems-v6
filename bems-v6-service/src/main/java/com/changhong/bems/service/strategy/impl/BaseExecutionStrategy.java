@@ -36,7 +36,7 @@ public abstract class BaseExecutionStrategy {
      */
     @Transactional(rollbackFor = Exception.class)
     public void recordUseBudgetPool(BudgetResponse response, PoolAttributeView pool, BudgetUse useBudget, BigDecimal useAmount) {
-        LogRecord record = new LogRecord(pool.getCode(), OperationType.USE, useAmount, useBudget.getEventCode());
+        LogRecord record = new LogRecord(pool.getCode(), Boolean.FALSE, OperationType.USE, useAmount, useBudget.getEventCode());
         record.setSubjectId(pool.getSubjectId());
         record.setAttributeCode(pool.getAttributeCode());
         record.setBizId(useBudget.getBizId());

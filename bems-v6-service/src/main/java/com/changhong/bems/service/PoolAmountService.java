@@ -4,7 +4,7 @@ import com.changhong.bems.dao.PoolAmountDao;
 import com.changhong.bems.dto.OperationType;
 import com.changhong.bems.entity.Pool;
 import com.changhong.bems.entity.PoolAmount;
-import com.changhong.bems.entity.PoolAmountQuotaDto;
+import com.changhong.bems.dto.PoolAmountQuotaDto;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
@@ -71,18 +71,21 @@ public class PoolAmountService {
      *
      * @param pool      预算池
      * @param operation 操作类型
+     * @param operation 操作类型
      * @param amount    本次发生金额
      */
     @Transactional(rollbackFor = Exception.class)
-    public void countAmount(Pool pool, OperationType operation, BigDecimal amount) {
+    public void countAmount(Pool pool, boolean internal, OperationType operation, BigDecimal amount) {
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(PoolAmount.FIELD_POOL_ID, pool.getId()));
+        search.addFilter(new SearchFilter(PoolAmount.FIELD_INTERNAL, internal));
         search.addFilter(new SearchFilter(PoolAmount.FIELD_OPERATION, operation));
         PoolAmount poolAmount = dao.findOneByFilters(search);
         if (Objects.isNull(poolAmount)) {
             poolAmount = new PoolAmount();
             poolAmount.setPoolId(pool.getId());
             poolAmount.setPoolCode(pool.getCode());
+            poolAmount.setInternal(internal);
             poolAmount.setOperation(operation);
         }
         poolAmount.setAmount(ArithUtils.add(poolAmount.getAmount(), amount.doubleValue()));

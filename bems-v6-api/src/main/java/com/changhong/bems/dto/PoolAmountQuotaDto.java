@@ -1,4 +1,4 @@
-package com.changhong.bems.entity;
+package com.changhong.bems.dto;
 
 import java.math.BigDecimal;
 

@@ -6,6 +6,7 @@ import com.changhong.bems.dao.PoolDao;
 import com.changhong.bems.dto.BudgetUse;
 import com.changhong.bems.dto.OperationType;
 import com.changhong.bems.dto.PeriodType;
+import com.changhong.bems.dto.PoolAmountQuotaDto;
 import com.changhong.bems.entity.*;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.context.SessionUser;
@@ -205,8 +206,8 @@ public class PoolService extends BaseEntityService<Pool> {
     @Transactional(rollbackFor = Exception.class)
     public void poolAmountLog(String subjectId, long attributeCode, String poolCode,
                               String bizId, String bizCode, String remark, BigDecimal amount,
-                              String eventCode, OperationType operation) {
-        LogRecord record = new LogRecord(poolCode, operation, amount, eventCode);
+                              String eventCode, boolean internal, OperationType operation) {
+        LogRecord record = new LogRecord(poolCode, internal, operation, amount, eventCode);
         record.setIsPoolAmount(Boolean.TRUE);
         record.setSubjectId(subjectId);
         record.setAttributeCode(attributeCode);
@@ -222,8 +223,8 @@ public class PoolService extends BaseEntityService<Pool> {
     @Transactional(rollbackFor = Exception.class)
     public void nonPoolAmountLog(String subjectId, long attributeCode, String poolCode,
                                  String bizId, String bizCode, String remark, BigDecimal amount,
-                                 String eventCode, OperationType operation) {
-        LogRecord record = new LogRecord(poolCode, operation, amount, eventCode);
+                                 String eventCode, boolean internal, OperationType operation) {
+        LogRecord record = new LogRecord(poolCode, internal, operation, amount, eventCode);
         record.setIsPoolAmount(Boolean.FALSE);
         record.setSubjectId(subjectId);
         record.setAttributeCode(attributeCode);
@@ -262,7 +263,7 @@ public class PoolService extends BaseEntityService<Pool> {
             Pool pool = dao.findFirstByProperty(Pool.CODE_FIELD, record.getPoolCode());
             if (Objects.nonNull(pool)) {
                 // 累计金额
-                poolAmountService.countAmount(pool, record.getOperation(), record.getAmount());
+                poolAmountService.countAmount(pool, record.getInternal(), record.getOperation(), record.getAmount());
                 // 实时计算当前预算池可用金额
                 PoolAmountQuotaDto quota = poolAmountService.getPoolAmountQuota(pool.getCode());
                 // 更新预算池金额
@@ -274,7 +275,7 @@ public class PoolService extends BaseEntityService<Pool> {
     }
 
     /**
-     * 通过Id更新预算池激活状态
+     * 通过Id更新预算池激活状态(冻结/解冻)
      *
      * @param ids      预算池Id集合
      * @param isActive 激活状态
@@ -292,12 +293,12 @@ public class PoolService extends BaseEntityService<Pool> {
                     // 解冻预算池
                     this.nonPoolAmountLog(pool.getSubjectId(), pool.getAttributeCode(), pool.getCode(),
                             bizId, bizCode, ContextUtil.getMessage("pool_00023"),
-                            pool.getBalance(), Constants.EVENT_BUDGET_UNFREEZE, OperationType.RELEASE);
+                            pool.getBalance(), Constants.EVENT_BUDGET_UNFREEZE, Boolean.TRUE, OperationType.RELEASE);
                 } else {
                     // 冻结预算池
                     this.nonPoolAmountLog(pool.getSubjectId(), pool.getAttributeCode(), pool.getCode(),
                             bizId, bizCode, ContextUtil.getMessage("pool_00022"),
-                            pool.getBalance(), Constants.EVENT_BUDGET_FREEZE, OperationType.RELEASE);
+                            pool.getBalance(), Constants.EVENT_BUDGET_FREEZE, Boolean.TRUE, OperationType.RELEASE);
                 }
             }
         }
@@ -392,11 +393,11 @@ public class PoolService extends BaseEntityService<Pool> {
             // 当前预算池
             this.poolAmountLog(pool.getSubjectId(), pool.getAttributeCode(), pool.getCode(),
                     bizId, bizCode, ContextUtil.getMessage("pool_00020", nextPool.getCode()),
-                    balance.negate(), Constants.EVENT_BUDGET_TRUNDLE, OperationType.RELEASE);
+                    balance.negate(), Constants.EVENT_BUDGET_TRUNDLE, Boolean.TRUE, OperationType.RELEASE);
             // 目标预算池
             this.poolAmountLog(nextPool.getSubjectId(), nextPool.getAttributeCode(), nextPool.getCode(),
                     bizId, bizCode, ContextUtil.getMessage("pool_00021", pool.getCode()),
-                    balance, Constants.EVENT_BUDGET_TRUNDLE, OperationType.RELEASE);
+                    balance, Constants.EVENT_BUDGET_TRUNDLE, Boolean.TRUE, OperationType.RELEASE);
         }
         return ResultData.success();
     }
