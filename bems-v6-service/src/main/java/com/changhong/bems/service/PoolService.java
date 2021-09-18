@@ -293,12 +293,12 @@ public class PoolService extends BaseEntityService<Pool> {
                     // 解冻预算池
                     this.nonPoolAmountLog(pool.getSubjectId(), pool.getAttributeCode(), pool.getCode(),
                             bizId, bizCode, ContextUtil.getMessage("pool_00023"),
-                            pool.getBalance(), Constants.EVENT_BUDGET_UNFREEZE, Boolean.TRUE, OperationType.RELEASE);
+                            pool.getBalance(), Constants.EVENT_BUDGET_UNFREEZE, Boolean.TRUE, OperationType.FREED);
                 } else {
                     // 冻结预算池
                     this.nonPoolAmountLog(pool.getSubjectId(), pool.getAttributeCode(), pool.getCode(),
                             bizId, bizCode, ContextUtil.getMessage("pool_00022"),
-                            pool.getBalance(), Constants.EVENT_BUDGET_FREEZE, Boolean.TRUE, OperationType.RELEASE);
+                            pool.getBalance(), Constants.EVENT_BUDGET_FREEZE, Boolean.TRUE, OperationType.USE);
                 }
             }
         }
@@ -393,7 +393,7 @@ public class PoolService extends BaseEntityService<Pool> {
             // 当前预算池
             this.poolAmountLog(pool.getSubjectId(), pool.getAttributeCode(), pool.getCode(),
                     bizId, bizCode, ContextUtil.getMessage("pool_00020", nextPool.getCode()),
-                    balance.negate(), Constants.EVENT_BUDGET_TRUNDLE, Boolean.TRUE, OperationType.RELEASE);
+                    balance.negate(), Constants.EVENT_BUDGET_TRUNDLE, Boolean.TRUE, OperationType.USE);
             // 目标预算池
             this.poolAmountLog(nextPool.getSubjectId(), nextPool.getAttributeCode(), nextPool.getCode(),
                     bizId, bizCode, ContextUtil.getMessage("pool_00021", pool.getCode()),

@@ -904,7 +904,7 @@ public class OrderService extends BaseEntityService<Order> {
                     if (BigDecimal.ZERO.compareTo(detail.getAmount()) > 0) {
                         // 记录预算池执行日志
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount().negate(), Constants.EVENT_BUDGET_CANCEL, Boolean.FALSE, OperationType.FREED);
+                                detail.getAmount(), Constants.EVENT_BUDGET_CANCEL, Boolean.FALSE, OperationType.FREED);
                     }
                     break;
                 case ADJUSTMENT:
@@ -912,10 +912,10 @@ public class OrderService extends BaseEntityService<Order> {
                     if (BigDecimal.ZERO.compareTo(detail.getAmount()) > 0) {
                         // 记录预算池执行日志
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount().negate(), Constants.EVENT_BUDGET_CANCEL, Boolean.TRUE, OperationType.FREED);
+                                detail.getAmount(), Constants.EVENT_BUDGET_CANCEL, Boolean.TRUE, OperationType.FREED);
                     } else {
                         poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount().negate(), Constants.EVENT_BUDGET_CANCEL, Boolean.TRUE, OperationType.FREED);
+                                detail.getAmount(), Constants.EVENT_BUDGET_CANCEL, Boolean.TRUE, OperationType.FREED);
                     }
                     break;
                 case SPLIT:
@@ -923,12 +923,12 @@ public class OrderService extends BaseEntityService<Order> {
                     // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
                     if (BigDecimal.ZERO.compareTo(detail.getAmount()) > 0) {
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount().negate(), Constants.EVENT_BUDGET_CANCEL, Boolean.TRUE, OperationType.FREED);
+                                detail.getAmount(), Constants.EVENT_BUDGET_CANCEL, Boolean.TRUE, OperationType.FREED);
 
                         // 源预算池
                         String originPoolCode = detail.getOriginPoolCode();
                         poolService.nonPoolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_CANCEL, Boolean.TRUE, OperationType.FREED);
+                                detail.getAmount().negate(), Constants.EVENT_BUDGET_CANCEL, Boolean.TRUE, OperationType.FREED);
                         break;
                     } else {
                         // 源预算池
@@ -1035,13 +1035,13 @@ public class OrderService extends BaseEntityService<Order> {
                     if (BigDecimal.ZERO.compareTo(detail.getAmount()) > 0) {
                         // 记录预算池执行日志
                         poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount().negate(), Constants.EVENT_BUDGET_FREED, Boolean.TRUE, OperationType.FREED);
+                                detail.getAmount(), Constants.EVENT_BUDGET_FREED, Boolean.TRUE, OperationType.FREED);
 
                         poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
                                 detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, Boolean.TRUE, OperationType.RELEASE);
                     } else {
                         poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount().negate(), Constants.EVENT_BUDGET_FREED, Boolean.TRUE, OperationType.FREED);
+                                detail.getAmount(), Constants.EVENT_BUDGET_FREED, Boolean.TRUE, OperationType.FREED);
 
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
                                 detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, Boolean.TRUE, OperationType.RELEASE);
