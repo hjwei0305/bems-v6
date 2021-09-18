@@ -793,7 +793,7 @@ public class OrderService extends BaseEntityService<Order> {
                         }
                         // 记录预算池执行日志
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, Boolean.TRUE, OperationType.USE);
+                                detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, Boolean.TRUE, OperationType.RELEASE);
                     } else {
                         poolCode = detail.getPoolCode();
                         // 记录预算池执行日志
