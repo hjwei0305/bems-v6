@@ -829,7 +829,7 @@ public class OrderService extends BaseEntityService<Order> {
                             String originPoolCode = detail.getOriginPoolCode();
                             // 记录预算池执行日志
                             poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
-                                    detail.getAmount().negate(), Constants.EVENT_BUDGET_CONFIRM, Boolean.TRUE, OperationType.USE);
+                                    detail.getAmount(), Constants.EVENT_BUDGET_CONFIRM, Boolean.TRUE, OperationType.USE);
                         }
                     }
                     break;
@@ -1075,7 +1075,7 @@ public class OrderService extends BaseEntityService<Order> {
                                 detail.getAmount(), Constants.EVENT_BUDGET_FREED, Boolean.TRUE, OperationType.FREED);
 
                         poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark + " " + poolCode,
-                                detail.getAmount().negate(), Constants.EVENT_BUDGET_EFFECTIVE, Boolean.TRUE, OperationType.USE);
+                                detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, Boolean.TRUE, OperationType.USE);
                     } else {
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark + " " + originPoolCode,
                                 detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, Boolean.TRUE, OperationType.RELEASE);
@@ -1085,7 +1085,7 @@ public class OrderService extends BaseEntityService<Order> {
                                 detail.getAmount(), Constants.EVENT_BUDGET_FREED, Boolean.TRUE, OperationType.FREED);
 
                         poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark + " " + poolCode,
-                                detail.getAmount().negate(), Constants.EVENT_BUDGET_EFFECTIVE, Boolean.TRUE, OperationType.USE);
+                                detail.getAmount(), Constants.EVENT_BUDGET_EFFECTIVE, Boolean.TRUE, OperationType.USE);
                     }
                     break;
                 default:
