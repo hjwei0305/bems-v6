@@ -15,11 +15,14 @@ public class BudgetUseResult implements Serializable {
     /**
      * 占用预算编码
      */
-    private final String poolCode;
+    private String poolCode;
     /**
      * 占用金额
      */
-    private final BigDecimal useAmount;
+    private BigDecimal useAmount;
+
+    public BudgetUseResult() {
+    }
 
     public BudgetUseResult(String poolCode, BigDecimal useAmount) {
         this.poolCode = poolCode;
@@ -30,7 +33,15 @@ public class BudgetUseResult implements Serializable {
         return poolCode;
     }
 
+    public void setPoolCode(String poolCode) {
+        this.poolCode = poolCode;
+    }
+
     public BigDecimal getUseAmount() {
         return useAmount;
+    }
+
+    public void setUseAmount(BigDecimal useAmount) {
+        this.useAmount = useAmount;
     }
 }
