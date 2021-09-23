@@ -2,13 +2,13 @@ package com.changhong.bems.api;
 
 import com.changhong.bems.dto.OrganizationDto;
 import com.changhong.bems.dto.PeriodDto;
+import com.changhong.bems.dto.ProjectDto;
 import com.changhong.bems.dto.SubjectItemDto;
 import com.changhong.sei.core.dto.ResultData;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -56,10 +56,24 @@ public interface DimensionComponentApi {
      * 按预算主体获取组织机构
      *
      * @param subjectId 预算主体id
-     * @return 期间清单
+     * @return 组织机构
      */
     @GetMapping(path = "getOrgTree")
     @ApiImplicitParam(name = "subjectId", value = "预算主体id", dataTypeClass = String.class, required = true)
     @ApiOperation(value = "获取组织机构", notes = "按预算主体获取组织机构(维度组件专用)")
     ResultData<OrganizationDto> getOrgTree(@RequestParam("subjectId") String subjectId);
+
+    /**
+     * 按预算主体获取公司项目
+     *
+     * @param subjectId 预算主体id
+     * @return 公司项目
+     */
+    @GetMapping(path = "getProjects")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "subjectId", value = "预算主体id", dataTypeClass = String.class, required = true),
+            @ApiImplicitParam(name = "searchValue", value = "项目代码名称", dataTypeClass = String.class)
+    })
+    @ApiOperation(value = "获取组织机构", notes = "按预算主体获取组织机构(维度组件专用)")
+    ResultData<List<ProjectDto>> getProjects(@RequestParam("subjectId") String subjectId, @RequestParam(name = "searchValue", required = false) String searchValue);
 }

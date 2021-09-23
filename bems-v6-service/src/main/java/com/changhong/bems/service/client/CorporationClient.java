@@ -2,14 +2,8 @@ package com.changhong.bems.service.client;
 
 import com.changhong.bems.dto.CorporationDto;
 import com.changhong.sei.core.dto.ResultData;
-import com.changhong.sei.core.dto.serach.PageResult;
-import com.changhong.sei.core.dto.serach.Search;
-import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -20,7 +14,7 @@ import java.util.List;
  * @author 马超(Vision.Mac)
  * @version 1.0.00  2021-04-22 17:32
  */
-@FeignClient(name = "sei-basic", path = "corporation")
+@FeignClient(name = "sei-basic", path = "corporation", fallback = CorporationClientFallback.class)
 public interface CorporationClient {
 
     /**

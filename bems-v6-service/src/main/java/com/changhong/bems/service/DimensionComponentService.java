@@ -4,8 +4,11 @@ import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.KeyValueDto;
 import com.changhong.bems.dto.OrganizationDto;
 import com.changhong.bems.dto.PeriodType;
+import com.changhong.bems.dto.ProjectDto;
 import com.changhong.bems.entity.Period;
+import com.changhong.bems.entity.Subject;
 import com.changhong.bems.entity.SubjectItem;
+import com.changhong.bems.service.client.CorporationProjectManager;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.ResultData;
 import com.google.common.collect.Lists;
@@ -15,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -40,6 +44,11 @@ public class DimensionComponentService {
      */
     @Autowired
     private SubjectService subjectService;
+    /**
+     * 公司项目服务对象
+     */
+    @Autowired
+    private CorporationProjectManager projectManager;
 
     /**
      * 获取指定预算主体的科目(维度组件专用)
@@ -70,6 +79,20 @@ public class DimensionComponentService {
      */
     public ResultData<OrganizationDto> getOrgTree(String subjectId) {
         return subjectService.getOrgTree(subjectId);
+    }
+
+    /**
+     * 按预算主体获取公司项目
+     *
+     * @param subjectId 预算主体id
+     * @return 期间清单
+     */
+    public ResultData<List<ProjectDto>> findByPage(String subjectId, String searchValue) {
+        Subject subject = subjectService.findOne(subjectId);
+        if (Objects.isNull(subject)) {
+            return ResultData.fail(ContextUtil.getMessage("subject_00003", subjectId));
+        }
+        return projectManager.findByPage(subject.getCorporationCode(), searchValue);
     }
 
     /**

@@ -1,10 +1,7 @@
 package com.changhong.bems.controller;
 
 import com.changhong.bems.api.DimensionComponentApi;
-import com.changhong.bems.dto.OrganizationDto;
-import com.changhong.bems.dto.PeriodDto;
-import com.changhong.bems.dto.PeriodType;
-import com.changhong.bems.dto.SubjectItemDto;
+import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.Period;
 import com.changhong.bems.entity.SubjectItem;
 import com.changhong.bems.service.DimensionComponentService;
@@ -74,5 +71,16 @@ public class DimensionComponentController implements DimensionComponentApi {
     @Override
     public ResultData<OrganizationDto> getOrgTree(String subjectId) {
         return service.getOrgTree(subjectId);
+    }
+
+    /**
+     * 按预算主体获取公司项目
+     *
+     * @param subjectId   预算主体id
+     * @return 公司项目
+     */
+    @Override
+    public ResultData<List<ProjectDto>> getProjects(String subjectId, String searchValue) {
+        return service.findByPage(subjectId, searchValue);
     }
 }
