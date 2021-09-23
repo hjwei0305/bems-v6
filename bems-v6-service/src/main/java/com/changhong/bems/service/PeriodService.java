@@ -282,6 +282,13 @@ public class PeriodService extends BaseEntityService<Period> {
                 // 预算期间已被使用,禁止修改!
                 return ResultData.fail(ContextUtil.getMessage("period_00004"));
             }
+            existed = dao.findOne(id);
+            if (Objects.isNull(existed)) {
+                // 预算期间不存在!
+                return ResultData.fail(ContextUtil.getMessage("period_00002"));
+            }
+            period.setId(id);
+            period.setCode(existed.getCode());
         } else {
             if (Objects.nonNull(existed)) {
                 // 已存在预算期间
