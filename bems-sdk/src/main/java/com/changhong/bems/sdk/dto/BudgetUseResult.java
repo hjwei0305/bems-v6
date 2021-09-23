@@ -33,6 +33,10 @@ public class BudgetUseResult implements Serializable {
      * 本次使用金额
      */
     private BigDecimal useAmount;
+    /**
+     * 预算池显示信息
+     */
+    private String display;
 
     public String getPoolCode() {
         return poolCode;
@@ -74,6 +78,14 @@ public class BudgetUseResult implements Serializable {
         this.useAmount = useAmount;
     }
 
+    public String getDisplay() {
+        return display;
+    }
+
+    public void setDisplay(String display) {
+        this.display = display;
+    }
+
     @Override
     public String toString() {
         return new StringJoiner(", ", BudgetUseResult.class.getSimpleName() + "[", "]")
@@ -82,6 +94,7 @@ public class BudgetUseResult implements Serializable {
                 .add("poolUsedAmount=" + poolUsedAmount)
                 .add("poolBalanceAmount=" + poolBalanceAmount)
                 .add("useAmount=" + useAmount)
+                .add("display=" + display)
                 .toString();
     }
 }

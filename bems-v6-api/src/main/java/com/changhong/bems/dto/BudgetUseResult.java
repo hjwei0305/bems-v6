@@ -37,6 +37,9 @@ public class BudgetUseResult implements Serializable {
     @ApiModelProperty(value = "本次使用金额")
     private final BigDecimal useAmount;
 
+    @ApiModelProperty(value = "预算池显示信息")
+    private String display;
+
     public BudgetUseResult(String poolCode, BigDecimal poolTotalAmount, BigDecimal poolUsedAmount,
                            BigDecimal poolBalanceAmount, BigDecimal useAmount) {
         this.poolCode = poolCode;
@@ -64,5 +67,13 @@ public class BudgetUseResult implements Serializable {
 
     public BigDecimal getUseAmount() {
         return useAmount;
+    }
+
+    public String getDisplay() {
+        return display;
+    }
+
+    public void setDisplay(String display) {
+        this.display = display;
     }
 }
