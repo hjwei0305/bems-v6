@@ -74,6 +74,6 @@ public interface DimensionComponentApi {
             @ApiImplicitParam(name = "subjectId", value = "预算主体id", dataTypeClass = String.class, required = true),
             @ApiImplicitParam(name = "searchValue", value = "项目代码名称", dataTypeClass = String.class)
     })
-    @ApiOperation(value = "获取组织机构", notes = "按预算主体获取组织机构(维度组件专用)")
+    @ApiOperation(value = "获取公司项目", notes = "按预算主体获取公司项目(维度组件专用)")
     ResultData<List<ProjectDto>> getProjects(@RequestParam("subjectId") String subjectId, @RequestParam(name = "searchValue", required = false) String searchValue);
 }
