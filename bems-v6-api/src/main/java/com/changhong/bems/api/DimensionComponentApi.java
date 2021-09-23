@@ -1,15 +1,14 @@
 package com.changhong.bems.api;
 
-import com.changhong.bems.dto.OrganizationDto;
-import com.changhong.bems.dto.PeriodDto;
-import com.changhong.bems.dto.ProjectDto;
-import com.changhong.bems.dto.SubjectItemDto;
+import com.changhong.bems.dto.*;
 import com.changhong.sei.core.dto.ResultData;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
@@ -66,14 +65,10 @@ public interface DimensionComponentApi {
     /**
      * 按预算主体获取公司项目
      *
-     * @param subjectId 预算主体id
+     * @param request 查询公司项目请求
      * @return 公司项目
      */
-    @GetMapping(path = "getProjects")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "subjectId", value = "预算主体id", dataTypeClass = String.class, required = true),
-            @ApiImplicitParam(name = "searchValue", value = "项目代码名称", dataTypeClass = String.class)
-    })
+    @PostMapping(path = "getProjects")
     @ApiOperation(value = "获取公司项目", notes = "按预算主体获取公司项目(维度组件专用)")
-    ResultData<List<ProjectDto>> getProjects(@RequestParam("subjectId") String subjectId, @RequestParam(name = "searchValue", required = false) String searchValue);
+    ResultData<List<ProjectDto>> getProjects(@RequestBody QueryProjectRequest request);
 }

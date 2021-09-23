@@ -15,10 +15,7 @@ import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -87,12 +84,12 @@ public class DimensionComponentService {
      * @param subjectId 预算主体id
      * @return 期间清单
      */
-    public ResultData<List<ProjectDto>> findByPage(String subjectId, String searchValue) {
+    public ResultData<List<ProjectDto>> findByPage(String subjectId, String searchValue, Set<String> excludeIds) {
         Subject subject = subjectService.findOne(subjectId);
         if (Objects.isNull(subject)) {
             return ResultData.fail(ContextUtil.getMessage("subject_00003", subjectId));
         }
-        return projectManager.findByPage(subject.getCorporationCode(), searchValue);
+        return projectManager.findByPage(subject.getCorporationCode(), searchValue, excludeIds);
     }
 
     /**

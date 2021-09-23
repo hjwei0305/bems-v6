@@ -16,6 +16,11 @@ import java.io.Serializable;
 public class ProjectDto implements Serializable {
     private static final long serialVersionUID = -59692976042104106L;
     /**
+     * 项目id
+     */
+    @ApiModelProperty(value = "项目id")
+    private String id;
+    /**
      * 关联的WBS项目编号
      */
     @Size(max = 30)
@@ -31,9 +36,18 @@ public class ProjectDto implements Serializable {
     public ProjectDto() {
     }
 
-    public ProjectDto(String code, String name) {
+    public ProjectDto(String id, String code, String name) {
+        this.id = id;
         this.name = name;
         this.code = code;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getName() {

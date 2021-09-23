@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -76,11 +77,14 @@ public class DimensionComponentController implements DimensionComponentApi {
     /**
      * 按预算主体获取公司项目
      *
-     * @param subjectId   预算主体id
+     * @param request   查询公司项目请求
      * @return 公司项目
      */
     @Override
-    public ResultData<List<ProjectDto>> getProjects(String subjectId, String searchValue) {
-        return service.findByPage(subjectId, searchValue);
+    public ResultData<List<ProjectDto>> getProjects(QueryProjectRequest request) {
+        String subjectId = request.getSubjectId();
+        String searchValue = request.getSearchValue();
+        Set<String> excludeIds = request.getExcludeIds();
+        return service.findByPage(subjectId, searchValue, excludeIds);
     }
 }
