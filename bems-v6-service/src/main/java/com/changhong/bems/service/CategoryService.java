@@ -84,6 +84,7 @@ public class CategoryService extends BaseEntityService<Category> {
         Validation.notNull(entity, "持久化对象不能为空");
         if (CategoryType.GENERAL == entity.getType()) {
             entity.setSubjectId(CategoryType.GENERAL.name());
+            entity.setSubjectName(CategoryType.GENERAL.name());
         } else if (CategoryType.PRIVATE == entity.getType()) {
             if (StringUtils.isEmpty(entity.getSubjectId())) {
                 // 非通用预算类型,预算主体不能为空!

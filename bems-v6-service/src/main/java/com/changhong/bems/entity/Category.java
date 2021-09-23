@@ -72,7 +72,7 @@ public class Category extends BaseAuditableEntity implements ITenant, IFrozen, S
      * 参考id
      */
     @Column(name = "reference_id")
-    private String referenceId;
+    private String referenceId = "none";
     /**
      * 租户代码
      */
