@@ -15,7 +15,6 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,14 +49,10 @@ public class CategoryController extends BaseEntityController<Category, CategoryD
     public ResultData<Void> create(CreateCategoryDto dto) {
         try {
             OperateResultWithData<Category> result;
-            OrderCategory[] categories = dto.getOrderCategories();
-            for (OrderCategory category : categories) {
-                Category entity = entityModelMapper.map(dto, Category.class);
-                entity.setOrderCategory(category);
-                result = service.save(entity);
-                if (result.notSuccessful()) {
-                    return ResultData.fail(result.getMessage());
-                }
+            Category entity = entityModelMapper.map(dto, Category.class);
+            result = service.save(entity);
+            if (result.notSuccessful()) {
+                return ResultData.fail(result.getMessage());
             }
             return ResultData.success();
         } catch (Exception e) {

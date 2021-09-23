@@ -2,7 +2,6 @@ package com.changhong.bems.service.client;
 
 import com.changhong.bems.dto.OrganizationDto;
 import com.changhong.sei.core.dto.ResultData;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -16,8 +15,11 @@ import java.util.List;
 @Component
 public class OrganizationManager {
 
-    @Autowired
-    private OrganizationClient client;
+    private final OrganizationClient client;
+
+    public OrganizationManager(OrganizationClient client) {
+        this.client = client;
+    }
 
     /**
      * 通过代码获取组织机构

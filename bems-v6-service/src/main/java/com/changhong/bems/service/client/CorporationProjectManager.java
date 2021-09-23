@@ -2,12 +2,14 @@ package com.changhong.bems.service.client;
 
 import com.changhong.bems.dto.ProjectDto;
 import com.changhong.sei.core.dto.ResultData;
-import com.changhong.sei.core.dto.serach.*;
+import com.changhong.sei.core.dto.serach.PageResult;
+import com.changhong.sei.core.dto.serach.Search;
+import com.changhong.sei.core.dto.serach.SearchFilter;
+import com.changhong.sei.core.dto.serach.SearchOrder;
 import com.changhong.sei.core.entity.BaseEntity;
 import com.changhong.sei.core.entity.IFrozen;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -23,8 +25,11 @@ import java.util.Set;
 @Component
 public class CorporationProjectManager {
 
-    @Autowired
-    private CorporationProjectClient client;
+    private final CorporationProjectClient client;
+
+    public CorporationProjectManager(CorporationProjectClient client) {
+        this.client = client;
+    }
 
     /**
      * 分页获取公司项目

@@ -106,7 +106,6 @@ public class CategoryService extends BaseEntityService<Category> {
         }
         search.addFilter(new SearchFilter(Category.FIELD_SUBJECT_ID, entity.getSubjectId()));
         search.addFilter(new SearchFilter(Category.FIELD_NAME, entity.getName()));
-        search.addFilter(new SearchFilter(Category.FIELD_ORDER_CATEGORY, entity.getOrderCategory()));
         Category existed = dao.findFirstByFilters(search);
         if (Objects.nonNull(existed)) {
             // 已存在预算类型
@@ -190,7 +189,6 @@ public class CategoryService extends BaseEntityService<Category> {
         privateCategory.setSubjectId(subjectId);
         privateCategory.setSubjectName(subject.getName());
         privateCategory.setPeriodType(category.getPeriodType());
-        privateCategory.setOrderCategory(category.getOrderCategory());
         privateCategory.setUse(category.getUse());
         privateCategory.setRoll(category.getRoll());
         privateCategory.setReferenceId(id);
@@ -323,14 +321,12 @@ public class CategoryService extends BaseEntityService<Category> {
     public List<Category> getByCategory(String subjectId, OrderCategory category) {
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(Category.FIELD_SUBJECT_ID, subjectId));
-        search.addFilter(new SearchFilter(Category.FIELD_ORDER_CATEGORY, category));
         search.addFilter(new SearchFilter(Category.FIELD_TYPE, CategoryType.PRIVATE));
         search.addFilter(new SearchFilter(Category.FROZEN, Boolean.FALSE));
         List<Category> privateList = dao.findByFilters(search);
 
         search.clearAll();
         search.addFilter(new SearchFilter(Category.FIELD_TYPE, CategoryType.GENERAL));
-        search.addFilter(new SearchFilter(Category.FIELD_ORDER_CATEGORY, category));
         search.addFilter(new SearchFilter(Category.FROZEN, Boolean.FALSE));
         List<Category> generalList = dao.findByFilters(search);
         List<Category> categoryList = new ArrayList<>();

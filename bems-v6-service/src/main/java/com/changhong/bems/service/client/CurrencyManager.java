@@ -2,7 +2,6 @@ package com.changhong.bems.service.client;
 
 import com.changhong.bems.dto.CurrencyDto;
 import com.changhong.sei.core.dto.ResultData;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -15,8 +14,11 @@ import java.util.List;
  */
 @Component
 public class CurrencyManager {
-    @Autowired
-    private CurrencyClient client;
+    private final CurrencyClient client;
+
+    public CurrencyManager(CurrencyClient client) {
+        this.client = client;
+    }
 
     /**
      * 获取所有未冻结币种

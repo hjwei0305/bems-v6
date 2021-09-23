@@ -4,7 +4,6 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
@@ -49,12 +48,6 @@ public class CreateCategoryDto implements Serializable {
     @NotNull
     @ApiModelProperty(value = "期间类型", required = true)
     private PeriodType periodType;
-    /**
-     * 管理类型(订单类型)
-     */
-    @NotEmpty
-    @ApiModelProperty(value = "管理类型(订单类型)", required = true)
-    private OrderCategory[] orderCategories;
     /**
      * 允许使用(业务可用)
      */
@@ -104,14 +97,6 @@ public class CreateCategoryDto implements Serializable {
 
     public void setPeriodType(PeriodType periodType) {
         this.periodType = periodType;
-    }
-
-    public OrderCategory[] getOrderCategories() {
-        return orderCategories;
-    }
-
-    public void setOrderCategories(OrderCategory[] orderCategories) {
-        this.orderCategories = orderCategories;
     }
 
     public Boolean getUse() {

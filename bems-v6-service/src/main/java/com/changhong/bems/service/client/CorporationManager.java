@@ -2,11 +2,7 @@ package com.changhong.bems.service.client;
 
 import com.changhong.bems.dto.CorporationDto;
 import com.changhong.sei.core.dto.ResultData;
-import com.changhong.sei.core.dto.serach.PageResult;
-import com.changhong.sei.core.dto.serach.Search;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -19,8 +15,11 @@ import java.util.List;
 @Component
 public class CorporationManager {
 
-    @Autowired
-    private CorporationClient client;
+    private final CorporationClient client;
+
+    public CorporationManager(CorporationClient client) {
+        this.client = client;
+    }
 
     /**
      * 分页查询公司数据
