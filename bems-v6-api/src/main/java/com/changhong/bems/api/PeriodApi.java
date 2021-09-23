@@ -98,6 +98,6 @@ public interface PeriodApi extends BaseEntityApi<PeriodDto> {
      */
     @PostMapping(path = "saveCustomizePeriod", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "创建/编辑自定义期间", notes = "创建/编辑自定义期间")
-    ResultData<Void> saveCustomizePeriod(@RequestBody @Valid CreateCustomizePeriodRequest request);
+    ResultData<PeriodDto> saveCustomizePeriod(@RequestBody @Valid CreateCustomizePeriodRequest request);
 
 }

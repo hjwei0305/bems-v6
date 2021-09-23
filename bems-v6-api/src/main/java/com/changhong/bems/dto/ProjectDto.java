@@ -1,10 +1,10 @@
 package com.changhong.bems.dto;
 
-import com.changhong.sei.core.dto.BaseEntityDto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 
 /**
  * 项目(Project)DTO类
@@ -13,7 +13,7 @@ import javax.validation.constraints.Size;
  * @since 2021-07-31 16:02:20
  */
 @ApiModel(description = "项目DTO")
-public class ProjectDto extends BaseEntityDto {
+public class ProjectDto implements Serializable {
     private static final long serialVersionUID = -59692976042104106L;
     /**
      * 关联的WBS项目编号

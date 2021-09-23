@@ -111,16 +111,20 @@ public class PeriodController extends BaseEntityController<Period, PeriodDto> im
      * @return 期间清单
      */
     @Override
-    public ResultData<Void> saveCustomizePeriod(CreateCustomizePeriodRequest request) {
+    public ResultData<PeriodDto> saveCustomizePeriod(CreateCustomizePeriodRequest request) {
         Period period = new Period();
         period.setId(request.getId());
         period.setType(PeriodType.CUSTOMIZE);
-        period.setCode(String.valueOf(IdGenerator.nextId()));
         period.setSubjectId(request.getSubjectId());
         period.setName(request.getName());
         period.setYear(request.getStartDate().getYear());
         period.setStartDate(request.getStartDate());
         period.setEndDate(request.getEndDate());
-        return service.saveCustomizePeriod(period);
+        ResultData<Period> resultData = service.saveCustomizePeriod(period);
+        if (resultData.successful()) {
+            return ResultData.success(convertToDto(resultData.getData()));
+        } else {
+            return ResultData.fail(resultData.getMessage());
+        }
     }
 }

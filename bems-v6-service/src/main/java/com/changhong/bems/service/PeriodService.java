@@ -265,7 +265,7 @@ public class PeriodService extends BaseEntityService<Period> {
      * @return 期间清单
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> saveCustomizePeriod(Period period) {
+    public ResultData<Period> saveCustomizePeriod(Period period) {
         String id = period.getId();
         period.setType(PeriodType.CUSTOMIZE);
 
@@ -287,12 +287,11 @@ public class PeriodService extends BaseEntityService<Period> {
                 // 已存在预算期间
                 return ResultData.fail(ContextUtil.getMessage("period_00007", existed.getName()));
             }
-
             period.setCode(String.valueOf(IdGenerator.nextId()));
         }
 
         this.save(period);
-        return ResultData.success();
+        return ResultData.success(period);
     }
 
     /**
