@@ -2,6 +2,7 @@ package com.changhong.bems.sdk;
 
 import com.changhong.bems.sdk.client.BudgetApiClient;
 import com.changhong.bems.sdk.client.BudgetItemApiClient;
+import com.changhong.bems.sdk.client.BudgetPoolClient;
 import com.changhong.bems.sdk.manager.BudgetUseManager;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
@@ -19,8 +20,9 @@ public class BudgetSdkAutoConfig {
 
     @Bean
     public BudgetUseManager budgetUseManager(BudgetApiClient budgetApi,
-                                             BudgetItemApiClient itemApi) {
-        return new BudgetUseManager(budgetApi, itemApi);
+                                             BudgetItemApiClient itemApi,
+                                             BudgetPoolClient poolApi) {
+        return new BudgetUseManager(budgetApi, itemApi, poolApi);
     }
 
 }

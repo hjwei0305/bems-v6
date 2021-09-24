@@ -1,6 +1,7 @@
 package com.changhong.bems.controller;
 
 import com.changhong.bems.api.PoolApi;
+import com.changhong.bems.dto.BudgetUseResult;
 import com.changhong.bems.dto.LogRecordDto;
 import com.changhong.bems.dto.PoolAttributeDto;
 import com.changhong.bems.entity.LogRecordView;
@@ -14,12 +15,14 @@ import com.changhong.sei.util.DateUtils;
 import com.changhong.sei.util.IdGenerator;
 import io.swagger.annotations.Api;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -41,6 +44,57 @@ public class PoolController implements PoolApi {
     private PoolService service;
     @Autowired
     private ModelMapper modelMapper;
+
+    /**
+     * 通过预算池代码获取一个预算池
+     *
+     * @param poolCode 预算池代码
+     * @return 预算池
+     */
+    @Override
+    public ResultData<BudgetUseResult> getPoolByCode(String poolCode) {
+        PoolAttributeView attribute = service.findPoolAttribute(poolCode);
+        if (Objects.nonNull(attribute)) {
+            BudgetUseResult result = new BudgetUseResult(attribute.getCode(), attribute.getTotalAmount(), attribute.getUsedAmount(),attribute.getBalance(), new BigDecimal("0"));
+            StringJoiner display = new StringJoiner("|")
+                    // 期间
+                    .add(attribute.getPeriodName())
+                    // 科目
+                    .add(attribute.getItemName());
+            // 组织
+            if (StringUtils.isNotBlank(attribute.getOrgName())) {
+                display.add(attribute.getOrgName());
+            }
+            // 项目
+            if (StringUtils.isNotBlank(attribute.getProjectName())) {
+                display.add(attribute.getProjectName());
+            }
+            // UDF1
+            if (StringUtils.isNotBlank(attribute.getUdf1Name())) {
+                display.add(attribute.getUdf1Name());
+            }
+            // UDF2
+            if (StringUtils.isNotBlank(attribute.getUdf2Name())) {
+                display.add(attribute.getUdf2Name());
+            }
+            // UDF3
+            if (StringUtils.isNotBlank(attribute.getUdf3Name())) {
+                display.add(attribute.getUdf3Name());
+            }
+            // UDF4
+            if (StringUtils.isNotBlank(attribute.getUdf4Name())) {
+                display.add(attribute.getUdf4Name());
+            }
+            // UDF5
+            if (StringUtils.isNotBlank(attribute.getUdf5Name())) {
+                display.add(attribute.getUdf5Name());
+            }
+            result.setDisplay(display.toString());
+            return ResultData.success();
+        } else {
+            return ResultData.fail(ContextUtil.getMessage("pool_00001"));
+        }
+    }
 
     /**
      * 分页查询业务实体

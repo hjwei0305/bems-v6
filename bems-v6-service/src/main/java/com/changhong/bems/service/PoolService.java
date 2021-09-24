@@ -440,6 +440,16 @@ public class PoolService extends BaseEntityService<Pool> {
     }
 
     /**
+     * 按预算池id获取预算池
+     *
+     * @param code 预算池代码
+     * @return 预算池
+     */
+    public PoolAttributeView findPoolAttributeByCode(String code) {
+        return poolAttributeDao.findFirstByProperty(PoolAttributeView.FIELD_CODE, code);
+    }
+
+    /**
      * 初步查找满足条件的预算池
      *
      * @param useBudget 占用数据
