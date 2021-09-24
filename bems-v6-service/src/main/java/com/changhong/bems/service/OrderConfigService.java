@@ -37,7 +37,7 @@ public class OrderConfigService extends BaseEntityService<OrderConfig> {
      * @param category 订单类型
      * @return 配置的期间类型清单
      */
-    public Set<PeriodType> findByOrderCategory(OrderCategory category) {
+    public Set<PeriodType> findPeriodTypes(OrderCategory category) {
         Set<PeriodType> periodTypes;
         List<OrderConfig> configList = dao.findListByProperty(OrderConfig.FIELD_ORDER_CATEGORY, category);
         if (CollectionUtils.isNotEmpty(configList)) {
@@ -46,6 +46,16 @@ public class OrderConfigService extends BaseEntityService<OrderConfig> {
             periodTypes = new HashSet<>();
         }
         return periodTypes;
+    }
+
+    /**
+     * 按订单类型获取配置
+     *
+     * @param category 订单类型
+     * @return 配置清单
+     */
+    public List<OrderConfig> findByOrderCategory(OrderCategory category) {
+        return dao.findListByProperty(OrderConfig.FIELD_ORDER_CATEGORY, category);
     }
 
     /**

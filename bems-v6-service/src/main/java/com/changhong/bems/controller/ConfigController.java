@@ -1,6 +1,7 @@
 package com.changhong.bems.controller;
 
 import com.changhong.bems.api.OrderConfigApi;
+import com.changhong.bems.dto.OrderCategory;
 import com.changhong.bems.dto.OrderConfigDto;
 import com.changhong.bems.entity.OrderConfig;
 import com.changhong.bems.service.OrderConfigService;
@@ -43,6 +44,22 @@ public class ConfigController implements OrderConfigApi {
     @Override
     public ResultData<List<OrderConfigDto>> findAllConfigs() {
         List<OrderConfig> configs = service.findAllConfigs();
+        if (CollectionUtils.isNotEmpty(configs)) {
+            return ResultData.success(configs.stream().map(c -> modelMapper.map(c, OrderConfigDto.class)).collect(Collectors.toList()));
+        } else {
+            return ResultData.success(new ArrayList<>());
+        }
+    }
+
+    /**
+     * 按订单类型获取配置
+     *
+     * @param category 订单类型
+     * @return 按订单类型获取配置
+     */
+    @Override
+    public ResultData<List<OrderConfigDto>> findConfigs(OrderCategory category) {
+        List<OrderConfig> configs = service.findByOrderCategory(category);
         if (CollectionUtils.isNotEmpty(configs)) {
             return ResultData.success(configs.stream().map(c -> modelMapper.map(c, OrderConfigDto.class)).collect(Collectors.toList()));
         } else {

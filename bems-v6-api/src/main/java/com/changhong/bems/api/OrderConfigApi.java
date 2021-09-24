@@ -1,5 +1,6 @@
 package com.changhong.bems.api;
 
+import com.changhong.bems.dto.OrderCategory;
 import com.changhong.bems.dto.OrderConfigDto;
 import com.changhong.sei.core.dto.ResultData;
 import io.swagger.annotations.ApiOperation;
@@ -31,6 +32,16 @@ public interface OrderConfigApi {
     @GetMapping(path = "findAll")
     @ApiOperation(value = "获取所有订单配置", notes = "获取所有预算订单配置")
     ResultData<List<OrderConfigDto>> findAllConfigs();
+
+    /**
+     * 按订单类型获取配置
+     *
+     * @param category 订单类型
+     * @return 按订单类型获取配置
+     */
+    @GetMapping(path = "findConfigs")
+    @ApiOperation(value = "按订单类型获取配置", notes = "按订单类型获取配置")
+    ResultData<List<OrderConfigDto>> findConfigs(@RequestParam("category") OrderCategory category);
 
     /**
      * 订单配置启用

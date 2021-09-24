@@ -325,7 +325,7 @@ public class CategoryService extends BaseEntityService<Category> {
      */
     public List<Category> getByCategory(String subjectId, OrderCategory category) {
         // 按订单类型获取配置的期间类型
-        Set<PeriodType> periodTypes = orderConfigService.findByOrderCategory(category);
+        Set<PeriodType> periodTypes = orderConfigService.findPeriodTypes(category);
         if (CollectionUtils.isEmpty(periodTypes)) {
             LogUtil.error("预算订单未配置期间类型");
             return new ArrayList<>();
