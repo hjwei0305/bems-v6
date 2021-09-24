@@ -61,7 +61,7 @@ public class RunIntervalScheduler {
     public void trundle() {
         try {
             // 通过增加随机数,尽量避免多实例并发处理,导致数据库锁表
-            TimeUnit.SECONDS.sleep(RandomUtils.nextInt(30));
+            TimeUnit.MINUTES.sleep(RandomUtils.nextInt(10));
             LOG.info("启动定时任务-预算池自动结转");
             ResultData<String> resultData = poolService.trundlePool();
             LOG.info("预算池自动结转任务完成: {}", resultData);

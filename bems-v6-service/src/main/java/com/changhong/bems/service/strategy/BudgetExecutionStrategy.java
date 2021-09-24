@@ -9,7 +9,7 @@ import com.changhong.sei.core.dto.serach.SearchFilter;
 import java.util.Collection;
 
 /**
- * 实现功能：
+ * 实现功能：预算执行策略
  *
  * @author 马超(Vision.Mac)
  * @version 1.0.00  2021-05-15 09:32

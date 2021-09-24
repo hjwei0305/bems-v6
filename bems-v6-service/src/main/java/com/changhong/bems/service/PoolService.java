@@ -332,9 +332,9 @@ public class PoolService extends BaseEntityService<Pool> {
                     ThreadLocalHolder.begin();
                     SessionUser sessionUser = new SessionUser();
                     sessionUser.setTenantCode(pool.getTenantCode());
-                    sessionUser.setUserId("sys");
-                    sessionUser.setAccount("sys");
-                    sessionUser.setUserName("sys");
+                    sessionUser.setUserId("sei");
+                    sessionUser.setAccount("sei");
+                    sessionUser.setUserName("sei");
                     mockUser.mock(sessionUser);
 
                     resultData = service.trundlePool(bizId, bizCode, pool.getId());
@@ -591,7 +591,6 @@ public class PoolService extends BaseEntityService<Pool> {
                     break;
                 }
             default:
-                pool = null;
         }
         return pool;
     }

@@ -55,7 +55,11 @@ public class OrderConfigService extends BaseEntityService<OrderConfig> {
      * @return 配置清单
      */
     public List<OrderConfig> findByOrderCategory(OrderCategory category) {
-        return dao.findListByProperty(OrderConfig.FIELD_ORDER_CATEGORY, category);
+        List<OrderConfig> configList = dao.findListByProperty(OrderConfig.FIELD_ORDER_CATEGORY, category);
+        if (CollectionUtils.isEmpty(configList)) {
+            configList = findAllConfigs().stream().filter(c -> category == c.getOrderCategory()).collect(Collectors.toList());
+        }
+        return configList;
     }
 
     /**
@@ -73,86 +77,86 @@ public class OrderConfigService extends BaseEntityService<OrderConfig> {
 
     public synchronized List<OrderConfig> init() {
         String tenantCode = ContextUtil.getTenantCode();
-        List<OrderConfig> data = new ArrayList<>();
+        List<OrderConfig> configList = new ArrayList<>();
         OrderConfig config = new OrderConfig();
         config.setOrderCategory(OrderCategory.INJECTION);
         config.setPeriodType(PeriodType.ANNUAL);
         config.setTenantCode(tenantCode);
-        data.add(config);
+        configList.add(config);
         config = new OrderConfig();
         config.setOrderCategory(OrderCategory.INJECTION);
         config.setPeriodType(PeriodType.SEMIANNUAL);
         config.setTenantCode(tenantCode);
-        data.add(config);
+        configList.add(config);
         config = new OrderConfig();
         config.setOrderCategory(OrderCategory.INJECTION);
         config.setPeriodType(PeriodType.QUARTER);
         config.setTenantCode(tenantCode);
-        data.add(config);
+        configList.add(config);
         config = new OrderConfig();
         config.setOrderCategory(OrderCategory.INJECTION);
         config.setPeriodType(PeriodType.MONTHLY);
         config.setTenantCode(tenantCode);
-        data.add(config);
+        configList.add(config);
         config = new OrderConfig();
         config.setOrderCategory(OrderCategory.INJECTION);
         config.setPeriodType(PeriodType.CUSTOMIZE);
         config.setTenantCode(tenantCode);
-        data.add(config);
+        configList.add(config);
 
         config = new OrderConfig();
         config.setOrderCategory(OrderCategory.ADJUSTMENT);
         config.setPeriodType(PeriodType.ANNUAL);
         config.setTenantCode(tenantCode);
-        data.add(config);
+        configList.add(config);
         config = new OrderConfig();
         config.setOrderCategory(OrderCategory.ADJUSTMENT);
         config.setPeriodType(PeriodType.SEMIANNUAL);
         config.setTenantCode(tenantCode);
-        data.add(config);
+        configList.add(config);
         config = new OrderConfig();
         config.setOrderCategory(OrderCategory.ADJUSTMENT);
         config.setPeriodType(PeriodType.QUARTER);
         config.setTenantCode(tenantCode);
-        data.add(config);
+        configList.add(config);
         config = new OrderConfig();
         config.setOrderCategory(OrderCategory.ADJUSTMENT);
         config.setPeriodType(PeriodType.MONTHLY);
         config.setTenantCode(tenantCode);
-        data.add(config);
+        configList.add(config);
         config = new OrderConfig();
         config.setOrderCategory(OrderCategory.ADJUSTMENT);
         config.setPeriodType(PeriodType.CUSTOMIZE);
         config.setTenantCode(tenantCode);
-        data.add(config);
+        configList.add(config);
 
         config = new OrderConfig();
         config.setOrderCategory(OrderCategory.SPLIT);
         config.setPeriodType(PeriodType.ANNUAL);
         config.setTenantCode(tenantCode);
-        data.add(config);
+        configList.add(config);
         config = new OrderConfig();
         config.setOrderCategory(OrderCategory.SPLIT);
         config.setPeriodType(PeriodType.SEMIANNUAL);
         config.setTenantCode(tenantCode);
-        data.add(config);
+        configList.add(config);
         config = new OrderConfig();
         config.setOrderCategory(OrderCategory.SPLIT);
         config.setPeriodType(PeriodType.QUARTER);
         config.setTenantCode(tenantCode);
-        data.add(config);
+        configList.add(config);
         config = new OrderConfig();
         config.setOrderCategory(OrderCategory.SPLIT);
         config.setPeriodType(PeriodType.MONTHLY);
         config.setTenantCode(tenantCode);
-        data.add(config);
+        configList.add(config);
         config = new OrderConfig();
         config.setOrderCategory(OrderCategory.SPLIT);
         config.setPeriodType(PeriodType.CUSTOMIZE);
         config.setTenantCode(tenantCode);
-        data.add(config);
-
-        return data;
+        configList.add(config);
+        dao.save(configList);
+        return configList;
     }
 
     /**

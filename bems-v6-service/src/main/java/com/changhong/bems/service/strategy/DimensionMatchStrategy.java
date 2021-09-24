@@ -5,7 +5,7 @@ import com.changhong.bems.entity.Dimension;
 import com.changhong.sei.core.dto.ResultData;
 
 /**
- * 实现功能：
+ * 实现功能：预算维度匹配策略
  *
  * @author 马超(Vision.Mac)
  * @version 1.0.00  2021-05-15 09:32
