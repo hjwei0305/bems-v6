@@ -11,6 +11,7 @@ import com.changhong.sei.core.service.BaseEntityService;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -54,6 +55,7 @@ public class OrderConfigService extends BaseEntityService<OrderConfig> {
      * @param category 订单类型
      * @return 配置清单
      */
+    @Transactional(rollbackFor = Exception.class)
     public List<OrderConfig> findByOrderCategory(OrderCategory category) {
         List<OrderConfig> configList = dao.findListByProperty(OrderConfig.FIELD_ORDER_CATEGORY, category);
         if (CollectionUtils.isEmpty(configList)) {
@@ -67,6 +69,7 @@ public class OrderConfigService extends BaseEntityService<OrderConfig> {
      *
      * @return 获取所有预算订单配置
      */
+    @Transactional(rollbackFor = Exception.class)
     public List<OrderConfig> findAllConfigs() {
         List<OrderConfig> list = dao.findAll();
         if (CollectionUtils.isEmpty(list)) {
@@ -166,6 +169,7 @@ public class OrderConfigService extends BaseEntityService<OrderConfig> {
      * @param enable 启用状态ø
      * @return 结果
      */
+    @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> updateConfig(String id, boolean enable) {
         OrderConfig config = dao.findOne(id);
         if (Objects.isNull(config)) {
