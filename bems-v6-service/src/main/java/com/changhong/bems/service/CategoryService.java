@@ -119,7 +119,7 @@ public class CategoryService extends BaseEntityService<Category> {
             categoryDimensionService.addRequiredDimension(entity.getId());
         }
         // 更新订单配置
-        orderConfigService.putConfigData(entity.getSubjectId(), entity.getPeriodType(), orderCategories);
+        orderConfigService.putConfigData(entity.getId(), entity.getPeriodType(), orderCategories);
         return ResultData.success(saveEntity);
     }
 
