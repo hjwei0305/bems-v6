@@ -21,6 +21,7 @@ import java.io.Serializable;
 @DynamicUpdate
 public class OrderConfig extends BaseAuditableEntity implements Serializable {
     private static final long serialVersionUID = 202364499187955339L;
+    public static final String FIELD_ORDER_CATEGORY = "orderCategory";
     /**
      * 订单类型
      */

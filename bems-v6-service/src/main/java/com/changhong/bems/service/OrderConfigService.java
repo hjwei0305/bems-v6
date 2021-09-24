@@ -12,9 +12,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 预算配置(OrderConfig)业务逻辑实现类
@@ -30,6 +29,23 @@ public class OrderConfigService extends BaseEntityService<OrderConfig> {
     @Override
     protected BaseEntityDao<OrderConfig> getDao() {
         return dao;
+    }
+
+    /**
+     * 按订单类型获取配置的期间类型
+     *
+     * @param category 订单类型
+     * @return 配置的期间类型清单
+     */
+    public Set<PeriodType> findByOrderCategory(OrderCategory category) {
+        Set<PeriodType> periodTypes;
+        List<OrderConfig> configList = dao.findListByProperty(OrderConfig.FIELD_ORDER_CATEGORY, category);
+        if (CollectionUtils.isNotEmpty(configList)) {
+            periodTypes = configList.stream().map(OrderConfig::getPeriodType).collect(Collectors.toSet());
+        } else {
+            periodTypes = new HashSet<>();
+        }
+        return periodTypes;
     }
 
     /**

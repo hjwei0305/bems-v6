@@ -4,12 +4,14 @@ import com.changhong.bems.dao.CategoryDao;
 import com.changhong.bems.dto.CategoryType;
 import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.dto.OrderCategory;
+import com.changhong.bems.dto.PeriodType;
 import com.changhong.bems.entity.*;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
+import com.changhong.sei.core.log.LogUtil;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.Validation;
 import com.changhong.sei.core.service.bo.OperateResult;
@@ -45,6 +47,8 @@ public class CategoryService extends BaseEntityService<Category> {
     private CategoryDimensionService categoryDimensionService;
     @Autowired
     private DimensionService dimensionService;
+    @Autowired
+    private OrderConfigService orderConfigService;
 
     public static final String CACHE_KEY = "bems-v6:category:dimension";
 
@@ -320,14 +324,23 @@ public class CategoryService extends BaseEntityService<Category> {
      * @return 业务实体
      */
     public List<Category> getByCategory(String subjectId, OrderCategory category) {
+        // 按订单类型获取配置的期间类型
+        Set<PeriodType> periodTypes = orderConfigService.findByOrderCategory(category);
+        if (CollectionUtils.isEmpty(periodTypes)) {
+            LogUtil.error("预算订单未配置期间类型");
+            return new ArrayList<>();
+        }
+
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(Category.FIELD_SUBJECT_ID, subjectId));
         search.addFilter(new SearchFilter(Category.FIELD_TYPE, CategoryType.PRIVATE));
+        search.addFilter(new SearchFilter(Category.FIELD_PERIOD_TYPE, periodTypes, SearchFilter.Operator.IN));
         search.addFilter(new SearchFilter(Category.FROZEN, Boolean.FALSE));
         List<Category> privateList = dao.findByFilters(search);
 
         search.clearAll();
         search.addFilter(new SearchFilter(Category.FIELD_TYPE, CategoryType.GENERAL));
+        search.addFilter(new SearchFilter(Category.FIELD_PERIOD_TYPE, periodTypes, SearchFilter.Operator.IN));
         search.addFilter(new SearchFilter(Category.FROZEN, Boolean.FALSE));
         List<Category> generalList = dao.findByFilters(search);
         List<Category> categoryList = new ArrayList<>();
