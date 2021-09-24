@@ -2,7 +2,6 @@ package com.changhong.bems.api;
 
 import com.changhong.bems.dto.AssigneDimensionRequest;
 import com.changhong.bems.dto.CategoryDto;
-import com.changhong.bems.dto.CreateCategoryDto;
 import com.changhong.bems.dto.DimensionDto;
 import com.changhong.sei.core.api.BaseEntityApi;
 import com.changhong.sei.core.dto.ResultData;
@@ -10,7 +9,6 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -26,16 +24,6 @@ import java.util.List;
 @FeignClient(name = "bems-v6", path = CategoryApi.PATH)
 public interface CategoryApi extends BaseEntityApi<CategoryDto> {
     String PATH = "category";
-
-    /**
-     * 创建预算类型
-     *
-     * @param dto 业务实体DTO
-     * @return 操作结果
-     */
-    @PostMapping(path = "create", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "创建预算类型", notes = "创建预算类型")
-    ResultData<Void> create(@RequestBody @Valid CreateCategoryDto dto);
 
     /**
      * 查询通用预算类型

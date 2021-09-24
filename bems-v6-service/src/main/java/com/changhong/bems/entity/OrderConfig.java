@@ -3,6 +3,7 @@ package com.changhong.bems.entity;
 import com.changhong.bems.dto.OrderCategory;
 import com.changhong.bems.dto.PeriodType;
 import com.changhong.sei.core.entity.BaseAuditableEntity;
+import com.changhong.sei.core.entity.ITenant;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -19,10 +20,16 @@ import java.io.Serializable;
 @Table(name = "order_config")
 @DynamicInsert
 @DynamicUpdate
-public class OrderConfig extends BaseAuditableEntity implements Serializable {
+public class OrderConfig extends BaseAuditableEntity implements ITenant, Serializable {
     private static final long serialVersionUID = 202364499187955339L;
+    public static final String FIELD_CATEGORY_ID = "categoryId";
     public static final String FIELD_ORDER_CATEGORY = "orderCategory";
-    public static final String FIELD_ENABLE = "enable";
+
+    /**
+     * 预算类型id
+     */
+    @Column(name = "category_id")
+    private String categoryId;
     /**
      * 订单类型
      */
@@ -36,15 +43,18 @@ public class OrderConfig extends BaseAuditableEntity implements Serializable {
     @Column(name = "period_type")
     private PeriodType periodType;
     /**
-     * 是否启用
-     */
-    @Column(name = "enable")
-    private Boolean enable = Boolean.TRUE;
-    /**
      * 租户代码
      */
     @Column(name = "tenant_code")
     private String tenantCode;
+
+    public String getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(String categoryId) {
+        this.categoryId = categoryId;
+    }
 
     public OrderCategory getOrderCategory() {
         return orderCategory;
@@ -62,18 +72,12 @@ public class OrderConfig extends BaseAuditableEntity implements Serializable {
         this.periodType = periodType;
     }
 
-    public Boolean getEnable() {
-        return enable;
-    }
-
-    public void setEnable(Boolean enable) {
-        this.enable = enable;
-    }
-
+    @Override
     public String getTenantCode() {
         return tenantCode;
     }
 
+    @Override
     public void setTenantCode(String tenantCode) {
         this.tenantCode = tenantCode;
     }

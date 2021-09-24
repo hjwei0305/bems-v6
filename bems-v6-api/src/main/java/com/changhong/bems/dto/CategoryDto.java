@@ -48,6 +48,12 @@ public class CategoryDto extends BaseEntityDto {
     @NotNull
     @ApiModelProperty(value = "期间类型", required = true)
     private PeriodType periodType;
+    /**
+     * 订单类型清单
+     */
+    @NotNull
+    @ApiModelProperty(value = "支持的订单类型清单", required = true)
+    private OrderCategory[] orderCategories;
 
     /**
      * 允许使用(业务可用)
@@ -113,6 +119,14 @@ public class CategoryDto extends BaseEntityDto {
 
     public void setPeriodType(PeriodType periodType) {
         this.periodType = periodType;
+    }
+
+    public OrderCategory[] getOrderCategories() {
+        return orderCategories;
+    }
+
+    public void setOrderCategories(OrderCategory[] orderCategories) {
+        this.orderCategories = orderCategories;
     }
 
     public Boolean getUse() {

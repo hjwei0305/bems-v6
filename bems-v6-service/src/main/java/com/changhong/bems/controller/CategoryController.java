@@ -1,21 +1,28 @@
 package com.changhong.bems.controller;
 
 import com.changhong.bems.api.CategoryApi;
-import com.changhong.bems.dto.*;
+import com.changhong.bems.dto.AssigneDimensionRequest;
+import com.changhong.bems.dto.CategoryDto;
+import com.changhong.bems.dto.DimensionDto;
+import com.changhong.bems.dto.OrderCategory;
 import com.changhong.bems.entity.Category;
 import com.changhong.bems.service.CategoryService;
+import com.changhong.bems.service.OrderConfigService;
 import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.service.BaseEntityService;
-import com.changhong.sei.core.service.bo.OperateResultWithData;
 import com.changhong.sei.util.EnumUtils;
 import io.swagger.annotations.Api;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -33,6 +40,8 @@ public class CategoryController extends BaseEntityController<Category, CategoryD
      */
     @Autowired
     private CategoryService service;
+    @Autowired
+    private OrderConfigService orderConfigService;
 
     @Override
     public BaseEntityService<Category> getService() {
@@ -40,23 +49,21 @@ public class CategoryController extends BaseEntityController<Category, CategoryD
     }
 
     /**
-     * 创建预算类型
+     * 保存业务实体
      *
      * @param dto 业务实体DTO
      * @return 操作结果
      */
     @Override
-    public ResultData<Void> create(CreateCategoryDto dto) {
-        try {
-            OperateResultWithData<Category> result;
-            Category entity = entityModelMapper.map(dto, Category.class);
-            result = service.save(entity);
-            if (result.notSuccessful()) {
-                return ResultData.fail(result.getMessage());
-            }
-            return ResultData.success();
-        } catch (Exception e) {
-            return ResultData.fail(e.getMessage());
+    public ResultData<CategoryDto> save(CategoryDto dto) {
+        // 数据转换 to Entity
+        Category entity = convertToEntity(dto);
+        ResultData<Category> resultData = service.saveOrUpdate(entity, dto.getOrderCategories());
+        if (resultData.successful()) {
+            // 数据转换 to DTO
+            return ResultData.success(convertToDto(resultData.getData()));
+        } else {
+            return ResultData.fail(resultData.getMessage());
         }
     }
 
@@ -67,7 +74,22 @@ public class CategoryController extends BaseEntityController<Category, CategoryD
      */
     @Override
     public ResultData<List<CategoryDto>> findByGeneral() {
-        return ResultData.success(convertToDtos(service.findByGeneral()));
+        List<CategoryDto> dtoList;
+        List<Category> list = service.findByGeneral();
+        if (CollectionUtils.isNotEmpty(list)) {
+            dtoList = new ArrayList<>();
+            CategoryDto categoryDto;
+            Set<String> ids = list.stream().map(Category::getId).collect(Collectors.toSet());
+            Map<String, OrderCategory[]> mapData = orderConfigService.findPeriodTypes(ids);
+            for (Category category : list) {
+                categoryDto = dtoModelMapper.map(category, CategoryDto.class);
+                categoryDto.setOrderCategories(mapData.get(category.getId()));
+                dtoList.add(categoryDto);
+            }
+        } else {
+            dtoList = new ArrayList<>();
+        }
+        return ResultData.success(dtoList);
     }
 
     /**
@@ -78,7 +100,22 @@ public class CategoryController extends BaseEntityController<Category, CategoryD
      */
     @Override
     public ResultData<List<CategoryDto>> findBySubject(String subjectId) {
-        return ResultData.success(convertToDtos(service.findBySubject(subjectId)));
+        List<CategoryDto> dtoList;
+        List<Category> list = service.findBySubject(subjectId);
+        if (CollectionUtils.isNotEmpty(list)) {
+            dtoList = new ArrayList<>();
+            CategoryDto categoryDto;
+            Set<String> ids = list.stream().map(Category::getId).collect(Collectors.toSet());
+            Map<String, OrderCategory[]> mapData = orderConfigService.findPeriodTypes(ids);
+            for (Category category : list) {
+                categoryDto = dtoModelMapper.map(category, CategoryDto.class);
+                categoryDto.setOrderCategories(mapData.get(category.getId()));
+                dtoList.add(categoryDto);
+            }
+        } else {
+            dtoList = new ArrayList<>();
+        }
+        return ResultData.success(dtoList);
     }
 
     /**

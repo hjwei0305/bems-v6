@@ -5,11 +5,8 @@ import com.changhong.bems.dto.OrderCategory;
 import com.changhong.bems.dto.PeriodType;
 import com.changhong.bems.entity.OrderConfig;
 import com.changhong.sei.core.context.ContextUtil;
-import com.changhong.sei.core.dao.BaseEntityDao;
-import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
-import com.changhong.sei.core.service.BaseEntityService;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,13 +22,56 @@ import java.util.stream.Collectors;
  * @since 2021-09-24 09:12:59
  */
 @Service
-public class OrderConfigService extends BaseEntityService<OrderConfig> {
+public class OrderConfigService {
     @Autowired
     private OrderConfigDao dao;
 
-    @Override
-    protected BaseEntityDao<OrderConfig> getDao() {
-        return dao;
+    /**
+     * 按订单类型获取配置的期间类型
+     *
+     * @param categoryId 订单类型id
+     * @return 配置的期间类型清单
+     */
+    public OrderCategory[] findPeriodTypes(String categoryId) {
+        OrderCategory[] categories;
+        List<OrderConfig> configList = dao.findListByProperty(OrderConfig.FIELD_CATEGORY_ID, categoryId);
+        if (CollectionUtils.isNotEmpty(configList)) {
+            categories = new OrderCategory[configList.size()];
+            for (OrderConfig config : configList) {
+                categories[0] = config.getOrderCategory();
+            }
+        } else {
+            categories = new OrderCategory[0];
+        }
+        return categories;
+    }
+
+    /**
+     * 按订单类型获取配置的期间类型
+     *
+     * @param categoryIds 订单类型id清单
+     * @return 配置的期间类型清单
+     */
+    public Map<String, OrderCategory[]> findPeriodTypes(Set<String> categoryIds) {
+        Map<String, OrderCategory[]> result = new HashMap<>();
+        Search search = Search.createSearch();
+        search.addFilter(new SearchFilter(OrderConfig.FIELD_CATEGORY_ID, categoryIds, SearchFilter.Operator.IN));
+        List<OrderConfig> configList = dao.findByFilters(search);
+        Map<String, List<OrderConfig>> dataMap = configList.stream().collect(Collectors.groupingBy(OrderConfig::getCategoryId, Collectors.toList()));
+        List<OrderConfig> list;
+        OrderCategory[] orderCategories;
+        for (Map.Entry<String, List<OrderConfig>> entry : dataMap.entrySet()) {
+            list = entry.getValue();
+            if (CollectionUtils.isNotEmpty(list)) {
+                orderCategories = new OrderCategory[list.size()];
+                int i = 0;
+                for (OrderConfig config : list) {
+                    orderCategories[i++] = config.getOrderCategory();
+                }
+                result.put(entry.getKey(), orderCategories);
+            }
+        }
+        return result;
     }
 
     /**
@@ -40,14 +80,14 @@ public class OrderConfigService extends BaseEntityService<OrderConfig> {
      * @param category 订单类型
      * @return 配置的期间类型清单
      */
-    public Set<PeriodType> findPeriodTypes(OrderCategory category) {
+    public Set<PeriodType> findPeriodTypes(Set<String> categoryIds, OrderCategory category) {
         Set<PeriodType> periodTypes;
         Search search = Search.createSearch();
+        search.addFilter(new SearchFilter(OrderConfig.FIELD_CATEGORY_ID, categoryIds, SearchFilter.Operator.IN));
         search.addFilter(new SearchFilter(OrderConfig.FIELD_ORDER_CATEGORY, category));
-        search.addFilter(new SearchFilter(OrderConfig.FIELD_ENABLE, Boolean.TRUE));
         List<OrderConfig> configList = dao.findByFilters(search);
         if (CollectionUtils.isNotEmpty(configList)) {
-            periodTypes = configList.stream().filter(OrderConfig::getEnable).map(OrderConfig::getPeriodType).collect(Collectors.toSet());
+            periodTypes = configList.stream().map(OrderConfig::getPeriodType).collect(Collectors.toSet());
         } else {
             periodTypes = new HashSet<>();
         }
@@ -55,133 +95,32 @@ public class OrderConfigService extends BaseEntityService<OrderConfig> {
     }
 
     /**
-     * 按订单类型获取配置
+     * 添加预算订单配置
      *
-     * @param category 订单类型
-     * @return 配置清单
+     * @param categoryId      预算类型id
+     * @param periodType      预算期间类型
+     * @param orderCategories 预算订单类型
      */
     @Transactional(rollbackFor = Exception.class)
-    public List<OrderConfig> findByOrderCategory(OrderCategory category) {
-        List<OrderConfig> configList = dao.findListByProperty(OrderConfig.FIELD_ORDER_CATEGORY, category);
-        if (CollectionUtils.isEmpty(configList)) {
-            configList = findAllConfigs().stream().filter(c -> category == c.getOrderCategory()).collect(Collectors.toList());
+    public void putConfigData(String categoryId, PeriodType periodType, OrderCategory[] orderCategories) {
+        List<OrderConfig> configs = dao.findListByProperty(OrderConfig.FIELD_CATEGORY_ID, categoryId);
+        if (CollectionUtils.isNotEmpty(configs)) {
+            dao.deleteAll(configs);
+            configs.clear();
         }
-        return configList;
-    }
 
-    /**
-     * 获取所有订单配置
-     *
-     * @return 获取所有预算订单配置
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public List<OrderConfig> findAllConfigs() {
-        List<OrderConfig> list = dao.findAll();
-        if (CollectionUtils.isEmpty(list)) {
-            list = init();
-        }
-        return list;
-    }
-
-    public synchronized List<OrderConfig> init() {
+        OrderConfig config;
+        configs = new ArrayList<>();
         String tenantCode = ContextUtil.getTenantCode();
-        List<OrderConfig> configList = new ArrayList<>();
-        OrderConfig config = new OrderConfig();
-        config.setOrderCategory(OrderCategory.INJECTION);
-        config.setPeriodType(PeriodType.ANNUAL);
-        config.setTenantCode(tenantCode);
-        configList.add(config);
-        config = new OrderConfig();
-        config.setOrderCategory(OrderCategory.INJECTION);
-        config.setPeriodType(PeriodType.SEMIANNUAL);
-        config.setTenantCode(tenantCode);
-        configList.add(config);
-        config = new OrderConfig();
-        config.setOrderCategory(OrderCategory.INJECTION);
-        config.setPeriodType(PeriodType.QUARTER);
-        config.setTenantCode(tenantCode);
-        configList.add(config);
-        config = new OrderConfig();
-        config.setOrderCategory(OrderCategory.INJECTION);
-        config.setPeriodType(PeriodType.MONTHLY);
-        config.setTenantCode(tenantCode);
-        configList.add(config);
-        config = new OrderConfig();
-        config.setOrderCategory(OrderCategory.INJECTION);
-        config.setPeriodType(PeriodType.CUSTOMIZE);
-        config.setTenantCode(tenantCode);
-        configList.add(config);
-
-        config = new OrderConfig();
-        config.setOrderCategory(OrderCategory.ADJUSTMENT);
-        config.setPeriodType(PeriodType.ANNUAL);
-        config.setTenantCode(tenantCode);
-        configList.add(config);
-        config = new OrderConfig();
-        config.setOrderCategory(OrderCategory.ADJUSTMENT);
-        config.setPeriodType(PeriodType.SEMIANNUAL);
-        config.setTenantCode(tenantCode);
-        configList.add(config);
-        config = new OrderConfig();
-        config.setOrderCategory(OrderCategory.ADJUSTMENT);
-        config.setPeriodType(PeriodType.QUARTER);
-        config.setTenantCode(tenantCode);
-        configList.add(config);
-        config = new OrderConfig();
-        config.setOrderCategory(OrderCategory.ADJUSTMENT);
-        config.setPeriodType(PeriodType.MONTHLY);
-        config.setTenantCode(tenantCode);
-        configList.add(config);
-        config = new OrderConfig();
-        config.setOrderCategory(OrderCategory.ADJUSTMENT);
-        config.setPeriodType(PeriodType.CUSTOMIZE);
-        config.setTenantCode(tenantCode);
-        configList.add(config);
-
-        config = new OrderConfig();
-        config.setOrderCategory(OrderCategory.SPLIT);
-        config.setPeriodType(PeriodType.ANNUAL);
-        config.setTenantCode(tenantCode);
-        configList.add(config);
-        config = new OrderConfig();
-        config.setOrderCategory(OrderCategory.SPLIT);
-        config.setPeriodType(PeriodType.SEMIANNUAL);
-        config.setTenantCode(tenantCode);
-        configList.add(config);
-        config = new OrderConfig();
-        config.setOrderCategory(OrderCategory.SPLIT);
-        config.setPeriodType(PeriodType.QUARTER);
-        config.setTenantCode(tenantCode);
-        configList.add(config);
-        config = new OrderConfig();
-        config.setOrderCategory(OrderCategory.SPLIT);
-        config.setPeriodType(PeriodType.MONTHLY);
-        config.setTenantCode(tenantCode);
-        configList.add(config);
-        config = new OrderConfig();
-        config.setOrderCategory(OrderCategory.SPLIT);
-        config.setPeriodType(PeriodType.CUSTOMIZE);
-        config.setTenantCode(tenantCode);
-        configList.add(config);
-        dao.save(configList);
-        return configList;
-    }
-
-    /**
-     * 订单配置启用
-     *
-     * @param id     订单配置
-     * @param enable 启用状态ø
-     * @return 结果
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> updateConfig(String id, boolean enable) {
-        OrderConfig config = dao.findOne(id);
-        if (Objects.isNull(config)) {
-            return ResultData.fail(ContextUtil.getMessage("order_config_001"));
+        for (OrderCategory category : orderCategories) {
+            config = new OrderConfig();
+            config.setCategoryId(categoryId);
+            config.setPeriodType(periodType);
+            config.setOrderCategory(category);
+            config.setTenantCode(tenantCode);
+            configs.add(config);
         }
-        config.setEnable(enable);
-        dao.save(config);
-        return ResultData.success();
+        dao.save(configs);
     }
+
 }

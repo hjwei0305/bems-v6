@@ -11,11 +11,9 @@ import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
-import com.changhong.sei.core.log.LogUtil;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.Validation;
 import com.changhong.sei.core.service.bo.OperateResult;
-import com.changhong.sei.core.service.bo.OperateResultWithData;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,9 +80,8 @@ public class CategoryService extends BaseEntityService<Category> {
     /**
      * 数据保存操作
      */
-    @Override
     @Transactional(rollbackFor = Exception.class)
-    public OperateResultWithData<Category> save(Category entity) {
+    public ResultData<Category> saveOrUpdate(Category entity, OrderCategory[] orderCategories) {
         Validation.notNull(entity, "持久化对象不能为空");
         if (CategoryType.GENERAL == entity.getType()) {
             entity.setSubjectId(CategoryType.GENERAL.name());
@@ -92,11 +89,11 @@ public class CategoryService extends BaseEntityService<Category> {
         } else if (CategoryType.PRIVATE == entity.getType()) {
             if (StringUtils.isEmpty(entity.getSubjectId())) {
                 // 非通用预算类型,预算主体不能为空!
-                return OperateResultWithData.operationFailure("category_00002");
+                return ResultData.fail(ContextUtil.getMessage("category_00002"));
             }
         } else {
             // 错误的预算类型分类
-            return OperateResultWithData.operationFailure("category_00003");
+            return ResultData.fail(ContextUtil.getMessage("category_00003"));
         }
 
         Search search = Search.createSearch();
@@ -114,16 +111,16 @@ public class CategoryService extends BaseEntityService<Category> {
         Category existed = dao.findFirstByFilters(search);
         if (Objects.nonNull(existed)) {
             // 已存在预算类型
-            return OperateResultWithData.operationFailure("category_00006", existed.getName());
+            return ResultData.fail(ContextUtil.getMessage("category_00006", existed.getName()));
         }
 
         Category saveEntity = dao.save(entity);
         if (isNew) {
             categoryDimensionService.addRequiredDimension(entity.getId());
-            return OperateResultWithData.operationSuccessWithData(saveEntity, "core_service_00026");
-        } else {
-            return OperateResultWithData.operationSuccessWithData(saveEntity, "core_service_00027");
         }
+        // 更新订单配置
+        orderConfigService.putConfigData(entity.getSubjectId(), entity.getPeriodType(), orderCategories);
+        return ResultData.success(saveEntity);
     }
 
     /**
@@ -197,7 +194,9 @@ public class CategoryService extends BaseEntityService<Category> {
         privateCategory.setUse(category.getUse());
         privateCategory.setRoll(category.getRoll());
         privateCategory.setReferenceId(id);
-        OperateResultWithData<Category> result = this.save(privateCategory);
+        // 获取当前预算类型支持的订单类型
+        OrderCategory[] orderCategories = orderConfigService.findPeriodTypes(id);
+        ResultData<Category> result = this.saveOrUpdate(privateCategory, orderCategories);
         if (result.successful()) {
             return ResultData.success();
         } else {
@@ -324,23 +323,14 @@ public class CategoryService extends BaseEntityService<Category> {
      * @return 业务实体
      */
     public List<Category> getByCategory(String subjectId, OrderCategory category) {
-        // 按订单类型获取配置的期间类型
-        Set<PeriodType> periodTypes = orderConfigService.findPeriodTypes(category);
-        if (CollectionUtils.isEmpty(periodTypes)) {
-            LogUtil.error("预算订单未配置期间类型");
-            return new ArrayList<>();
-        }
-
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(Category.FIELD_SUBJECT_ID, subjectId));
         search.addFilter(new SearchFilter(Category.FIELD_TYPE, CategoryType.PRIVATE));
-        search.addFilter(new SearchFilter(Category.FIELD_PERIOD_TYPE, periodTypes, SearchFilter.Operator.IN));
         search.addFilter(new SearchFilter(Category.FROZEN, Boolean.FALSE));
         List<Category> privateList = dao.findByFilters(search);
 
         search.clearAll();
         search.addFilter(new SearchFilter(Category.FIELD_TYPE, CategoryType.GENERAL));
-        search.addFilter(new SearchFilter(Category.FIELD_PERIOD_TYPE, periodTypes, SearchFilter.Operator.IN));
         search.addFilter(new SearchFilter(Category.FROZEN, Boolean.FALSE));
         List<Category> generalList = dao.findByFilters(search);
         List<Category> categoryList = new ArrayList<>();
@@ -359,6 +349,14 @@ public class CategoryService extends BaseEntityService<Category> {
             }
             categoryList.addAll(privateList);
         }
+        Set<String> ids = categoryList.stream().map(Category::getId).collect(Collectors.toSet());
+        if (CollectionUtils.isNotEmpty(ids)) {
+            // 按预算类型id清单和订单类型获取配置的预算期间
+            Set<PeriodType> periodTypeSet = orderConfigService.findPeriodTypes(ids, category);
+            // 过滤满足配置条件的预算类型
+            categoryList = categoryList.stream().filter(c -> periodTypeSet.contains(c.getPeriodType())).collect(Collectors.toList());
+        }
+
         return categoryList;
     }
 }
