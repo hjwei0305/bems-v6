@@ -4,14 +4,12 @@ import com.changhong.bems.sdk.client.BudgetApiClient;
 import com.changhong.bems.sdk.client.BudgetItemApiClient;
 import com.changhong.bems.sdk.client.BudgetPoolClient;
 import com.changhong.bems.sdk.dto.BudgetItemDto;
+import com.changhong.bems.sdk.dto.BudgetPoolAmountDto;
 import com.changhong.bems.sdk.dto.BudgetRequest;
 import com.changhong.bems.sdk.dto.BudgetResponse;
-import com.changhong.bems.sdk.dto.BudgetUseResult;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -61,7 +59,17 @@ public class BudgetUseManager {
      * @param poolCode 预算池code
      * @return 预算池
      */
-    public ResultData<BudgetUseResult> getPoolByCode(String poolCode) {
+    public ResultData<BudgetPoolAmountDto> getPoolByCode(String poolCode) {
         return poolApi.getPoolByCode(poolCode);
+    }
+
+    /**
+     * 通过预算池代码获取一个预算池
+     *
+     * @param poolCodes 预算池code
+     * @return 预算池
+     */
+    public ResultData<List<BudgetPoolAmountDto>> getPoolsByCode(List<String> poolCodes) {
+        return poolApi.getPoolsByCode(poolCodes);
     }
 }
