@@ -22,6 +22,7 @@ import java.io.Serializable;
 public class OrderConfig extends BaseAuditableEntity implements Serializable {
     private static final long serialVersionUID = 202364499187955339L;
     public static final String FIELD_ORDER_CATEGORY = "orderCategory";
+    public static final String FIELD_ENABLE = "enable";
     /**
      * 订单类型
      */

@@ -7,6 +7,8 @@ import com.changhong.bems.entity.OrderConfig;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
+import com.changhong.sei.core.dto.serach.Search;
+import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,9 +42,12 @@ public class OrderConfigService extends BaseEntityService<OrderConfig> {
      */
     public Set<PeriodType> findPeriodTypes(OrderCategory category) {
         Set<PeriodType> periodTypes;
-        List<OrderConfig> configList = dao.findListByProperty(OrderConfig.FIELD_ORDER_CATEGORY, category);
+        Search search = Search.createSearch();
+        search.addFilter(new SearchFilter(OrderConfig.FIELD_ORDER_CATEGORY, category));
+        search.addFilter(new SearchFilter(OrderConfig.FIELD_ENABLE, Boolean.TRUE));
+        List<OrderConfig> configList = dao.findByFilters(search);
         if (CollectionUtils.isNotEmpty(configList)) {
-            periodTypes = configList.stream().map(OrderConfig::getPeriodType).collect(Collectors.toSet());
+            periodTypes = configList.stream().filter(OrderConfig::getEnable).map(OrderConfig::getPeriodType).collect(Collectors.toSet());
         } else {
             periodTypes = new HashSet<>();
         }
