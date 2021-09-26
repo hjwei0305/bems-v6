@@ -36,9 +36,10 @@ public class OrderConfigService {
         OrderCategory[] categories;
         List<OrderConfig> configList = dao.findListByProperty(OrderConfig.FIELD_CATEGORY_ID, categoryId);
         if (CollectionUtils.isNotEmpty(configList)) {
+            int i = 0;
             categories = new OrderCategory[configList.size()];
             for (OrderConfig config : configList) {
-                categories[0] = config.getOrderCategory();
+                categories[i++] = config.getOrderCategory();
             }
         } else {
             categories = new OrderCategory[0];
