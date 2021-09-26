@@ -19,6 +19,7 @@ import com.changhong.sei.core.service.bo.OperateResultWithData;
 import com.changhong.sei.core.util.JsonUtils;
 import com.changhong.sei.exception.ServiceException;
 import com.changhong.sei.serial.sdk.SerialService;
+import com.changhong.sei.util.EnumUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.modelmapper.ModelMapper;
@@ -587,7 +588,7 @@ public class OrderService extends BaseEntityService<Order> {
             }
         } else {
             // 订单状态为[{0}],不允许操作!
-            return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(Constants.I18N_ORDER_STATUS_PREFIX + order.getStatus())));
+            return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(EnumUtils.getEnumItemRemark(OrderStatus.class, order.getStatus()))));
         }
     }
 
@@ -633,7 +634,7 @@ public class OrderService extends BaseEntityService<Order> {
             return ResultData.success(order);
         } else {
             // 订单状态为[{0}],不允许操作!
-            return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(Constants.I18N_ORDER_STATUS_PREFIX + order.getStatus())));
+            return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(EnumUtils.getEnumItemRemark(OrderStatus.class, order.getStatus()))));
         }
     }
 
@@ -698,7 +699,7 @@ public class OrderService extends BaseEntityService<Order> {
             }
         } else {
             // 订单状态为[{0}],不允许操作!
-            return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(Constants.I18N_ORDER_STATUS_PREFIX + order.getStatus())));
+            return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(EnumUtils.getEnumItemRemark(OrderStatus.class, order.getStatus()))));
         }
     }
 
@@ -852,7 +853,7 @@ public class OrderService extends BaseEntityService<Order> {
         } else {
             // 可能已发起取消确认动作,故不作任何处理
             // 订单状态为[{0}],不允许操作!
-            resultData = ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(Constants.I18N_ORDER_STATUS_PREFIX + order.getStatus())));
+            resultData = ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(EnumUtils.getEnumItemRemark(OrderStatus.class, order.getStatus()))));
         }
         return resultData;
     }
@@ -954,7 +955,7 @@ public class OrderService extends BaseEntityService<Order> {
             orderDetailService.save(detail);
         } else {
             // 订单状态为[{0}],不允许操作!
-            resultData = ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(Constants.I18N_ORDER_STATUS_PREFIX + order.getStatus())));
+            resultData = ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(EnumUtils.getEnumItemRemark(OrderStatus.class, order.getStatus()))));
         }
 
         return resultData;
@@ -1102,7 +1103,7 @@ public class OrderService extends BaseEntityService<Order> {
             orderDetailService.save(detail);
         } else {
             // 订单状态为[{0}],不允许操作!
-            resultData = ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(Constants.I18N_ORDER_STATUS_PREFIX + order.getStatus())));
+            resultData = ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(EnumUtils.getEnumItemRemark(OrderStatus.class, order.getStatus()))));
         }
         return resultData;
     }

@@ -2,7 +2,6 @@ package com.changhong.bems.controller;
 
 import com.alibaba.excel.EasyExcel;
 import com.changhong.bems.api.OrderApi;
-import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
@@ -230,7 +229,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             }
         } else {
             // 订单状态为[{0}],不允许操作
-            return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(Constants.I18N_ORDER_STATUS_PREFIX + order.getStatus())));
+            return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(EnumUtils.getEnumItemRemark(OrderStatus.class, order.getStatus()))));
         }
     }
 
@@ -281,7 +280,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             }
         } else {
             // 订单状态为[{0}],不允许操作
-            return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(Constants.I18N_ORDER_STATUS_PREFIX + order.getStatus())));
+            return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(EnumUtils.getEnumItemRemark(OrderStatus.class, order.getStatus()))));
         }
     }
 
@@ -569,7 +568,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                     service.cancelConfirm(orderId);
                 } else {
                     // 订单状态为[{0}],不允许操作!
-                    return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(Constants.I18N_ORDER_STATUS_PREFIX + order.getStatus())));
+                    return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(EnumUtils.getEnumItemRemark(OrderStatus.class, order.getStatus()))));
                 }
                 break;
             case INPROCESS:
@@ -579,7 +578,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                     service.updateStatus(orderId, OrderStatus.APPROVING);
                 } else {
                     // 订单状态为[{0}],不允许操作!
-                    return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(Constants.I18N_ORDER_STATUS_PREFIX + order.getStatus())));
+                    return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(EnumUtils.getEnumItemRemark(OrderStatus.class, order.getStatus()))));
                 }
                 break;
             case COMPLETED:

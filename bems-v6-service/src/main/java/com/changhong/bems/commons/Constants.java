@@ -14,7 +14,6 @@ import java.util.Set;
 public final class Constants {
 
     public static final String NONE = "none";
-    public static final String I18N_ORDER_STATUS_PREFIX = "order_status_";
 
     public static final String DIMENSION_CODE_PERIOD = "period";
     public static final String DIMENSION_CODE_ITEM = "item";
