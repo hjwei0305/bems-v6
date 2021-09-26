@@ -33,9 +33,8 @@ public class CategoryDto extends BaseEntityDto {
     /**
      * 预算主体id
      */
-    @NotBlank
     @Size(max = 36)
-    @ApiModelProperty(value = "预算主体id", required = true)
+    @ApiModelProperty(value = "预算主体id", example = "为空时，为通用类型")
     private String subjectId;
     /**
      * 预算主体名称
