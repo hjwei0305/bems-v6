@@ -119,7 +119,7 @@ public class CategoryService extends BaseEntityService<Category> {
             if (CategoryType.PRIVATE == entity.getType()
                     && StringUtils.isNotBlank(entity.getReferenceId()) && !"none".equals(entity.getReferenceId())) {
                 // 引用的
-                categoryDimensionService.addReferenceDimension(entity.getId());
+                categoryDimensionService.addReferenceDimension(entity.getId(), entity.getReferenceId());
             } else {
                 // 新增添加必须的维度
                 categoryDimensionService.addRequiredDimension(entity.getId());

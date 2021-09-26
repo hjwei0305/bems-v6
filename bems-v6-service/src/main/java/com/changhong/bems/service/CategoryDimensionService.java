@@ -53,8 +53,8 @@ public class CategoryDimensionService extends BaseEntityService<CategoryDimensio
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void addReferenceDimension(String categoryId) {
-        List<CategoryDimension> dimensions = this.getByCategoryId(categoryId);
+    public void addReferenceDimension(String categoryId, String referenceId) {
+        List<CategoryDimension> dimensions = this.getByCategoryId(referenceId);
         CategoryDimension categoryDimension;
         for (CategoryDimension dimension : dimensions) {
             categoryDimension = new CategoryDimension();
