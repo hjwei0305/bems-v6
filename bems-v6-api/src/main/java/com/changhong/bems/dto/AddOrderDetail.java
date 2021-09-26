@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotEmpty;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -92,6 +93,11 @@ public class AddOrderDetail extends BaseEntityDto implements Serializable {
      */
     @ApiModelProperty(value = "备注说明")
     private String remark;
+    /**
+     * 附件id
+     */
+    @ApiModelProperty(value = "附件id")
+    private List<String> docIds;
     /**
      * 期间
      */
@@ -258,6 +264,14 @@ public class AddOrderDetail extends BaseEntityDto implements Serializable {
 
     public void setRemark(String remark) {
         this.remark = remark;
+    }
+
+    public List<String> getDocIds() {
+        return docIds;
+    }
+
+    public void setDocIds(List<String> docIds) {
+        this.docIds = docIds;
     }
 
     public Set<OrderDimension> getPeriod() {

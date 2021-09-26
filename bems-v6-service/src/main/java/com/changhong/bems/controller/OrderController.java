@@ -65,8 +65,6 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     private DimensionComponentService dimensionComponentService;
     @Autowired
     private ModelMapper modelMapper;
-    @Autowired
-    private DocumentManager documentManager;
 
     @Override
     public BaseEntityService<Order> getService() {
@@ -267,17 +265,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             order.setStatus(OrderStatus.DRAFT);
             ResultData<Order> resultData = service.saveOrder(order, null);
             if (resultData.successful()) {
-                try {
-                    List<String> docIds = request.getDocIds();
-                    if (Objects.isNull(docIds)) {
-                        docIds = new ArrayList<>();
-                    }
-                    // 绑定业务实体的文档
-                    documentManager.bindBusinessDocuments(order.getId(), docIds);
-                    return ResultData.success(dtoModelMapper.map(resultData.getData(), OrderDto.class));
-                } catch (Exception e) {
-                    return ResultData.fail(ContextUtil.getMessage("order_00005"));
-                }
+                return ResultData.success(dtoModelMapper.map(resultData.getData(), OrderDto.class));
             } else {
                 return ResultData.fail(resultData.getMessage());
             }

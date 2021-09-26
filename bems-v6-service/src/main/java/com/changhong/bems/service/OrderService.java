@@ -17,6 +17,7 @@ import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResultWithData;
 import com.changhong.sei.core.util.JsonUtils;
+import com.changhong.sei.edm.sdk.DocumentManager;
 import com.changhong.sei.exception.ServiceException;
 import com.changhong.sei.serial.sdk.SerialService;
 import com.changhong.sei.util.EnumUtils;
@@ -70,6 +71,8 @@ public class OrderService extends BaseEntityService<Order> {
     private BudgetOrderProducer producer;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+    @Autowired
+    private DocumentManager documentManager;
 
     @Override
     protected BaseEntityDao<Order> getDao() {
@@ -494,6 +497,16 @@ public class OrderService extends BaseEntityService<Order> {
             // 订单总金额
             dao.updateAmount(order.getId());
 
+            try {
+                List<String> docIds = order.getDocIds();
+                if (Objects.isNull(docIds)) {
+                    docIds = new ArrayList<>();
+                }
+                // 绑定业务实体的文档
+                documentManager.bindBusinessDocuments(order.getId(), docIds);
+            } catch (Exception e) {
+                return ResultData.fail(ContextUtil.getMessage("order_00005"));
+            }
             return ResultData.success(order);
         } else {
             return ResultData.fail(result.getMessage());

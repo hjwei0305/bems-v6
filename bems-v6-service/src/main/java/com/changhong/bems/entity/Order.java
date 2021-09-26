@@ -12,6 +12,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * 预算申请单(Order)实体类
@@ -139,6 +140,8 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
      */
     @Column(name = "tenant_code")
     private String tenantCode;
+    @Transient
+    private List<String> docIds;
 
     @Override
     public String getCode() {
@@ -311,5 +314,13 @@ public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, 
     @Override
     public void setTenantCode(String tenantCode) {
         this.tenantCode = tenantCode;
+    }
+
+    public List<String> getDocIds() {
+        return docIds;
+    }
+
+    public void setDocIds(List<String> docIds) {
+        this.docIds = docIds;
     }
 }
