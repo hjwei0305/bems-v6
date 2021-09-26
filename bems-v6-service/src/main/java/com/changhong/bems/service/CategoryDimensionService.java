@@ -52,6 +52,19 @@ public class CategoryDimensionService extends BaseEntityService<CategoryDimensio
         }
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public void addReferenceDimension(String categoryId) {
+        List<CategoryDimension> dimensions = this.getByCategoryId(categoryId);
+        CategoryDimension categoryDimension;
+        for (CategoryDimension dimension : dimensions) {
+            categoryDimension = new CategoryDimension();
+            categoryDimension.setCategoryId(categoryId);
+            categoryDimension.setDimensionCode(dimension.getDimensionCode());
+            categoryDimension.setRank(dimension.getRank());
+            this.save(categoryDimension);
+        }
+    }
+
     /**
      * 根据预算类型id和维度代码获取分配关系
      *

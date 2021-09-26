@@ -116,7 +116,14 @@ public class CategoryService extends BaseEntityService<Category> {
 
         Category saveEntity = dao.save(entity);
         if (isNew) {
-            categoryDimensionService.addRequiredDimension(entity.getId());
+            if (CategoryType.PRIVATE == entity.getType()
+                    && StringUtils.isNotBlank(entity.getReferenceId()) && !"none".equals(entity.getReferenceId())) {
+                // 引用的
+                categoryDimensionService.addReferenceDimension(entity.getId());
+            } else {
+                // 新增添加必须的维度
+                categoryDimensionService.addRequiredDimension(entity.getId());
+            }
         }
         // 更新订单配置
         orderConfigService.putConfigData(entity.getId(), entity.getPeriodType(), orderCategories);
