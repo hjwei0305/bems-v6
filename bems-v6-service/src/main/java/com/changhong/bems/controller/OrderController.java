@@ -260,7 +260,6 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      */
     @Override
     public ResultData<OrderDto> saveOrder(OrderDto request) {
-        List<String> docIds = request.getDocIds();
         Order order = convertToEntity(request);
         OrderStatus status = order.getStatus();
         if (OrderStatus.PREFAB == status || OrderStatus.DRAFT == status) {
@@ -269,6 +268,10 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             ResultData<Order> resultData = service.saveOrder(order, null);
             if (resultData.successful()) {
                 try {
+                    List<String> docIds = request.getDocIds();
+                    if (Objects.isNull(docIds)) {
+                        docIds = new ArrayList<>();
+                    }
                     // 绑定业务实体的文档
                     documentManager.bindBusinessDocuments(order.getId(), docIds);
                     return ResultData.success(dtoModelMapper.map(resultData.getData(), OrderDto.class));
