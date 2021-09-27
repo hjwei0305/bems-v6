@@ -79,7 +79,7 @@ public class BudgetOrderConsumer {
             mockUser.mock(sessionUser);
 
             OrderStatus status;
-            if (Constants.EVENT_BUDGET_CONFIRM.equals(operation)) {
+            if (BudgetOperationType.BUDGET_CONFIRM.name().equals(operation)) {
                 // 订单确认
                 resultData = orderService.confirmUseBudget(orderDetailId);
                 if (LOG.isInfoEnabled()) {
@@ -87,7 +87,7 @@ public class BudgetOrderConsumer {
                 }
                 // 若处理完成,则更新订单状态为:已确认
                 status = OrderStatus.CONFIRMED;
-            } else if (Constants.EVENT_BUDGET_CANCEL.equals(operation)) {
+            } else if (BudgetOperationType.BUDGET_CANCEL.name().equals(operation)) {
                 // 订单取消确认
                 resultData = orderService.cancelConfirmUseBudget(orderDetailId);
                 if (LOG.isInfoEnabled()) {
@@ -95,7 +95,7 @@ public class BudgetOrderConsumer {
                 }
                 // 若处理完成,则更新订单状态为:草稿
                 status = OrderStatus.DRAFT;
-            } else if (Constants.EVENT_BUDGET_EFFECTIVE.equals(operation)) {
+            } else if (BudgetOperationType.BUDGET_EFFECTIVE.name().equals(operation)) {
                 // 订单生效
                 resultData = orderService.effectiveUseBudget(orderDetailId);
                 if (LOG.isInfoEnabled()) {

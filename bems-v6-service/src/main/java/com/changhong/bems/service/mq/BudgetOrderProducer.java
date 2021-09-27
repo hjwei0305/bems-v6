@@ -1,6 +1,5 @@
 package com.changhong.bems.service.mq;
 
-import com.changhong.bems.commons.Constants;
 import com.changhong.bems.entity.OrderDetail;
 import com.changhong.sei.core.context.SessionUser;
 import com.changhong.sei.core.util.JsonUtils;
@@ -41,7 +40,7 @@ public class BudgetOrderProducer {
     @Async
     @Transactional(rollbackFor = Exception.class)
     public void sendConfirmMessage(String orderId, List<OrderDetail> details, SessionUser sessionUser) {
-        this.sendMessage(orderId, details, sessionUser, Constants.EVENT_BUDGET_CONFIRM);
+        this.sendMessage(orderId, details, sessionUser, BudgetOperationType.BUDGET_CONFIRM);
     }
 
     /**
@@ -50,7 +49,7 @@ public class BudgetOrderProducer {
     @Async
     @Transactional(rollbackFor = Exception.class)
     public void sendCancelMessage(String orderId, List<OrderDetail> details, SessionUser sessionUser) {
-        this.sendMessage(orderId, details, sessionUser, Constants.EVENT_BUDGET_CANCEL);
+        this.sendMessage(orderId, details, sessionUser, BudgetOperationType.BUDGET_CANCEL);
     }
 
     /**
@@ -59,10 +58,10 @@ public class BudgetOrderProducer {
     @Async
     @Transactional(rollbackFor = Exception.class)
     public void sendEffectiveMessage(String orderId, List<OrderDetail> details, SessionUser sessionUser) {
-        this.sendMessage(orderId, details, sessionUser, Constants.EVENT_BUDGET_EFFECTIVE);
+        this.sendMessage(orderId, details, sessionUser, BudgetOperationType.BUDGET_EFFECTIVE);
     }
 
-    private void sendMessage(String orderId, List<OrderDetail> details, SessionUser sessionUser, String operation) {
+    private void sendMessage(String orderId, List<OrderDetail> details, SessionUser sessionUser, BudgetOperationType operation) {
         try {
             // 为避免事务冲突,延时发送消息
             TimeUnit.SECONDS.sleep(1);
@@ -73,7 +72,7 @@ public class BudgetOrderProducer {
                 message = new EffectiveOrderMessage();
                 message.setOrderId(orderId);
                 message.setOrderDetailId(detail.getId());
-                message.setOperation(operation);
+                message.setOperation(operation.name());
                 message.setUserId(sessionUser.getUserId());
                 message.setAccount(sessionUser.getAccount());
                 message.setUserName(sessionUser.getUserName());
