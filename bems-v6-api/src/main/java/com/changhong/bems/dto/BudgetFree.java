@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.StringJoiner;
@@ -31,6 +32,12 @@ public class BudgetFree implements Serializable {
     @NotBlank
     @ApiModelProperty(value = "业务id", required = true)
     private String bizId;
+    /**
+     * 业务描述
+     */
+    @Size(max = 200)
+    @ApiModelProperty(value = "业务描述")
+    private String bizRemark;
     /**
      * 占用金额
      */
@@ -64,6 +71,14 @@ public class BudgetFree implements Serializable {
         return this;
     }
 
+    public String getBizRemark() {
+        return bizRemark;
+    }
+
+    public void setBizRemark(String bizRemark) {
+        this.bizRemark = bizRemark;
+    }
+
     public BigDecimal getAmount() {
         return amount;
     }
@@ -78,6 +93,7 @@ public class BudgetFree implements Serializable {
         return new StringJoiner(", ", BudgetFree.class.getSimpleName() + "[", "]")
                 .add("eventCode='" + eventCode + "'")
                 .add("bizId='" + bizId + "'")
+                .add("bizRemark='" + bizRemark + "'")
                 .add("amount=" + amount)
                 .toString();
     }

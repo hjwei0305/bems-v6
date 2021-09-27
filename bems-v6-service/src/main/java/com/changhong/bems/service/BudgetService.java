@@ -75,10 +75,10 @@ public class BudgetService {
                 for (BudgetFree free : freeList) {
                     if (BigDecimal.ZERO.compareTo(free.getAmount()) == 0) {
                         // 按原先占用记录释放全部金额
-                        this.freeBudget(free.getEventCode(), free.getBizId());
+                        this.freeBudget(free.getEventCode(), free.getBizId(), free.getBizRemark());
                     } else {
                         // 按原先占用记录释放指定金额
-                        this.freeBudget(free.getEventCode(), free.getBizId(), free.getAmount());
+                        this.freeBudget(free);
                     }
                 }
             }
@@ -122,7 +122,7 @@ public class BudgetService {
             // 回滚事务
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             LOG.error("预算占用异常", e);
-            result = ResultData.fail("预算占用异常: " + ExceptionUtils.getRootCauseMessage(e));
+            result = ResultData.fail(ContextUtil.getMessage("pool_00026", ExceptionUtils.getRootCauseMessage(e)));
         }
         if (LOG.isInfoEnabled()) {
             LOG.info("预算占用结果: {}", JsonUtils.toJson(result));
@@ -138,14 +138,13 @@ public class BudgetService {
      * @return 返回占用结果
      */
     private ResultData<BudgetResponse> useBudget(BudgetUse useBudget) {
-        // TODO 检查参数合法性
         // 事件代码
         String eventCode = useBudget.getEventCode();
         // 业务id
         String bizId = useBudget.getBizId();
 
         // 释放原先占用
-        this.freeBudget(eventCode, bizId);
+        this.freeBudget(eventCode, bizId, useBudget.getBizRemark());
 
         // 再按新数据占用
         /*
@@ -196,10 +195,12 @@ public class BudgetService {
                 BudgetExecutionStrategy executionStrategy = (BudgetExecutionStrategy) ContextUtil.getBean(clazz);
                 return executionStrategy.execution(pool, useBudget, otherDimFilters);
             } else {
-                return ResultData.fail("预算执行策略[" + strategy.getName() + "]配置错误.");
+                // 预算执行策略[]配置错误
+                return ResultData.fail(ContextUtil.getMessage("pool_00028", strategy.getName()));
             }
         } catch (ClassNotFoundException | BeansException e) {
-            return ResultData.fail("预算执行策略执行异常: " + ExceptionUtils.getRootCauseMessage(e));
+            // 预算执行策略执行异常
+            return ResultData.fail(ContextUtil.getMessage("pool_00029", ExceptionUtils.getRootCauseMessage(e)));
         }
     }
 
@@ -209,7 +210,7 @@ public class BudgetService {
      * @param eventCode 业务事件代码
      * @param bizId     业务id
      */
-    private void freeBudget(String eventCode, String bizId) {
+    private void freeBudget(String eventCode, String bizId, String remark) {
         // 检查占用是否需要释放
         List<LogRecord> records = logRecordService.getUseRecords(eventCode, bizId);
         if (CollectionUtils.isNotEmpty(records)) {
@@ -223,7 +224,11 @@ public class BudgetService {
                 newRecord.setId(null);
                 newRecord.setOpUserAccount(null);
                 newRecord.setOpUserName(null);
-                newRecord.setBizRemark("释放: " + newRecord.getBizRemark());
+                if (StringUtils.isNotBlank(remark)) {
+                    newRecord.setBizRemark(remark);
+                } else {
+                    newRecord.setBizRemark(ContextUtil.getMessage("pool_00024", newRecord.getBizRemark()));
+                }
                 // 释放记录
                 poolService.recordLog(newRecord);
             }
@@ -233,11 +238,13 @@ public class BudgetService {
     /**
      * 释放指定金额
      *
-     * @param eventCode 业务事件代码
-     * @param bizId     业务id
-     * @param amount    释放金额
+     * @param free 释放预算
      */
-    private void freeBudget(String eventCode, String bizId, BigDecimal amount) {
+    private void freeBudget(BudgetFree free) {
+        String eventCode = free.getEventCode();
+        String bizId = free.getBizId();
+        BigDecimal amount = free.getAmount();
+        String remark = free.getBizRemark();
         // 检查占用是否需要释放
         List<LogRecord> records = logRecordService.getUseRecords(eventCode, bizId);
         if (CollectionUtils.isNotEmpty(records)) {
@@ -265,7 +272,11 @@ public class BudgetService {
                 newRecord.setOperation(OperationType.FREED);
                 newRecord.setOpUserAccount(null);
                 newRecord.setOpUserName(null);
-                newRecord.setBizRemark("释放: " + newRecord.getBizRemark());
+                if (StringUtils.isNotBlank(remark)) {
+                    newRecord.setBizRemark(remark);
+                } else {
+                    newRecord.setBizRemark(ContextUtil.getMessage("pool_00024", newRecord.getBizRemark()));
+                }
                 // 释放记录
                 poolService.recordLog(newRecord);
             }
@@ -380,16 +391,20 @@ public class BudgetService {
                         }
                         return filter;
                     } else {
-                        exception = new ServiceException("预算维度[" + dimension.getName() + "]策略条件不能返回为Null.");
+                        // 预算维度[{0}]策略条件不能返回为Null.
+                        exception = new ServiceException(ContextUtil.getMessage("pool_00032", dimension.getName()));
                     }
                 } else {
-                    exception = new ServiceException("预算维度[" + dimension.getName() + "]策略条件错误: " + resultData.getMessage());
+                    // 预算维度[{0}]策略条件错误: {1}
+                    exception = new ServiceException(ContextUtil.getMessage("pool_00033", dimension.getName(), resultData.getMessage()));
                 }
             } else {
-                exception = new ServiceException("预算维度[" + dimension.getName() + "]策略配置错误.");
+                // 预算维度[{0}]策略配置错误
+                exception = new ServiceException(ContextUtil.getMessage("pool_00034", dimension.getName()));
             }
         } catch (ClassNotFoundException | BeansException e) {
-            exception = new ServiceException("按预算维度策略获取过滤条件异常", e);
+            // 按预算维度策略获取过滤条件异常
+            exception = new ServiceException(ContextUtil.getMessage("pool_00031"), e);
         }
         throw exception;
     }
@@ -411,7 +426,8 @@ public class BudgetService {
         // 检查是否包含组织维度
         if (attribute.contains(Constants.DIMENSION_CODE_ORG)) {
             if (Objects.isNull(organizationManager)) {
-                return ResultData.fail("对组织维度检查,OrganizationManager不能为空.");
+                // 对组织维度检查,OrganizationManager不能为空.
+                return ResultData.fail(ContextUtil.getMessage("pool_00030"));
             }
             // 按id进行映射方便后续使用
             Map<String, OrganizationDto> orgMap = null;
