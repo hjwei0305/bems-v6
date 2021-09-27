@@ -92,6 +92,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         if (Objects.isNull(search)) {
             search = Search.createSearch();
         }
+        // 只允许查看本人单据
+        search.addFilter(new SearchFilter(Order.FIELD_CREATOR_ID, ContextUtil.getUserId()));
         // 排除预制状态单据
         search.addFilter(new SearchFilter(Order.FIELD_STATUS, OrderStatus.PREFAB, SearchFilter.Operator.NE));
         search.addFilter(new SearchFilter(Order.FIELD_ORDER_CATEGORY, OrderCategory.INJECTION));
@@ -109,6 +111,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         if (Objects.isNull(search)) {
             search = Search.createSearch();
         }
+        // 只允许查看本人单据
+        search.addFilter(new SearchFilter(Order.FIELD_CREATOR_ID, ContextUtil.getUserId()));
         // 排除预制状态单据
         search.addFilter(new SearchFilter(Order.FIELD_STATUS, OrderStatus.PREFAB, SearchFilter.Operator.NE));
         search.addFilter(new SearchFilter(Order.FIELD_ORDER_CATEGORY, OrderCategory.ADJUSTMENT));
@@ -126,6 +130,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         if (Objects.isNull(search)) {
             search = Search.createSearch();
         }
+        // 只允许查看本人单据
+        search.addFilter(new SearchFilter(Order.FIELD_CREATOR_ID, ContextUtil.getUserId()));
         // 排除预制状态单据
         search.addFilter(new SearchFilter(Order.FIELD_STATUS, OrderStatus.PREFAB, SearchFilter.Operator.NE));
         search.addFilter(new SearchFilter(Order.FIELD_ORDER_CATEGORY, OrderCategory.SPLIT));
