@@ -231,7 +231,7 @@ public class PoolService extends BaseEntityService<Pool> {
         record.setBizCode(bizCode);
         record.setBizId(bizId);
         record.setBizRemark(remark);
-        this.recordLog(record);
+        //this.recordLog(record);
     }
 
     /**

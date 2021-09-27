@@ -100,7 +100,11 @@ public class PoolAmountService {
                         break;
                     case FREED:
                         // 释放.减去释放金额(加上取负的释放金额)
-                        quota.addUseAmount(amount.getAmount().negate());
+                        if (amount.getInternal()) {
+                            quota.addTotalAmount(amount.getAmount().negate());
+                        } else {
+                            quota.addUseAmount(amount.getAmount().negate());
+                        }
                         break;
                     default:
                 }

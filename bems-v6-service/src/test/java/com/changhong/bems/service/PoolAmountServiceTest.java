@@ -27,7 +27,7 @@ class PoolAmountServiceTest extends BaseUnit5Test {
 
     @Test
     void getPoolAmountQuota() {
-        PoolAmountQuotaDto quota = service.getPoolAmountQuota("0000015756");
+        PoolAmountQuotaDto quota = service.getPoolAmountQuota("0000015805");
         System.out.println(quota);
     }
 }
