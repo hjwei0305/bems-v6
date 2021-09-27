@@ -244,7 +244,7 @@ public class PoolService extends BaseEntityService<Pool> {
     public void recordLog(LogRecord record) {
         // 操作时间
         record.setOpTime(LocalDateTime.now());
-        record.setTimestamp(System.currentTimeMillis());
+        record.setTimestamp(System.nanoTime());
         // 操作人
         if (StringUtils.isBlank(record.getOpUserAccount())) {
             SessionUser user = ContextUtil.getSessionUser();
