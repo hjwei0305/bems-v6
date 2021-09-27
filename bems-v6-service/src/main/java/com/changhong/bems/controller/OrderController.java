@@ -482,7 +482,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         if (resultData.successful()) {
             return ResultData.success(modelMapper.map(resultData.getData(), OrderDto.class));
         } else {
-            return ResultData.fail(resultData.getMessage());
+            // 预算生效失败
+            return ResultData.fail(ContextUtil.getMessage("order_00008", resultData.getMessage()));
         }
     }
 
