@@ -809,7 +809,7 @@ public class OrderService extends BaseEntityService<Order> {
                         }
                         // 记录预算池执行日志
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_ADJUSTMENT, Boolean.TRUE, OperationType.USE);
+                                detail.getAmount().negate(), Constants.EVENT_BUDGET_ADJUSTMENT, Boolean.TRUE, OperationType.USE);
                     } else {
                         poolCode = detail.getPoolCode();
                         // 记录预算池执行日志
@@ -934,7 +934,7 @@ public class OrderService extends BaseEntityService<Order> {
                     if (BigDecimal.ZERO.compareTo(detail.getAmount()) > 0) {
                         // 记录预算池执行日志
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_ADJUSTMENT_CANCEL, Boolean.TRUE, OperationType.FREED);
+                                detail.getAmount().negate(), Constants.EVENT_BUDGET_ADJUSTMENT_CANCEL, Boolean.TRUE, OperationType.FREED);
                     } else {
                         poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
                                 detail.getAmount(), Constants.EVENT_BUDGET_ADJUSTMENT_CANCEL, Boolean.TRUE, OperationType.FREED);
@@ -1063,10 +1063,10 @@ public class OrderService extends BaseEntityService<Order> {
                     if (BigDecimal.ZERO.compareTo(detail.getAmount()) > 0) {
                         // 记录预算池执行日志
                         poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_ADJUSTMENT, Boolean.TRUE, OperationType.FREED);
+                                detail.getAmount().negate(), Constants.EVENT_BUDGET_ADJUSTMENT, Boolean.TRUE, OperationType.FREED);
 
                         poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_ADJUSTMENT, Boolean.TRUE, OperationType.USE);
+                                detail.getAmount().negate(), Constants.EVENT_BUDGET_ADJUSTMENT, Boolean.TRUE, OperationType.USE);
                     } else {
                         poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
                                 detail.getAmount(), Constants.EVENT_BUDGET_ADJUSTMENT, Boolean.TRUE, OperationType.FREED);
