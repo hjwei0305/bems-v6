@@ -7,7 +7,7 @@ import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.dto.OrderCategory;
 import com.changhong.bems.entity.Category;
 import com.changhong.bems.service.CategoryService;
-import com.changhong.bems.service.OrderConfigService;
+import com.changhong.bems.service.CategoryConfigService;
 import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.service.BaseEntityService;
@@ -41,7 +41,7 @@ public class CategoryController extends BaseEntityController<Category, CategoryD
     @Autowired
     private CategoryService service;
     @Autowired
-    private OrderConfigService orderConfigService;
+    private CategoryConfigService orderConfigService;
 
     @Override
     public BaseEntityService<Category> getService() {

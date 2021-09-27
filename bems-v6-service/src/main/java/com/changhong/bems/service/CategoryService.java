@@ -46,7 +46,7 @@ public class CategoryService extends BaseEntityService<Category> {
     @Autowired
     private DimensionService dimensionService;
     @Autowired
-    private OrderConfigService orderConfigService;
+    private CategoryConfigService categoryConfigService;
 
     public static final String CACHE_KEY = "bems-v6:category:dimension";
 
@@ -126,7 +126,7 @@ public class CategoryService extends BaseEntityService<Category> {
             }
         }
         // 更新订单配置
-        orderConfigService.putConfigData(entity.getId(), entity.getPeriodType(), orderCategories);
+        categoryConfigService.putConfigData(entity.getId(), entity.getPeriodType(), orderCategories);
         return ResultData.success(saveEntity);
     }
 
@@ -202,7 +202,7 @@ public class CategoryService extends BaseEntityService<Category> {
         privateCategory.setRoll(category.getRoll());
         privateCategory.setReferenceId(id);
         // 获取当前预算类型支持的订单类型
-        OrderCategory[] orderCategories = orderConfigService.findPeriodTypes(id);
+        OrderCategory[] orderCategories = categoryConfigService.findPeriodTypes(id);
         ResultData<Category> result = this.saveOrUpdate(privateCategory, orderCategories);
         if (result.successful()) {
             return ResultData.success();
@@ -359,7 +359,7 @@ public class CategoryService extends BaseEntityService<Category> {
         Set<String> ids = categoryList.stream().map(Category::getId).collect(Collectors.toSet());
         if (CollectionUtils.isNotEmpty(ids)) {
             // 按预算类型id清单和订单类型获取配置的预算期间
-            Set<PeriodType> periodTypeSet = orderConfigService.findPeriodTypes(ids, category);
+            Set<PeriodType> periodTypeSet = categoryConfigService.findPeriodTypes(ids, category);
             // 过滤满足配置条件的预算类型
             categoryList = categoryList.stream().filter(c -> periodTypeSet.contains(c.getPeriodType())).collect(Collectors.toList());
         }

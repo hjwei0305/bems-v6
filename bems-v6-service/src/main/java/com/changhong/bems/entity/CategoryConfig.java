@@ -11,16 +11,16 @@ import javax.persistence.*;
 import java.io.Serializable;
 
 /**
- * 预算配置(OrderConfig)实体类
+ * 预算配置(CategoryConfig)实体类
  *
  * @author sei
  * @since 2021-09-24 09:12:59
  */
 @Entity
-@Table(name = "order_config")
+@Table(name = "category_config")
 @DynamicInsert
 @DynamicUpdate
-public class OrderConfig extends BaseAuditableEntity implements ITenant, Serializable {
+public class CategoryConfig extends BaseAuditableEntity implements ITenant, Serializable {
     private static final long serialVersionUID = 202364499187955339L;
     public static final String FIELD_CATEGORY_ID = "categoryId";
     public static final String FIELD_ORDER_CATEGORY = "orderCategory";

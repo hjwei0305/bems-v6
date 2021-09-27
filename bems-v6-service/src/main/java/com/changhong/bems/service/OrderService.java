@@ -1098,24 +1098,24 @@ public class OrderService extends BaseEntityService<Order> {
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
                                 detail.getAmount().negate(), Constants.EVENT_BUDGET_SPLIT, Boolean.TRUE, OperationType.FREED);
 
-                        poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark + " " + originPoolCode,
+                        poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, ContextUtil.getMessage("order_detail_00018", remark, originPoolCode),
                                 detail.getAmount(), Constants.EVENT_BUDGET_SPLIT, Boolean.TRUE, OperationType.USE);
 
                         // 源预算池
                         poolService.nonPoolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
                                 detail.getAmount(), Constants.EVENT_BUDGET_SPLIT, Boolean.TRUE, OperationType.FREED);
 
-                        poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark + " " + poolCode,
+                        poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, ContextUtil.getMessage("order_detail_00019", remark, poolCode),
                                 detail.getAmount(), Constants.EVENT_BUDGET_SPLIT, Boolean.TRUE, OperationType.USE);
                     } else {
-                        poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark + " " + originPoolCode,
+                        poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, ContextUtil.getMessage("order_detail_00018", remark, originPoolCode),
                                 detail.getAmount(), Constants.EVENT_BUDGET_SPLIT, Boolean.TRUE, OperationType.RELEASE);
 
                         // 源预算池
                         poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
                                 detail.getAmount(), Constants.EVENT_BUDGET_SPLIT, Boolean.TRUE, OperationType.FREED);
 
-                        poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark + " " + poolCode,
+                        poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, ContextUtil.getMessage("order_detail_00019", remark, poolCode),
                                 detail.getAmount(), Constants.EVENT_BUDGET_SPLIT, Boolean.TRUE, OperationType.USE);
                     }
                     break;
