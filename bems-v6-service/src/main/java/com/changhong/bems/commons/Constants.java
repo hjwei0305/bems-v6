@@ -37,31 +37,39 @@ public final class Constants {
     }
 
     /**
-     * 预算确认事件
+     * 预算注入
      */
-    public static final String EVENT_BUDGET_CONFIRM = "BUDGET_CONFIRM";
+    public static final String EVENT_BUDGET_INJECTION = "BUDGET_INJECTION";
     /**
-     * 预算撤销确认事件
+     * 预算调整
      */
-    public static final String EVENT_BUDGET_CANCEL = "BUDGET_CANCEL_CONFIRM";
+    public static final String EVENT_BUDGET_ADJUSTMENT = "BUDGET_ADJUSTMENT";
     /**
-     * 预算生效释放预占用事件
+     * 预算分解
      */
-    public static final String EVENT_BUDGET_FREED = "BUDGET_CONFIRM_FREED";
+    public static final String EVENT_BUDGET_SPLIT = "BUDGET_SPLIT";
     /**
-     * 预算生效事件
+     * 预算注入撤销
      */
-    public static final String EVENT_BUDGET_EFFECTIVE = "BUDGET_EFFECTIVE";
+    public static final String EVENT_BUDGET_INJECTION_CANCEL = "BUDGET_INJECTION_CANCEL";
+    /**
+     * 预算调整撤销
+     */
+    public static final String EVENT_BUDGET_ADJUSTMENT_CANCEL = "BUDGET_ADJUSTMENT_CANCEL";
+    /**
+     * 预算分解撤销
+     */
+    public static final String EVENT_BUDGET_SPLIT_CANCEL = "BUDGET_SPLIT_CANCEL";
     /**
      * 预算滚动结转事件
      */
     public static final String EVENT_BUDGET_TRUNDLE = "BUDGET_TRUNDLE";
     /**
-     * 预算滚动结转事件
+     * 预算冻结事件
      */
     public static final String EVENT_BUDGET_FREEZE = "BUDGET_FREEZE";
     /**
-     * 预算滚动结转事件
+     * 预算解冻事件
      */
     public static final String EVENT_BUDGET_UNFREEZE = "BUDGET_UNFREEZE";
 

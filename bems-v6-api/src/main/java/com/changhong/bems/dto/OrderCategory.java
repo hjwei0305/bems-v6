@@ -13,18 +13,18 @@ public enum OrderCategory {
      * 下达注入
      * 影响总额
      */
-    @Remark("下达注入")
+    @Remark("注入下达")
     INJECTION,
     /**
      * 下达调整
      * 不影响总额
      */
-    @Remark("下达调整")
+    @Remark("注入调整")
     ADJUSTMENT,
     /**
      * 分解调整
      * 不影响总额
      */
-    @Remark("分解调整")
+    @Remark("注入分解")
     SPLIT
 }
