@@ -89,7 +89,7 @@ public class BudgetService {
                 List<BudgetResponse> responses = new ArrayList<>();
                 BudgetResponse budgetResponse;
                 ResultData<BudgetResponse> resultData;
-                String successMessage = ContextUtil.getMessage("pool_00027");
+                String successMessage = ContextUtil.getMessage("pool_00003");
                 for (BudgetUse budgetUse : useList) {
                     resultData = this.useBudget(budgetUse);
                     if (resultData.successful()) {
