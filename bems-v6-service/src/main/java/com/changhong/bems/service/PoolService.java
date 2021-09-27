@@ -224,14 +224,14 @@ public class PoolService extends BaseEntityService<Pool> {
     public void nonPoolAmountLog(String subjectId, long attributeCode, String poolCode,
                                  String bizId, String bizCode, String remark, BigDecimal amount,
                                  String eventCode, boolean internal, OperationType operation) {
-        LogRecord record = new LogRecord(poolCode, internal, operation, amount, eventCode);
-        record.setIsPoolAmount(Boolean.FALSE);
-        record.setSubjectId(subjectId);
-        record.setAttributeCode(attributeCode);
-        record.setBizCode(bizCode);
-        record.setBizId(bizId);
-        record.setBizRemark(remark);
-        //this.recordLog(record);
+        // LogRecord record = new LogRecord(poolCode, internal, operation, amount, eventCode);
+        // record.setIsPoolAmount(Boolean.FALSE);
+        // record.setSubjectId(subjectId);
+        // record.setAttributeCode(attributeCode);
+        // record.setBizCode(bizCode);
+        // record.setBizId(bizId);
+        // record.setBizRemark(remark);
+        // this.recordLog(record);
     }
 
     /**

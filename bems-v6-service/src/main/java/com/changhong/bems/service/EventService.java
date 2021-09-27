@@ -115,7 +115,7 @@ public class EventService extends BaseEntityService<Event> {
             event.setCode(Constants.EVENT_BUDGET_ADJUSTMENT_CANCEL);
             event.setName("撤销预算调整");
             event.setBizFrom(appCode);
-            event.setRank(4);
+            event.setRank(5);
             event.setRequired(Boolean.TRUE);
             super.save(event);
             eventList.add(event);
@@ -123,7 +123,7 @@ public class EventService extends BaseEntityService<Event> {
             event.setCode(Constants.EVENT_BUDGET_SPLIT_CANCEL);
             event.setName("撤销预算分解");
             event.setBizFrom(appCode);
-            event.setRank(4);
+            event.setRank(6);
             event.setRequired(Boolean.TRUE);
             super.save(event);
             eventList.add(event);
@@ -131,7 +131,7 @@ public class EventService extends BaseEntityService<Event> {
             event.setCode(Constants.EVENT_BUDGET_TRUNDLE);
             event.setName("预算滚动结转");
             event.setBizFrom(appCode);
-            event.setRank(5);
+            event.setRank(7);
             event.setRequired(Boolean.TRUE);
             super.save(event);
             eventList.add(event);
@@ -139,7 +139,7 @@ public class EventService extends BaseEntityService<Event> {
             event.setCode(Constants.EVENT_BUDGET_FREEZE);
             event.setName("预算冻结");
             event.setBizFrom(appCode);
-            event.setRank(6);
+            event.setRank(8);
             event.setRequired(Boolean.TRUE);
             super.save(event);
             eventList.add(event);
@@ -147,7 +147,7 @@ public class EventService extends BaseEntityService<Event> {
             event.setCode(Constants.EVENT_BUDGET_UNFREEZE);
             event.setName("预算解冻");
             event.setBizFrom(appCode);
-            event.setRank(7);
+            event.setRank(9);
             event.setRequired(Boolean.TRUE);
             super.save(event);
             eventList.add(event);

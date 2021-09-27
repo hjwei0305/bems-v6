@@ -809,7 +809,7 @@ public class OrderService extends BaseEntityService<Order> {
                         }
                         // 记录预算池执行日志
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_ADJUSTMENT, Boolean.TRUE, OperationType.RELEASE);
+                                detail.getAmount(), Constants.EVENT_BUDGET_ADJUSTMENT, Boolean.TRUE, OperationType.USE);
                     } else {
                         poolCode = detail.getPoolCode();
                         // 记录预算池执行日志
@@ -836,7 +836,7 @@ public class OrderService extends BaseEntityService<Order> {
                             }
                             // 记录预算池执行日志
                             poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                    detail.getAmount(), Constants.EVENT_BUDGET_SPLIT, Boolean.TRUE, OperationType.RELEASE);
+                                    detail.getAmount(), Constants.EVENT_BUDGET_SPLIT, Boolean.TRUE, OperationType.USE);
 
                             // 源预算池
                             String originPoolCode = detail.getOriginPoolCode();
@@ -1066,7 +1066,7 @@ public class OrderService extends BaseEntityService<Order> {
                                 detail.getAmount(), Constants.EVENT_BUDGET_ADJUSTMENT, Boolean.TRUE, OperationType.FREED);
 
                         poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_ADJUSTMENT, Boolean.TRUE, OperationType.RELEASE);
+                                detail.getAmount(), Constants.EVENT_BUDGET_ADJUSTMENT, Boolean.TRUE, OperationType.USE);
                     } else {
                         poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
                                 detail.getAmount(), Constants.EVENT_BUDGET_ADJUSTMENT, Boolean.TRUE, OperationType.FREED);
@@ -1099,7 +1099,7 @@ public class OrderService extends BaseEntityService<Order> {
                                 detail.getAmount().negate(), Constants.EVENT_BUDGET_SPLIT, Boolean.TRUE, OperationType.FREED);
 
                         poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark + " " + originPoolCode,
-                                detail.getAmount(), Constants.EVENT_BUDGET_SPLIT, Boolean.TRUE, OperationType.RELEASE);
+                                detail.getAmount(), Constants.EVENT_BUDGET_SPLIT, Boolean.TRUE, OperationType.USE);
 
                         // 源预算池
                         poolService.nonPoolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
