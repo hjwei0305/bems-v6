@@ -570,6 +570,26 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             case INPROCESS:
                 // 流程启动或流程中
                 if (OrderStatus.CONFIRMED == order.getStatus()) {
+                    // 检查是否存在错误行项
+                    ResultData<Void> resultData = service.checkDetailHasErr(orderId);
+                    if (resultData.failed()) {
+                        return ResultData.fail(resultData.getMessage());
+                    }
+                    // 调整时总额不变(调增调减之和等于0)
+                    if (OrderCategory.ADJUSTMENT.equals(order.getOrderCategory())) {
+                        List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
+                        if (CollectionUtils.isEmpty(details)) {
+                            // 订单[{0}]生效失败: 无订单行项
+                            return ResultData.fail(ContextUtil.getMessage("order_00007", order.getCode()));
+                        }
+                        // 计算调整余额
+                        double adjustBalance = details.parallelStream().mapToDouble(detail -> detail.getAmount().doubleValue()).sum();
+                        // 检查调整余额是否等于0
+                        if (0 != adjustBalance) {
+                            // 还有剩余调整余额[{0}]
+                            return ResultData.fail(ContextUtil.getMessage("order_00006", adjustBalance));
+                        }
+                    }
                     // 状态更新为流程中
                     service.updateStatus(orderId, OrderStatus.APPROVING);
                 } else {
