@@ -311,7 +311,6 @@ public class PoolService extends BaseEntityService<Pool> {
      * @return 滚动结果
      */
     public ResultData<String> trundlePool() {
-        String message = "本次滚动结转预算池: 共%d个, 成功%d个, 失败%d个";
         int sum = 0;
         int success = 0;
         int fail = 0;
@@ -342,7 +341,7 @@ public class PoolService extends BaseEntityService<Pool> {
                         LOG.info("{} 预算滚动结转结果: {}", pool.getCode(), resultData);
                     }
                 } catch (Exception e) {
-                    resultData = ResultData.fail(pool.getCode() + "预算滚动结转异常" + ExceptionUtils.getRootCauseMessage(e));
+                    resultData = ResultData.fail(ContextUtil.getMessage("pool_00036", pool.getCode(), ExceptionUtils.getRootCauseMessage(e)));
                     LOG.error(pool.getCode() + " 预算滚动结转异常", e);
                 } finally {
                     ThreadLocalHolder.end();
@@ -354,7 +353,8 @@ public class PoolService extends BaseEntityService<Pool> {
                 }
             }
         }
-        return ResultData.success(String.format(message, sum, success, fail));
+        // 本次滚动结转预算池: 共%d个, 成功%d个, 失败%d个
+        return ResultData.success(ContextUtil.getMessage("pool_00035", sum, success, fail));
     }
 
     /**
@@ -406,7 +406,7 @@ public class PoolService extends BaseEntityService<Pool> {
      * trundlePool方法的降级处理
      */
     public ResultData<Void> trundlePoolFallback(String bizId, String bizCode, String poolId) {
-        return ResultData.fail("预算池[" + poolId + "]正在结转处理中.");
+        return ResultData.fail(ContextUtil.getMessage("pool_00037", poolId));
     }
 
     /**
