@@ -78,4 +78,31 @@ public class CorporationProjectManager {
         }
         return result;
     }
+
+
+    /**
+     * 按ERP公司代码查询项目
+     *
+     * @param erpCorpCode ERP公司代码
+     * @return 项目清单
+     */
+    public ResultData<List<ProjectDto>> findByErpCode(String erpCorpCode) {
+        ResultData<List<CorporationProjectDto>> result = client.findByErpCode(erpCorpCode);
+        if (result.successful()) {
+            List<ProjectDto> projectList = new ArrayList<>();
+            List<CorporationProjectDto> dtoList = result.getData();
+            if (CollectionUtils.isNotEmpty(dtoList)) {
+                for (CorporationProjectDto dto : dtoList) {
+                    if (StringUtils.isNotBlank(dto.getWbsProjectCode())) {
+                        projectList.add(new ProjectDto(dto.getId(), dto.getWbsProjectCode(), dto.getWbsProjectName()));
+                    } else if (StringUtils.isNotBlank(dto.getInnerOrderCode())) {
+                        projectList.add(new ProjectDto(dto.getId(), dto.getInnerOrderCode(), dto.getInnerOrderName()));
+                    }
+                }
+            }
+            return ResultData.success(projectList);
+        } else {
+            return ResultData.fail(result.getMessage());
+        }
+    }
 }

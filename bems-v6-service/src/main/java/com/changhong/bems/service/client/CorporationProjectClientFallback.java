@@ -6,6 +6,8 @@ import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 /**
  * 实现功能：
  *
@@ -20,6 +22,19 @@ public class CorporationProjectClientFallback implements CorporationProjectClien
      */
     @Override
     public ResultData<PageResult<CorporationProjectDto>> findByPage(Search search) {
+        // 公司项目接口访问异常
+        return ResultData.fail(ContextUtil.getMessage("external_004"));
+    }
+
+
+    /**
+     * 按ERP公司代码查询项目
+     *
+     * @param erpCorpCode ERP公司代码
+     * @return 项目清单
+     */
+    @Override
+    public ResultData<List<CorporationProjectDto>> findByErpCode(String erpCorpCode) {
         // 公司项目接口访问异常
         return ResultData.fail(ContextUtil.getMessage("external_004"));
     }

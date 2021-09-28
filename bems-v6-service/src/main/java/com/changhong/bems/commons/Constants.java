@@ -1,6 +1,7 @@
 package com.changhong.bems.commons;
 
 import com.changhong.bems.dto.KeyValueDto;
+import com.changhong.sei.core.context.ContextUtil;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -80,14 +81,18 @@ public final class Constants {
 
     static {
         DEFAULT_DIMENSION_CODES = new LinkedHashSet<>();
-        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_PERIOD, "预算期间"));
-        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_ITEM, "预算科目"));
-        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_ORG, "组织机构"));
-        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_PROJECT, "项目"));
-        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF1, "自定义1"));
-        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF2, "自定义2"));
-        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF3, "自定义3"));
-        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF4, "自定义4"));
-        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF5, "自定义5"));
+        // 预算期间
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_PERIOD, ContextUtil.getMessage("default_dimension_period")));
+        // 预算科目
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_ITEM, ContextUtil.getMessage("default_dimension_item")));
+        // 组织机构
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_ORG, ContextUtil.getMessage("default_dimension_org")));
+        // 项目
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_PROJECT, ContextUtil.getMessage("default_dimension_project")));
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF1, ContextUtil.getMessage("default_dimension_udf1")));
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF2, ContextUtil.getMessage("default_dimension_udf2")));
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF3, ContextUtil.getMessage("default_dimension_udf3")));
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF4, ContextUtil.getMessage("default_dimension_udf4")));
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF5, ContextUtil.getMessage("default_dimension_udf5")));
     }
 }

@@ -137,7 +137,8 @@ public class DimensionService extends BaseEntityService<Dimension> {
             Strategy strategy;
             dimension = new Dimension();
             dimension.setCode(Constants.DIMENSION_CODE_PERIOD);
-            dimension.setName("预算期间");
+            // 预算期间
+            dimension.setName(ContextUtil.getMessage("default_dimension_period"));
             dimension.setRequired(Boolean.TRUE);
             dimension.setRank(1);
             strategy = strategyMap.get(PeriodMatchStrategy.class.getSimpleName());
@@ -149,7 +150,8 @@ public class DimensionService extends BaseEntityService<Dimension> {
 
             dimension = new Dimension();
             dimension.setCode(Constants.DIMENSION_CODE_ITEM);
-            dimension.setName("预算科目");
+            // 预算科目
+            dimension.setName(ContextUtil.getMessage("default_dimension_item"));
             dimension.setRequired(Boolean.TRUE);
             dimension.setRank(2);
             strategy = strategyMap.get(EqualMatchStrategy.class.getSimpleName());
@@ -161,7 +163,8 @@ public class DimensionService extends BaseEntityService<Dimension> {
 
             dimension = new Dimension();
             dimension.setCode(Constants.DIMENSION_CODE_ORG);
-            dimension.setName("组织机构");
+            // 组织机构
+            dimension.setName(ContextUtil.getMessage("default_dimension_org"));
             dimension.setRank(3);
             strategy = strategyMap.get(OrgTreeMatchStrategy.class.getSimpleName());
             dimension.setStrategyId(strategy.getId());
@@ -172,7 +175,8 @@ public class DimensionService extends BaseEntityService<Dimension> {
 
             dimension = new Dimension();
             dimension.setCode(Constants.DIMENSION_CODE_PROJECT);
-            dimension.setName("项目");
+            // 项目
+            dimension.setName(ContextUtil.getMessage("default_dimension_project"));
             dimension.setRank(4);
             strategy = strategyMap.get(EqualMatchStrategy.class.getSimpleName());
             dimension.setStrategyId(strategy.getId());

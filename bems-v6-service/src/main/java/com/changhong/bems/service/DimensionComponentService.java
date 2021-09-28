@@ -100,11 +100,15 @@ public class DimensionComponentService {
      * @return 导出预算模版数据
      */
     public ResultData<Map<String, Object>> getDimensionValues(String subjectId, String dimCode) {
+        Subject subject = subjectService.findOne(subjectId);
+        if (Objects.isNull(subject)) {
+            return ResultData.fail(ContextUtil.getMessage("subject_00003", subjectId));
+        }
         List<KeyValueDto> list;
         Map<String, Object> data = new HashMap<>();
-        data.put("head", Lists.newArrayList("ID", "名称"));
         switch (dimCode) {
             case Constants.DIMENSION_CODE_PERIOD:
+                data.put("head", Lists.newArrayList("ID", "名称"));
                 List<Period> periods = periodService.findBySubjectUnclosed(subjectId);
                 list = periods.stream().map(p -> new KeyValueDto(p.getId(), p.getName())).collect(Collectors.toList());
                 break;
@@ -114,6 +118,7 @@ public class DimensionComponentService {
                 list = subjectItems.stream().map(p -> new KeyValueDto(p.getCode(), p.getName())).collect(Collectors.toList());
                 break;
             case Constants.DIMENSION_CODE_ORG:
+                data.put("head", Lists.newArrayList("ID", "名称"));
                 ResultData<List<OrganizationDto>> resultData = subjectService.getOrgChildren(subjectId);
                 if (resultData.successful()) {
                     List<OrganizationDto> orgList = resultData.getData();
@@ -123,9 +128,17 @@ public class DimensionComponentService {
                 }
                 break;
             case Constants.DIMENSION_CODE_PROJECT:
-                // TODO 提供二开接口
-                return ResultData.fail(ContextUtil.getMessage("dimension_00006"));
+                data.put("head", Lists.newArrayList("项目代码", "项目名称"));
+                ResultData<List<ProjectDto>> listResultData = projectManager.findByErpCode(subject.getCorporationCode());
+                if (listResultData.successful()) {
+                    List<ProjectDto> projectList = listResultData.getData();
+                    list = projectList.stream().map(o -> new KeyValueDto(o.getCode(), o.getName())).collect(Collectors.toList());
+                } else {
+                    return ResultData.fail(listResultData.getMessage());
+                }
+                break;
             case Constants.DIMENSION_CODE_UDF1:
+                // TODO 提供二开接口
                 return ResultData.fail(ContextUtil.getMessage("dimension_00006"));
             case Constants.DIMENSION_CODE_UDF2:
                 return ResultData.fail(ContextUtil.getMessage("dimension_00006"));

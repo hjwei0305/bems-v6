@@ -5,9 +5,11 @@ import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * 公司项目(CorporationProject)API
@@ -26,4 +28,13 @@ public interface CorporationProjectClient {
      */
     @PostMapping(path = "findByPage", consumes = MediaType.APPLICATION_JSON_VALUE)
     ResultData<PageResult<CorporationProjectDto>> findByPage(Search search);
+
+    /**
+     * 按ERP公司代码查询项目
+     *
+     * @param erpCorpCode ERP公司代码
+     * @return 项目清单
+     */
+    @GetMapping(path = "findByErpCode")
+    ResultData<List<CorporationProjectDto>> findByErpCode(String erpCorpCode);
 }
