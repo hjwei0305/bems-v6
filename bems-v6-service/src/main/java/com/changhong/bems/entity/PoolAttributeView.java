@@ -68,6 +68,11 @@ public class PoolAttributeView extends BaseAttribute implements ITenant, Seriali
     @Enumerated(EnumType.STRING)
     private PeriodType periodType;
     /**
+     * 所属年度
+     */
+    @Column(name = "year")
+    private Integer year;
+    /**
      * 起始日期
      */
     @Column(name = "start_date")
@@ -191,6 +196,14 @@ public class PoolAttributeView extends BaseAttribute implements ITenant, Seriali
 
     public void setPeriodType(PeriodType periodType) {
         this.periodType = periodType;
+    }
+
+    public Integer getYear() {
+        return year;
+    }
+
+    public void setYear(Integer year) {
+        this.year = year;
     }
 
     public LocalDate getStartDate() {
