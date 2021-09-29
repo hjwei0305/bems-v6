@@ -1,6 +1,5 @@
 package com.changhong.bems.api;
 
-import com.changhong.bems.dto.BudgetPoolAmountDto;
 import com.changhong.bems.dto.LogRecordDto;
 import com.changhong.bems.dto.PoolAttributeDto;
 import com.changhong.sei.core.dto.ResultData;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -28,26 +26,6 @@ import java.util.Set;
 @FeignClient(name = "bems-v6", path = PoolApi.PATH)
 public interface PoolApi {
     String PATH = "pool";
-
-    /**
-     * 通过预算池代码获取一个预算池
-     *
-     * @param poolCode 预算池code
-     * @return 预算池
-     */
-    @GetMapping(path = "getPoolByCode")
-    @ApiOperation(value = "通过代码获取一个预算池", notes = "通过预算池代码获取一个预算池")
-    ResultData<BudgetPoolAmountDto> getPoolByCode(@RequestParam("poolCode") String poolCode);
-
-    /**
-     * 通过预算池代码获取预算池
-     *
-     * @param poolCodes 预算池code清单
-     * @return 预算池
-     */
-    @PostMapping(path = "getPoolsByCode")
-    @ApiOperation(value = "通过代码获取预算池", notes = "通过预算池代码获取预算池")
-    ResultData<List<BudgetPoolAmountDto>> getPoolsByCode(@RequestBody List<String> poolCodes);
 
     /**
      * 分页查询预算池

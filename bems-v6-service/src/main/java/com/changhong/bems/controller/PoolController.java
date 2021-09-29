@@ -1,7 +1,6 @@
 package com.changhong.bems.controller;
 
 import com.changhong.bems.api.PoolApi;
-import com.changhong.bems.dto.BudgetPoolAmountDto;
 import com.changhong.bems.dto.LogRecordDto;
 import com.changhong.bems.dto.PoolAttributeDto;
 import com.changhong.bems.entity.LogRecordView;
@@ -11,7 +10,6 @@ import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
-import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.util.DateUtils;
 import com.changhong.sei.util.IdGenerator;
 import io.swagger.annotations.Api;
@@ -43,81 +41,6 @@ public class PoolController implements PoolApi {
     private PoolService service;
     @Autowired
     private ModelMapper modelMapper;
-
-    /**
-     * 通过预算池代码获取一个预算池
-     *
-     * @param poolCode 预算池代码
-     * @return 预算池
-     */
-    @Override
-    public ResultData<BudgetPoolAmountDto> getPoolByCode(String poolCode) {
-        PoolAttributeView attribute = service.findPoolAttributeByCode(poolCode);
-        if (Objects.nonNull(attribute)) {
-            BudgetPoolAmountDto result = new BudgetPoolAmountDto(attribute.getCode(), attribute.getTotalAmount(), attribute.getUsedAmount(), attribute.getBalance());
-            result.setPeriod(attribute.getPeriod());
-            result.setPeriodName(attribute.getPeriodName());
-            result.setItem(attribute.getItem());
-            result.setItemName(attribute.getItemName());
-            result.setOrg(attribute.getOrg());
-            result.setOrgName(attribute.getOrgName());
-            result.setProject(attribute.getProject());
-            result.setProjectName(attribute.getProjectName());
-            result.setUdf1(attribute.getUdf1());
-            result.setUdf1Name(attribute.getUdf1Name());
-            result.setUdf2(attribute.getUdf2());
-            result.setUdf2Name(attribute.getUdf2Name());
-            result.setUdf3(attribute.getUdf3());
-            result.setUdf3Name(attribute.getUdf3Name());
-            result.setUdf4(attribute.getUdf4());
-            result.setUdf4Name(attribute.getUdf4Name());
-            result.setUdf5(attribute.getUdf5());
-            result.setUdf5Name(attribute.getUdf5Name());
-            return ResultData.success(result);
-        } else {
-            return ResultData.fail(ContextUtil.getMessage("pool_00001"));
-        }
-    }
-
-    /**
-     * 通过预算池代码获取一个预算池
-     *
-     * @param poolCodes 预算池代码
-     * @return 预算池
-     */
-    @Override
-    public ResultData<List<BudgetPoolAmountDto>> getPoolsByCode(List<String> poolCodes) {
-        List<PoolAttributeView> attributes = service.findPoolAttributes(poolCodes);
-        if (CollectionUtils.isNotEmpty(attributes)) {
-            BudgetPoolAmountDto result;
-            List<BudgetPoolAmountDto> results = new ArrayList<>();
-            for(PoolAttributeView attribute : attributes) {
-                result = new BudgetPoolAmountDto(attribute.getCode(), attribute.getTotalAmount(), attribute.getUsedAmount(), attribute.getBalance());
-                result.setPeriod(attribute.getPeriod());
-                result.setPeriodName(attribute.getPeriodName());
-                result.setItem(attribute.getItem());
-                result.setItemName(attribute.getItemName());
-                result.setOrg(attribute.getOrg());
-                result.setOrgName(attribute.getOrgName());
-                result.setProject(attribute.getProject());
-                result.setProjectName(attribute.getProjectName());
-                result.setUdf1(attribute.getUdf1());
-                result.setUdf1Name(attribute.getUdf1Name());
-                result.setUdf2(attribute.getUdf2());
-                result.setUdf2Name(attribute.getUdf2Name());
-                result.setUdf3(attribute.getUdf3());
-                result.setUdf3Name(attribute.getUdf3Name());
-                result.setUdf4(attribute.getUdf4());
-                result.setUdf4Name(attribute.getUdf4Name());
-                result.setUdf5(attribute.getUdf5());
-                result.setUdf5Name(attribute.getUdf5Name());
-                results.add(result);
-            }
-            return ResultData.success(results);
-        } else {
-            return ResultData.fail(ContextUtil.getMessage("pool_00001"));
-        }
-    }
 
     /**
      * 分页查询业务实体

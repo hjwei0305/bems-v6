@@ -2,7 +2,6 @@ package com.changhong.bems.sdk.manager;
 
 import com.changhong.bems.sdk.client.BudgetApiClient;
 import com.changhong.bems.sdk.client.BudgetItemApiClient;
-import com.changhong.bems.sdk.client.BudgetPoolClient;
 import com.changhong.bems.sdk.dto.BudgetItemDto;
 import com.changhong.bems.sdk.dto.BudgetPoolAmountDto;
 import com.changhong.bems.sdk.dto.BudgetRequest;
@@ -24,12 +23,10 @@ public class BudgetUseManager {
     private final BudgetApiClient budgetApi;
 
     private final BudgetItemApiClient itemApi;
-    private final BudgetPoolClient poolApi;
 
-    public BudgetUseManager(BudgetApiClient budgetApi, BudgetItemApiClient itemApi, BudgetPoolClient poolApi) {
+    public BudgetUseManager(BudgetApiClient budgetApi, BudgetItemApiClient itemApi) {
         this.itemApi = itemApi;
         this.budgetApi = budgetApi;
-        this.poolApi = poolApi;
     }
 
     /**
@@ -60,7 +57,7 @@ public class BudgetUseManager {
      * @return 预算池
      */
     public ResultData<BudgetPoolAmountDto> getPoolByCode(String poolCode) {
-        return poolApi.getPoolByCode(poolCode);
+        return budgetApi.getPoolByCode(poolCode);
     }
 
     /**
@@ -70,6 +67,6 @@ public class BudgetUseManager {
      * @return 预算池
      */
     public ResultData<List<BudgetPoolAmountDto>> getPoolsByCode(List<String> poolCodes) {
-        return poolApi.getPoolsByCode(poolCodes);
+        return budgetApi.getPoolsByCode(poolCodes);
     }
 }
