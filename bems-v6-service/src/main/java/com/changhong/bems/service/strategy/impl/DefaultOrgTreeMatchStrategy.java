@@ -1,6 +1,6 @@
 package com.changhong.bems.service.strategy.impl;
 
-import com.changhong.bems.dto.BudgetUse;
+import com.changhong.bems.dto.use.BudgetUse;
 import com.changhong.bems.dto.OrganizationDto;
 import com.changhong.bems.entity.Dimension;
 import com.changhong.bems.service.client.OrganizationManager;

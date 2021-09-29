@@ -1,7 +1,7 @@
 package com.changhong.bems.api;
 
-import com.changhong.bems.dto.BudgetRequest;
-import com.changhong.bems.dto.BudgetResponse;
+import com.changhong.bems.dto.use.BudgetRequest;
+import com.changhong.bems.dto.use.BudgetResponse;
 import com.changhong.sei.core.dto.ResultData;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;

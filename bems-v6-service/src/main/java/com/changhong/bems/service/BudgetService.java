@@ -1,7 +1,12 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.commons.Constants;
-import com.changhong.bems.dto.*;
+import com.changhong.bems.dto.OperationType;
+import com.changhong.bems.dto.OrganizationDto;
+import com.changhong.bems.dto.use.BudgetFree;
+import com.changhong.bems.dto.use.BudgetRequest;
+import com.changhong.bems.dto.use.BudgetResponse;
+import com.changhong.bems.dto.use.BudgetUse;
 import com.changhong.bems.entity.*;
 import com.changhong.bems.service.client.OrganizationManager;
 import com.changhong.bems.service.strategy.BudgetExecutionStrategy;
@@ -171,7 +176,8 @@ public class BudgetService {
         // 查询满足条件的预算池(非必要维度)
         final Collection<SearchFilter> otherDimFilters = otherDimensions.values();
         // 按预算占用参数获取预算池大致范围
-        final List<PoolAttributeView> poolAttributes = poolService.getBudgetPools(attribute, useDate, useBudget, otherDimFilters);
+        final List<PoolAttributeView> poolAttributes = poolService.getBudgetPools(attribute, useDate,
+                useBudget.getCorpCode(), useBudget.getItem(), otherDimFilters);
         if (CollectionUtils.isEmpty(poolAttributes)) {
             // 预算占用时,未找到满足条件的预算池!
             return ResultData.fail(ContextUtil.getMessage("pool_00009"));

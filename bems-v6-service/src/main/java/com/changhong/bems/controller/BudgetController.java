@@ -1,8 +1,8 @@
 package com.changhong.bems.controller;
 
 import com.changhong.bems.api.BudgetApi;
-import com.changhong.bems.dto.BudgetRequest;
-import com.changhong.bems.dto.BudgetResponse;
+import com.changhong.bems.dto.use.BudgetRequest;
+import com.changhong.bems.dto.use.BudgetResponse;
 import com.changhong.bems.service.BudgetService;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.log.Level;

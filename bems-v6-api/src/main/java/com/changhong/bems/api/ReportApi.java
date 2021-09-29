@@ -1,14 +1,9 @@
 package com.changhong.bems.api;
 
-import com.changhong.bems.dto.BudgetRequest;
-import com.changhong.bems.dto.BudgetResponse;
 import com.changhong.bems.dto.DimensionDto;
-import com.changhong.bems.dto.KeyValueDto;
 import com.changhong.sei.core.dto.ResultData;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.MediaType;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -34,5 +29,6 @@ public interface ReportApi {
     @GetMapping(path = "getDimensionsBySubjectId")
     @ApiOperation(value = "预算主体获取在使用的维度", notes = "通过预算主体获取其使用的维度清单")
     ResultData<List<DimensionDto>> getDimensionsBySubjectId(@RequestParam String subjectId);
+
 
 }

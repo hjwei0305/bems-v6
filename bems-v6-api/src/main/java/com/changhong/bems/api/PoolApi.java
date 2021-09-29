@@ -1,7 +1,6 @@
 package com.changhong.bems.api;
 
 import com.changhong.bems.dto.BudgetPoolAmountDto;
-import com.changhong.bems.dto.BudgetUseResult;
 import com.changhong.bems.dto.LogRecordDto;
 import com.changhong.bems.dto.PoolAttributeDto;
 import com.changhong.sei.core.dto.ResultData;

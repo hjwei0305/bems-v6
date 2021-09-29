@@ -3,7 +3,6 @@ package com.changhong.bems.service;
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.PoolAttributeViewDao;
 import com.changhong.bems.dao.PoolDao;
-import com.changhong.bems.dto.BudgetUse;
 import com.changhong.bems.dto.OperationType;
 import com.changhong.bems.dto.PeriodType;
 import com.changhong.bems.dto.PoolAmountQuotaDto;
@@ -39,7 +38,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-
 
 /**
  * 预算池(Pool)业务逻辑实现类
@@ -464,15 +462,12 @@ public class PoolService extends BaseEntityService<Pool> {
     /**
      * 初步查找满足条件的预算池
      *
-     * @param useBudget 占用数据
+     * @param corpCode 公司代码
+     * @param item     预算科目
      * @return 返回满足条件的预算池
      */
-    public List<PoolAttributeView> getBudgetPools(String attribute, LocalDate useDate, BudgetUse useBudget, Collection<SearchFilter> dimFilters) {
-        // 公司代码
-        String corpCode = useBudget.getCorpCode();
-        // 预算科目
-        String item = useBudget.getItem();
-
+    public List<PoolAttributeView> getBudgetPools(String attribute, LocalDate useDate, String corpCode, String item,
+                                                  Collection<SearchFilter> dimFilters) {
         Search search = Search.createSearch();
         // 公司代码
         search.addFilter(new SearchFilter(PoolAttributeView.FIELD_CORP_CODE, corpCode));

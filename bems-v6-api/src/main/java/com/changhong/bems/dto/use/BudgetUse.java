@@ -1,4 +1,4 @@
-package com.changhong.bems.dto;
+package com.changhong.bems.dto.use;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
