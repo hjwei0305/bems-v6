@@ -13,6 +13,7 @@ import java.util.Set;
  * @version 1.0.00  2021-04-30 10:50
  */
 public final class Constants {
+    private static final Set<KeyValueDto> DEFAULT_DIMENSION_CODES;
 
     public static final String NONE = "none";
 
@@ -26,7 +27,23 @@ public final class Constants {
     public static final String DIMENSION_CODE_UDF4 = "udf4";
     public static final String DIMENSION_CODE_UDF5 = "udf5";
 
-    public static final Set<KeyValueDto> DEFAULT_DIMENSION_CODES;
+    static {
+        DEFAULT_DIMENSION_CODES = new LinkedHashSet<>();
+        // 预算期间
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_PERIOD, ContextUtil.getMessage("default_dimension_period")));
+        // 预算科目
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_ITEM, ContextUtil.getMessage("default_dimension_item")));
+        // 组织机构
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_ORG, ContextUtil.getMessage("default_dimension_org")));
+        // 项目
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_PROJECT, ContextUtil.getMessage("default_dimension_project")));
+        // 自定义维度
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF1, ContextUtil.getMessage("default_dimension_udf1")));
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF2, ContextUtil.getMessage("default_dimension_udf2")));
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF3, ContextUtil.getMessage("default_dimension_udf3")));
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF4, ContextUtil.getMessage("default_dimension_udf4")));
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF5, ContextUtil.getMessage("default_dimension_udf5")));
+    }
 
     /**
      * 获取所有预制的维度代码
@@ -79,20 +96,4 @@ public final class Constants {
      */
     public static final String HANDLE_CACHE_KEY_PREFIX = "bems-v6:order:handle:";
 
-    static {
-        DEFAULT_DIMENSION_CODES = new LinkedHashSet<>();
-        // 预算期间
-        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_PERIOD, ContextUtil.getMessage("default_dimension_period")));
-        // 预算科目
-        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_ITEM, ContextUtil.getMessage("default_dimension_item")));
-        // 组织机构
-        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_ORG, ContextUtil.getMessage("default_dimension_org")));
-        // 项目
-        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_PROJECT, ContextUtil.getMessage("default_dimension_project")));
-        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF1, ContextUtil.getMessage("default_dimension_udf1")));
-        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF2, ContextUtil.getMessage("default_dimension_udf2")));
-        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF3, ContextUtil.getMessage("default_dimension_udf3")));
-        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF4, ContextUtil.getMessage("default_dimension_udf4")));
-        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF5, ContextUtil.getMessage("default_dimension_udf5")));
-    }
 }

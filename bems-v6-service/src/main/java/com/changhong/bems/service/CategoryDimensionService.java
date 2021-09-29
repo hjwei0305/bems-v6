@@ -11,8 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -73,6 +72,30 @@ public class CategoryDimensionService extends BaseEntityService<CategoryDimensio
      */
     public List<CategoryDimension> getByCategoryId(String categoryId) {
         return dao.findListByProperty(CategoryDimension.FIELD_CATEGORY_ID, categoryId);
+    }
+
+    /**
+     * 通过预算类型获取预算维度代码清单
+     *
+     * @param categoryIds 预算类型清单
+     * @return 预算维度代码清单
+     */
+    public List<Dimension> getDimensionCodeByCategory(Set<String> categoryIds) {
+        Search search = Search.createSearch();
+        search.addFilter(new SearchFilter(CategoryDimension.FIELD_CATEGORY_ID, categoryIds, SearchFilter.Operator.IN));
+        List<CategoryDimension> list = dao.findByFilters(search);
+
+        String code;
+        Dimension dimension;
+        HashMap<String, Dimension> map = new HashMap<>();
+        for (CategoryDimension cd : list) {
+            code = cd.getDimensionCode();
+            if (Objects.isNull(map.get(code))) {
+                dimension = dimensionService.findByCode(code);
+                map.put(code, dimension);
+            }
+        }
+        return new ArrayList<>(map.values());
     }
 
     public CategoryDimension getByDimensionCode(String dimensionCode) {

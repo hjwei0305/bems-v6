@@ -205,9 +205,7 @@ public class DimensionService extends BaseEntityService<Dimension> {
      */
     @Cacheable(key = "#code")
     public Dimension findByCode(String code) {
-        // 通过getBean方式走缓存
-        List<Dimension> dimensions = ContextUtil.getBean(DimensionService.class).findAll();
-        return dimensions.stream().filter(d -> StringUtils.equals(code, d.getCode())).findFirst().orElse(null);
+        return dao.findByProperty(Dimension.CODE_FIELD, code);
     }
 
     /**

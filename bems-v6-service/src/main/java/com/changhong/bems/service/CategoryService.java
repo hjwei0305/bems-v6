@@ -168,6 +168,18 @@ public class CategoryService extends BaseEntityService<Category> {
     }
 
     /**
+     * 根据预算主体查询私有预算类型
+     *
+     * @param subjectId 预算主体id
+     * @return 分页查询结果
+     */
+    public List<Dimension> findDimensionBySubject(String subjectId) {
+        List<Category> categoryList = this.findBySubject(subjectId);
+        Set<String> categoryIds = categoryList.stream().map(Category::getId).collect(Collectors.toSet());
+        return categoryDimensionService.getDimensionCodeByCategory(categoryIds);
+    }
+
+    /**
      * 引用通用预算类型
      *
      * @param subjectId 预算主体id
