@@ -7,6 +7,8 @@ import com.changhong.sei.core.test.BaseUnit5Test;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
+
 /**
  * 实现功能：
  *
@@ -16,10 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 class PeriodServiceTest extends BaseUnit5Test {
     @Autowired
     private PeriodService service;
-
-    @Test
-    void findBySubject() {
-    }
 
     @Test
     void closePeriods() {
@@ -33,6 +31,14 @@ class PeriodServiceTest extends BaseUnit5Test {
         PeriodType[] periodTypes = new PeriodType[]{PeriodType.ANNUAL, PeriodType.QUARTER, PeriodType.MONTHLY};
         ResultData<Void> resultData = service.createNormalPeriod(subjectId, year, periodTypes);
         System.out.println(resultData);
+    }
+
+    @Test
+    void findBySubject() {
+        String subjectId = "C81A4E58-BBD4-11EB-A896-0242C0A84429";
+        int year = 2021;
+        List<Period> periodList = service.findBySubject(subjectId, year, null);
+        System.out.println(periodList);
     }
 
     @Test

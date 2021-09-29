@@ -10,7 +10,6 @@ import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
-import com.changhong.sei.core.dto.serach.SearchOrder;
 import com.changhong.sei.core.limiter.support.lock.SeiLock;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
@@ -57,7 +56,7 @@ public class PeriodService extends BaseEntityService<Period> {
         Period period = dao.findOne(id);
         if (Objects.nonNull(period)) {
             if (PeriodType.CUSTOMIZE.equals(period.getType())) {
-                if (!checkCustomizePeriod(id)) {
+                if (this.checkCustomizePeriod(id)) {
                     // 当前期间已被使用,禁止删除!
                     return OperateResult.operationFailure("period_00001");
                 } else {
@@ -73,65 +72,65 @@ public class PeriodService extends BaseEntityService<Period> {
         }
     }
 
-    /**
-     * 通过预算期间id查询所有可用的预算期间
-     * 预算池溯源使用
-     * 预算期间：
-     * 1.自定义期间：以“=”匹配
-     * 2.非自定义期间：按枚举@see {@link PeriodType}向下匹配（年度 < 半年度 < 季度 < 月度）
-     * <p>
-     * 优先使用自定义 > 月度 > 季度 > 半年度 > 年度
-     *
-     * @param periodId 预算期间id
-     * @return 预算期间清单
-     */
-    public List<Period> findAvailablePeriods(String periodId) {
-        List<Period> periods = new ArrayList<>();
-        Period period = dao.findOne(periodId);
-        if (Objects.nonNull(period)) {
-            //自定义期间
-            if (PeriodType.CUSTOMIZE == period.getType()) {
-                periods.add(period);
-            } else {
-                Search search = Search.createSearch();
-                //年份
-                search.addFilter(new SearchFilter(Period.FIELD_YEAR, period.getYear()));
-                //预算公司
-                search.addFilter(new SearchFilter(Period.FIELD_SUBJECT_ID, period.getSubjectId()));
-                //未关闭
-                search.addFilter(new SearchFilter(Period.FIELD_CLOSED, Boolean.FALSE));
-                Set<PeriodType> periodTypeSet = new HashSet<>();
-                //年度
-                if (PeriodType.ANNUAL == period.getType()) {
-                    periodTypeSet.add(PeriodType.ANNUAL);
-                } else if (PeriodType.SEMIANNUAL == period.getType()) {
-                    //半年度
-                    periodTypeSet.add(PeriodType.ANNUAL);
-                    periodTypeSet.add(PeriodType.SEMIANNUAL);
-                } else if (PeriodType.QUARTER == period.getType()) {
-                    //季度
-                    periodTypeSet.add(PeriodType.ANNUAL);
-                    periodTypeSet.add(PeriodType.SEMIANNUAL);
-                    periodTypeSet.add(PeriodType.QUARTER);
-                } else if (PeriodType.MONTHLY == period.getType()) {
-                    //月度
-                    periodTypeSet.add(PeriodType.ANNUAL);
-                    periodTypeSet.add(PeriodType.SEMIANNUAL);
-                    periodTypeSet.add(PeriodType.QUARTER);
-                    periodTypeSet.add(PeriodType.MONTHLY);
-                } else {
-                    return null;
-                }
-                search.addFilter(new SearchFilter(Period.FIELD_TYPE, periodTypeSet, SearchFilter.Operator.IN));
-                //时间段(期间内)
-                search.addFilter(new SearchFilter(Period.FIELD_START_DATE, period.getStartDate(), SearchFilter.Operator.LE));
-                search.addFilter(new SearchFilter(Period.FIELD_END_DATE, period.getEndDate(), SearchFilter.Operator.GE));
-
-                periods = findByFilters(search);
-            }
-        }
-        return periods;
-    }
+    // /**
+    //  * 通过预算期间id查询所有可用的预算期间
+    //  * 预算池溯源使用
+    //  * 预算期间：
+    //  * 1.自定义期间：以“=”匹配
+    //  * 2.非自定义期间：按枚举@see {@link PeriodType}向下匹配（年度 < 半年度 < 季度 < 月度）
+    //  * <p>
+    //  * 优先使用自定义 > 月度 > 季度 > 半年度 > 年度
+    //  *
+    //  * @param periodId 预算期间id
+    //  * @return 预算期间清单
+    //  */
+    // public List<Period> findAvailablePeriods(String periodId) {
+    //     List<Period> periods = new ArrayList<>();
+    //     Period period = dao.findOne(periodId);
+    //     if (Objects.nonNull(period)) {
+    //         //自定义期间
+    //         if (PeriodType.CUSTOMIZE == period.getType()) {
+    //             periods.add(period);
+    //         } else {
+    //             Search search = Search.createSearch();
+    //             //年份
+    //             search.addFilter(new SearchFilter(Period.FIELD_YEAR, period.getYear()));
+    //             //预算公司
+    //             search.addFilter(new SearchFilter(Period.FIELD_SUBJECT_ID, period.getSubjectId()));
+    //             //未关闭
+    //             search.addFilter(new SearchFilter(Period.FIELD_CLOSED, Boolean.FALSE));
+    //             Set<PeriodType> periodTypeSet = new HashSet<>();
+    //             //年度
+    //             if (PeriodType.ANNUAL == period.getType()) {
+    //                 periodTypeSet.add(PeriodType.ANNUAL);
+    //             } else if (PeriodType.SEMIANNUAL == period.getType()) {
+    //                 //半年度
+    //                 periodTypeSet.add(PeriodType.ANNUAL);
+    //                 periodTypeSet.add(PeriodType.SEMIANNUAL);
+    //             } else if (PeriodType.QUARTER == period.getType()) {
+    //                 //季度
+    //                 periodTypeSet.add(PeriodType.ANNUAL);
+    //                 periodTypeSet.add(PeriodType.SEMIANNUAL);
+    //                 periodTypeSet.add(PeriodType.QUARTER);
+    //             } else if (PeriodType.MONTHLY == period.getType()) {
+    //                 //月度
+    //                 periodTypeSet.add(PeriodType.ANNUAL);
+    //                 periodTypeSet.add(PeriodType.SEMIANNUAL);
+    //                 periodTypeSet.add(PeriodType.QUARTER);
+    //                 periodTypeSet.add(PeriodType.MONTHLY);
+    //             } else {
+    //                 return null;
+    //             }
+    //             search.addFilter(new SearchFilter(Period.FIELD_TYPE, periodTypeSet, SearchFilter.Operator.IN));
+    //             //时间段(期间内)
+    //             search.addFilter(new SearchFilter(Period.FIELD_START_DATE, period.getStartDate(), SearchFilter.Operator.LE));
+    //             search.addFilter(new SearchFilter(Period.FIELD_END_DATE, period.getEndDate(), SearchFilter.Operator.GE));
+    //
+    //             periods = findByFilters(search);
+    //         }
+    //     }
+    //     return periods;
+    // }
 
     /**
      * 关闭过期预算期间调度定时任务
@@ -170,8 +169,10 @@ public class PeriodService extends BaseEntityService<Period> {
         if (Objects.nonNull(type)) {
             search.addFilter(new SearchFilter(Period.FIELD_TYPE, type));
         }
-        search.addSortOrder(SearchOrder.asc(Period.CREATED_DATE));
-        return dao.findByFilters(search);
+        List<Period> periodList = dao.findByFilters(search);
+        return periodList.stream()
+                .sorted(Comparator.comparing(p -> p, this::sortedPeriod))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -186,8 +187,10 @@ public class PeriodService extends BaseEntityService<Period> {
         search.addFilter(new SearchFilter(Period.FIELD_SUBJECT_ID, subjectId));
         search.addFilter(new SearchFilter(Period.FIELD_TYPE, type));
         search.addFilter(new SearchFilter(Period.FIELD_CLOSED, Boolean.FALSE));
-        search.addSortOrder(SearchOrder.asc(Period.CREATED_DATE));
-        return dao.findByFilters(search);
+        List<Period> periodList = dao.findByFilters(search);
+        return periodList.stream()
+                .sorted(Comparator.comparing(p -> p, this::sortedPeriod))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -200,24 +203,10 @@ public class PeriodService extends BaseEntityService<Period> {
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(Period.FIELD_SUBJECT_ID, subjectId));
         search.addFilter(new SearchFilter(Period.FIELD_CLOSED, Boolean.FALSE));
-        search.addSortOrder(SearchOrder.asc(Period.CREATED_DATE));
-        return dao.findByFilters(search);
-    }
-
-    /**
-     * 按预算主体获取期间(未关闭的)
-     *
-     * @param subjectId 预算主体id
-     * @return 期间清单
-     */
-    public Period findByCodeAndYear(String subjectId, String code, Integer year) {
-        Search search = Search.createSearch();
-        search.addFilter(new SearchFilter(Period.FIELD_SUBJECT_ID, subjectId));
-        search.addFilter(new SearchFilter(Period.FIELD_CODE, code));
-        //年份
-        search.addFilter(new SearchFilter(Period.FIELD_YEAR, year));
-        search.addFilter(new SearchFilter(Period.FIELD_CLOSED, Boolean.FALSE));
-        return dao.findFirstByFilters(search);
+        List<Period> periodList = dao.findByFilters(search);
+        return periodList.stream()
+                .sorted(Comparator.comparing(p -> p, this::sortedPeriod))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -256,7 +245,6 @@ public class PeriodService extends BaseEntityService<Period> {
                 this.save(period);
             }
         }
-
         return ResultData.success();
     }
 
@@ -280,7 +268,7 @@ public class PeriodService extends BaseEntityService<Period> {
                 // 已存在预算期间
                 return ResultData.fail(ContextUtil.getMessage("period_00007", existed.getName()));
             }
-            if (!checkCustomizePeriod(id)) {
+            if (this.checkCustomizePeriod(id)) {
                 // 预算期间已被使用,禁止修改!
                 return ResultData.fail(ContextUtil.getMessage("period_00004"));
             }
@@ -415,13 +403,29 @@ public class PeriodService extends BaseEntityService<Period> {
     }
 
     /**
+     * 按预算主体获取期间(未关闭的)
+     *
+     * @param subjectId 预算主体id
+     * @return 期间清单
+     */
+    private Period findByCodeAndYear(String subjectId, String code, Integer year) {
+        Search search = Search.createSearch();
+        search.addFilter(new SearchFilter(Period.FIELD_SUBJECT_ID, subjectId));
+        search.addFilter(new SearchFilter(Period.FIELD_CODE, code));
+        //年份
+        search.addFilter(new SearchFilter(Period.FIELD_YEAR, year));
+        search.addFilter(new SearchFilter(Period.FIELD_CLOSED, Boolean.FALSE));
+        return dao.findFirstByFilters(search);
+    }
+
+    /**
      * 检查自定义期间是否被使用
      *
      * @return 检查结果
      */
     private boolean checkCustomizePeriod(String id) {
         DimensionAttribute attribute = dimensionAttributeService.getFirstByProperty(DimensionAttribute.FIELD_PERIOD, id);
-        return !Objects.nonNull(attribute);
+        return Objects.nonNull(attribute);
     }
 
     /**
@@ -509,5 +513,20 @@ public class PeriodService extends BaseEntityService<Period> {
             default:
         }
         return periods;
+    }
+
+    /**
+     * 预算期间排序规则
+     *
+     * @param p1 期间1
+     * @param p2 期间2
+     * @return 比较器值，如果较小则为负，如果较大则为正
+     */
+    private int sortedPeriod(Period p1, Period p2) {
+        if (p1.getType() == p2.getType()) {
+            return p1.getStartDate().compareTo(p2.getStartDate());
+        } else {
+            return p1.getType().compareTo(p2.getType());
+        }
     }
 }

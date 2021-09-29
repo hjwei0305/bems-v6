@@ -62,21 +62,21 @@ public interface PeriodApi extends BaseEntityApi<PeriodDto> {
                                              @RequestParam("year") Integer year,
                                              @RequestParam(name = "type", required = false) PeriodType type);
 
-    /**
-     * 通过预算期间id查询所有可用的预算期间
-     * 预算池溯源使用
-     * 预算期间：
-     * 1.自定义期间：以“=”匹配
-     * 2.非自定义期间：按枚举@see {@link PeriodType}向下匹配（年度 < 半年度 < 季度 < 月度）
-     * <p>
-     * 优先使用自定义 > 月度 > 季度 > 半年度 > 年度
-     *
-     * @param periodId 预算期间id
-     * @return 预算期间清单
-     */
-    @GetMapping(path = "findAvailablePeriods")
-    @ApiOperation(value = "通过预算期间id查询所有可用的预算期间", notes = "通过预算期间id查询所有可用的预算期间(预算池溯源使用)")
-    ResultData<List<PeriodDto>> findAvailablePeriods(@RequestParam("periodId") String periodId);
+    // /**
+    //  * 通过预算期间id查询所有可用的预算期间
+    //  * 预算池溯源使用
+    //  * 预算期间：
+    //  * 1.自定义期间：以“=”匹配
+    //  * 2.非自定义期间：按枚举@see {@link PeriodType}向下匹配（年度 < 半年度 < 季度 < 月度）
+    //  * <p>
+    //  * 优先使用自定义 > 月度 > 季度 > 半年度 > 年度
+    //  *
+    //  * @param periodId 预算期间id
+    //  * @return 预算期间清单
+    //  */
+    // @GetMapping(path = "findAvailablePeriods")
+    // @ApiOperation(value = "通过预算期间id查询所有可用的预算期间", notes = "通过预算期间id查询所有可用的预算期间(预算池溯源使用)")
+    // ResultData<List<PeriodDto>> findAvailablePeriods(@RequestParam("periodId") String periodId);
 
     /**
      * 设置预算期间状态
