@@ -36,12 +36,31 @@ public interface PeriodApi extends BaseEntityApi<PeriodDto> {
      */
     @ApiImplicitParams({
             @ApiImplicitParam(name = "subjectId", value = "预算主体id", dataTypeClass = String.class, required = true),
-            @ApiImplicitParam(name = "type", value = "期间分类,可用值:ANNUAL,SEMIANNUAL,QUARTER,MONTHLY,CUSTOMIZE", dataTypeClass = String.class, required = true)
+            @ApiImplicitParam(name = "type", value = "期间分类,可用值:ANNUAL,SEMIANNUAL,QUARTER,MONTHLY,CUSTOMIZE", dataTypeClass = String.class)
     })
     @GetMapping(path = "findBySubject")
     @ApiOperation(value = "按预算主体获取期间", notes = "按预算主体获取期间")
     ResultData<List<PeriodDto>> findBySubject(@RequestParam("subjectId") String subjectId,
                                               @RequestParam(name = "type", required = false) String type);
+
+    /**
+     * 按预算主体获取期间
+     *
+     * @param subjectId 预算主体id
+     * @param year      年度
+     * @param type      预算期间类型
+     * @return 期间清单
+     */
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "subjectId", value = "预算主体id", dataTypeClass = String.class, required = true),
+            @ApiImplicitParam(name = "year", value = "年度", dataTypeClass = Integer.class, required = true),
+            @ApiImplicitParam(name = "type", value = "期间类型", dataTypeClass = String.class)
+    })
+    @GetMapping(path = "getBySubject")
+    @ApiOperation(value = "按预算主体获取期间", notes = "按预算主体获取期间")
+    ResultData<List<PeriodDto>> getBySubject(@RequestParam("subjectId") String subjectId,
+                                             @RequestParam("year") Integer year,
+                                             @RequestParam(name = "type", required = false) PeriodType type);
 
     /**
      * 通过预算期间id查询所有可用的预算期间

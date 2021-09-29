@@ -28,7 +28,6 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
 /**
  * 预算期间(Period)业务逻辑实现类
  *
@@ -162,9 +161,12 @@ public class PeriodService extends BaseEntityService<Period> {
      * @param type      预算期间类型
      * @return 期间清单
      */
-    public List<Period> findBySubject(String subjectId, PeriodType type) {
+    public List<Period> findBySubject(String subjectId, Integer year, PeriodType type) {
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(Period.FIELD_SUBJECT_ID, subjectId));
+        if (Objects.nonNull(year)) {
+            search.addFilter(new SearchFilter(Period.FIELD_YEAR, year));
+        }
         if (Objects.nonNull(type)) {
             search.addFilter(new SearchFilter(Period.FIELD_TYPE, type));
         }

@@ -11,7 +11,6 @@ import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.util.EnumUtils;
-import com.changhong.sei.util.IdGenerator;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -50,7 +49,20 @@ public class PeriodController extends BaseEntityController<Period, PeriodDto> im
      */
     @Override
     public ResultData<List<PeriodDto>> findBySubject(String subjectId, String type) {
-        return ResultData.success(convertToDtos(service.findBySubject(subjectId, EnumUtils.getEnum(PeriodType.class, type))));
+        return ResultData.success(convertToDtos(service.findBySubject(subjectId, null, EnumUtils.getEnum(PeriodType.class, type))));
+    }
+
+    /**
+     * 按预算主体获取期间
+     *
+     * @param subjectId 预算主体id
+     * @param year      年度
+     * @param type      预算期间类型
+     * @return 期间清单
+     */
+    @Override
+    public ResultData<List<PeriodDto>> getBySubject(String subjectId, Integer year, PeriodType type) {
+        return ResultData.success(convertToDtos(service.findBySubject(subjectId, year, type)));
     }
 
     /**
