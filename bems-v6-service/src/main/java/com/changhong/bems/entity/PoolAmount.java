@@ -3,6 +3,7 @@ package com.changhong.bems.entity;
 import com.changhong.bems.dto.OperationType;
 import com.changhong.sei.core.entity.BaseAuditableEntity;
 import com.changhong.sei.core.entity.BaseEntity;
+import com.changhong.sei.core.entity.ITenant;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -20,7 +21,7 @@ import java.math.BigDecimal;
 @Table(name = "pool_amount")
 @DynamicInsert
 @DynamicUpdate
-public class PoolAmount extends BaseEntity implements Serializable {
+public class PoolAmount extends BaseEntity implements ITenant, Serializable {
     private static final long serialVersionUID = 434318292053003122L;
     public static final String FIELD_POOL_ID = "poolId";
     public static final String FIELD_POOL_CODE = "poolCode";
@@ -58,6 +59,11 @@ public class PoolAmount extends BaseEntity implements Serializable {
     @Version
     @Column(name = "optimistic_lock")
     private Integer version = 0;
+    /**
+     * 租户代码
+     */
+    @Column(name = "tenant_code")
+    private String tenantCode;
 
     public String getPoolId() {
         return poolId;
@@ -105,5 +111,15 @@ public class PoolAmount extends BaseEntity implements Serializable {
 
     public void setVersion(Integer version) {
         this.version = version;
+    }
+
+    @Override
+    public String getTenantCode() {
+        return tenantCode;
+    }
+
+    @Override
+    public void setTenantCode(String tenantCode) {
+        this.tenantCode = tenantCode;
     }
 }

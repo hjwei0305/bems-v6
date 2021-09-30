@@ -4,6 +4,7 @@ import com.changhong.bems.dto.StrategyCategory;
 import com.changhong.sei.core.dto.IRank;
 import com.changhong.sei.core.entity.BaseAuditableEntity;
 import com.changhong.sei.core.entity.ICodeUnique;
+import com.changhong.sei.core.entity.ITenant;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -21,7 +22,7 @@ import java.util.Objects;
 @Table(name = "strategy")
 @DynamicInsert
 @DynamicUpdate
-public class Strategy extends BaseAuditableEntity implements ICodeUnique, IRank, Serializable {
+public class Strategy extends BaseAuditableEntity implements ITenant, ICodeUnique, IRank, Serializable {
     private static final long serialVersionUID = -28243258893909771L;
     public static final String FIELD_CATEGORY = "category";
     public static final String FIELD_NAME = "name";
@@ -57,6 +58,11 @@ public class Strategy extends BaseAuditableEntity implements ICodeUnique, IRank,
      */
     @Column(name = "remark")
     private String remark;
+    /**
+     * 租户代码
+     */
+    @Column(name = "tenant_code")
+    private String tenantCode;
 
     @Override
     public String getCode() {
@@ -107,6 +113,16 @@ public class Strategy extends BaseAuditableEntity implements ICodeUnique, IRank,
 
     public void setRemark(String remark) {
         this.remark = remark;
+    }
+
+    @Override
+    public String getTenantCode() {
+        return tenantCode;
+    }
+
+    @Override
+    public void setTenantCode(String tenantCode) {
+        this.tenantCode = tenantCode;
     }
 
     @Override

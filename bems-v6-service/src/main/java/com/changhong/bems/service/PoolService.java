@@ -11,16 +11,12 @@ import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.context.SessionUser;
 import com.changhong.sei.core.context.mock.LocalMockUser;
 import com.changhong.sei.core.context.mock.MockUser;
-import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.dto.serach.SearchOrder;
 import com.changhong.sei.core.limiter.support.lock.SeiLock;
-import com.changhong.sei.core.service.BaseEntityService;
-import com.changhong.sei.core.service.bo.OperateResultWithData;
-import com.changhong.sei.exception.ServiceException;
 import com.changhong.sei.serial.sdk.SerialService;
 import com.changhong.sei.util.DateUtils;
 import com.changhong.sei.util.IdGenerator;
@@ -46,7 +42,7 @@ import java.util.*;
  * @since 2021-04-22 12:54:28
  */
 @Service
-public class PoolService extends BaseEntityService<Pool> {
+public class PoolService {
     private static final Logger LOG = LoggerFactory.getLogger(PoolService.class);
     @Autowired
     private PoolDao dao;
@@ -64,11 +60,6 @@ public class PoolService extends BaseEntityService<Pool> {
     private LogRecordService executionRecordService;
     @Autowired(required = false)
     private SerialService serialService;
-
-    @Override
-    protected BaseEntityDao<Pool> getDao() {
-        return dao;
-    }
 
     /**
      * 按预算主体和属性hash获取预算池
@@ -132,8 +123,6 @@ public class PoolService extends BaseEntityService<Pool> {
             }
 
             pool = new Pool();
-            // 预算池编码
-            pool.setCode(serialService.getNumber(Pool.class, ContextUtil.getTenantCode()));
             // 预算主体
             pool.setSubjectId(subjectId);
             // 属性id
@@ -165,10 +154,17 @@ public class PoolService extends BaseEntityService<Pool> {
             pool.setRoll(category.getRoll());
             pool.setCreatedDate(LocalDateTime.now());
 
-            OperateResultWithData<Pool> result = this.save(pool);
-            if (result.notSuccessful()) {
-                return ResultData.fail(result.getMessage());
+            // 租户代码
+            String tenantCode = ContextUtil.getTenantCode();
+            // 预算池编码
+            String code = serialService.getNumber(Pool.class, tenantCode);
+            if (dao.isCodeExists(tenantCode, code, IdGenerator.uuid())) {
+                //代码[{0}]在租户[{1}]已存在，请重新输入！
+                return ResultData.fail(ContextUtil.getMessage("core_service_00038", code, tenantCode));
             }
+            pool.setTenantCode(tenantCode);
+            pool.setCode(code);
+            dao.save(pool);
         }
         return ResultData.success(pool);
     }
@@ -180,22 +176,6 @@ public class PoolService extends BaseEntityService<Pool> {
      */
     public BigDecimal getPoolBalanceByCode(String poolCode) {
         return poolAmountService.getPoolBalanceByPoolCode(poolCode);
-    }
-
-    /**
-     * 获取预算池当前可用余额
-     *
-     * @param pool 预算池
-     */
-    public BigDecimal getPoolBalance(Pool pool) {
-        if (Objects.isNull(pool)) {
-            // 未找到预算池
-            throw new ServiceException(ContextUtil.getMessage("pool_00001"));
-        }
-        // 实时计算当前预算池可用金额
-        BigDecimal amount = poolAmountService.getPoolBalanceByPoolCode(pool.getCode());
-        pool.setBalance(amount);
-        return amount;
     }
 
     /**
@@ -218,7 +198,7 @@ public class PoolService extends BaseEntityService<Pool> {
     /**
      * 记录不影响预算池余额的日志
      */
-    @Transactional(rollbackFor = Exception.class)
+    // @Transactional(rollbackFor = Exception.class)
     public void nonPoolAmountLog(String subjectId, long attributeCode, String poolCode,
                                  String bizId, String bizCode, String remark, BigDecimal amount,
                                  String eventCode, boolean internal, OperationType operation) {

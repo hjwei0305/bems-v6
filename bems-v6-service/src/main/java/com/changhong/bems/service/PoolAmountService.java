@@ -1,13 +1,15 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.dao.PoolAmountDao;
+import com.changhong.bems.dao.PoolSummaryAmountDao;
 import com.changhong.bems.dto.OperationType;
 import com.changhong.bems.dto.PoolAmountQuotaDto;
 import com.changhong.bems.entity.Pool;
 import com.changhong.bems.entity.PoolAmount;
+import com.changhong.bems.entity.PoolSummaryAmount;
+import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
-import com.changhong.sei.util.ArithUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,9 @@ import java.util.Objects;
 public class PoolAmountService {
     @Autowired
     private PoolAmountDao dao;
+
+    @Autowired
+    private PoolSummaryAmountDao summaryAmountDao;
 
     /**
      * 按预算池id查询预算池当前余额
@@ -49,20 +54,66 @@ public class PoolAmountService {
      */
     @Transactional(rollbackFor = Exception.class)
     public void countAmount(Pool pool, boolean internal, OperationType operation, BigDecimal amount) {
+        String poolId = pool.getId();
+        String poolCode = pool.getCode();
+        String tenantCode = ContextUtil.getTenantCode();
         Search search = Search.createSearch();
-        search.addFilter(new SearchFilter(PoolAmount.FIELD_POOL_ID, pool.getId()));
+        search.addFilter(new SearchFilter(PoolAmount.FIELD_POOL_ID, poolId));
         search.addFilter(new SearchFilter(PoolAmount.FIELD_OPERATION, operation));
         search.addFilter(new SearchFilter(PoolAmount.FIELD_INTERNAL, internal));
         PoolAmount poolAmount = dao.findOneByFilters(search);
         if (Objects.isNull(poolAmount)) {
             poolAmount = new PoolAmount();
-            poolAmount.setPoolId(pool.getId());
-            poolAmount.setPoolCode(pool.getCode());
+            poolAmount.setTenantCode(tenantCode);
+            poolAmount.setPoolId(poolId);
+            poolAmount.setPoolCode(poolCode);
             poolAmount.setInternal(internal);
             poolAmount.setOperation(operation);
         }
-        poolAmount.setAmount(ArithUtils.add(poolAmount.getAmount(), amount.doubleValue()));
+        poolAmount.setAmount(poolAmount.getAmount().add(amount));
         dao.save(poolAmount);
+
+        PoolSummaryAmount summaryAmount = summaryAmountDao.findByProperty(PoolSummaryAmount.FIELD_POOL_ID, poolId);
+        if (Objects.isNull(summaryAmount)) {
+            summaryAmount = new PoolSummaryAmount();
+            summaryAmount.setPoolId(poolId);
+            summaryAmount.setPoolCode(poolCode);
+            summaryAmount.setSubjectId(pool.getSubjectId());
+            summaryAmount.setTenantCode(tenantCode);
+        }
+        if (internal) {
+            // 预算内部调整或分解
+            switch (operation) {
+                case RELEASE:
+                    // 调入
+                    summaryAmount.setReviseInAmount(summaryAmount.getReviseInAmount().add(amount));
+                    break;
+                case USE:
+                    // 调出
+                    summaryAmount.setReviseOutAmount(summaryAmount.getReviseOutAmount().add(amount));
+                    break;
+                case FREED:
+                    summaryAmount.setReviseOutAmount(summaryAmount.getReviseOutAmount().subtract(amount));
+                    break;
+                default:
+            }
+        } else {
+            // 预算外部注入或使用
+            switch (operation) {
+                case RELEASE:
+                    // 外部注入
+                    summaryAmount.setInjectAmount(summaryAmount.getInjectAmount().add(amount));
+                    break;
+                case USE:
+                    summaryAmount.setUsedAmount(summaryAmount.getUsedAmount().add(amount));
+                    break;
+                case FREED:
+                    summaryAmount.setUsedAmount(summaryAmount.getUsedAmount().subtract(amount));
+                    break;
+                default:
+            }
+        }
+        summaryAmountDao.save(summaryAmount);
     }
 
     /**
@@ -100,11 +151,7 @@ public class PoolAmountService {
                         break;
                     case FREED:
                         // 释放.减去释放金额(加上取负的释放金额)
-                        // if (amount.getInternal()) {
-                        //     quota.addTotalAmount(amount.getAmount().negate());
-                        // } else {
-                            quota.addUseAmount(amount.getAmount().negate());
-                        // }
+                        quota.addUseAmount(amount.getAmount().negate());
                         break;
                     default:
                 }

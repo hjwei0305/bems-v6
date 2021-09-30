@@ -301,22 +301,7 @@ public class CategoryService extends BaseEntityService<Category> {
     @CacheEvict(key = "#categoryId")
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> assigne(String categoryId, Set<String> dimensionCodes) {
-        List<CategoryDimension> dimensionList = new ArrayList<>();
-        CategoryDimension categoryDimension;
-        for (String code : dimensionCodes) {
-            Dimension dimension = dimensionService.findByCode(code);
-            if (Objects.isNull(dimension)) {
-                // 维度不存在
-                return ResultData.fail(ContextUtil.getMessage("dimension_00002", code));
-            }
-            categoryDimension = new CategoryDimension();
-            categoryDimension.setCategoryId(categoryId);
-            categoryDimension.setDimensionCode(dimension.getCode());
-            categoryDimension.setRank(dimension.getRank());
-            dimensionList.add(categoryDimension);
-        }
-        categoryDimensionService.save(dimensionList);
-        return ResultData.success();
+        return categoryDimensionService.addCategoryDimension(categoryId, dimensionCodes);
     }
 
     /**
@@ -330,7 +315,7 @@ public class CategoryService extends BaseEntityService<Category> {
         List<CategoryDimension> dimensionList = categoryDimensionService.getCategoryDimensions(categoryId, dimensionCodes);
         if (CollectionUtils.isNotEmpty(dimensionList)) {
             Set<String> ids = dimensionList.stream().map(CategoryDimension::getId).collect(Collectors.toSet());
-            categoryDimensionService.delete(ids);
+            categoryDimensionService.removeCategoryDimension(ids);
         }
         return ResultData.success();
     }
