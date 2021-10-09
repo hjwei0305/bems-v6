@@ -2,8 +2,11 @@ package com.changhong.bems.controller;
 
 import com.changhong.bems.api.ReportApi;
 import com.changhong.bems.dto.DimensionDto;
+import com.changhong.bems.dto.report.AnnualBudgetRequest;
+import com.changhong.bems.dto.report.AnnualBudgetResponse;
 import com.changhong.bems.entity.Dimension;
 import com.changhong.bems.service.CategoryService;
+import com.changhong.bems.service.ReportService;
 import com.changhong.sei.core.dto.ResultData;
 import io.swagger.annotations.Api;
 import org.modelmapper.ModelMapper;
@@ -26,9 +29,10 @@ import java.util.stream.Collectors;
 @RequestMapping(path = ReportApi.PATH, produces = MediaType.APPLICATION_JSON_VALUE)
 public class ReportController implements ReportApi {
 
-
     @Autowired
     private CategoryService categoryService;
+    @Autowired
+    private ReportService reportService;
     @Autowired
     private ModelMapper modelMapper;
 
@@ -43,5 +47,16 @@ public class ReportController implements ReportApi {
         List<Dimension> dimensions = categoryService.findDimensionBySubject(subjectId);
         List<DimensionDto> dtoList = dimensions.stream().map(d -> modelMapper.map(d, DimensionDto.class)).collect(Collectors.toList());
         return ResultData.success(dtoList);
+    }
+
+    /**
+     * 获取年度预算分析报表数据
+     *
+     * @param request 年度预算分析查询
+     * @return 年度预算分析报表数据结果
+     */
+    @Override
+    public ResultData<List<AnnualBudgetResponse>> annualBudgetAnalysis(AnnualBudgetRequest request) {
+        return ResultData.success(reportService.annualBudgetAnalysis(request.getSubjectId(), request.getYear()));
     }
 }

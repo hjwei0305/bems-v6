@@ -1,10 +1,15 @@
 package com.changhong.bems.api;
 
 import com.changhong.bems.dto.DimensionDto;
+import com.changhong.bems.dto.report.AnnualBudgetRequest;
+import com.changhong.bems.dto.report.AnnualBudgetResponse;
 import com.changhong.sei.core.dto.ResultData;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -29,6 +34,16 @@ public interface ReportApi {
     @GetMapping(path = "getDimensionsBySubjectId")
     @ApiOperation(value = "预算主体获取在使用的维度", notes = "通过预算主体获取其使用的维度清单")
     ResultData<List<DimensionDto>> getDimensionsBySubjectId(@RequestParam String subjectId);
+
+    /**
+     * 获取年度预算分析报表数据
+     *
+     * @param request 年度预算分析查询
+     * @return 年度预算分析报表数据结果
+     */
+    @PostMapping(path = "annualBudgetAnalysis")
+    @ApiOperation(value = "获取年度预算分析报表数据", notes = "获取年度预算分析报表数据")
+    ResultData<List<AnnualBudgetResponse>> annualBudgetAnalysis(@RequestBody AnnualBudgetRequest request);
 
 
 }
