@@ -84,7 +84,7 @@ public class DimensionComponentService {
      * @param subjectId 预算主体id
      * @return 期间清单
      */
-    public ResultData<List<ProjectDto>> findByPage(String subjectId, String searchValue, Set<String> excludeIds) {
+    public ResultData<List<ProjectDto>> getProjects(String subjectId, String searchValue, Set<String> excludeIds) {
         Subject subject = subjectService.findOne(subjectId);
         if (Objects.isNull(subject)) {
             return ResultData.fail(ContextUtil.getMessage("subject_00003", subjectId));

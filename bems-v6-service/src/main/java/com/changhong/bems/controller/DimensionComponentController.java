@@ -85,6 +85,6 @@ public class DimensionComponentController implements DimensionComponentApi {
         String subjectId = request.getSubjectId();
         String searchValue = request.getSearchValue();
         Set<String> excludeIds = request.getExcludeIds();
-        return service.findByPage(subjectId, searchValue, excludeIds);
+        return service.getProjects(subjectId, searchValue, excludeIds);
     }
 }

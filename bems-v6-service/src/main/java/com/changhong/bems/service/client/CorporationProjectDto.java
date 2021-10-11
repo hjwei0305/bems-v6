@@ -17,10 +17,10 @@ import javax.validation.constraints.Size;
 public class CorporationProjectDto extends BaseEntityDto {
     private static final long serialVersionUID = -59692976042104106L;
     public static final String FIELD_ERP_CORPORATION_CODE = "erpCorporationCode";
-    public static final String FIELD_WBS_PROJECT_CODE = "wbsProjectCode";
-    public static final String FIELD_WBS_PROJECT_NAME = "wbsProjectName";
-    public static final String FIELD_INNER_ORDER_CODE = "innerOrderCode";
-    public static final String FIELD_INNER_ORDER_NAME = "innerOrderName";
+    public static final String FIELD_WBS_PROJECT_CODE = "wbsProject.code";
+    public static final String FIELD_WBS_PROJECT_NAME = "wbsProject.name";
+    public static final String FIELD_INNER_ORDER_CODE = "innerOrder.code";
+    public static final String FIELD_INNER_ORDER_NAME = "innerOrder.name";
     /**
      * 名称
      */
