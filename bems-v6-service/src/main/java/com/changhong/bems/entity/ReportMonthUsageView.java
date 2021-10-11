@@ -4,9 +4,7 @@ import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.OperationType;
 import com.changhong.sei.core.entity.BaseEntity;
 
-import javax.persistence.Column;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
@@ -16,6 +14,8 @@ import java.math.BigDecimal;
  * @author 马超(Vision.Mac)
  * @version 1.0.00  2021-10-11 17:37
  */
+@Entity
+@Table(name = "view_report_month_usage")
 public class ReportMonthUsageView extends BaseEntity implements Serializable {
     private static final long serialVersionUID = 5332232947791784203L;
     public static final String FIELD_SUBJECT_ID = "subjectId";

@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -58,5 +59,5 @@ public interface ReportApi {
     @ApiOperation(value = "获取年度预算使用趋势报表数据", notes = "获取年度预算使用趋势报表数据")
     ResultData<Map<Integer, BigDecimal[]>> annualUsageTrend(@PathVariable("subjectId") String subjectId,
                                                             @PathVariable("itemCode") String itemCode,
-                                                            @RequestBody Set<Integer> years);
+                                                            @RequestBody @NotEmpty Set<Integer> years);
 }
