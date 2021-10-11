@@ -1,7 +1,6 @@
 package com.changhong.bems.entity;
 
 import com.changhong.bems.dto.OperationType;
-import com.changhong.sei.core.entity.BaseEntity;
 import com.changhong.sei.core.entity.ITenant;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -21,7 +20,7 @@ import java.time.LocalDateTime;
 @Table(name = "view_log_record")
 @DynamicInsert
 @DynamicUpdate
-public class LogRecordView extends BaseEntity implements ITenant, Serializable {
+public class LogRecordView extends BaseAttribute implements ITenant, Serializable {
     private static final long serialVersionUID = -28943145565423431L;
     public static final String FIELD_EVENT_CODE = "bizEvent";
     public static final String FIELD_BIZ_ID = "bizId";
@@ -33,15 +32,22 @@ public class LogRecordView extends BaseEntity implements ITenant, Serializable {
     @Column(name = "subject_id", updatable = false)
     private String subjectId;
     /**
-     * 预算维度属性id
-     */
-    @Column(name = "attribute_code", updatable = false)
-    private Long attributeCode;
-    /**
      * 预算池编码
      */
     @Column(name = "pool_code")
     private String poolCode;
+    /**
+     * 所属年度
+     */
+    @Column(name = "year")
+    private Integer year;
+    /**
+     * 是否是预算内部操作
+     * 内部操作: 预算调整,预算分解,预算结转
+     * 外部操作: 总额新增注入,外部系统使用
+     */
+    @Column(name = "internal")
+    private Boolean internal = Boolean.TRUE;
     /**
      * 操作类型
      */
@@ -53,11 +59,6 @@ public class LogRecordView extends BaseEntity implements ITenant, Serializable {
      */
     @Column(name = "amount", updatable = false)
     private BigDecimal amount = BigDecimal.ZERO;
-    /**
-     * 是预算池金额
-     */
-    @Column(name = "is_pool_amount")
-    private Boolean isPoolAmount = Boolean.TRUE;
     /**
      * 操作时间
      */
@@ -122,14 +123,6 @@ public class LogRecordView extends BaseEntity implements ITenant, Serializable {
         this.subjectId = subjectId;
     }
 
-    public Long getAttributeCode() {
-        return attributeCode;
-    }
-
-    public void setAttributeCode(Long attributeCode) {
-        this.attributeCode = attributeCode;
-    }
-
     public String getPoolCode() {
         return poolCode;
     }
@@ -138,20 +131,28 @@ public class LogRecordView extends BaseEntity implements ITenant, Serializable {
         this.poolCode = poolCode;
     }
 
+    public Integer getYear() {
+        return year;
+    }
+
+    public void setYear(Integer year) {
+        this.year = year;
+    }
+
+    public Boolean getInternal() {
+        return internal;
+    }
+
+    public void setInternal(Boolean internal) {
+        this.internal = internal;
+    }
+
     public OperationType getOperation() {
         return operation;
     }
 
     public void setOperation(OperationType operation) {
         this.operation = operation;
-    }
-
-    public Boolean getIsPoolAmount() {
-        return isPoolAmount;
-    }
-
-    public void setIsPoolAmount(Boolean poolAmount) {
-        isPoolAmount = poolAmount;
     }
 
     public BigDecimal getAmount() {

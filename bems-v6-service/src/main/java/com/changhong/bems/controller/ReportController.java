@@ -15,7 +15,10 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -57,6 +60,19 @@ public class ReportController implements ReportApi {
      */
     @Override
     public ResultData<List<AnnualBudgetResponse>> annualBudgetAnalysis(AnnualBudgetRequest request) {
-        return ResultData.success(reportService.annualBudgetAnalysis(request.getSubjectId(), request.getYear()));
+        return ResultData.success(reportService.annualBudgetAnalysis(request.getSubjectId(), request.getYear(), request.getItemCodes()));
+    }
+
+    /**
+     * 获取年度预算使用趋势报表数据
+     *
+     * @param subjectId 预算主体
+     * @param itemCode  预算科目
+     * @param years     查询年度
+     * @return 年度预算分析报表数据结果
+     */
+    @Override
+    public ResultData<Map<Integer, BigDecimal[]>> annualUsageTrend(String subjectId, String itemCode, Set<Integer> years) {
+        return ResultData.success(reportService.annualUsageTrend(subjectId, itemCode, years));
     }
 }

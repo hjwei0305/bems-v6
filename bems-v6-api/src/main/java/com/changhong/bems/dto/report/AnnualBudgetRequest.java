@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
+import java.util.Set;
 
 /**
  * 实现功能：
@@ -24,6 +25,11 @@ public class AnnualBudgetRequest implements Serializable {
      */
     @ApiModelProperty(value = "所属年度")
     private Integer year;
+    /**
+     * 科目清单
+     */
+    @ApiModelProperty(value = "科目清单")
+    private Set<String> itemCodes;
 
     public String getSubjectId() {
         return subjectId;
@@ -39,5 +45,13 @@ public class AnnualBudgetRequest implements Serializable {
 
     public void setYear(Integer year) {
         this.year = year;
+    }
+
+    public Set<String> getItemCodes() {
+        return itemCodes;
+    }
+
+    public void setItemCodes(Set<String> itemCodes) {
+        this.itemCodes = itemCodes;
     }
 }

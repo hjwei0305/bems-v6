@@ -10,6 +10,9 @@ import com.changhong.sei.core.util.JsonUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -63,6 +66,15 @@ class PoolServiceTest extends BaseUnit5Test {
     @Test
     void trundlePool() {
         ResultData<String> resultData = service.trundlePool();
+        System.out.println(resultData);
+    }
+
+    @Test
+    void findPoolAttributes() {
+        List<String> list = new ArrayList<>();
+        list.add("0000000145");
+        list.add("0000000163");
+        List<PoolAttributeView> resultData = service.findPoolAttributes(list);
         System.out.println(resultData);
     }
 }

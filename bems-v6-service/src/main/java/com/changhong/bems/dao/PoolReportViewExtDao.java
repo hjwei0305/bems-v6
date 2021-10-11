@@ -3,6 +3,7 @@ package com.changhong.bems.dao;
 import com.changhong.bems.dto.report.AnnualBudgetResponse;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 实现功能：
@@ -19,5 +20,5 @@ public interface PoolReportViewExtDao {
      * @param year      年度
      * @return 年度预算分析报表数据结果
      */
-    List<AnnualBudgetResponse> annualBudgetAnalysis(String subjectId, Integer year);
+    List<AnnualBudgetResponse> annualBudgetAnalysis(String subjectId, Integer year, Set<String> itemCodes);
 }

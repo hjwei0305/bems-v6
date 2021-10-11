@@ -24,7 +24,7 @@ class ReportServiceTest extends BaseUnit5Test {
     void annualBudgetAnalysis() {
         String subjectId = "C81A4E58-BBD4-11EB-A896-0242C0A84429";
         int year = 2021;
-        List<AnnualBudgetResponse> list = service.annualBudgetAnalysis(subjectId, year);
+        List<AnnualBudgetResponse> list = service.annualBudgetAnalysis(subjectId, year, null);
         System.out.println(list);
     }
 }
