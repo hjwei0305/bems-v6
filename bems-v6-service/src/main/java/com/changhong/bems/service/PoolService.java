@@ -425,7 +425,7 @@ public class PoolService {
      */
     public List<PoolAttributeView> findPoolAttributes(List<String> codes) {
         Search search = Search.createSearch();
-        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_CODE, codes));
+        search.addFilter(new SearchFilter(PoolAttributeView.FIELD_CODE, codes, SearchFilter.Operator.IN));
         return poolAttributeDao.findByFilters(search);
     }
 
