@@ -64,8 +64,8 @@ public class ReportController implements ReportApi {
     public ResultData<List<Integer>> getYears(String subjectId) {
         List<Integer> result = new ArrayList<>(7);
         int year = LocalDate.now().getYear();
-        int i = 3;
-        while (i > 0) {
+        int i = 0;
+        while (i < 3) {
             result.add(year - i++);
         }
         return ResultData.success(result);
