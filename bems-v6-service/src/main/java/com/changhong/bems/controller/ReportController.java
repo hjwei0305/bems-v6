@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,6 +52,23 @@ public class ReportController implements ReportApi {
         List<Dimension> dimensions = categoryService.findDimensionBySubject(subjectId);
         List<DimensionDto> dtoList = dimensions.stream().map(d -> modelMapper.map(d, DimensionDto.class)).collect(Collectors.toList());
         return ResultData.success(dtoList);
+    }
+
+    /**
+     * 获取预算年度
+     *
+     * @param subjectId 预算主体
+     * @return 返回预算年度清单
+     */
+    @Override
+    public ResultData<List<Integer>> getYears(String subjectId) {
+        List<Integer> result = new ArrayList<>(7);
+        int year = LocalDate.now().getYear();
+        int i = 3;
+        while (i > 0) {
+            result.add(year - i++);
+        }
+        return ResultData.success(result);
     }
 
     /**

@@ -38,6 +38,16 @@ public interface ReportApi {
     ResultData<List<DimensionDto>> getDimensionsBySubjectId(@RequestParam String subjectId);
 
     /**
+     * 获取预算年度
+     *
+     * @param subjectId 预算主体
+     * @return 返回预算年度清单
+     */
+    @PostMapping(path = "getYears/{subjectId}")
+    @ApiOperation(value = "获取预算年度清单", notes = "获取预算年度清单")
+    ResultData<List<Integer>> getYears(@PathVariable("subjectId") String subjectId);
+
+    /**
      * 获取年度预算分析报表数据
      *
      * @param request 年度预算分析查询
