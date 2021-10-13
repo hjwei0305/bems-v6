@@ -1003,8 +1003,8 @@ public class OrderService extends BaseEntityService<Order> {
             // 订单行项未被确认,不能生效
             return ResultData.fail(ContextUtil.getMessage("order_detail_00016"));
         }
-        if (detail.getState() >= 1) {
-            // 未成功预占用,不用做释放
+        if (detail.getState() > 0) {
+            // 已生效的
             return ResultData.success();
         }
         String orderId = detail.getOrderId();
@@ -1128,6 +1128,9 @@ public class OrderService extends BaseEntityService<Order> {
             if (resultData.failed()) {
                 detail.setHasErr(Boolean.TRUE);
                 detail.setErrMsg(resultData.getMessage());
+            } else {
+                // 已生效
+                detail.setState((short) 1);
             }
             // 更新行项
             orderDetailService.save(detail);
