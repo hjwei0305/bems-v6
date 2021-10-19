@@ -1,9 +1,9 @@
 package com.changhong.bems.service.strategy.impl;
 
+import com.changhong.bems.dto.OperationType;
 import com.changhong.bems.dto.use.BudgetResponse;
 import com.changhong.bems.dto.use.BudgetUse;
 import com.changhong.bems.dto.use.BudgetUseResult;
-import com.changhong.bems.dto.OperationType;
 import com.changhong.bems.entity.LogRecord;
 import com.changhong.bems.entity.PoolAttributeView;
 import com.changhong.bems.service.PoolService;
@@ -47,6 +47,12 @@ public abstract class BaseExecutionStrategy {
 
         // 占用记录
         poolService.recordLog(record);
+
+        if (BigDecimal.ZERO.compareTo(useAmount) == 0) {
+            // 如果占用金额等于0,则不返回占用结果
+            return;
+        }
+
         BudgetUseResult result = new BudgetUseResult(record.getPoolCode(), pool.getTotalAmount(), pool.getUsedAmount(),
                 pool.getBalance(), record.getAmount());
         StringJoiner display = new StringJoiner("|")
