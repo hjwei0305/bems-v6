@@ -478,17 +478,20 @@ public class PoolService {
         if (CollectionUtils.isEmpty(subjectList)) {
             return resultList;
         }
+        List<SearchFilter> filters;
         {
             // 在其他维度条件基础上追加预算科目
             if (Objects.isNull(dimFilters)) {
-                dimFilters = new ArrayList<>();
+                filters = new ArrayList<>();
+            } else {
+                filters = new ArrayList<>(dimFilters);
             }
-            dimFilters.add(new SearchFilter(DimensionAttribute.FIELD_ITEM, item));
+            filters.add(new SearchFilter(DimensionAttribute.FIELD_ITEM, item));
         }
         // 预算主体id
         List<String> subjectIds = subjectList.stream().map(Subject::getId).collect(Collectors.toList());
         // 按预算主体和维度查询满足要求的预算维度属性
-        List<DimensionAttribute> attributeList = dimensionAttributeService.getAttributes(subjectIds, attribute, dimFilters);
+        List<DimensionAttribute> attributeList = dimensionAttributeService.getAttributes(subjectIds, attribute, filters);
         if (CollectionUtils.isEmpty(attributeList)) {
             return resultList;
         }
