@@ -1,8 +1,8 @@
 package com.changhong.bems.service.strategy.impl;
 
+import com.changhong.bems.dto.PoolAttributeDto;
 import com.changhong.bems.dto.use.BudgetResponse;
 import com.changhong.bems.dto.use.BudgetUse;
-import com.changhong.bems.entity.PoolAttributeView;
 import com.changhong.bems.service.PoolService;
 import com.changhong.bems.service.strategy.ExcessExecutionStrategy;
 import com.changhong.sei.core.dto.ResultData;
@@ -34,7 +34,7 @@ public class DefaultExcessExecutionStrategy extends BaseExecutionStrategy implem
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<BudgetResponse> execution(PoolAttributeView optimalPool, BudgetUse useBudget, Collection<SearchFilter> otherDimFilters) {
+    public ResultData<BudgetResponse> execution(PoolAttributeDto optimalPool, BudgetUse useBudget, Collection<SearchFilter> otherDimFilters) {
         // 占用总金额
         BigDecimal useAmount = useBudget.getAmount();
         // 允许超额使用,即直接占用预算,不做余额检查

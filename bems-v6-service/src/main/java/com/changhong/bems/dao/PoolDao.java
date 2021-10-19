@@ -19,7 +19,7 @@ import java.util.List;
  * @since 2021-04-22 12:54:27
  */
 @Repository
-public interface PoolDao extends BaseEntityDao<Pool> {
+public interface PoolDao extends BaseEntityDao<Pool>, PoolExtDao {
 
     /**
      * 更新预算池余额

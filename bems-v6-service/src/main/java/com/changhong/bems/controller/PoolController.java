@@ -3,13 +3,15 @@ package com.changhong.bems.controller;
 import com.changhong.bems.api.PoolApi;
 import com.changhong.bems.dto.LogRecordDto;
 import com.changhong.bems.dto.PoolAttributeDto;
+import com.changhong.bems.dto.PoolQuickQueryParam;
 import com.changhong.bems.entity.LogRecordView;
-import com.changhong.bems.entity.PoolAttributeView;
+import com.changhong.bems.entity.vo.PoolAttributeVo;
 import com.changhong.bems.service.PoolService;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
+import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.util.DateUtils;
 import com.changhong.sei.util.IdGenerator;
 import io.swagger.annotations.Api;
@@ -50,17 +52,31 @@ public class PoolController implements PoolApi {
      */
     @Override
     public ResultData<PageResult<PoolAttributeDto>> findByPage(Search search) {
-        PageResult<PoolAttributeView> result = service.findPoolByPage(search);
-        PageResult<PoolAttributeDto> pageResult = new PageResult<>(result);
-        List<PoolAttributeDto> list;
-        List<PoolAttributeView> poolAttributes = result.getRows();
-        if (CollectionUtils.isNotEmpty(poolAttributes)) {
-            list = poolAttributes.stream().map(p -> modelMapper.map(p, PoolAttributeDto.class)).collect(Collectors.toList());
-        } else {
-            list = new ArrayList<>();
+        // PageResult<PoolAttributeVo> result = service.findPoolByPage(search);
+        // PageResult<PoolAttributeDto> pageResult = new PageResult<>(result);
+        // List<PoolAttributeDto> list;
+        // List<PoolAttributeVo> poolAttributes = result.getRows();
+        // if (CollectionUtils.isNotEmpty(poolAttributes)) {
+        //     list = poolAttributes.stream().map(p -> modelMapper.map(p, PoolAttributeDto.class)).collect(Collectors.toList());
+        // } else {
+        //     list = new ArrayList<>();
+        // }
+        // pageResult.setRows(list);
+        // return ResultData.success(pageResult);
+        PoolQuickQueryParam param = new PoolQuickQueryParam();
+        List<SearchFilter> filters = search.getFilters();
+        for (SearchFilter filter : filters) {
+            // TODO
+            if ("subjectId".equals(filter.getFieldName())) {
+                param.setSubjectId(filter.getValue().toString());
+            } else if ("year".equals(filter.getFieldName())) {
+                param.setYear(Integer.parseInt(filter.getValue().toString()));
+            }
         }
-        pageResult.setRows(list);
-        return ResultData.success(pageResult);
+        param.setQuickSearchValue(search.getQuickSearchValue());
+        param.setPageInfo(search.getPageInfo());
+        param.setSortOrders(search.getSortOrders());
+        return ResultData.success(service.findPoolByPage(param));
     }
 
     /**
@@ -71,12 +87,7 @@ public class PoolController implements PoolApi {
      */
     @Override
     public ResultData<PoolAttributeDto> getPool(String id) {
-        PoolAttributeView attribute = service.findPoolAttribute(id);
-        if (Objects.nonNull(attribute)) {
-            return ResultData.success(modelMapper.map(attribute, PoolAttributeDto.class));
-        } else {
-            return ResultData.fail(ContextUtil.getMessage("pool_00001"));
-        }
+        return service.findPoolAttribute(id);
     }
 
     /**

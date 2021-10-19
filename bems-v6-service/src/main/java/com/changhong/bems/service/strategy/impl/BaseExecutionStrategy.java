@@ -1,11 +1,12 @@
 package com.changhong.bems.service.strategy.impl;
 
 import com.changhong.bems.dto.OperationType;
+import com.changhong.bems.dto.PoolAttributeDto;
 import com.changhong.bems.dto.use.BudgetResponse;
 import com.changhong.bems.dto.use.BudgetUse;
 import com.changhong.bems.dto.use.BudgetUseResult;
 import com.changhong.bems.entity.LogRecord;
-import com.changhong.bems.entity.PoolAttributeView;
+import com.changhong.bems.entity.vo.PoolAttributeVo;
 import com.changhong.bems.service.PoolService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -37,7 +38,7 @@ public abstract class BaseExecutionStrategy {
      * @param useAmount 占用金额
      */
     @Transactional(rollbackFor = Exception.class)
-    public void recordUseBudgetPool(BudgetResponse response, PoolAttributeView pool, BudgetUse useBudget, BigDecimal useAmount) {
+    public void recordUseBudgetPool(BudgetResponse response, PoolAttributeDto pool, BudgetUse useBudget, BigDecimal useAmount) {
         LogRecord record = new LogRecord(pool.getCode(), Boolean.FALSE, OperationType.USE, useAmount, useBudget.getEventCode());
         record.setSubjectId(pool.getSubjectId());
         record.setAttributeCode(pool.getAttributeCode());

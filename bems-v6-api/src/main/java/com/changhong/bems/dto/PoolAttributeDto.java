@@ -27,11 +27,6 @@ public class PoolAttributeDto extends BaseAttributeDto {
     @ApiModelProperty(value = "预算主体id")
     private String subjectId;
     /**
-     * 预算维度属性id
-     */
-    @ApiModelProperty(value = "预算维度属性id")
-    private String attributeId;
-    /**
      * 币种代码
      */
     @ApiModelProperty(value = "币种代码")
@@ -119,6 +114,59 @@ public class PoolAttributeDto extends BaseAttributeDto {
     @ApiModelProperty(value = "可用余额")
     private BigDecimal balance;
 
+    public PoolAttributeDto() {
+    }
+
+    public PoolAttributeDto(String id, String code, String subjectId, String currencyCode, String currencyName,
+                            String manageOrg, String manageOrgName, PeriodType periodType, Integer year,
+                            LocalDate startDate, LocalDate endDate,
+                            Boolean actived, Boolean use, Boolean roll, Boolean delay, BigDecimal totalAmount,
+                            BigDecimal usedAmount, BigDecimal balance,
+                            String attribute, Long attributeCode, String period, String periodName, String item,
+                            String itemName, String org, String orgName, String project, String projectName,
+                            String udf1, String udf1Name, String udf2, String udf2Name, String udf3, String udf3Name,
+                            String udf4, String udf4Name, String udf5, String udf5Name) {
+        this.id = id;
+        this.code = code;
+        this.subjectId = subjectId;
+        this.currencyCode = currencyCode;
+        this.currencyName = currencyName;
+        this.manageOrg = manageOrg;
+        this.manageOrgName = manageOrgName;
+        this.periodType = periodType;
+        this.year = year;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.actived = actived;
+        this.use = use;
+        this.roll = roll;
+        this.delay = delay;
+        this.totalAmount = totalAmount;
+        this.usedAmount = usedAmount;
+        this.balance = balance;
+
+        this.attribute = attribute;
+        this.attributeCode = attributeCode;
+        this.period = period;
+        this.periodName = periodName;
+        this.item = item;
+        this.itemName = itemName;
+        this.org = org;
+        this.orgName = orgName;
+        this.project = project;
+        this.projectName = projectName;
+        this.udf1 = udf1;
+        this.udf1Name = udf1Name;
+        this.udf2 = udf2;
+        this.udf2Name = udf2Name;
+        this.udf3 = udf3;
+        this.udf3Name = udf3Name;
+        this.udf4 = udf4;
+        this.udf4Name = udf4Name;
+        this.udf5 = udf5;
+        this.udf5Name = udf5Name;
+    }
+
     public String getCode() {
         return code;
     }
@@ -133,14 +181,6 @@ public class PoolAttributeDto extends BaseAttributeDto {
 
     public void setSubjectId(String subjectId) {
         this.subjectId = subjectId;
-    }
-
-    public String getAttributeId() {
-        return attributeId;
-    }
-
-    public void setAttributeId(String attributeId) {
-        this.attributeId = attributeId;
     }
 
     public String getCurrencyCode() {

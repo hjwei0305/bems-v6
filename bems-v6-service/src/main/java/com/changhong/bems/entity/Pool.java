@@ -31,6 +31,10 @@ public class Pool extends BaseEntity implements ITenant, ICodeUnique, Serializab
     public static final String FIELD_ROLL = "roll";
     public static final String FIELD_ACTIVED = "actived";
     public static final String FIELD_CREATED_DATE = "createdDate";
+    public static final String FIELD_CODE = "code";
+    public static final String FIELD_START_DATE = "startDate";
+    public static final String FIELD_END_DATE = "endDate";
+    public static final String FIELD_USE = "use";
 
     /**
      * 代码

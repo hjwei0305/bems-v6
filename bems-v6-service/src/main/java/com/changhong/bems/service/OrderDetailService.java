@@ -5,7 +5,10 @@ import com.changhong.bems.dao.OrderDetailDao;
 import com.changhong.bems.dto.OrderCategory;
 import com.changhong.bems.dto.OrderStatistics;
 import com.changhong.bems.dto.SplitDetailQuickQueryParam;
-import com.changhong.bems.entity.*;
+import com.changhong.bems.entity.DimensionAttribute;
+import com.changhong.bems.entity.Order;
+import com.changhong.bems.entity.OrderDetail;
+import com.changhong.bems.entity.Pool;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
@@ -433,14 +436,14 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     2-3.若不存在,则跳过.在预算生效或申请完成时,创建预算池(创建时再检查是否存在预算池)
                     3.若未找到,则返回错误:上级源预算池未找到
                  */
-                PoolAttributeView poolAttr = poolService.getParentPeriodBudgetPool(subjectId, detail);
-                if (Objects.isNull(poolAttr)) {
+                Pool parentPeriodPool = poolService.getParentPeriodBudgetPool(subjectId, detail);
+                if (Objects.isNull(parentPeriodPool)) {
                     // 添加单据行项时,上级期间预算池未找到.
                     return ResultData.fail(ContextUtil.getMessage("order_detail_00005"));
                 }
                 // 获取上级期间源预算池
-                detail.setOriginPoolCode(poolAttr.getCode());
-                detail.setOriginPoolAmount(poolAttr.getBalance());
+                detail.setOriginPoolCode(parentPeriodPool.getCode());
+                detail.setOriginPoolAmount(parentPeriodPool.getBalance());
 
                 resultData = poolService.getPool(subjectId, detail.getAttributeCode());
                 if (resultData.successful()) {

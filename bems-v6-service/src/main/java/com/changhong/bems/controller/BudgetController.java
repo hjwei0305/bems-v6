@@ -2,9 +2,9 @@ package com.changhong.bems.controller;
 
 import com.changhong.bems.api.BudgetApi;
 import com.changhong.bems.dto.BudgetPoolAmountDto;
+import com.changhong.bems.dto.PoolAttributeDto;
 import com.changhong.bems.dto.use.BudgetRequest;
 import com.changhong.bems.dto.use.BudgetResponse;
-import com.changhong.bems.entity.PoolAttributeView;
 import com.changhong.bems.service.BudgetService;
 import com.changhong.bems.service.PoolService;
 import com.changhong.sei.core.context.ContextUtil;
@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 预算(Budget)控制类
@@ -65,11 +64,11 @@ public class BudgetController implements BudgetApi {
      */
     @Override
     public ResultData<BudgetPoolAmountDto> getPoolByCode(String poolCode) {
-        PoolAttributeView attribute = poolService.findPoolAttributeByCode(poolCode);
-        if (Objects.nonNull(attribute)) {
-            return ResultData.success(this.convertDto(attribute));
+        ResultData<PoolAttributeDto> resultData = poolService.findPoolAttributeByCode(poolCode);
+        if (resultData.successful()) {
+            return ResultData.success(this.convertDto(resultData.getData()));
         } else {
-            return ResultData.fail(ContextUtil.getMessage("pool_00001"));
+            return ResultData.fail(resultData.getMessage());
         }
     }
 
@@ -81,10 +80,10 @@ public class BudgetController implements BudgetApi {
      */
     @Override
     public ResultData<List<BudgetPoolAmountDto>> getPoolsByCode(List<String> poolCodes) {
-        List<PoolAttributeView> attributes = poolService.findPoolAttributes(poolCodes);
+        List<PoolAttributeDto> attributes = poolService.findPoolAttributes(poolCodes);
         if (CollectionUtils.isNotEmpty(attributes)) {
             List<BudgetPoolAmountDto> results = new ArrayList<>();
-            for (PoolAttributeView attribute : attributes) {
+            for (PoolAttributeDto attribute : attributes) {
                 results.add(this.convertDto(attribute));
             }
             return ResultData.success(results);
@@ -93,7 +92,7 @@ public class BudgetController implements BudgetApi {
         }
     }
 
-    private BudgetPoolAmountDto convertDto(PoolAttributeView attribute) {
+    private BudgetPoolAmountDto convertDto(PoolAttributeDto attribute) {
         BudgetPoolAmountDto result = new BudgetPoolAmountDto(attribute.getCode(), attribute.getTotalAmount(), attribute.getUsedAmount(), attribute.getBalance());
         result.setPeriod(attribute.getPeriod());
         result.setPeriodName(attribute.getPeriodName());

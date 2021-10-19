@@ -1,13 +1,14 @@
 # 应用全局配置
 sei:
   application:
-    env: DEV
+    env: TEST
     code: bems-v6
     version: '@project_version@'
     description: '@project_description@'
   mock: # 本地调试的当前用户配置
     user:
-      tenant-code: 10044
+#      tenant-code: 10044
+      tenant-code: RCSIT
       account: admin
 
 # spring配置
@@ -16,6 +17,7 @@ spring:
     name: ${sei.application.code}
   jpa:
     open-in-view: false
+    show-sql: true
   cloud:
     config:
       # 配置中心地址
@@ -28,7 +30,8 @@ spring:
       # zookeeper注册中心开关
       enabled: true
       # zk 地址
-      connect-string: 10.4.208.132:2181
+#      connect-string: 10.4.208.132:2181
+      connect-string: 10.4.208.114:2181,10.4.208.115:2181,10.4.208.116:2181
     consul:
       # consul注册中心开关
       enabled: false

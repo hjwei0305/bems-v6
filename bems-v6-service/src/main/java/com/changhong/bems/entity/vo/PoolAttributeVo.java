@@ -1,6 +1,7 @@
-package com.changhong.bems.entity;
+package com.changhong.bems.entity.vo;
 
 import com.changhong.bems.dto.PeriodType;
+import com.changhong.bems.entity.BaseAttribute;
 import com.changhong.sei.core.entity.ITenant;
 
 import javax.persistence.*;
@@ -14,9 +15,7 @@ import java.time.LocalDate;
  * @author sei
  * @since 2021-04-22 12:54:27
  */
-@Entity
-@Table(name = "view_pool")
-public class PoolAttributeView extends BaseAttribute implements ITenant, Serializable {
+public class PoolAttributeVo extends BaseAttribute implements ITenant, Serializable {
     private static final long serialVersionUID = 345291355065499642L;
     public static final String FIELD_SUBJECT_ID = "subjectId";
     public static final String FIELD_CORP_CODE = "corpCode";
@@ -29,108 +28,86 @@ public class PoolAttributeView extends BaseAttribute implements ITenant, Seriali
     /**
      * 预算池编号
      */
-    @Column(name = "code")
     private String code;
     /**
      * 预算主体id
      */
-    @Column(name = "subject_id")
     private String subjectId;
     /**
      * 公司代码
      */
-    @Column(name = "corporation_code")
     private String corpCode;
     /**
      * 币种代码
      */
-    @Column(name = "currency_code")
     private String currencyCode;
     /**
      * 币种名称
      */
-    @Column(name = "currency_name")
     private String currencyName;
     /**
      * 归口管理部门
      */
-    @Column(name = "manage_org")
     private String manageOrg;
     /**
      * 归口管理部门名称
      */
-    @Column(name = "manage_org_name")
     private String manageOrgName;
     /**
      * 期间分类
      */
-    @Column(name = "period_category")
-    @Enumerated(EnumType.STRING)
     private PeriodType periodType;
     /**
      * 所属年度
      */
-    @Column(name = "year")
     private Integer year;
     /**
      * 起始日期
      */
-    @Column(name = "start_date")
     private LocalDate startDate;
     /**
      * 截止日期
      */
-    @Column(name = "end_date")
     private LocalDate endDate;
     /**
      * 执行策略id
      */
-    @Column(name = "strategy_id")
     private String strategyId;
     /**
      * 执行策略名称
      */
-    @Column(name = "strategy_name")
     private String strategyName;
     /**
      * 是否启用
      */
-    @Column(name = "is_actived")
     private Boolean actived = Boolean.TRUE;
     /**
      * 允许使用(业务可用)
      */
-    @Column(name = "is_use")
     private Boolean use = Boolean.FALSE;
     /**
      * 允许结转
      */
-    @Column(name = "is_roll")
     private Boolean roll = Boolean.FALSE;
     /**
      * 是否可延期
      */
-    @Column(name = "is_delay")
     private Boolean delay = Boolean.FALSE;
     /**
      * 总额
      */
-    @Column(name = "total_amount")
     private BigDecimal totalAmount = BigDecimal.ZERO;
     /**
      * 使用量
      */
-    @Column(name = "used_amount")
     private BigDecimal usedAmount = BigDecimal.ZERO;
     /**
      * 可用余额
      */
-    @Column(name = "balance")
     private BigDecimal balance = BigDecimal.ZERO;
     /**
      * 租户代码
      */
-    @Column(name = "tenant_code")
     private String tenantCode;
 
     public String getCode() {
@@ -145,7 +122,7 @@ public class PoolAttributeView extends BaseAttribute implements ITenant, Seriali
         return corpCode;
     }
 
-    public PoolAttributeView setCorpCode(String corpCode) {
+    public PoolAttributeVo setCorpCode(String corpCode) {
         this.corpCode = corpCode;
         return this;
     }

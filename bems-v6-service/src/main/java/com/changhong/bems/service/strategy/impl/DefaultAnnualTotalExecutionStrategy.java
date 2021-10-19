@@ -1,8 +1,8 @@
 package com.changhong.bems.service.strategy.impl;
 
+import com.changhong.bems.dto.PoolAttributeDto;
 import com.changhong.bems.dto.use.BudgetResponse;
 import com.changhong.bems.dto.use.BudgetUse;
-import com.changhong.bems.entity.PoolAttributeView;
 import com.changhong.bems.service.PoolService;
 import com.changhong.bems.service.strategy.AnnualTotalExecutionStrategy;
 import com.changhong.sei.core.context.ContextUtil;
@@ -38,7 +38,7 @@ public class DefaultAnnualTotalExecutionStrategy extends BaseExecutionStrategy i
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<BudgetResponse> execution(PoolAttributeView optimalPool, BudgetUse useBudget, Collection<SearchFilter> otherDimFilters) {
+    public ResultData<BudgetResponse> execution(PoolAttributeDto optimalPool, BudgetUse useBudget, Collection<SearchFilter> otherDimFilters) {
         // 占用结果
         BudgetResponse response = new BudgetResponse();
         response.setBizId(useBudget.getBizId());
@@ -52,10 +52,10 @@ public class DefaultAnnualTotalExecutionStrategy extends BaseExecutionStrategy i
             // 预算占用日期
             LocalDate useDate = LocalDate.parse(useBudget.getDate(), DateTimeFormatter.ISO_DATE);
             // 获取同期间预算池(含自己但不含占用日期之前的预算池)
-            final List<PoolAttributeView> poolAttributes = poolService.getSamePeriodBudgetPool(optimalPool, useDate);
+            final List<PoolAttributeDto> poolAttributes = poolService.getSamePeriodBudgetPool(optimalPool, useDate);
             // 已占用金额
             BigDecimal useAmount = BigDecimal.ZERO;
-            for (PoolAttributeView pool : poolAttributes) {
+            for (PoolAttributeDto pool : poolAttributes) {
                 // 需要占用的金额 = 占用总额 -已占额
                 BigDecimal needAmount = amount.subtract(useAmount);
                 if (BigDecimal.ZERO.compareTo(needAmount) == 0) {

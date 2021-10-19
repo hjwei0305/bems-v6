@@ -13,97 +13,123 @@ import io.swagger.annotations.ApiModelProperty;
 @ApiModel(description = "预算维度属性DTO")
 public class BaseAttributeDto extends BaseEntityDto {
     private static final long serialVersionUID = 874180418915412119L;
-
+    /**
+     * 属性
+     * 使用到的维度字段名,按asci码排序,逗号(,)分隔
+     */
+    @ApiModelProperty(value = "维度属性")
+    protected String attribute;
+    /**
+     * 属性值hash
+     */
+    @ApiModelProperty(value = "维度属性值hash")
+    protected Long attributeCode = -1L;
     /**
      * 预算期间
      */
     @ApiModelProperty(value = "预算期间")
-    private String period;
+    protected String period;
     /**
      * 预算期间名称
      */
     @ApiModelProperty(value = "预算期间名称")
-    private String periodName;
+    protected String periodName;
     /**
      * 预算科目
      */
     @ApiModelProperty(value = "预算科目")
-    private String item;
+    protected String item;
     /**
      * 预算科目名称
      */
     @ApiModelProperty(value = "预算科目名称")
-    private String itemName;
+    protected String itemName;
     /**
      * 组织
      */
     @ApiModelProperty(value = "组织")
-    private String org;
+    protected String org;
     /**
      * 组织名称
      */
     @ApiModelProperty(value = "组织名称")
-    private String orgName;
+    protected String orgName;
     /**
      * 项目
      */
     @ApiModelProperty(value = "项目")
-    private String project;
+    protected String project;
     /**
      * 项目名称
      */
     @ApiModelProperty(value = "项目名称")
-    private String projectName;
+    protected String projectName;
     /**
      * 自定义1
      */
     @ApiModelProperty(value = "自定义1")
-    private String udf1;
+    protected String udf1;
     /**
      * 自定义1名称
      */
     @ApiModelProperty(value = "自定义1名称")
-    private String udf1Name;
+    protected String udf1Name;
     /**
      * 自定义2
      */
     @ApiModelProperty(value = "自定义2")
-    private String udf2;
+    protected String udf2;
     /**
      * 自定义2名称
      */
     @ApiModelProperty(value = "自定义2名称")
-    private String udf2Name;
+    protected String udf2Name;
     /**
      * 自定义3
      */
     @ApiModelProperty(value = "自定义3")
-    private String udf3;
+    protected String udf3;
     /**
      * 自定义3名称
      */
     @ApiModelProperty(value = "自定义3名称")
-    private String udf3Name;
+    protected String udf3Name;
     /**
      * 自定义4
      */
     @ApiModelProperty(value = "自定义4")
-    private String udf4;
+    protected String udf4;
     /**
      * 自定义4名称
      */
     @ApiModelProperty(value = "自定义4名称")
-    private String udf4Name;
+    protected String udf4Name;
     /**
      * 自定义5
      */
     @ApiModelProperty(value = "自定义5")
-    private String udf5;
+    protected String udf5;
     /**
      * 自定义5名称
      */
     @ApiModelProperty(value = "自定义5名称")
-    private String udf5Name;
+    protected String udf5Name;
+
+    public String getAttribute() {
+        return attribute;
+    }
+
+    public void setAttribute(String attribute) {
+        this.attribute = attribute;
+    }
+
+    public Long getAttributeCode() {
+        return attributeCode;
+    }
+
+    public void setAttributeCode(Long attributeCode) {
+        this.attributeCode = attributeCode;
+    }
 
     public String getPeriod() {
         return period;

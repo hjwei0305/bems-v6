@@ -3,11 +3,15 @@ package com.changhong.bems.service;
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.OperationType;
 import com.changhong.bems.dto.OrganizationDto;
+import com.changhong.bems.dto.PoolAttributeDto;
 import com.changhong.bems.dto.use.BudgetFree;
 import com.changhong.bems.dto.use.BudgetRequest;
 import com.changhong.bems.dto.use.BudgetResponse;
 import com.changhong.bems.dto.use.BudgetUse;
-import com.changhong.bems.entity.*;
+import com.changhong.bems.entity.Dimension;
+import com.changhong.bems.entity.DimensionAttribute;
+import com.changhong.bems.entity.LogRecord;
+import com.changhong.bems.entity.Strategy;
 import com.changhong.bems.service.client.OrganizationManager;
 import com.changhong.bems.service.strategy.BudgetExecutionStrategy;
 import com.changhong.bems.service.strategy.DimensionMatchStrategy;
@@ -176,7 +180,7 @@ public class BudgetService {
         // 查询满足条件的预算池(非必要维度)
         final Collection<SearchFilter> otherDimFilters = otherDimensions.values();
         // 按预算占用参数获取预算池大致范围
-        final List<PoolAttributeView> poolAttributes = poolService.getBudgetPools(attribute, useDate,
+        final List<PoolAttributeDto> poolAttributes = poolService.getBudgetPools(attribute, useDate,
                 useBudget.getCorpCode(), useBudget.getItem(), otherDimFilters);
         if (CollectionUtils.isEmpty(poolAttributes)) {
             // 预算占用时,未找到满足条件的预算池!
@@ -184,11 +188,11 @@ public class BudgetService {
         }
 
         // 获取最优预算池
-        ResultData<PoolAttributeView> resultData = this.getOptimalPool(attribute, useBudget, poolAttributes);
+        ResultData<PoolAttributeDto> resultData = this.getOptimalPool(attribute, useBudget, poolAttributes);
         if (resultData.failed()) {
             return ResultData.fail(resultData.getMessage());
         }
-        PoolAttributeView pool = resultData.getData();
+        PoolAttributeDto pool = resultData.getData();
         Strategy strategy = strategyService.findOne(pool.getStrategyId());
         if (Objects.isNull(strategy)) {
             // 预算占用时,执行策略[{0}]不存在!
@@ -425,8 +429,8 @@ public class BudgetService {
      * @param poolAttributes 占用预算池范围清单
      * @return 预算池使用优先级
      */
-    private ResultData<PoolAttributeView> getOptimalPool(String attribute, BudgetUse useBudget, List<PoolAttributeView> poolAttributes) {
-        List<PoolAttributeView> pools = null;
+    private ResultData<PoolAttributeDto> getOptimalPool(String attribute, BudgetUse useBudget, List<PoolAttributeDto> poolAttributes) {
+        List<PoolAttributeDto> pools = null;
         // 组织id
         String orgId = useBudget.getOrg();
         // 检查是否包含组织维度
