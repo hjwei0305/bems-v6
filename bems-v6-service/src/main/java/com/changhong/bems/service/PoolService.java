@@ -5,7 +5,6 @@ import com.changhong.bems.commons.PoolHelper;
 import com.changhong.bems.dao.PoolDao;
 import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.*;
-import com.changhong.bems.entity.vo.PoolAttributeVo;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.context.SessionUser;
 import com.changhong.sei.core.context.mock.LocalMockUser;
@@ -481,7 +480,7 @@ public class PoolService {
      * @return 预算池
      */
     public ResultData<PoolAttributeDto> findPoolAttributeByCode(String code) {
-        Pool pool = dao.findFirstByProperty(PoolAttributeVo.FIELD_CODE, code);
+        Pool pool = dao.findFirstByProperty(Pool.FIELD_CODE, code);
         return this.getPoolAttribute(pool);
     }
 
@@ -684,17 +683,17 @@ public class PoolService {
 
         Search search = Search.createSearch();
         // 预算主体id
-        search.addFilter(new SearchFilter(PoolAttributeVo.FIELD_SUBJECT_ID, pool.getSubjectId()));
+        search.addFilter(new SearchFilter(Pool.FIELD_SUBJECT_ID, pool.getSubjectId()));
         // 预算期间类型
-        search.addFilter(new SearchFilter(PoolAttributeVo.FIELD_PERIOD_TYPE, pool.getPeriodType()));
+        search.addFilter(new SearchFilter(Pool.FIELD_PERIOD_TYPE, pool.getPeriodType()));
         // 预算维度属性散列值
         if (attributeCodes.size() > 1) {
-            search.addFilter(new SearchFilter(PoolAttributeVo.FIELD_ATTRIBUTE_CODE, attributeCodes, SearchFilter.Operator.IN));
+            search.addFilter(new SearchFilter(Pool.FIELD_ATTRIBUTE_CODE, attributeCodes, SearchFilter.Operator.IN));
         } else {
-            search.addFilter(new SearchFilter(PoolAttributeVo.FIELD_ATTRIBUTE_CODE, attributeCodes.get(0)));
+            search.addFilter(new SearchFilter(Pool.FIELD_ATTRIBUTE_CODE, attributeCodes.get(0)));
         }
         // 启用
-        search.addFilter(new SearchFilter(PoolAttributeVo.FIELD_ACTIVE, Boolean.TRUE));
+        search.addFilter(new SearchFilter(Pool.FIELD_ACTIVED, Boolean.TRUE));
         // 按条件查询满足的预算池
         Pool nextPeriodPool = dao.findFirstByFilters(search);
         if (Objects.isNull(nextPeriodPool)) {

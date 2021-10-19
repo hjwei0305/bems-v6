@@ -6,7 +6,6 @@ import com.changhong.bems.dto.use.BudgetResponse;
 import com.changhong.bems.dto.use.BudgetUse;
 import com.changhong.bems.dto.use.BudgetUseResult;
 import com.changhong.bems.entity.LogRecord;
-import com.changhong.bems.entity.vo.PoolAttributeVo;
 import com.changhong.bems.service.PoolService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

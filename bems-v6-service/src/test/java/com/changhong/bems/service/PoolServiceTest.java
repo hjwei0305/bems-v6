@@ -3,14 +3,11 @@ package com.changhong.bems.service;
 import com.changhong.bems.dto.PoolAttributeDto;
 import com.changhong.bems.dto.PoolQuickQueryParam;
 import com.changhong.bems.entity.Pool;
-import com.changhong.bems.entity.vo.PoolAttributeVo;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageInfo;
 import com.changhong.sei.core.dto.serach.PageResult;
-import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchOrder;
 import com.changhong.sei.core.test.BaseUnit5Test;
-import com.changhong.sei.core.util.JsonUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
