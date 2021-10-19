@@ -17,7 +17,6 @@ spring:
     name: ${sei.application.code}
   jpa:
     open-in-view: false
-    show-sql: true
   cloud:
     config:
       # 配置中心地址

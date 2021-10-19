@@ -56,6 +56,7 @@ class PoolServiceTest extends BaseUnit5Test {
         PoolQuickQueryParam queryParam = new PoolQuickQueryParam();
         queryParam.setSubjectId("70DCA496-D2F9-11EB-8BB5-0242C0A84425");
         queryParam.setYear(2021);
+        queryParam.setQuickSearchValue("差旅费");
         queryParam.setPageInfo(new PageInfo());
         List<SearchOrder> searchOrders = new ArrayList<>();
         searchOrders.add(SearchOrder.asc("code"));

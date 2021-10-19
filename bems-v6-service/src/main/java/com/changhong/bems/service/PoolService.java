@@ -406,7 +406,28 @@ public class PoolService {
      * @return 分页结果
      */
     public PageResult<PoolAttributeDto> findPoolByPage(PoolQuickQueryParam param) {
-        return dao.queryPoolPaging(param);
+        PageResult<PoolAttributeDto> pageResult = dao.queryPoolPaging(param);
+        if (pageResult.getTotal() > 0) {
+            Strategy strategy;
+            ResultData<Strategy> resultData;
+            List<PoolAttributeDto> list = pageResult.getRows();
+            Map<String, Strategy> strategyMap = new HashMap<>();
+            for (PoolAttributeDto pool : list) {
+                strategy = strategyMap.get(pool.getSubjectId() + pool.getItem());
+                if (Objects.isNull(strategy)) {
+                    resultData = strategyService.getStrategy(pool.getSubjectId(), pool.getItem());
+                    if (resultData.successful()) {
+                        strategy = resultData.getData();
+                        strategyMap.put(pool.getSubjectId() + pool.getItem(), strategy);
+                    }
+                }
+                if (Objects.nonNull(strategy)) {
+                    pool.setStrategyId(strategy.getId());
+                    pool.setStrategyName(strategy.getName());
+                }
+            }
+        }
+        return pageResult;
     }
 
     /**
@@ -524,16 +545,24 @@ public class PoolService {
         // 按条件查询满足的预算池
         List<Pool> poolList = dao.findByFilters(search);
         if (CollectionUtils.isNotEmpty(poolList)) {
-            DimensionAttribute dimensionAttribute;
             PoolAttributeDto dto;
+            Strategy strategy;
+            ResultData<Strategy> resultData;
+            DimensionAttribute dimensionAttribute;
             for (Pool pool : poolList) {
                 dto = PoolHelper.constructPoolAttribute(pool);
 
                 dimensionAttribute = attributeMap.get(pool.getSubjectId() + pool.getAttributeCode());
                 if (Objects.nonNull(dimensionAttribute)) {
-                    // 预算维度属性赋值
-                    PoolHelper.putAttribute(dto, dimensionAttribute);
-                    resultList.add(dto);
+                    resultData = strategyService.getStrategy(pool.getSubjectId(), dimensionAttribute.getItem());
+                    if (resultData.successful()) {
+                        strategy = resultData.getData();
+                        dto.setStrategyId(strategy.getId());
+                        dto.setStrategyName(strategy.getName());
+                        // 预算维度属性赋值
+                        PoolHelper.putAttribute(dto, dimensionAttribute);
+                        resultList.add(dto);
+                    }
                 }
             }
         }
@@ -594,15 +623,23 @@ public class PoolService {
         // 按条件查询满足的预算池
         List<Pool> poolList = dao.findByFilters(search);
         if (CollectionUtils.isNotEmpty(poolList)) {
-            DimensionAttribute dimensionAttribute;
+            Strategy strategy;
+            ResultData<Strategy> resultData;
             PoolAttributeDto dto;
+            DimensionAttribute dimensionAttribute;
             for (Pool pool : poolList) {
                 dto = PoolHelper.constructPoolAttribute(pool);
                 dimensionAttribute = attributeMap.get(pool.getSubjectId() + pool.getAttributeCode());
                 if (Objects.nonNull(dimensionAttribute)) {
-                    // 预算维度属性赋值
-                    PoolHelper.putAttribute(dto, dimensionAttribute);
-                    resultList.add(dto);
+                    resultData = strategyService.getStrategy(pool.getSubjectId(), dimensionAttribute.getItem());
+                    if (resultData.successful()) {
+                        strategy = resultData.getData();
+                        dto.setStrategyId(strategy.getId());
+                        dto.setStrategyName(strategy.getName());
+                        // 预算维度属性赋值
+                        PoolHelper.putAttribute(dto, dimensionAttribute);
+                        resultList.add(dto);
+                    }
                 }
             }
         }
