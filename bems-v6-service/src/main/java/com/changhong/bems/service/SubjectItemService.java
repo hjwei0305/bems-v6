@@ -65,7 +65,7 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
     public OperateResult delete(String id) {
         SubjectItem entity = findOne(id);
         if (Objects.nonNull(entity)) {
-            DimensionAttribute attribute = dimensionAttributeService.getFirstByProperty(DimensionAttribute.FIELD_ITEM, id);
+            DimensionAttribute attribute = dimensionAttributeService.getFirstByProperty(DimensionAttribute.FIELD_ITEM, entity.getCode());
             if (Objects.nonNull(attribute)) {
                 // 当前科目已被使用,禁止删除!
                 return OperateResult.operationFailure("subject_item_00001");
