@@ -89,7 +89,7 @@ order by p.code
         paramMap.put("year", queryParam.getYear());
 
         StringBuilder fromAndWhere = new StringBuilder(128);
-        fromAndWhere.append("from Pool p left join DimensionAttribute a on ");
+        fromAndWhere.append("from Pool p join DimensionAttribute a on ");
         fromAndWhere.append("a.subjectId = :subjectId ");
         fromAndWhere.append("and p.subjectId = a.subjectId and p.attributeCode = a.attributeCode and p.tenantCode = a.tenantCode ");
         // 预算科目代码清单

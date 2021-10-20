@@ -9,6 +9,7 @@ import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.SearchOrder;
 import com.changhong.sei.core.test.BaseUnit5Test;
 import com.changhong.sei.core.util.JsonUtils;
+import com.google.common.collect.Sets;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -51,16 +52,11 @@ class PoolServiceTest extends BaseUnit5Test {
 
     @Test
     void findPoolByPage() {
-        // PoolQuickQueryParam queryParam = new PoolQuickQueryParam();
-        // queryParam.setSubjectId("70DCA496-D2F9-11EB-8BB5-0242C0A84425");
-        // queryParam.setYear(2021);
+        PoolQuickQueryParam queryParam = new PoolQuickQueryParam();
+        queryParam.setSubjectId("C81A4E58-BBD4-11EB-A896-0242C0A84429");
+        queryParam.setYear(2021);
         // queryParam.setQuickSearchValue("差旅费");
-        // queryParam.setPageInfo(new PageInfo());
-        // List<SearchOrder> searchOrders = new ArrayList<>();
-        // searchOrders.add(SearchOrder.asc("code"));
-        // queryParam.setSortOrders(searchOrders);
-        String s = "{\"quickSearchValue\":\"\",\"quickSearchProperties\":[\"code\",\"item\",\"itemName\",\"periodName\",\"projectName\",\"orgName\",\"udf1Name\",\"udf2Name\",\"udf3Name\",\"udf4Name\",\"udf5Name\"],\"pageInfo\":{\"page\":1,\"rows\":50},\"sortOrders\":[{\"property\":\"itemName\",\"direction\":\"ASC\"},{\"property\":\"startDate\",\"direction\":\"ASC\"}],\"year\":2021,\"periodType\":\"ANNUAL\",\"subjectId\":\"C81A4E58-BBD4-11EB-A896-0242C0A84429\"}";
-        PoolQuickQueryParam queryParam = JsonUtils.fromJson(s, PoolQuickQueryParam.class);
+        queryParam.setPeriodIds(Sets.newHashSet("9862C318-1C60-11EC-A571-0242C0A84429"));
         PageResult<PoolAttributeDto> pageResult = service.findPoolByPage(queryParam);
         System.out.println(pageResult);
     }
