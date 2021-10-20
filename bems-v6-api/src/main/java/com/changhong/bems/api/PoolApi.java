@@ -2,6 +2,7 @@ package com.changhong.bems.api;
 
 import com.changhong.bems.dto.LogRecordDto;
 import com.changhong.bems.dto.PoolAttributeDto;
+import com.changhong.bems.dto.PoolQuickQueryParam;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
@@ -35,7 +36,7 @@ public interface PoolApi {
      */
     @PostMapping(path = "findByPage", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "分页查询预算池", notes = "分页查询预算池")
-    ResultData<PageResult<PoolAttributeDto>> findByPage(@RequestBody Search search);
+    ResultData<PageResult<PoolAttributeDto>> findByPage(@RequestBody PoolQuickQueryParam search);
 
     /**
      * 通过Id获取一个预算池

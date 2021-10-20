@@ -9,13 +9,10 @@ import com.changhong.sei.core.dto.serach.PageInfo;
 import com.changhong.sei.core.dto.serach.PageResult;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.query.internal.NativeQueryImpl;
-import org.hibernate.transform.Transformers;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -30,16 +27,7 @@ public class PoolDaoImpl extends BaseEntityDaoImpl<Pool> implements PoolExtDao {
     public PoolDaoImpl(EntityManager entityManager) {
         super(Pool.class, entityManager);
     }
-
-    /**
-     * 分页查询预算池
-     *
-     * @param queryParam 查询对象
-     * @return 分页结果
-     */
-    @Override
-    public PageResult<PoolAttributeDto> queryPoolPaging(PoolQuickQueryParam queryParam) {
-        /*
+/*
 select `p`.`id`                                                                                        AS `id`,
        `p`.`code`                                                                                      AS `code`,
        `p`.`subject_id`                                                                                AS `subject_id`,
@@ -88,6 +76,14 @@ where p.subject_id='70DCA496-D2F9-11EB-8BB5-0242C0A84425' and p.year='2021'
 order by p.code
          */
 
+    /**
+     * 分页查询预算池
+     *
+     * @param queryParam 查询对象
+     * @return 分页结果
+     */
+    @Override
+    public PageResult<PoolAttributeDto> queryPoolPaging(PoolQuickQueryParam queryParam) {
         Map<String, Object> paramMap = new HashMap<>(7);
         paramMap.put("subjectId", queryParam.getSubjectId());
         paramMap.put("year", queryParam.getYear());

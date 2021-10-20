@@ -9,7 +9,6 @@ import com.changhong.bems.service.PoolService;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
-import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.util.DateUtils;
 import com.changhong.sei.util.IdGenerator;
 import io.swagger.annotations.Api;
@@ -51,7 +50,7 @@ public class PoolController implements PoolApi {
      * @return 分页查询结果
      */
     @Override
-    public ResultData<PageResult<PoolAttributeDto>> findByPage(Search search) {
+    public ResultData<PageResult<PoolAttributeDto>> findByPage(PoolQuickQueryParam search) {
         // PageResult<PoolAttributeVo> result = service.findPoolByPage(search);
         // PageResult<PoolAttributeDto> pageResult = new PageResult<>(result);
         // List<PoolAttributeDto> list;
@@ -63,20 +62,19 @@ public class PoolController implements PoolApi {
         // }
         // pageResult.setRows(list);
         // return ResultData.success(pageResult);
-        PoolQuickQueryParam param = new PoolQuickQueryParam();
-        List<SearchFilter> filters = search.getFilters();
-        for (SearchFilter filter : filters) {
-            // TODO
-            if ("subjectId".equals(filter.getFieldName())) {
-                param.setSubjectId(filter.getValue().toString());
-            } else if ("year".equals(filter.getFieldName())) {
-                param.setYear(Integer.parseInt(filter.getValue().toString()));
-            }
-        }
-        param.setQuickSearchValue(search.getQuickSearchValue());
-        param.setPageInfo(search.getPageInfo());
-        param.setSortOrders(search.getSortOrders());
-        return ResultData.success(service.findPoolByPage(param));
+        // PoolQuickQueryParam param = new PoolQuickQueryParam();
+        // List<SearchFilter> filters = search.getFilters();
+        // for (SearchFilter filter : filters) {
+        //     if ("subjectId".equals(filter.getFieldName())) {
+        //         param.setSubjectId(filter.getValue().toString());
+        //     } else if ("year".equals(filter.getFieldName())) {
+        //         param.setYear(Integer.parseInt(filter.getValue().toString()));
+        //     }
+        // }
+        // param.setQuickSearchValue(search.getQuickSearchValue());
+        // param.setPageInfo(search.getPageInfo());
+        // param.setSortOrders(search.getSortOrders());
+        return ResultData.success(service.findPoolByPage(search));
     }
 
     /**
