@@ -1,16 +1,12 @@
 package com.changhong.bems.dto;
 
-import com.changhong.sei.core.dto.serach.QuickQueryParam;
-import com.changhong.sei.core.dto.serializer.EnumJsonSerializer;
-import com.changhong.sei.enums.UserType;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.changhong.sei.core.dto.serach.PageInfo;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Set;
 
@@ -21,7 +17,7 @@ import java.util.Set;
  * @version 1.0.00  2021-10-19 21:53
  */
 @ApiModel("预算池分页查询参数")
-public class PoolQuickQueryParam extends QuickQueryParam implements Serializable {
+public class PoolQuickQueryParam implements Serializable {
     private static final long serialVersionUID = 1482015432192790921L;
     /**
      * 预算主体id
@@ -87,6 +83,15 @@ public class PoolQuickQueryParam extends QuickQueryParam implements Serializable
      */
     @ApiModelProperty(value = "自定义维度5清单")
     private Set<String> udf5s;
+
+    /**
+     * 快速搜索关键字
+     */
+    private String quickSearchValue;
+    /**
+     * 分页信息
+     */
+    private PageInfo pageInfo = new PageInfo();
 
     public String getSubjectId() {
         return subjectId;
@@ -182,5 +187,21 @@ public class PoolQuickQueryParam extends QuickQueryParam implements Serializable
 
     public void setUdf5s(Set<String> udf5s) {
         this.udf5s = udf5s;
+    }
+
+    public String getQuickSearchValue() {
+        return quickSearchValue;
+    }
+
+    public void setQuickSearchValue(String quickSearchValue) {
+        this.quickSearchValue = quickSearchValue;
+    }
+
+    public PageInfo getPageInfo() {
+        return pageInfo;
+    }
+
+    public void setPageInfo(PageInfo pageInfo) {
+        this.pageInfo = pageInfo;
     }
 }

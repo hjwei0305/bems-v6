@@ -139,7 +139,7 @@ order by p.code
         }
         fromAndWhere.append("where p.subjectId = :subjectId and p.year = :year ");
         if (Objects.nonNull(queryParam.getPeriodType())) {
-            fromAndWhere.append("and p.periodType = :periodType");
+            fromAndWhere.append("and p.periodType = :periodType ");
             paramMap.put("periodType", queryParam.getPeriodType());
         }
 
@@ -160,11 +160,10 @@ order by p.code
                     .append(") ");
             paramMap.put("quickSearchValue", "%".concat(queryParam.getQuickSearchValue()).concat("%"));
         }
-        String orderBy = "order by p.code ";
 
         Query countQuery = entityManager.createQuery("select count(*) " + fromAndWhere);
 
-        StringBuilder selectData = new StringBuilder();
+        StringBuilder selectData = new StringBuilder(32);
         selectData.append("select new com.changhong.bems.dto.PoolAttributeDto(")
                 .append("p.id, p.code, p.subjectId, p.currencyCode, p.currencyName, p.manageOrg, p.manageOrgName, ")
                 .append("p.periodType, p.year, p.startDate, p.endDate, p.actived, p.use, p.roll, p.delay, ")
@@ -172,7 +171,10 @@ order by p.code
                 .append("a.item, a.itemName, a.org, a.orgName, a.project, a.projectName, a.udf1, a.udf1Name, ")
                 .append("a.udf2, a.udf2Name, a.udf3, a.udf3Name, a.udf4, a.udf4Name, a.udf5, a.udf5Name ")
                 .append(") ");
-        selectData.append(fromAndWhere).append(orderBy);
+        // 拼接查询条件
+        selectData.append(fromAndWhere)
+                // 默认按预算编码排倒序
+                .append("order by p.code desc ");
 
         Query query = entityManager.createQuery(selectData.toString());
         // query.unwrap(NativeQueryImpl.class).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
