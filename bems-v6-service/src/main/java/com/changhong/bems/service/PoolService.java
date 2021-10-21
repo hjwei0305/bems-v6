@@ -7,8 +7,6 @@ import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.*;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.context.SessionUser;
-import com.changhong.sei.core.context.mock.LocalMockUser;
-import com.changhong.sei.core.context.mock.MockUser;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
@@ -18,7 +16,6 @@ import com.changhong.sei.core.limiter.support.lock.SeiLock;
 import com.changhong.sei.serial.sdk.SerialService;
 import com.changhong.sei.util.DateUtils;
 import com.changhong.sei.util.IdGenerator;
-import com.changhong.sei.util.thread.ThreadLocalHolder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -85,17 +82,17 @@ public class PoolService {
     /**
      * 创建一个预算池
      *
-     * @param order         申请单
-     * @param baseAttribute 预算维度属性
+     * @param subjectId      预算主体id
+     * @param categoryId     预算类型id
+     * @param currencyCode   币种
+     * @param managerOrgCode 归口管理部门
+     * @param periodType     预算期间类型
+     * @param baseAttribute  预算维度属性
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Pool> createPool(Order order, BaseAttribute baseAttribute) {
-        if (Objects.isNull(order)) {
-            // 创建预算池时,订单不能为空!
-            return ResultData.fail(ContextUtil.getMessage("pool_00005"));
-        }
-        // 预算主体id
-        String subjectId = order.getSubjectId();
+    public ResultData<Pool> createPool(String subjectId, String categoryId, String currencyCode, String currencyName,
+                                       String managerOrgCode, String managerOrgName, PeriodType periodType,
+                                       BaseAttribute baseAttribute) {
         if (StringUtils.isBlank(subjectId)) {
             // 创建预算池时,预算主体不能为空!
             return ResultData.fail(ContextUtil.getMessage("pool_00008"));
@@ -108,65 +105,83 @@ public class PoolService {
         search.addFilter(new SearchFilter(Pool.FIELD_ATTRIBUTE_CODE, attributeCode));
         Pool pool = dao.findOneByFilters(search);
         if (Objects.isNull(pool)) {
-            DimensionAttribute attribute = dimensionAttributeService.getAttribute(subjectId, attributeCode);
-            if (Objects.isNull(attribute)) {
-                ResultData<DimensionAttribute> resultData = dimensionAttributeService.createAttribute(subjectId, baseAttribute);
-                if (resultData.failed()) {
-                    return ResultData.fail(resultData.getMessage());
-                }
-                attribute = resultData.getData();
-            }
-
-            String periodId = attribute.getPeriod();
-            if (StringUtils.isBlank(periodId)) {
-                // 创建预算池时,期间不能为空!
-                return ResultData.fail(ContextUtil.getMessage("pool_00006"));
-            }
-
             pool = new Pool();
             // 预算主体
             pool.setSubjectId(subjectId);
             // 属性id
             pool.setAttributeCode(attributeCode);
             // 币种
-            pool.setCurrencyCode(order.getCurrencyCode());
-            pool.setCurrencyName(order.getCurrencyName());
+            pool.setCurrencyCode(currencyCode);
+            pool.setCurrencyName(currencyName);
             // 归口管理部门
-            pool.setManageOrg(order.getManagerOrgCode());
-            pool.setManageOrgName(order.getManagerOrgName());
+            pool.setManageOrg(managerOrgCode);
+            pool.setManageOrgName(managerOrgName);
             // 期间类型
-            pool.setPeriodType(order.getPeriodType());
-            Period period = periodService.findOne(periodId);
-            if (Objects.isNull(period)) {
-                // 预算期间不存在
-                return ResultData.fail(ContextUtil.getMessage("period_00002"));
-            }
-            // 所属年度
-            pool.setYear(period.getYear());
-            // 有效期
-            pool.setStartDate(period.getStartDate());
-            pool.setEndDate(period.getEndDate());
-            Category category = categoryService.findOne(order.getCategoryId());
+            pool.setPeriodType(periodType);
+
+            Category category = categoryService.findOne(categoryId);
             if (Objects.isNull(category)) {
                 // 预算类型不存在
-                return ResultData.fail(ContextUtil.getMessage("category_00004", order.getCategoryId()));
+                return ResultData.fail(ContextUtil.getMessage("category_00004", categoryId));
             }
             pool.setUse(category.getUse());
             pool.setRoll(category.getRoll());
-            pool.setCreatedDate(LocalDateTime.now());
 
-            // 租户代码
-            String tenantCode = ContextUtil.getTenantCode();
-            // 预算池编码
-            String code = serialService.getNumber(Pool.class, tenantCode);
-            if (dao.isCodeExists(tenantCode, code, IdGenerator.uuid())) {
-                //代码[{0}]在租户[{1}]已存在，请重新输入！
-                return ResultData.fail(ContextUtil.getMessage("core_service_00038", code, tenantCode));
-            }
-            pool.setTenantCode(tenantCode);
-            pool.setCode(code);
-            dao.save(pool);
+            return this.createPool(pool, baseAttribute);
         }
+        return ResultData.success(pool);
+    }
+
+    /**
+     * 创建预算池
+     *
+     * @param pool          预算池
+     * @param baseAttribute 维度属性
+     * @return 创建结果
+     */
+    private ResultData<Pool> createPool(Pool pool, BaseAttribute baseAttribute) {
+        String subjectId = pool.getSubjectId();
+        // 属性值hash
+        Long attributeCode = baseAttribute.getAttributeCode();
+        DimensionAttribute attribute = dimensionAttributeService.getAttribute(subjectId, attributeCode);
+        if (Objects.isNull(attribute)) {
+            ResultData<DimensionAttribute> resultData = dimensionAttributeService.createAttribute(subjectId, baseAttribute);
+            if (resultData.failed()) {
+                return ResultData.fail(resultData.getMessage());
+            }
+            attribute = resultData.getData();
+        }
+
+        String periodId = attribute.getPeriod();
+        if (StringUtils.isBlank(periodId)) {
+            // 创建预算池时,期间不能为空!
+            return ResultData.fail(ContextUtil.getMessage("pool_00006"));
+        }
+        // 检查预算期间
+        Period period = periodService.findOne(periodId);
+        if (Objects.isNull(period)) {
+            // 预算期间不存在
+            return ResultData.fail(ContextUtil.getMessage("period_00002"));
+        }
+        // 所属年度
+        pool.setYear(period.getYear());
+        // 有效期
+        pool.setStartDate(period.getStartDate());
+        pool.setEndDate(period.getEndDate());
+
+        pool.setCreatedDate(LocalDateTime.now());
+
+        // 租户代码
+        String tenantCode = ContextUtil.getTenantCode();
+        // 预算池编码
+        String code = serialService.getNumber(Pool.class, tenantCode);
+        if (dao.isCodeExists(tenantCode, code, IdGenerator.uuid())) {
+            //代码[{0}]在租户[{1}]已存在，请重新输入！
+            return ResultData.fail(ContextUtil.getMessage("core_service_00038", code, tenantCode));
+        }
+        pool.setTenantCode(tenantCode);
+        pool.setCode(code);
+        dao.save(pool);
         return ResultData.success(pool);
     }
 
@@ -247,9 +262,9 @@ public class PoolService {
                 PoolAmountQuotaDto quota = poolAmountService.getPoolAmountQuota(pool.getCode());
                 // 更新预算池金额
                 dao.updateAmount(pool.getId(), quota.getTotalAmount(), quota.getUseAmount(), quota.getBalance());
-                return;
+            } else {
+                LOG.error("预算池[{}]不存在", record.getPoolCode());
             }
-            LOG.error("预算池[{}]不存在", record.getPoolCode());
         }
     }
 
@@ -304,16 +319,16 @@ public class PoolService {
             // 为了启用事务,特以此获取bean再调用
             PoolService service = ContextUtil.getBean(PoolService.class);
             // 模拟用户
-            MockUser mockUser = new LocalMockUser();
+            // MockUser mockUser = new LocalMockUser();
             for (Pool pool : poolList) {
                 try {
-                    ThreadLocalHolder.begin();
-                    SessionUser sessionUser = new SessionUser();
-                    sessionUser.setTenantCode(pool.getTenantCode());
-                    sessionUser.setUserId("sei");
-                    sessionUser.setAccount("sei");
-                    sessionUser.setUserName("sei");
-                    mockUser.mock(sessionUser);
+                    // ThreadLocalHolder.begin();
+                    // SessionUser sessionUser = new SessionUser();
+                    // sessionUser.setTenantCode(pool.getTenantCode());
+                    // sessionUser.setUserId("sei");
+                    // sessionUser.setAccount("sei");
+                    // sessionUser.setUserName("sei");
+                    // mockUser.mock(sessionUser);
 
                     resultData = service.trundlePool(bizId, bizCode, pool.getId());
                     if (LOG.isInfoEnabled()) {
@@ -322,8 +337,8 @@ public class PoolService {
                 } catch (Exception e) {
                     resultData = ResultData.fail(ContextUtil.getMessage("pool_00036", pool.getCode(), ExceptionUtils.getRootCauseMessage(e)));
                     LOG.error(pool.getCode() + " 预算滚动结转异常", e);
-                } finally {
-                    ThreadLocalHolder.end();
+                    // } finally {
+                    // ThreadLocalHolder.end();
                 }
                 if (resultData.successful()) {
                     success++;
@@ -362,7 +377,7 @@ public class PoolService {
         }
 
         // 获取下一预算池
-        ResultData<Pool> resultData = this.getNextPeriodBudgetPool(pool.getId(), false);
+        ResultData<Pool> resultData = this.getOrCreateNextPeriodBudgetPool(pool.getId(), false);
         if (resultData.failed()) {
             return ResultData.fail(resultData.getMessage());
         } else {
@@ -652,10 +667,11 @@ public class PoolService {
      * @param poolId 预算池id
      * @return 下一期间预算池
      */
-    public ResultData<Pool> getNextPeriodBudgetPool(String poolId, boolean isAcrossYear) {
+    @Transactional(rollbackFor = Exception.class)
+    public ResultData<Pool> getOrCreateNextPeriodBudgetPool(String poolId, boolean isAcrossYear) {
         Pool pool = dao.findOne(poolId);
         if (Objects.isNull(pool)) {
-            LOG.error("获取下一期间的预算池错误: 未找到预算池[{}]", poolId);
+            LOG.error("获取下一期间的预算池错误: 未找到当前预算池[{}]", poolId);
             return ResultData.fail(ContextUtil.getMessage("pool_00017", poolId));
         }
         // 按预算池的主体和维度属性散列值获取维度属性对象
@@ -673,32 +689,52 @@ public class PoolService {
         } else {
             nextPeriod = resultData.getData();
         }
+
+        Pool nextPeriodPool = null;
         // 按预算主体和下级期间查询匹配的预算维度属性
         List<DimensionAttribute> attributeList = dimensionAttributeService.getAttributes(pool.getSubjectId(), nextPeriod.getId(), attribute);
-        if (CollectionUtils.isEmpty(attributeList)) {
-            // 未找到滚动结转下一期间的预算池
-            return ResultData.fail(ContextUtil.getMessage("pool_00019"));
-        }
-        List<Long> attributeCodes = attributeList.stream().map(DimensionAttribute::getAttributeCode).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(attributeList)) {
+            List<Long> attributeCodes = attributeList.stream().map(DimensionAttribute::getAttributeCode).collect(Collectors.toList());
 
-        Search search = Search.createSearch();
-        // 预算主体id
-        search.addFilter(new SearchFilter(Pool.FIELD_SUBJECT_ID, pool.getSubjectId()));
-        // 预算期间类型
-        search.addFilter(new SearchFilter(Pool.FIELD_PERIOD_TYPE, pool.getPeriodType()));
-        // 预算维度属性散列值
-        if (attributeCodes.size() > 1) {
-            search.addFilter(new SearchFilter(Pool.FIELD_ATTRIBUTE_CODE, attributeCodes, SearchFilter.Operator.IN));
-        } else {
-            search.addFilter(new SearchFilter(Pool.FIELD_ATTRIBUTE_CODE, attributeCodes.get(0)));
+            Search search = Search.createSearch();
+            // 预算主体id
+            search.addFilter(new SearchFilter(Pool.FIELD_SUBJECT_ID, pool.getSubjectId()));
+            // 预算期间类型
+            search.addFilter(new SearchFilter(Pool.FIELD_PERIOD_TYPE, pool.getPeriodType()));
+            // 预算维度属性散列值
+            if (attributeCodes.size() > 1) {
+                search.addFilter(new SearchFilter(Pool.FIELD_ATTRIBUTE_CODE, attributeCodes, SearchFilter.Operator.IN));
+            } else {
+                search.addFilter(new SearchFilter(Pool.FIELD_ATTRIBUTE_CODE, attributeCodes.get(0)));
+            }
+            // 启用
+            search.addFilter(new SearchFilter(Pool.FIELD_ACTIVED, Boolean.TRUE));
+            // 按条件查询满足的预算池
+            nextPeriodPool = dao.findFirstByFilters(search);
         }
-        // 启用
-        search.addFilter(new SearchFilter(Pool.FIELD_ACTIVED, Boolean.TRUE));
-        // 按条件查询满足的预算池
-        Pool nextPeriodPool = dao.findFirstByFilters(search);
+        // 下一期间预算池是否存在,不存在则创建
         if (Objects.isNull(nextPeriodPool)) {
-            // 未找到滚动结转下一期间的预算池
-            return ResultData.fail(ContextUtil.getMessage("pool_00019"));
+            // 设置下一期间
+            attribute.setPeriod(nextPeriod.getId());
+            attribute.setPeriodName(nextPeriod.getName());
+
+            nextPeriodPool = new Pool();
+            // 预算主体
+            nextPeriodPool.setSubjectId(pool.getSubjectId());
+            // 属性id
+            nextPeriodPool.setAttributeCode(attribute.getAttributeCode());
+            // 币种
+            nextPeriodPool.setCurrencyCode(pool.getCurrencyCode());
+            nextPeriodPool.setCurrencyName(pool.getCurrencyName());
+            // 归口管理部门
+            nextPeriodPool.setManageOrg(pool.getManageOrg());
+            nextPeriodPool.setManageOrgName(pool.getManageOrgName());
+            // 期间类型
+            nextPeriodPool.setPeriodType(pool.getPeriodType());
+            nextPeriodPool.setUse(pool.getUse());
+            nextPeriodPool.setRoll(pool.getRoll());
+            // 创建预算池
+            return this.createPool(nextPeriodPool, attribute);
         } else {
             return ResultData.success(nextPeriodPool);
         }

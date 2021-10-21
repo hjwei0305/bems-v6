@@ -63,7 +63,7 @@ class PoolServiceTest extends BaseUnit5Test {
 
     @Test
     void getNextPeriodBudgetPool() {
-        ResultData<Pool> pool = service.getNextPeriodBudgetPool("282CABA0-CE7A-11EB-8C70-0242C0A84429", false);
+        ResultData<Pool> pool = service.getOrCreateNextPeriodBudgetPool("282CABA0-CE7A-11EB-8C70-0242C0A84429", false);
         System.out.println(pool);
     }
 

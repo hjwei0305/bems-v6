@@ -1033,7 +1033,9 @@ public class OrderService extends BaseEntityService<Order> {
                     }
                     if (StringUtils.isBlank(poolCode)) {
                         // 预算池不存在,需要创建预算池
-                        ResultData<Pool> result = poolService.createPool(order, detail);
+                        ResultData<Pool> result =
+                                poolService.createPool(order.getSubjectId(), order.getCategoryId(), order.getCurrencyCode(), order.getCurrencyName(),
+                                        order.getManagerOrgCode(), order.getManagerOrgName(), order.getPeriodType(), detail);
                         if (result.failed()) {
                             resultData = ResultData.fail(result.getMessage());
                             break;
@@ -1082,7 +1084,9 @@ public class OrderService extends BaseEntityService<Order> {
                     }
                     if (StringUtils.isBlank(poolCode)) {
                         // 预算池不存在,需要创建预算池
-                        ResultData<Pool> result = poolService.createPool(order, detail);
+                        ResultData<Pool> result =
+                                poolService.createPool(order.getSubjectId(), order.getCategoryId(), order.getCurrencyCode(), order.getCurrencyName(),
+                                        order.getManagerOrgCode(), order.getManagerOrgName(), order.getPeriodType(), detail);
                         if (result.failed()) {
                             resultData = ResultData.fail(result.getMessage());
                             break;

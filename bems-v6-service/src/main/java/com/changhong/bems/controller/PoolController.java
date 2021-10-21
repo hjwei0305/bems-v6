@@ -51,29 +51,6 @@ public class PoolController implements PoolApi {
      */
     @Override
     public ResultData<PageResult<PoolAttributeDto>> findByPage(PoolQuickQueryParam search) {
-        // PageResult<PoolAttributeVo> result = service.findPoolByPage(search);
-        // PageResult<PoolAttributeDto> pageResult = new PageResult<>(result);
-        // List<PoolAttributeDto> list;
-        // List<PoolAttributeVo> poolAttributes = result.getRows();
-        // if (CollectionUtils.isNotEmpty(poolAttributes)) {
-        //     list = poolAttributes.stream().map(p -> modelMapper.map(p, PoolAttributeDto.class)).collect(Collectors.toList());
-        // } else {
-        //     list = new ArrayList<>();
-        // }
-        // pageResult.setRows(list);
-        // return ResultData.success(pageResult);
-        // PoolQuickQueryParam param = new PoolQuickQueryParam();
-        // List<SearchFilter> filters = search.getFilters();
-        // for (SearchFilter filter : filters) {
-        //     if ("subjectId".equals(filter.getFieldName())) {
-        //         param.setSubjectId(filter.getValue().toString());
-        //     } else if ("year".equals(filter.getFieldName())) {
-        //         param.setYear(Integer.parseInt(filter.getValue().toString()));
-        //     }
-        // }
-        // param.setQuickSearchValue(search.getQuickSearchValue());
-        // param.setPageInfo(search.getPageInfo());
-        // param.setSortOrders(search.getSortOrders());
         return ResultData.success(service.findPoolByPage(search));
     }
 
