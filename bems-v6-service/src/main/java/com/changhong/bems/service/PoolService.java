@@ -422,10 +422,10 @@ public class PoolService {
     public PageResult<PoolAttributeDto> findPoolByPage(PoolQuickQueryParam param) {
         PageResult<PoolAttributeDto> pageResult = dao.queryPoolPaging(param);
         if (pageResult.getTotal() > 0) {
-            Strategy strategy;
-            ResultData<Strategy> resultData;
+            StrategyDto strategy;
+            ResultData<StrategyDto> resultData;
             List<PoolAttributeDto> list = pageResult.getRows();
-            Map<String, Strategy> strategyMap = new HashMap<>();
+            Map<String, StrategyDto> strategyMap = new HashMap<>();
             for (PoolAttributeDto pool : list) {
                 strategy = strategyMap.get(pool.getSubjectId() + pool.getItem());
                 if (Objects.isNull(strategy)) {
@@ -436,7 +436,7 @@ public class PoolService {
                     }
                 }
                 if (Objects.nonNull(strategy)) {
-                    pool.setStrategyId(strategy.getId());
+                    pool.setStrategyId(strategy.getCode());
                     pool.setStrategyName(strategy.getName());
                 }
             }
@@ -474,11 +474,11 @@ public class PoolService {
                 LOG.error("预算池[{}]未获取到维度属性", pool.getCode());
             }
 
-            ResultData<Strategy> resultData = strategyService.getStrategy(dto.getSubjectId(), dto.getItem());
+            ResultData<StrategyDto> resultData = strategyService.getStrategy(dto.getSubjectId(), dto.getItem());
             if (resultData.successful()) {
-                Strategy strategy = resultData.getData();
+                StrategyDto strategy = resultData.getData();
                 // 策略
-                dto.setStrategyId(strategy.getId());
+                dto.setStrategyId(strategy.getCode());
                 dto.setStrategyName(strategy.getName());
             } else {
                 LOG.error("预算池[{}]获取执行策略错误: {}", pool.getCode(), resultData.getMessage());
@@ -560,8 +560,8 @@ public class PoolService {
         List<Pool> poolList = dao.findByFilters(search);
         if (CollectionUtils.isNotEmpty(poolList)) {
             PoolAttributeDto dto;
-            Strategy strategy;
-            ResultData<Strategy> resultData;
+            StrategyDto strategy;
+            ResultData<StrategyDto> resultData;
             DimensionAttribute dimensionAttribute;
             for (Pool pool : poolList) {
                 dto = PoolHelper.constructPoolAttribute(pool);
@@ -571,7 +571,7 @@ public class PoolService {
                     resultData = strategyService.getStrategy(pool.getSubjectId(), dimensionAttribute.getItem());
                     if (resultData.successful()) {
                         strategy = resultData.getData();
-                        dto.setStrategyId(strategy.getId());
+                        dto.setStrategyId(strategy.getCode());
                         dto.setStrategyName(strategy.getName());
                         // 预算维度属性赋值
                         PoolHelper.putAttribute(dto, dimensionAttribute);
@@ -637,8 +637,8 @@ public class PoolService {
         // 按条件查询满足的预算池
         List<Pool> poolList = dao.findByFilters(search);
         if (CollectionUtils.isNotEmpty(poolList)) {
-            Strategy strategy;
-            ResultData<Strategy> resultData;
+            StrategyDto strategy;
+            ResultData<StrategyDto> resultData;
             PoolAttributeDto dto;
             DimensionAttribute dimensionAttribute;
             for (Pool pool : poolList) {
@@ -648,7 +648,7 @@ public class PoolService {
                     resultData = strategyService.getStrategy(pool.getSubjectId(), dimensionAttribute.getItem());
                     if (resultData.successful()) {
                         strategy = resultData.getData();
-                        dto.setStrategyId(strategy.getId());
+                        dto.setStrategyId(strategy.getCode());
                         dto.setStrategyName(strategy.getName());
                         // 预算维度属性赋值
                         PoolHelper.putAttribute(dto, dimensionAttribute);
@@ -844,11 +844,11 @@ public class PoolService {
             return ResultData.fail(ContextUtil.getMessage("pool_00007", pool.getCode()));
         }
 
-        ResultData<Strategy> resultData = strategyService.getStrategy(dto.getSubjectId(), dto.getItem());
+        ResultData<StrategyDto> resultData = strategyService.getStrategy(dto.getSubjectId(), dto.getItem());
         if (resultData.successful()) {
-            Strategy strategy = resultData.getData();
+            StrategyDto strategy = resultData.getData();
             // 策略
-            dto.setStrategyId(strategy.getId());
+            dto.setStrategyId(strategy.getCode());
             dto.setStrategyName(strategy.getName());
         } else {
             return ResultData.fail(resultData.getMessage());

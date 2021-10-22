@@ -2,10 +2,10 @@ package com.changhong.bems.service;
 
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.DimensionDao;
+import com.changhong.bems.dto.StrategyDto;
 import com.changhong.bems.entity.Category;
 import com.changhong.bems.entity.CategoryDimension;
 import com.changhong.bems.entity.Dimension;
-import com.changhong.bems.entity.Strategy;
 import com.changhong.bems.service.strategy.EqualMatchStrategy;
 import com.changhong.bems.service.strategy.OrgTreeMatchStrategy;
 import com.changhong.bems.service.strategy.PeriodMatchStrategy;
@@ -27,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -99,11 +98,9 @@ public class DimensionService extends BaseEntityService<Dimension> {
             // 设置为系统必须
             entity.setRequired(Boolean.TRUE);
             // 占用默认固定策略
-            List<Strategy> strategies = strategyService.checkAndInit();
-            Map<String, Strategy> strategyMap = strategies.stream().collect(Collectors.toMap(Strategy::getCode, s -> s));
-            Strategy strategy = strategyMap.get(EqualMatchStrategy.class.getSimpleName());
+            StrategyDto strategy = strategyService.getByCode(EqualMatchStrategy.class.getSimpleName());
             if (Objects.nonNull(strategy)) {
-                if (!StringUtils.equals(strategy.getId(), entity.getStrategyId())) {
+                if (!StringUtils.equals(strategy.getCode(), entity.getStrategyId())) {
                     // 预算科目维度必须使用一致性匹配策略
                     return OperateResultWithData.operationFailure("dimension_00004");
                 }
@@ -129,20 +126,17 @@ public class DimensionService extends BaseEntityService<Dimension> {
     public ResultData<List<Dimension>> checkAndInit() {
         List<Dimension> dimensions = dao.findAll();
         if (CollectionUtils.isEmpty(dimensions)) {
-            List<Strategy> strategies = strategyService.checkAndInit();
-            Map<String, Strategy> strategyMap = strategies.stream().collect(Collectors.toMap(Strategy::getCode, s -> s));
-
             dimensions = new ArrayList<>();
             Dimension dimension;
-            Strategy strategy;
+            StrategyDto strategy;
             dimension = new Dimension();
             dimension.setCode(Constants.DIMENSION_CODE_PERIOD);
             // 预算期间
             dimension.setName(ContextUtil.getMessage("default_dimension_period"));
             dimension.setRequired(Boolean.TRUE);
             dimension.setRank(1);
-            strategy = strategyMap.get(PeriodMatchStrategy.class.getSimpleName());
-            dimension.setStrategyId(strategy.getId());
+            strategy = strategyService.getByCode(PeriodMatchStrategy.class.getSimpleName());
+            dimension.setStrategyId(strategy.getCode());
             dimension.setStrategyName(strategy.getName());
             dimension.setUiComponent("Period");
             super.save(dimension);
@@ -154,8 +148,8 @@ public class DimensionService extends BaseEntityService<Dimension> {
             dimension.setName(ContextUtil.getMessage("default_dimension_item"));
             dimension.setRequired(Boolean.TRUE);
             dimension.setRank(2);
-            strategy = strategyMap.get(EqualMatchStrategy.class.getSimpleName());
-            dimension.setStrategyId(strategy.getId());
+            strategy = strategyService.getByCode(EqualMatchStrategy.class.getSimpleName());
+            dimension.setStrategyId(strategy.getCode());
             dimension.setStrategyName(strategy.getName());
             dimension.setUiComponent("Subject");
             super.save(dimension);
@@ -166,8 +160,8 @@ public class DimensionService extends BaseEntityService<Dimension> {
             // 组织机构
             dimension.setName(ContextUtil.getMessage("default_dimension_org"));
             dimension.setRank(3);
-            strategy = strategyMap.get(OrgTreeMatchStrategy.class.getSimpleName());
-            dimension.setStrategyId(strategy.getId());
+            strategy = strategyService.getByCode(OrgTreeMatchStrategy.class.getSimpleName());
+            dimension.setStrategyId(strategy.getCode());
             dimension.setStrategyName(strategy.getName());
             dimension.setUiComponent("Organization");
             super.save(dimension);
@@ -178,8 +172,8 @@ public class DimensionService extends BaseEntityService<Dimension> {
             // 项目
             dimension.setName(ContextUtil.getMessage("default_dimension_project"));
             dimension.setRank(4);
-            strategy = strategyMap.get(EqualMatchStrategy.class.getSimpleName());
-            dimension.setStrategyId(strategy.getId());
+            strategy = strategyService.getByCode(EqualMatchStrategy.class.getSimpleName());
+            dimension.setStrategyId(strategy.getCode());
             dimension.setStrategyName(strategy.getName());
             dimension.setUiComponent("ProjectList");
             super.save(dimension);

@@ -11,7 +11,6 @@ import com.changhong.bems.dto.use.BudgetUse;
 import com.changhong.bems.entity.Dimension;
 import com.changhong.bems.entity.DimensionAttribute;
 import com.changhong.bems.entity.LogRecord;
-import com.changhong.bems.entity.Strategy;
 import com.changhong.bems.service.client.OrganizationManager;
 import com.changhong.bems.service.strategy.BudgetExecutionStrategy;
 import com.changhong.bems.service.strategy.DimensionMatchStrategy;
@@ -26,7 +25,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -193,22 +191,11 @@ public class BudgetService {
             return ResultData.fail(resultData.getMessage());
         }
         PoolAttributeDto pool = resultData.getData();
-        Strategy strategy = strategyService.findOne(pool.getStrategyId());
-        if (Objects.isNull(strategy)) {
-            // 预算占用时,执行策略[{0}]不存在!
-            return ResultData.fail(ContextUtil.getMessage("pool_00014", pool.getStrategyName()));
-        }
         try {
-            Class<?> clazz = Class.forName(strategy.getClassPath());
-            if (BudgetExecutionStrategy.class.isAssignableFrom(clazz)) {
-                // 策略实例
-                BudgetExecutionStrategy executionStrategy = (BudgetExecutionStrategy) ContextUtil.getBean(clazz);
-                return executionStrategy.execution(pool, useBudget, otherDimFilters);
-            } else {
-                // 预算执行策略[]配置错误
-                return ResultData.fail(ContextUtil.getMessage("pool_00028", strategy.getName()));
-            }
-        } catch (ClassNotFoundException | BeansException e) {
+            // 策略实例
+            BudgetExecutionStrategy executionStrategy = strategyService.getExecutionStrategy(pool.getStrategyId());
+            return executionStrategy.execution(pool, useBudget, otherDimFilters);
+        } catch (Exception e) {
             // 预算执行策略执行异常
             return ResultData.fail(ContextUtil.getMessage("pool_00029", ExceptionUtils.getRootCauseMessage(e)));
         }
@@ -373,46 +360,34 @@ public class BudgetService {
             // 维度[{0}]不存在
             throw new ServiceException(ContextUtil.getMessage("dimension_00002", dimCode));
         }
-        Strategy strategy = strategyService.findOne(dimension.getStrategyId());
-        if (Objects.isNull(strategy)) {
-            // 策略[{0}]不存在!
-            throw new ServiceException(ContextUtil.getMessage("strategy_00004", dimension.getStrategyId()));
-        }
 
         ServiceException exception;
-        String className = strategy.getClassPath();
         try {
-            Class<?> clazz = Class.forName(className);
-            if (DimensionMatchStrategy.class.isAssignableFrom(clazz)) {
-                // 策略实例
-                DimensionMatchStrategy matchStrategy = (DimensionMatchStrategy) ContextUtil.getBean(clazz);
-                // 策略结果
-                ResultData<Object> resultData = matchStrategy.getMatchValue(budgetUse, dimension, dimValue);
-                if (resultData.successful()) {
-                    SearchFilter filter;
-                    Object obj = resultData.getData();
-                    if (Objects.nonNull(obj)) {
-                        if (obj instanceof Collection) {
-                            filter = new SearchFilter(dimCode, obj, SearchFilter.Operator.IN);
-                        } else if (obj.getClass().isArray()) {
-                            filter = new SearchFilter(dimCode, obj, SearchFilter.Operator.IN);
-                        } else {
-                            filter = new SearchFilter(dimCode, obj);
-                        }
-                        return filter;
+            // 策略实例
+            DimensionMatchStrategy matchStrategy = strategyService.getMatchStrategy(dimension.getStrategyId());
+            // 策略结果
+            ResultData<Object> resultData = matchStrategy.getMatchValue(budgetUse, dimension, dimValue);
+            if (resultData.successful()) {
+                SearchFilter filter;
+                Object obj = resultData.getData();
+                if (Objects.nonNull(obj)) {
+                    if (obj instanceof Collection) {
+                        filter = new SearchFilter(dimCode, obj, SearchFilter.Operator.IN);
+                    } else if (obj.getClass().isArray()) {
+                        filter = new SearchFilter(dimCode, obj, SearchFilter.Operator.IN);
                     } else {
-                        // 预算维度[{0}]策略条件不能返回为Null.
-                        exception = new ServiceException(ContextUtil.getMessage("pool_00032", dimension.getName()));
+                        filter = new SearchFilter(dimCode, obj);
                     }
+                    return filter;
                 } else {
-                    // 预算维度[{0}]策略条件错误: {1}
-                    exception = new ServiceException(ContextUtil.getMessage("pool_00033", dimension.getName(), resultData.getMessage()));
+                    // 预算维度[{0}]策略条件不能返回为Null.
+                    exception = new ServiceException(ContextUtil.getMessage("pool_00032", dimension.getName()));
                 }
             } else {
-                // 预算维度[{0}]策略配置错误
-                exception = new ServiceException(ContextUtil.getMessage("pool_00034", dimension.getName()));
+                // 预算维度[{0}]策略条件错误: {1}
+                exception = new ServiceException(ContextUtil.getMessage("pool_00033", dimension.getName(), resultData.getMessage()));
             }
-        } catch (ClassNotFoundException | BeansException e) {
+        } catch (Exception e) {
             // 按预算维度策略获取过滤条件异常
             exception = new ServiceException(ContextUtil.getMessage("pool_00031"), e);
         }

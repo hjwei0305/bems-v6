@@ -1,7 +1,7 @@
 package com.changhong.bems.api;
 
+import com.changhong.bems.dto.StrategyCategory;
 import com.changhong.bems.dto.StrategyDto;
-import com.changhong.sei.core.api.BaseEntityApi;
 import com.changhong.sei.core.dto.ResultData;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -19,7 +19,7 @@ import java.util.List;
  */
 @Valid
 @FeignClient(name = "bems-v6", path = StrategyApi.PATH)
-public interface StrategyApi extends BaseEntityApi<StrategyDto> {
+public interface StrategyApi {
     String PATH = "strategy";
 
     /**
@@ -38,5 +38,5 @@ public interface StrategyApi extends BaseEntityApi<StrategyDto> {
      */
     @GetMapping(path = "findByCategory")
     @ApiOperation(value = "按分类查询策略", notes = "按分类查询策略")
-    ResultData<List<StrategyDto>> findByCategory(@RequestParam("category") String category);
+    ResultData<List<StrategyDto>> findByCategory(@RequestParam("category") StrategyCategory category);
 }

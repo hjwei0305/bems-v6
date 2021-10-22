@@ -14,7 +14,7 @@ import java.util.Collection;
  * @author 马超(Vision.Mac)
  * @version 1.0.00  2021-05-15 09:32
  */
-public interface BudgetExecutionStrategy {
+public interface BudgetExecutionStrategy extends BaseStrategy {
 
     /**
      * 执行预算执行策略

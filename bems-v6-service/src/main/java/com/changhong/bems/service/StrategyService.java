@@ -1,31 +1,24 @@
 package com.changhong.bems.service;
 
-import com.changhong.bems.dao.StrategyDao;
 import com.changhong.bems.dto.StrategyCategory;
-import com.changhong.bems.entity.Dimension;
-import com.changhong.bems.entity.Strategy;
+import com.changhong.bems.dto.StrategyDto;
 import com.changhong.bems.entity.Subject;
 import com.changhong.bems.entity.SubjectItem;
-import com.changhong.bems.service.strategy.*;
+import com.changhong.bems.service.strategy.BaseStrategy;
+import com.changhong.bems.service.strategy.BudgetExecutionStrategy;
+import com.changhong.bems.service.strategy.DimensionMatchStrategy;
 import com.changhong.sei.core.context.ContextUtil;
-import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
-import com.changhong.sei.core.limiter.support.lock.SeiLock;
-import com.changhong.sei.core.service.BaseEntityService;
-import com.changhong.sei.core.service.bo.OperateResult;
-import com.changhong.sei.core.service.bo.OperateResultWithData;
-import com.changhong.sei.util.IdGenerator;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import javax.xml.bind.TypeConstraintException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -36,213 +29,79 @@ import java.util.Objects;
  */
 @Service
 @CacheConfig(cacheNames = StrategyService.CACHE_KEY)
-public class StrategyService extends BaseEntityService<Strategy> {
-    @Autowired
-    private StrategyDao dao;
-    @Autowired
-    private DimensionService dimensionService;
+public class StrategyService {
+    public static final String CACHE_KEY = "bems-v6:strategy";
+
     @Autowired
     private SubjectService subjectService;
     @Autowired
     private SubjectItemService subjectItemService;
 
-    public static final String CACHE_KEY = "bems-v6:strategy";
+    private final Map<String, BaseStrategy> strategyMap;
 
-    @Override
-    protected BaseEntityDao<Strategy> getDao() {
-        return dao;
+    public StrategyService(Map<String, BaseStrategy> map) {
+        this.strategyMap = map;
     }
 
     /**
-     * 主键删除
-     *
-     * @param id 主键
-     * @return 返回操作结果对象
+     * 获取预算维度匹配策略
      */
-    @Override
-    @CacheEvict(allEntries = true)
-    @Transactional(rollbackFor = Exception.class)
-    public OperateResult delete(String id) {
-        Strategy entity = findOne(id);
-        if (Objects.nonNull(entity)) {
-            Dimension dimension = dimensionService.findFirstByProperty(Dimension.FIELD_STRATEGY_ID, id);
-            if (Objects.nonNull(dimension)) {
-                // 策略已被维度[{0}]使用,禁止删除
-                return OperateResult.operationFailure("strategy_00001", dimension.getName());
-            }
-            Subject subject = subjectService.findFirstByProperty(Subject.FIELD_STRATEGY_ID, id);
-            if (Objects.nonNull(subject)) {
-                // 策略已被预算主体[{0}]使用,禁止删除
-                return OperateResult.operationFailure("strategy_00002", subject.getName());
-            }
-            SubjectItem item = subjectItemService.findFirstByProperty(SubjectItem.FIELD_STRATEGY_ID, id);
-            if (Objects.nonNull(item)) {
-                // 策略已被预算科目[{0}]使用,禁止删除
-                return OperateResult.operationFailure("strategy_00003", item.getName());
-            }
-            dao.delete(entity);
-            return OperateResult.operationSuccess("core_service_00028");
+    public DimensionMatchStrategy getMatchStrategy(String code) {
+        BaseStrategy strategy = strategyMap.get(code);
+        if (strategy instanceof DimensionMatchStrategy) {
+            return (DimensionMatchStrategy) strategy;
         } else {
-            return OperateResult.operationWarning("core_service_00029");
+            throw new TypeConstraintException("[" + code + "]不是预算维度匹配策略");
         }
     }
 
     /**
-     * 数据保存操作
+     * 获取预算执行策略
      */
-    @Override
-    @CacheEvict(allEntries = true)
-    @Transactional(rollbackFor = Exception.class)
-    public OperateResultWithData<Strategy> save(Strategy entity) {
-        if (Objects.nonNull(entity) && StringUtils.isBlank(entity.getCode())) {
-            entity.setCode(IdGenerator.uuid2());
+    public BudgetExecutionStrategy getExecutionStrategy(String code) {
+        BaseStrategy strategy = strategyMap.get(code);
+        if (strategy instanceof BudgetExecutionStrategy) {
+            return (BudgetExecutionStrategy) strategy;
+        } else {
+            throw new TypeConstraintException("[" + code + "]不是预算执行策略");
         }
-        return super.save(entity);
     }
 
     /**
-     * 创建数据保存数据之前额外操作回调方法 默认为空逻辑，子类根据需要覆写添加逻辑即可
-     *
-     * @param entity 待创建数据对象
+     * 按策略代码获取预算策略
      */
-    @Override
-    protected OperateResultWithData<Strategy> preInsert(Strategy entity) {
-        OperateResultWithData<Strategy> result = super.preInsert(entity);
-        if (result.successful()) {
-            Strategy existed = dao.findByProperty(Strategy.FIELD_NAME, entity.getName());
-            if (Objects.nonNull(existed)) {
-                // 已存在策略
-                return OperateResultWithData.operationFailure("strategy_00005", existed.getName());
-            }
-            existed = dao.findByProperty(Strategy.FIELD_CLASSPATH, entity.getClassPath());
-            if (Objects.nonNull(existed)) {
-                // 已存在类路径的策略
-                return OperateResultWithData.operationFailure("strategy_00006", existed.getClassPath(), existed.getName());
-            }
+    public StrategyDto getByCode(String code) {
+        StrategyDto dto = null;
+        BaseStrategy strategy = strategyMap.get(code);
+        if (Objects.nonNull(strategy)) {
+            dto = new StrategyDto();
+            dto.setCategory(strategy.category());
+            dto.setCode(code);
+            dto.setName(strategy.name());
+            dto.setRemark(strategy.remark());
+            dto.setClassPath(strategy.getClass().getName());
         }
-        return result;
-    }
-
-    /**
-     * 更新数据保存数据之前额外操作回调方法 默认为空逻辑，子类根据需要覆写添加逻辑即可
-     *
-     * @param entity 待更新数据对象
-     */
-    @Override
-    protected OperateResultWithData<Strategy> preUpdate(Strategy entity) {
-        OperateResultWithData<Strategy> result = super.preUpdate(entity);
-        if (result.successful()) {
-            Strategy existed = dao.findByProperty(Strategy.FIELD_NAME, entity.getName());
-            if (Objects.nonNull(existed) && !StringUtils.equals(entity.getId(), existed.getId())) {
-                // 已存在策略
-                return OperateResultWithData.operationFailure("strategy_00005", existed.getName());
-            }
-            existed = dao.findByProperty(Strategy.FIELD_CLASSPATH, entity.getClassPath());
-            if (Objects.nonNull(existed) && !StringUtils.equals(entity.getId(), existed.getId())) {
-                // 已存在类路径的策略
-                return OperateResultWithData.operationFailure("strategy_00006", existed.getClassPath(), existed.getName());
-            }
-        }
-        return result;
-    }
-
-    /**
-     * 检查和初始化数据
-     * 当检测到租户下不存在维度数据时,默认初始化预制的维度数据
-     */
-    @Transactional(rollbackFor = Exception.class)
-    @SeiLock(key = "'StrategyService:checkAndInit'")
-    public List<Strategy> checkAndInit() {
-        List<Strategy> strategies = dao.findAll();
-        if (CollectionUtils.isEmpty(strategies)) {
-            strategies = new ArrayList<>();
-            Strategy strategy;
-            strategy = new Strategy();
-            strategy.setCode(EqualMatchStrategy.class.getSimpleName());
-            // 维度值一致性匹配
-            strategy.setName(ContextUtil.getMessage("strategy_dimension_match_equal"));
-            strategy.setCategory(StrategyCategory.DIMENSION);
-            strategy.setClassPath(EqualMatchStrategy.class.getName());
-            strategy.setRemark(ContextUtil.getMessage("strategy_dimension_match_equal_remark"));
-            strategy.setRank(0);
-            super.save(strategy);
-            strategies.add(strategy);
-            strategy = new Strategy();
-            strategy.setCode(PeriodMatchStrategy.class.getSimpleName());
-            // 期间关系匹配
-            strategy.setName(ContextUtil.getMessage("strategy_dimension_match_period"));
-            strategy.setCategory(StrategyCategory.DIMENSION);
-            strategy.setClassPath(PeriodMatchStrategy.class.getName());
-            // 标准期间(年,季,月)的客观包含关系
-            strategy.setRemark(ContextUtil.getMessage("strategy_dimension_match_period_remark"));
-            strategy.setRank(1);
-            super.save(strategy);
-            strategies.add(strategy);
-            strategy = new Strategy();
-            strategy.setCode(OrgTreeMatchStrategy.class.getSimpleName());
-            // 组织机构树路径匹配
-            strategy.setName(ContextUtil.getMessage("strategy_dimension_match_org_tree"));
-            strategy.setCategory(StrategyCategory.DIMENSION);
-            strategy.setClassPath(OrgTreeMatchStrategy.class.getName());
-            // 在同一条树分支路径上的节点(向上)匹配
-            strategy.setRemark(ContextUtil.getMessage("strategy_dimension_match_org_tree_remark"));
-            strategy.setRank(2);
-            super.save(strategy);
-            strategies.add(strategy);
-
-            strategy = new Strategy();
-            strategy.setCode(LimitExecutionStrategy.class.getSimpleName());
-            // 强控
-            strategy.setName(ContextUtil.getMessage("strategy_execution_limit"));
-            strategy.setCategory(StrategyCategory.EXECUTION);
-            strategy.setClassPath(LimitExecutionStrategy.class.getName());
-            // 预算使用严格控制在余额范围内
-            strategy.setRemark(ContextUtil.getMessage("strategy_execution_limit_remark"));
-            strategy.setRank(3);
-            super.save(strategy);
-            strategies.add(strategy);
-            strategy = new Strategy();
-            strategy.setCode(AnnualTotalExecutionStrategy.class.getSimpleName());
-            // 年度总额控
-            strategy.setName(ContextUtil.getMessage("strategy_execution_annual_total"));
-            strategy.setCategory(StrategyCategory.EXECUTION);
-            strategy.setClassPath(AnnualTotalExecutionStrategy.class.getName());
-            // 允许月度预算超额,但不能超年度预算总额
-            strategy.setRemark(ContextUtil.getMessage("strategy_execution_annual_total_remark"));
-            strategy.setRank(4);
-            super.save(strategy);
-            strategies.add(strategy);
-            strategy = new Strategy();
-            strategy.setCode(ExcessExecutionStrategy.class.getSimpleName());
-            // 弱控
-            strategy.setName(ContextUtil.getMessage("strategy_execution_excess"));
-            strategy.setCategory(StrategyCategory.EXECUTION);
-            strategy.setClassPath(ExcessExecutionStrategy.class.getName());
-            // 可超额使用预算,即预算池余额不够时可超额使用
-            strategy.setRemark(ContextUtil.getMessage("strategy_execution_excess_remark"));
-            strategy.setRank(5);
-            super.save(strategy);
-            strategies.add(strategy);
-        }
-        return strategies;
-    }
-
-    /**
-     * 基于主键查询单一数据对象
-     */
-    @Override
-    @Cacheable(key = "#id")
-    public Strategy findOne(String id) {
-        return dao.findOne(id);
+        return dto;
     }
 
     /**
      * 基于主键集合查询集合数据对象
      */
-    @Override
-    @Cacheable(key = "'all'")
-    public List<Strategy> findAll() {
-        return dao.findAll();
+    public List<StrategyDto> findAll() {
+        List<StrategyDto> strategyList = new ArrayList<>();
+        BaseStrategy strategy;
+        StrategyDto dto;
+        for (Map.Entry<String, BaseStrategy> entry : strategyMap.entrySet()) {
+            strategy = entry.getValue();
+            dto = new StrategyDto();
+            dto.setCategory(strategy.category());
+            dto.setCode(entry.getKey());
+            dto.setName(strategy.name());
+            dto.setRemark(strategy.remark());
+            dto.setClassPath(strategy.getClass().getName());
+            strategyList.add(dto);
+        }
+        return strategyList;
     }
 
     /**
@@ -251,9 +110,23 @@ public class StrategyService extends BaseEntityService<Strategy> {
      * @param category 分类
      * @return 策略清单
      */
-    @Cacheable(key = "#category.name()")
-    public List<Strategy> findByCategory(StrategyCategory category) {
-        return dao.findListByProperty(Strategy.FIELD_CATEGORY, category);
+    public List<StrategyDto> findByCategory(StrategyCategory category) {
+        List<StrategyDto> strategyList = new ArrayList<>();
+        BaseStrategy strategy;
+        StrategyDto dto;
+        for (Map.Entry<String, BaseStrategy> entry : strategyMap.entrySet()) {
+            strategy = entry.getValue();
+            if (category == strategy.category()) {
+                dto = new StrategyDto();
+                dto.setCategory(strategy.category());
+                dto.setCode(entry.getKey());
+                dto.setName(strategy.name());
+                dto.setRemark(strategy.remark());
+                dto.setClassPath(strategy.getClass().getName());
+                strategyList.add(dto);
+            }
+        }
+        return strategyList;
     }
 
     /**
@@ -264,21 +137,21 @@ public class StrategyService extends BaseEntityService<Strategy> {
      * @return 预算执行控制策略
      */
     @Cacheable(key = "#subjectId + ':' + #itemCode")
-    public ResultData<Strategy> getStrategy(String subjectId, String itemCode) {
+    public ResultData<StrategyDto> getStrategy(String subjectId, String itemCode) {
         // 预算主体策略
-        Strategy strategy = null;
+        StrategyDto strategy = null;
         // 预算主体科目
         SubjectItem subjectItem = subjectItemService.getSubjectItem(subjectId, itemCode);
         if (Objects.nonNull(subjectItem)) {
             if (StringUtils.isNotBlank(subjectItem.getStrategyId())) {
                 // 预算主体科目策略
-                strategy = dao.findOne(subjectItem.getStrategyId());
+                strategy = this.getByCode(subjectItem.getStrategyId());
             }
         }
         if (Objects.isNull(strategy)) {
             Subject subject = subjectService.findOne(subjectId);
             if (Objects.nonNull(subject)) {
-                strategy = dao.findOne(subject.getStrategyId());
+                strategy = this.getByCode(subject.getStrategyId());
             } else {
                 // 预算主体[{0}]不存在!
                 return ResultData.fail(ContextUtil.getMessage("subject_00003", subjectId));
