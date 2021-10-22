@@ -80,7 +80,7 @@ public class StrategyService {
             dto.setCode(code);
             dto.setName(strategy.name());
             dto.setRemark(strategy.remark());
-            dto.setClassPath(strategy.getClass().getName());
+            dto.setClassPath(strategy.getClass().getName().split("[$]")[0]);
         }
         return dto;
     }
@@ -100,7 +100,7 @@ public class StrategyService {
             dto.setCode(entry.getKey());
             dto.setName(strategy.name());
             dto.setRemark(strategy.remark());
-            dto.setClassPath(strategy.getClass().getName());
+            dto.setClassPath(strategy.getClass().getName().split("[$]")[0]);
             strategyList.add(dto);
         }
         return strategyList;
@@ -125,7 +125,7 @@ public class StrategyService {
                 dto.setCode(entry.getKey());
                 dto.setName(strategy.name());
                 dto.setRemark(strategy.remark());
-                dto.setClassPath(strategy.getClass().getName());
+                dto.setClassPath(strategy.getClass().getName().split("[$]")[0]);
                 strategyList.add(dto);
             }
         }
