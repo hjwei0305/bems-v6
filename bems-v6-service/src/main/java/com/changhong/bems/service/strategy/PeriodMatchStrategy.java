@@ -1,6 +1,7 @@
 package com.changhong.bems.service.strategy;
 
 import com.changhong.bems.dto.StrategyCategory;
+import com.changhong.sei.core.context.ContextUtil;
 
 /**
  * 实现功能：期间关系维度匹配策略
@@ -22,20 +23,20 @@ public interface PeriodMatchStrategy extends DimensionMatchStrategy{
     /**
      * 策略名称
      *
-     * @return 策略名称
+     * @return 期间关系匹配
      */
     @Override
     default String name() {
-        return "期间关系匹配";
+        return ContextUtil.getMessage("strategy_dimension_match_period");
     }
 
     /**
      * 策略描述
      *
-     * @return 策略描述
+     * @return 标准期间(年,季,月)的客观包含关系
      */
     @Override
     default String remark() {
-        return "期间关系匹配";
+        return ContextUtil.getMessage("strategy_dimension_match_period_remark");
     }
 }

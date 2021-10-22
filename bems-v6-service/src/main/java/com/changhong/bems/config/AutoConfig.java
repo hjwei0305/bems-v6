@@ -80,7 +80,7 @@ public class AutoConfig {
      */
     @Bean
     @ConditionalOnMissingBean
-    public OrgTreeMatchStrategy treeMatchStrategy() {
+    public OrgTreeMatchStrategy orgTreeMatchStrategy() {
         return new DefaultOrgTreeMatchStrategy();
     }
 
@@ -112,12 +112,12 @@ public class AutoConfig {
     }
 
     /**
-     * 年度总额范围内控制策略
+     * 同期间范围内总额控制策略
      */
     @Bean
     @ConditionalOnMissingBean
-    public AnnualTotalExecutionStrategy annualTotalExecutionStrategy(PoolService poolService) {
-        return new DefaultAnnualTotalExecutionStrategy(poolService);
+    public SamePeriodTotalLimitExecutionStrategy samePeriodTotalLimitExecutionStrategy(PoolService poolService) {
+        return new DefaultSamePeriodTotalLimitExecutionStrategy(poolService);
     }
 
 }

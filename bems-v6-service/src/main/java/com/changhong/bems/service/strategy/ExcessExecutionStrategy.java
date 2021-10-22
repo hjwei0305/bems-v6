@@ -1,6 +1,7 @@
 package com.changhong.bems.service.strategy;
 
 import com.changhong.bems.dto.StrategyCategory;
+import com.changhong.sei.core.context.ContextUtil;
 
 /**
  * 实现功能：弱控(允许超额)策略
@@ -22,20 +23,20 @@ public interface ExcessExecutionStrategy extends BudgetExecutionStrategy {
     /**
      * 策略名称
      *
-     * @return 策略名称
+     * @return 弱控
      */
     @Override
     default String name() {
-        return "弱控";
+        return ContextUtil.getMessage("strategy_execution_excess");
     }
 
     /**
      * 策略描述
      *
-     * @return 策略描述
+     * @return 可超额使用预算,即预算池余额不够时可超额使用
      */
     @Override
     default String remark() {
-        return "允许超预算额度使用";
+        return ContextUtil.getMessage("strategy_execution_excess_remark");
     }
 }

@@ -4,7 +4,7 @@ import com.changhong.bems.dto.PoolAttributeDto;
 import com.changhong.bems.dto.use.BudgetResponse;
 import com.changhong.bems.dto.use.BudgetUse;
 import com.changhong.bems.service.PoolService;
-import com.changhong.bems.service.strategy.AnnualTotalExecutionStrategy;
+import com.changhong.bems.service.strategy.SamePeriodTotalLimitExecutionStrategy;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.SearchFilter;
@@ -17,14 +17,14 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 实现功能：年度总额控制
+ * 实现功能：同期间总额执行策略
  *
  * @author 马超(Vision.Mac)
  * @version 1.0.00  2021-05-21 14:41
  */
-public class DefaultAnnualTotalExecutionStrategy extends BaseExecutionStrategy implements AnnualTotalExecutionStrategy {
+public class DefaultSamePeriodTotalLimitExecutionStrategy extends BaseExecutionStrategy implements SamePeriodTotalLimitExecutionStrategy {
 
-    public DefaultAnnualTotalExecutionStrategy(PoolService poolService) {
+    public DefaultSamePeriodTotalLimitExecutionStrategy(PoolService poolService) {
         super(poolService);
     }
 
