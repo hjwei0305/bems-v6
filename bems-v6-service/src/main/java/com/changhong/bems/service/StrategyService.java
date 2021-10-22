@@ -76,6 +76,7 @@ public class StrategyService {
         if (Objects.nonNull(strategy)) {
             dto = new StrategyDto();
             dto.setCategory(strategy.category());
+            dto.setId(code);
             dto.setCode(code);
             dto.setName(strategy.name());
             dto.setRemark(strategy.remark());
@@ -95,6 +96,7 @@ public class StrategyService {
             strategy = entry.getValue();
             dto = new StrategyDto();
             dto.setCategory(strategy.category());
+            dto.setId(entry.getKey());
             dto.setCode(entry.getKey());
             dto.setName(strategy.name());
             dto.setRemark(strategy.remark());
@@ -119,6 +121,7 @@ public class StrategyService {
             if (category == strategy.category()) {
                 dto = new StrategyDto();
                 dto.setCategory(strategy.category());
+                dto.setId(entry.getKey());
                 dto.setCode(entry.getKey());
                 dto.setName(strategy.name());
                 dto.setRemark(strategy.remark());

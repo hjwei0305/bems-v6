@@ -15,6 +15,10 @@ import java.io.Serializable;
 public class StrategyDto implements Serializable {
     private static final long serialVersionUID = -51089250630553840L;
     /**
+     *
+     */
+    private String id;
+    /**
      * 策略代码
      */
     @ApiModelProperty(value = "策略代码")
@@ -39,6 +43,14 @@ public class StrategyDto implements Serializable {
      */
     @ApiModelProperty(value = "策略描述")
     private String remark;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getCode() {
         return code;
