@@ -6,6 +6,7 @@ import com.changhong.bems.dto.LogRecordViewDto;
 import com.changhong.bems.dto.report.AnnualBudgetRequest;
 import com.changhong.bems.dto.report.AnnualBudgetResponse;
 import com.changhong.sei.core.dto.ResultData;
+import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -58,7 +59,7 @@ public interface ReportApi {
      */
     @PostMapping(path = "getLogRecords", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "查询预算执行日志", notes = "查询预算执行日志")
-    ResultData<List<LogRecordViewDto>> getLogRecords(@RequestBody Search search);
+    ResultData<PageResult<LogRecordViewDto>> getLogRecords(@RequestBody Search search);
 
     /**
      * 获取年度预算分析报表数据

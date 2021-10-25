@@ -2,7 +2,6 @@ package com.changhong.bems.controller;
 
 import com.changhong.bems.api.ReportApi;
 import com.changhong.bems.dto.DimensionDto;
-import com.changhong.bems.dto.LogRecordDto;
 import com.changhong.bems.dto.LogRecordViewDto;
 import com.changhong.bems.dto.report.AnnualBudgetRequest;
 import com.changhong.bems.dto.report.AnnualBudgetResponse;
@@ -12,8 +11,10 @@ import com.changhong.bems.service.CategoryService;
 import com.changhong.bems.service.LogRecordService;
 import com.changhong.bems.service.ReportService;
 import com.changhong.sei.core.dto.ResultData;
+import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import io.swagger.annotations.Api;
+import org.apache.commons.collections.CollectionUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -22,7 +23,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -76,13 +80,12 @@ public class ReportController implements ReportApi {
     }
 
     @Override
-    public ResultData<List<LogRecordViewDto>> getLogRecords(Search search) {
-        List<LogRecordViewDto> result;
-        List<LogRecordView> records = logRecordService.findLogRecords(search);
-        if (Objects.nonNull(records)) {
-            result = records.stream().map(log -> modelMapper.map(log, LogRecordViewDto.class)).collect(Collectors.toList());
-        } else {
-            result = new ArrayList<>();
+    public ResultData<PageResult<LogRecordViewDto>> getLogRecords(Search search) {
+        PageResult<LogRecordView> pageResult = logRecordService.findViewByPage(search);
+        PageResult<LogRecordViewDto> result = new PageResult<>(pageResult);
+        List<LogRecordView> records = pageResult.getRows();
+        if (CollectionUtils.isNotEmpty(records)) {
+            result.setRows(records.stream().map(r -> modelMapper.map(r, LogRecordViewDto.class)).collect(Collectors.toList()));
         }
         return ResultData.success(result);
     }

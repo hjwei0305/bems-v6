@@ -83,6 +83,14 @@ public class LogRecordViewDto extends BaseAttributeDto {
     @ApiModelProperty(value = "业务描述")
     private String bizRemark;
 
+    public String getSubjectId() {
+        return subjectId;
+    }
+
+    public void setSubjectId(String subjectId) {
+        this.subjectId = subjectId;
+    }
+
     public String getPoolCode() {
         return poolCode;
     }
