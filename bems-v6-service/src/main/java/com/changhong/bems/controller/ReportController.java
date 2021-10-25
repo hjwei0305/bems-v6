@@ -3,6 +3,7 @@ package com.changhong.bems.controller;
 import com.changhong.bems.api.ReportApi;
 import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.dto.LogRecordDto;
+import com.changhong.bems.dto.LogRecordViewDto;
 import com.changhong.bems.dto.report.AnnualBudgetRequest;
 import com.changhong.bems.dto.report.AnnualBudgetResponse;
 import com.changhong.bems.entity.Dimension;
@@ -75,11 +76,11 @@ public class ReportController implements ReportApi {
     }
 
     @Override
-    public ResultData<List<LogRecordDto>> getLogRecords(Search search) {
-        List<LogRecordDto> result;
+    public ResultData<List<LogRecordViewDto>> getLogRecords(Search search) {
+        List<LogRecordViewDto> result;
         List<LogRecordView> records = logRecordService.findLogRecords(search);
         if (Objects.nonNull(records)) {
-            result = records.stream().map(log -> modelMapper.map(log, LogRecordDto.class)).collect(Collectors.toList());
+            result = records.stream().map(log -> modelMapper.map(log, LogRecordViewDto.class)).collect(Collectors.toList());
         } else {
             result = new ArrayList<>();
         }

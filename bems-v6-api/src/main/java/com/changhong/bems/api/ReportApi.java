@@ -2,6 +2,7 @@ package com.changhong.bems.api;
 
 import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.dto.LogRecordDto;
+import com.changhong.bems.dto.LogRecordViewDto;
 import com.changhong.bems.dto.report.AnnualBudgetRequest;
 import com.changhong.bems.dto.report.AnnualBudgetResponse;
 import com.changhong.sei.core.dto.ResultData;
@@ -57,7 +58,7 @@ public interface ReportApi {
      */
     @PostMapping(path = "getLogRecords", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "查询预算执行日志", notes = "查询预算执行日志")
-    ResultData<List<LogRecordDto>> getLogRecords(@RequestBody Search search);
+    ResultData<List<LogRecordViewDto>> getLogRecords(@RequestBody Search search);
 
     /**
      * 获取年度预算分析报表数据
