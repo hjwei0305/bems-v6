@@ -2,12 +2,16 @@ package com.changhong.bems.controller;
 
 import com.changhong.bems.api.ReportApi;
 import com.changhong.bems.dto.DimensionDto;
+import com.changhong.bems.dto.LogRecordDto;
 import com.changhong.bems.dto.report.AnnualBudgetRequest;
 import com.changhong.bems.dto.report.AnnualBudgetResponse;
 import com.changhong.bems.entity.Dimension;
+import com.changhong.bems.entity.LogRecordView;
 import com.changhong.bems.service.CategoryService;
+import com.changhong.bems.service.LogRecordService;
 import com.changhong.bems.service.ReportService;
 import com.changhong.sei.core.dto.ResultData;
+import com.changhong.sei.core.dto.serach.Search;
 import io.swagger.annotations.Api;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -36,6 +37,8 @@ public class ReportController implements ReportApi {
 
     @Autowired
     private CategoryService categoryService;
+    @Autowired
+    private LogRecordService logRecordService;
     @Autowired
     private ReportService reportService;
     @Autowired
@@ -67,6 +70,18 @@ public class ReportController implements ReportApi {
         int i = 0;
         while (i < 3) {
             result.add(year - i++);
+        }
+        return ResultData.success(result);
+    }
+
+    @Override
+    public ResultData<List<LogRecordDto>> getLogRecords(Search search) {
+        List<LogRecordDto> result;
+        List<LogRecordView> records = logRecordService.findLogRecords(search);
+        if (Objects.nonNull(records)) {
+            result = records.stream().map(log -> modelMapper.map(log, LogRecordDto.class)).collect(Collectors.toList());
+        } else {
+            result = new ArrayList<>();
         }
         return ResultData.success(result);
     }

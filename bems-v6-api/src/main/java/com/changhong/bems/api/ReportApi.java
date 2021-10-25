@@ -1,9 +1,11 @@
 package com.changhong.bems.api;
 
 import com.changhong.bems.dto.DimensionDto;
+import com.changhong.bems.dto.LogRecordDto;
 import com.changhong.bems.dto.report.AnnualBudgetRequest;
 import com.changhong.bems.dto.report.AnnualBudgetResponse;
 import com.changhong.sei.core.dto.ResultData;
+import com.changhong.sei.core.dto.serach.Search;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
@@ -43,9 +45,19 @@ public interface ReportApi {
      * @param subjectId 预算主体
      * @return 返回预算年度清单
      */
-    @PostMapping(path = "getYears/{subjectId}")
+    @GetMapping(path = "getYears/{subjectId}")
     @ApiOperation(value = "获取预算年度清单", notes = "获取预算年度清单")
     ResultData<List<Integer>> getYears(@PathVariable("subjectId") String subjectId);
+
+    /**
+     * 查询预算执行日志
+     *
+     * @param search 查询条件
+     * @return 返回查询结果
+     */
+    @PostMapping(path = "getLogRecords", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "查询预算执行日志", notes = "查询预算执行日志")
+    ResultData<List<LogRecordDto>> getLogRecords(@RequestBody Search search);
 
     /**
      * 获取年度预算分析报表数据

@@ -75,4 +75,13 @@ public class LogRecordService extends BaseEntityService<LogRecord> {
         search.addSortOrder(SearchOrder.desc(LogRecordView.FIELD_TIMESTAMP));
         return viewDao.findByPage(search);
     }
+
+    public List<LogRecordView> findLogRecords(Search search) {
+        if (Objects.isNull(search)) {
+            search = Search.createSearch();
+        }
+        // 按时间戳排序
+        search.addSortOrder(SearchOrder.desc(LogRecordView.FIELD_TIMESTAMP));
+        return viewDao.findByFilters(search);
+    }
 }
