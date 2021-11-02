@@ -24,7 +24,6 @@ import java.io.Serializable;
 @DynamicUpdate
 public class Dimension extends BaseAuditableEntity implements ITenant, IRank, ICodeUnique, Serializable {
     private static final long serialVersionUID = -99493949797458960L;
-    public static final String FIELD_STRATEGY_ID = "strategyId";
     /**
      * 维度代码
      */

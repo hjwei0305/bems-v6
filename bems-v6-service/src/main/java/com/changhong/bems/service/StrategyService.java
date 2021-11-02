@@ -85,6 +85,14 @@ public class StrategyService {
         return dto;
     }
 
+    public String getNameByCode(String code) {
+        BaseStrategy strategy = strategyMap.get(code);
+        if (Objects.nonNull(strategy)) {
+            return strategy.name();
+        }
+        return code;
+    }
+
     /**
      * 基于主键集合查询集合数据对象
      */
