@@ -47,10 +47,14 @@ public class PoolAmountService {
         attributeAmount.setPoolId(pool.getId());
         attributeAmount.setSubjectId(pool.getSubjectId());
         attributeAmount.setAttributeCode(pool.getAttributeCode());
+        // 预算年度
         attributeAmount.setYear(pool.getYear());
+        // 当前月份
         attributeAmount.setMonth(LocalDate.now().getMonthValue());
         attributeAmount.setTenantCode(pool.getTenantCode());
+        // 初始注入金额
         attributeAmount.setInitInjectAmount(injectAmount);
+        // 初始调入金额
         attributeAmount.setInitReviseInAmount(reviseInAmount);
         poolAttributeAmountDao.save(attributeAmount);
     }
@@ -84,17 +88,27 @@ public class PoolAmountService {
         poolAmount.setAmount(poolAmount.getAmount().add(amount));
         dao.save(poolAmount);
 
-        PoolAttributeAmount attributeAmount = poolAttributeAmountDao.findByProperty(PoolAttributeAmount.FIELD_POOL_ID, poolId);
+        search.clearAll();
+        search.addFilter(new SearchFilter(PoolAttributeAmount.FIELD_SUBJECT_ID, pool.getSubjectId()));
+        search.addFilter(new SearchFilter(PoolAttributeAmount.FIELD_ATTRIBUTE_CODE, pool.getAttributeCode()));
+        search.addFilter(new SearchFilter(PoolAttributeAmount.FIELD_YEAR, pool.getYear()));
+        // 当前月份
+        int month = LocalDate.now().getMonthValue();
+        search.addFilter(new SearchFilter(PoolAttributeAmount.FIELD_MONTH, month));
+        PoolAttributeAmount attributeAmount = poolAttributeAmountDao.findOneByFilters(search);
         if (Objects.isNull(attributeAmount)) {
             attributeAmount = new PoolAttributeAmount();
             attributeAmount.setPoolId(poolId);
             attributeAmount.setSubjectId(pool.getSubjectId());
             attributeAmount.setAttributeCode(pool.getAttributeCode());
+            // 预算年度
             attributeAmount.setYear(pool.getYear());
-            attributeAmount.setMonth(LocalDate.now().getMonthValue());
+            // 当前月份
+            attributeAmount.setMonth(month);
             attributeAmount.setTenantCode(tenantCode);
-            attributeAmount.setInitInjectAmount(amount);
-            attributeAmount.setInitReviseInAmount(amount);
+            // 仅在创建预算池时做初始化
+            attributeAmount.setInitInjectAmount(BigDecimal.ZERO);
+            attributeAmount.setInitReviseInAmount(BigDecimal.ZERO);
         }
         if (internal) {
             // 预算内部调整或分解

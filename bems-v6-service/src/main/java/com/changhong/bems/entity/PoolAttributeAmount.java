@@ -23,7 +23,10 @@ import java.math.BigDecimal;
 @DynamicUpdate
 public class PoolAttributeAmount extends BaseEntity implements ITenant, Serializable {
     private static final long serialVersionUID = 921560050269283338L;
-    public static final String FIELD_POOL_ID = "poolId";
+    public static final String FIELD_SUBJECT_ID = "subjectId";
+    public static final String FIELD_ATTRIBUTE_CODE = "attributeCode";
+    public static final String FIELD_YEAR = "year";
+    public static final String FIELD_MONTH = "month";
 
     /**
      * 预算主体id
