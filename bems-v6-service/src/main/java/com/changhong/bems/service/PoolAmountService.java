@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 
@@ -34,14 +35,24 @@ public class PoolAmountService {
     private PoolAttributeAmountDao poolAttributeAmountDao;
 
     /**
-     * 按预算池id查询预算池当前余额
+     * 创建预算池时初始化预算池维度属性金额
      *
-     * @param poolCode 预算池编码
-     * @return 当前预算池可用余额
+     * @param pool           预算池
+     * @param injectAmount   注入金额.通过注入且新产生预算池时的金额,作为初始注入金额,用于多维分析的差异计算
+     * @param reviseInAmount 调入金额.新产生预算池时的金额,作为初始注入金额,用于预算池分析的差异计算
      */
-    public BigDecimal getPoolBalanceByPoolCode(String poolCode) {
-        PoolAmountQuotaDto quota = this.getPoolAmountQuota(poolCode);
-        return quota.getBalance();
+    @Transactional(rollbackFor = Exception.class)
+    public void initAmount(Pool pool, BigDecimal injectAmount, BigDecimal reviseInAmount) {
+        PoolAttributeAmount attributeAmount = new PoolAttributeAmount();
+        attributeAmount.setPoolId(pool.getId());
+        attributeAmount.setSubjectId(pool.getSubjectId());
+        attributeAmount.setAttributeCode(pool.getAttributeCode());
+        attributeAmount.setYear(pool.getYear());
+        attributeAmount.setMonth(LocalDate.now().getMonthValue());
+        attributeAmount.setTenantCode(pool.getTenantCode());
+        attributeAmount.setInitInjectAmount(injectAmount);
+        attributeAmount.setInitReviseInAmount(reviseInAmount);
+        poolAttributeAmountDao.save(attributeAmount);
     }
 
     /**
@@ -78,7 +89,12 @@ public class PoolAmountService {
             attributeAmount = new PoolAttributeAmount();
             attributeAmount.setPoolId(poolId);
             attributeAmount.setSubjectId(pool.getSubjectId());
+            attributeAmount.setAttributeCode(pool.getAttributeCode());
+            attributeAmount.setYear(pool.getYear());
+            attributeAmount.setMonth(LocalDate.now().getMonthValue());
             attributeAmount.setTenantCode(tenantCode);
+            attributeAmount.setInitInjectAmount(amount);
+            attributeAmount.setInitReviseInAmount(amount);
         }
         if (internal) {
             // 预算内部调整或分解
@@ -113,6 +129,17 @@ public class PoolAmountService {
             }
         }
         poolAttributeAmountDao.save(attributeAmount);
+    }
+
+    /**
+     * 按预算池id查询预算池当前余额
+     *
+     * @param poolCode 预算池编码
+     * @return 当前预算池可用余额
+     */
+    public BigDecimal getPoolBalanceByPoolCode(String poolCode) {
+        PoolAmountQuotaDto quota = this.getPoolAmountQuota(poolCode);
+        return quota.getBalance();
     }
 
     /**

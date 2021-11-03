@@ -96,11 +96,13 @@ public class PoolService {
      * @param managerOrgCode 归口管理部门
      * @param periodType     预算期间类型
      * @param baseAttribute  预算维度属性
+     * @param injectAmount   注入金额.通过注入且新产生预算池时的金额,作为初始注入金额,用于多维分析的差异计算
+     * @param reviseInAmount 调入金额.新产生预算池时的金额,作为初始注入金额,用于预算池分析的差异计算
      */
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Pool> createPool(String subjectId, String categoryId, String currencyCode, String currencyName,
                                        String managerOrgCode, String managerOrgName, PeriodType periodType,
-                                       BaseAttribute baseAttribute) {
+                                       BaseAttribute baseAttribute, BigDecimal injectAmount, BigDecimal reviseInAmount) {
         if (StringUtils.isBlank(subjectId)) {
             // 创建预算池时,预算主体不能为空!
             return ResultData.fail(ContextUtil.getMessage("pool_00008"));
@@ -135,7 +137,7 @@ public class PoolService {
             pool.setUse(category.getUse());
             pool.setRoll(category.getRoll());
 
-            return this.createPool(pool, baseAttribute);
+            return this.createPool(pool, baseAttribute, injectAmount, reviseInAmount);
         }
         return ResultData.success(pool);
     }
@@ -145,9 +147,11 @@ public class PoolService {
      *
      * @param pool          预算池
      * @param baseAttribute 维度属性
+     * @param injectAmount   注入金额.通过注入且新产生预算池时的金额,作为初始注入金额,用于多维分析的差异计算
+     * @param reviseInAmount 调入金额.新产生预算池时的金额,作为初始注入金额,用于预算池分析的差异计算
      * @return 创建结果
      */
-    private ResultData<Pool> createPool(Pool pool, BaseAttribute baseAttribute) {
+    private ResultData<Pool> createPool(Pool pool, BaseAttribute baseAttribute, BigDecimal injectAmount, BigDecimal reviseInAmount) {
         String subjectId = pool.getSubjectId();
         // 属性值hash
         Long attributeCode = baseAttribute.getAttributeCode();
@@ -190,6 +194,9 @@ public class PoolService {
         pool.setTenantCode(tenantCode);
         pool.setCode(code);
         dao.save(pool);
+        // 创建预算池时初始化预算池维度属性金额
+        poolAmountService.initAmount(pool, injectAmount, reviseInAmount);
+
         return ResultData.success(pool);
     }
 
@@ -380,14 +387,14 @@ public class PoolService {
             return ResultData.success();
         }
 
+        // 获取当前预算池余额
+        BigDecimal balance = this.getPoolBalanceByCode(pool.getCode());
         // 获取下一预算池
-        ResultData<Pool> resultData = this.getOrCreateNextPeriodBudgetPool(pool.getId(), false);
+        ResultData<Pool> resultData = this.getOrCreateNextPeriodBudgetPool(pool.getId(), balance, false);
         if (resultData.failed()) {
             return ResultData.fail(resultData.getMessage());
         } else {
             Pool nextPool = resultData.getData();
-            // 获取当前预算池余额
-            BigDecimal balance = this.getPoolBalanceByCode(pool.getCode());
             // 当前预算池
             this.poolAmountLog(pool, bizId, bizCode, ContextUtil.getMessage("pool_00020", nextPool.getCode()),
                     balance, Constants.EVENT_BUDGET_TRUNDLE, Boolean.TRUE, OperationType.USE);
@@ -660,7 +667,7 @@ public class PoolService {
      * @return 下一期间预算池
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Pool> getOrCreateNextPeriodBudgetPool(String poolId, boolean isAcrossYear) {
+    public ResultData<Pool> getOrCreateNextPeriodBudgetPool(String poolId, BigDecimal balance, boolean isAcrossYear) {
         Pool pool = dao.findOne(poolId);
         if (Objects.isNull(pool)) {
             LOG.error("获取下一期间的预算池错误: 未找到当前预算池[{}]", poolId);
@@ -726,7 +733,7 @@ public class PoolService {
             nextPeriodPool.setUse(pool.getUse());
             nextPeriodPool.setRoll(pool.getRoll());
             // 创建预算池
-            return this.createPool(nextPeriodPool, attribute);
+            return this.createPool(nextPeriodPool, attribute, BigDecimal.ZERO, balance);
         } else {
             return ResultData.success(nextPeriodPool);
         }

@@ -31,7 +31,7 @@ public class PoolAttributeAmount extends BaseEntity implements ITenant, Serializ
     @Column(name = "subject_id", updatable = false)
     private String subjectId;
     /**
-     * 预算维度属性code
+     * 预算维度属性值散列
      */
     @Column(name = "attribute_code", updatable = false)
     private Long attributeCode;
