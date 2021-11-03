@@ -44,13 +44,13 @@ public class BudgetController implements BudgetApi {
     private PoolService poolService;
 
     /**
-     * 创建预算池
+     * 同步预算
      *
      * @return 创建结果
      */
     @Override
-    public ResultData<Void> create() {
-        // todo 同步创建预算
+    public ResultData<Void> sync() {
+        // todo 同步预算
         return null;
     }
 

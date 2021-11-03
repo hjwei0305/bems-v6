@@ -55,6 +55,8 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
     private PeriodService periodService;
     @Autowired
     private SubjectItemService subjectItemService;
+    @Autowired
+    private StrategyService strategyService;
 
     @Override
     protected BaseEntityDao<Subject> getDao() {
@@ -177,6 +179,8 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
                 return OperateResultWithData.operationFailure("subject_00005", existed.getName());
             }
         }
+        // 清除策略缓存
+        strategyService.cleanStrategyCache(entity.getId(), null);
         return result;
     }
 

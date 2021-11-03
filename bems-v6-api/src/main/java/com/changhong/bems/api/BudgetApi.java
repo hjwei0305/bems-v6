@@ -28,13 +28,13 @@ public interface BudgetApi {
     String PATH = "budget";
 
     /**
-     * 创建预算池
+     * 同步预算
      *
      * @return 创建结果
      */
-    @PostMapping(path = "create", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "创建预算池", notes = "创建预算池")
-    ResultData<Void> create();
+    @PostMapping(path = "sync", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "同步预算", notes = "接口同步预算")
+    ResultData<Void> sync();
 
     /**
      * 使用预算

@@ -96,4 +96,9 @@ public final class Constants {
      */
     public static final String HANDLE_CACHE_KEY_PREFIX = "bems-v6:order:handle:";
 
+    /**
+     * redis key 预算策略缓存key
+     */
+    public static final String STRATEGY_CACHE_KEY_PREFIX = "bems-v6:strategy:";
+
 }

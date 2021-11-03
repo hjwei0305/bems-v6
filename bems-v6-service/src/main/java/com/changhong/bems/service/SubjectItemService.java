@@ -45,6 +45,8 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
     private SubjectService subjectService;
     @Autowired
     private ItemService itemService;
+    @Autowired
+    private StrategyService strategyService;
 
     public static final String CACHE_KEY = "bems-v6:subjectitem";
 
@@ -70,7 +72,8 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
                 // 当前科目已被使用,禁止删除!
                 return OperateResult.operationFailure("subject_item_00001");
             }
-
+            // 清除策略缓存
+            strategyService.cleanStrategyCache(entity.getSubjectId(), entity.getCode());
             getDao().delete(entity);
             return OperateResult.operationSuccess("core_service_00028");
         } else {
@@ -85,6 +88,8 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
     @CacheEvict(key = "#entity.subjectId + ':' + #entity.code")
     @Transactional(rollbackFor = Exception.class)
     public OperateResultWithData<SubjectItem> save(SubjectItem entity) {
+        // 清除策略缓存
+        strategyService.cleanStrategyCache(entity.getSubjectId(), entity.getCode());
         return super.save(entity);
     }
 
@@ -117,7 +122,6 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
      * @param ids 预算主体科目id
      * @return 操作结果
      */
-    @CacheEvict(allEntries = true)
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> frozen(List<String> ids, boolean frozen) {
         List<SubjectItem> items = dao.findAllById(ids);
@@ -175,7 +179,6 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
      * @param itemCodes 科目代码
      * @return 分配结果
      */
-    @CacheEvict(key = "#subjectId + ':*'")
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> assigne(String subjectId, Set<String> itemCodes) {
         Subject subject = subjectService.findOne(subjectId);
