@@ -1,10 +1,14 @@
 package com.changhong.bems.service;
 
+import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.SubjectDao;
 import com.changhong.bems.dto.CorporationDto;
 import com.changhong.bems.dto.CurrencyDto;
 import com.changhong.bems.dto.OrganizationDto;
-import com.changhong.bems.entity.*;
+import com.changhong.bems.entity.Category;
+import com.changhong.bems.entity.Period;
+import com.changhong.bems.entity.Subject;
+import com.changhong.bems.entity.SubjectItem;
 import com.changhong.bems.service.client.CorporationManager;
 import com.changhong.bems.service.client.CurrencyManager;
 import com.changhong.bems.service.client.OrganizationManager;
@@ -16,12 +20,15 @@ import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.DataAuthEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
 import com.changhong.sei.core.service.bo.OperateResultWithData;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 
 /**
@@ -40,7 +47,7 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
     private CurrencyManager currencyManager;
     @Autowired
     private CorporationManager corporationManager;
-    @Autowired
+    @Autowired(required = false)
     private OrganizationManager organizationManager;
     @Autowired
     private CategoryService categoryService;
@@ -92,7 +99,11 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
      * @return 组织机构树清单
      */
     public ResultData<List<OrganizationDto>> findOrgTree() {
-        return organizationManager.findOrgTreeWithoutFrozen();
+        if (Objects.nonNull(organizationManager)) {
+            return organizationManager.findOrgTreeWithoutFrozen();
+        } else {
+            return ResultData.fail(ContextUtil.getMessage("pool_00030"));
+        }
     }
 
     /**
@@ -106,8 +117,12 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
             // 未找到预算主体
             return ResultData.fail(ContextUtil.getMessage("subject_00003", subjectId));
         }
-        // 控制组织的范围只能是预算主体指定的组织及下级
-        return organizationManager.getTree4Unfrozen(subject.getOrgId());
+        if (Objects.nonNull(organizationManager)) {
+            // 控制组织的范围只能是预算主体指定的组织及下级
+            return organizationManager.getTree4Unfrozen(subject.getOrgId());
+        } else {
+            return ResultData.fail(ContextUtil.getMessage("pool_00030"));
+        }
     }
 
     /**
@@ -121,8 +136,12 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
             // 未找到预算主体
             return ResultData.fail(ContextUtil.getMessage("subject_00003"));
         }
-        // 通过组织机构id获取组织机构清单
-        return organizationManager.getChildrenNodes4Unfrozen(subject.getOrgId());
+        if (Objects.nonNull(organizationManager)) {
+            // 通过组织机构id获取组织机构清单
+            return organizationManager.getChildrenNodes4Unfrozen(subject.getOrgId());
+        } else {
+            return ResultData.fail(ContextUtil.getMessage("pool_00030"));
+        }
     }
 
     /**
@@ -188,11 +207,63 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
 
     /**
      * 通过公司代码获取预算主体
+     * 如果公司存在多个预算主体,则还需要通过组织确定
+     * 如果组织为空,则默认返回第一个
+     * 如果组织不为空,则按组织树路径向上匹配预算主体上配置的组织
      *
      * @param corpCode 公司代码
      * @return 返回预算主体清单
      */
-    public List<Subject> getByCorpCode(String corpCode) {
-        return dao.findListByProperty(Subject.FIELD_CORP_CODE, corpCode);
+    public Subject getSubject(String corpCode, String orgId) {
+        Subject subject = null;
+        List<Subject> subjectList = dao.findListByProperty(Subject.FIELD_CORP_CODE, corpCode);
+        if (CollectionUtils.isNotEmpty(subjectList)) {
+            if (subjectList.size() == 1) {
+                subject = subjectList.get(0);
+            } else {
+                if (StringUtils.isBlank(orgId) || StringUtils.equalsIgnoreCase(Constants.NONE, orgId)) {
+                    subject = subjectList.get(0);
+                } else {
+                    // 按id进行映射方便后续使用
+                    Map<String, OrganizationDto> orgMap = null;
+                    // 获取指定节点的所有父节点(含自己)
+                    ResultData<List<OrganizationDto>> resultData = organizationManager.getParentNodes(orgId, Boolean.TRUE);
+                    if (resultData.successful()) {
+                        List<OrganizationDto> orgList = resultData.getData();
+                        if (CollectionUtils.isNotEmpty(orgList)) {
+                            // 组织id映射
+                            orgMap = orgList.stream().collect(Collectors.toMap(OrganizationDto::getId, o -> o));
+                            orgList.clear();
+                        }
+                    }
+                    if (Objects.nonNull(orgMap)) {
+                    /*
+                        组织机构向上查找规则:
+                        1.按组织机构树路径,从预算占用的节点开始,向上依次查找
+                        2.当按组织节点找到存在的预算池,不管余额是否满足,都将停止向上查找
+                     */
+                        String parentId = orgId;
+                        OrganizationDto org = orgMap.get(parentId);
+                        while (Objects.nonNull(org)) {
+                            String oId = org.getId();
+                            // 按组织id匹配预算池
+                            subject = subjectList.stream().filter(p -> StringUtils.equals(oId, p.getOrgId())).findFirst().orElse(null);
+                            if (Objects.nonNull(subject)) {
+                                break;
+                            } else {
+                                // 没有可用的预算池,继续查找上级组织的预算池
+                                parentId = org.getParentId();
+                                if (StringUtils.isNotBlank(parentId)) {
+                                    org = orgMap.get(parentId);
+                                } else {
+                                    org = null;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return subject;
     }
 }

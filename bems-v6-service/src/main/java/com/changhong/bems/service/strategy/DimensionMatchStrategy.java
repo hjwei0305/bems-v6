@@ -15,9 +15,8 @@ public interface DimensionMatchStrategy extends BaseStrategy {
     /**
      * 获取维度匹配值
      *
-     * @param dimension 维度对象
      * @param dimValue  维度值
      * @return 返回匹配值
      */
-    ResultData<Object> getMatchValue(BudgetUse budgetUse, Dimension dimension, String dimValue);
+    ResultData<Object> getMatchValue(BudgetUse budgetUse, String dimValue);
 }

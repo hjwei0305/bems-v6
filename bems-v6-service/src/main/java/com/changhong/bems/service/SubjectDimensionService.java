@@ -76,6 +76,32 @@ public class SubjectDimensionService {
         return dimensionList;
     }
 
+    @Cacheable(key = "#subjectId + ':' + #code")
+    public DimensionDto getDimension(String subjectId, String code) {
+        DimensionDto dto = null;
+        Dimension dimension = dimensionService.findByCode(code);
+        if (Objects.nonNull(dimension)) {
+            Search search = Search.createSearch();
+            search.addFilter(new SearchFilter(SubjectDimension.FIELD_SUBJECT_ID, subjectId));
+            search.addFilter(new SearchFilter(SubjectDimension.FIELD_CODE, code));
+            SubjectDimension subjectDimension = dao.findOneByFilters(search);
+            dto = new DimensionDto();
+            dto.setCode(dimension.getCode());
+            dto.setName(dimension.getName());
+            dto.setStrategyId(dimension.getStrategyId());
+            dto.setStrategyName(dimension.getStrategyName());
+            dto.setUiComponent(dimension.getUiComponent());
+            dto.setRequired(dimension.getRequired());
+            dto.setRank(dimension.getRank());
+            if (StringUtils.equals(dto.getCode(), subjectDimension.getCode())) {
+                dto.setId(subjectDimension.getId());
+                dto.setStrategyId(subjectDimension.getStrategyId());
+                dto.setStrategyName(strategyService.getNameByCode(subjectDimension.getStrategyId()));
+            }
+        }
+        return dto;
+    }
+
     /**
      * 设置预算维度为主体私有
      *

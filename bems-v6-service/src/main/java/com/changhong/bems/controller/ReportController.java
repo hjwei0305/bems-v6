@@ -5,7 +5,6 @@ import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.dto.LogRecordViewDto;
 import com.changhong.bems.dto.report.AnnualBudgetRequest;
 import com.changhong.bems.dto.report.AnnualBudgetResponse;
-import com.changhong.bems.entity.Dimension;
 import com.changhong.bems.entity.LogRecordView;
 import com.changhong.bems.service.CategoryService;
 import com.changhong.bems.service.LogRecordService;
@@ -57,9 +56,7 @@ public class ReportController implements ReportApi {
      */
     @Override
     public ResultData<List<DimensionDto>> getDimensionsBySubjectId(String subjectId) {
-        List<Dimension> dimensions = categoryService.findDimensionBySubject(subjectId);
-        List<DimensionDto> dtoList = dimensions.stream().map(d -> modelMapper.map(d, DimensionDto.class)).collect(Collectors.toList());
-        return ResultData.success(dtoList);
+        return ResultData.success(categoryService.findDimensionBySubject(subjectId));
     }
 
     /**

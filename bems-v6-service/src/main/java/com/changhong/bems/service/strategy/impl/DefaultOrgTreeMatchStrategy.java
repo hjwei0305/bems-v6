@@ -1,8 +1,7 @@
 package com.changhong.bems.service.strategy.impl;
 
-import com.changhong.bems.dto.use.BudgetUse;
 import com.changhong.bems.dto.OrganizationDto;
-import com.changhong.bems.entity.Dimension;
+import com.changhong.bems.dto.use.BudgetUse;
 import com.changhong.bems.service.client.OrganizationManager;
 import com.changhong.bems.service.strategy.OrgTreeMatchStrategy;
 import com.changhong.sei.core.context.ContextUtil;
@@ -28,12 +27,11 @@ public class DefaultOrgTreeMatchStrategy extends BaseMatchStrategy implements Or
     /**
      * 获取维度匹配值
      *
-     * @param dimension 维度对象
-     * @param dimValue  维度值
+     * @param dimValue 维度值
      * @return 返回匹配值
      */
     @Override
-    public ResultData<Object> getMatchValue(BudgetUse budgetUse, Dimension dimension, String dimValue) {
+    public ResultData<Object> getMatchValue(BudgetUse budgetUse, String dimValue) {
         ResultData<List<OrganizationDto>> resultData = organizationManager.getParentNodes(dimValue, Boolean.TRUE);
         if (resultData.successful()) {
             List<OrganizationDto> orgList = resultData.getData();

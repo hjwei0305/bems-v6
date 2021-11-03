@@ -7,11 +7,13 @@ import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 预算类型维度关系(CategoryDimension)业务逻辑实现类
@@ -111,22 +113,19 @@ public class CategoryDimensionService {
      * @param categoryIds 预算类型清单
      * @return 预算维度代码清单
      */
-    public List<Dimension> getDimensionCodeByCategory(Set<String> categoryIds) {
+    public Set<String> getDimensionCodeByCategory(Set<String> categoryIds) {
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(CategoryDimension.FIELD_CATEGORY_ID, categoryIds, SearchFilter.Operator.IN));
         List<CategoryDimension> list = dao.findByFilters(search);
 
-        String code;
-        Dimension dimension;
-        HashMap<String, Dimension> map = new HashMap<>();
-        for (CategoryDimension cd : list) {
-            code = cd.getDimensionCode();
-            if (Objects.isNull(map.get(code))) {
-                dimension = dimensionService.findByCode(code);
-                map.put(code, dimension);
-            }
+        Set<String> dimensionCodeSet;
+        if (CollectionUtils.isNotEmpty(list)) {
+            dimensionCodeSet = list.stream().map(CategoryDimension::getDimensionCode).collect(Collectors.toSet());
+        } else {
+            dimensionCodeSet = new HashSet<>();
         }
-        return new ArrayList<>(map.values());
+
+        return dimensionCodeSet;
     }
 
     public CategoryDimension getByDimensionCode(String dimensionCode) {

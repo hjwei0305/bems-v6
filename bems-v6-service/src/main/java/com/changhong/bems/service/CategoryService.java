@@ -46,6 +46,8 @@ public class CategoryService extends BaseEntityService<Category> {
     @Autowired
     private DimensionService dimensionService;
     @Autowired
+    private SubjectDimensionService subjectDimensionService;
+    @Autowired
     private CategoryConfigService categoryConfigService;
 
     public static final String CACHE_KEY = "bems-v6:category:dimension";
@@ -168,15 +170,22 @@ public class CategoryService extends BaseEntityService<Category> {
     }
 
     /**
-     * 根据预算主体查询私有预算类型
+     * 通过预算主体获取其使用的维度清单
+     * 报表查询用
      *
      * @param subjectId 预算主体id
      * @return 分页查询结果
      */
-    public List<Dimension> findDimensionBySubject(String subjectId) {
+    public List<DimensionDto> findDimensionBySubject(String subjectId) {
+        // 获取当前主体的预算类型
         List<Category> categoryList = this.findBySubject(subjectId);
         Set<String> categoryIds = categoryList.stream().map(Category::getId).collect(Collectors.toSet());
-        return categoryDimensionService.getDimensionCodeByCategory(categoryIds);
+        // 按预算类型获取使用的维度代码
+        Set<String> dimensionCodeSet = categoryDimensionService.getDimensionCodeByCategory(categoryIds);
+        // 按主体获取预算维度及维度策略
+        List<DimensionDto> dimensions = subjectDimensionService.getDimensions(subjectId);
+        // 按使用的维度过滤
+        return dimensions.stream().filter(d -> dimensionCodeSet.contains(d.getCode())).collect(Collectors.toList());
     }
 
     /**
@@ -267,26 +276,18 @@ public class CategoryService extends BaseEntityService<Category> {
     @Cacheable(key = "#categoryId")
     public List<DimensionDto> getAssigned(String categoryId) {
         List<DimensionDto> list = new ArrayList<>();
+        Category category = dao.findOne(categoryId);
+        if (Objects.isNull(category)) {
+            return list;
+        }
+        // 预算类型分配的维度
         List<CategoryDimension> categoryDimensions = categoryDimensionService.getByCategoryId(categoryId);
         if (CollectionUtils.isNotEmpty(categoryDimensions)) {
-            DimensionDto dto;
-            List<Dimension> dimensionList = dimensionService.findAll();
-            Map<String, Dimension> dimensionMap = dimensionList.stream().collect(Collectors.toMap(Dimension::getCode, d -> d));
-
-            for (CategoryDimension cd : categoryDimensions) {
-                Dimension dimension = dimensionMap.get(cd.getDimensionCode());
-                if (Objects.nonNull(dimension)) {
-                    dto = new DimensionDto();
-                    dto.setCode(dimension.getCode());
-                    dto.setName(dimension.getName());
-                    dto.setStrategyId(dimension.getStrategyId());
-                    dto.setStrategyName(dimension.getStrategyName());
-                    dto.setUiComponent(dimension.getUiComponent());
-                    dto.setRequired(dimension.getRequired());
-                    dto.setRank(cd.getRank());
-                    list.add(dto);
-                }
-            }
+            // 获取预算主体可用的维度(策略)
+            list = subjectDimensionService.getDimensions(category.getSubjectId());
+            Set<String> codeSet = categoryDimensions.stream().map(CategoryDimension::getDimensionCode).collect(Collectors.toSet());
+            // 按可用的维度过滤
+            list = list.stream().filter(d -> codeSet.contains(d.getCode())).collect(Collectors.toList());
             // 排序
             list.sort(Comparator.comparing(DimensionDto::getRank));
         }

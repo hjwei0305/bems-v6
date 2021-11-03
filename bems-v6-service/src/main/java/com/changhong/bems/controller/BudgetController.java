@@ -44,6 +44,17 @@ public class BudgetController implements BudgetApi {
     private PoolService poolService;
 
     /**
+     * 创建预算池
+     *
+     * @return 创建结果
+     */
+    @Override
+    public ResultData<Void> create() {
+        // todo 同步创建预算
+        return null;
+    }
+
+    /**
      * 使用预算
      * 包含占用和释放
      *

@@ -43,8 +43,6 @@ public class PoolService {
     @Autowired
     private PoolDao dao;
     @Autowired
-    private SubjectService subjectService;
-    @Autowired
     private DimensionAttributeService dimensionAttributeService;
     @Autowired
     private PeriodService periodService;
@@ -502,17 +500,13 @@ public class PoolService {
     /**
      * 初步查找满足条件的预算池
      *
-     * @param corpCode 公司代码
-     * @param item     预算科目
+     * @param subjectId 预算主体
+     * @param item      预算科目
      * @return 返回满足条件的预算池
      */
-    public List<PoolAttributeDto> getBudgetPools(String attribute, LocalDate useDate, String corpCode, String item,
+    public List<PoolAttributeDto> getBudgetPools(String subjectId, String attribute, LocalDate useDate, String item,
                                                  Collection<SearchFilter> dimFilters) {
         List<PoolAttributeDto> resultList = new ArrayList<>();
-        List<Subject> subjectList = subjectService.getByCorpCode(corpCode);
-        if (CollectionUtils.isEmpty(subjectList)) {
-            return resultList;
-        }
         List<SearchFilter> filters;
         {
             // 在其他维度条件基础上追加预算科目
@@ -523,10 +517,8 @@ public class PoolService {
             }
             filters.add(new SearchFilter(DimensionAttribute.FIELD_ITEM, item));
         }
-        // 预算主体id
-        List<String> subjectIds = subjectList.stream().map(Subject::getId).collect(Collectors.toList());
         // 按预算主体和维度查询满足要求的预算维度属性
-        List<DimensionAttribute> attributeList = dimensionAttributeService.getAttributes(subjectIds, attribute, filters);
+        List<DimensionAttribute> attributeList = dimensionAttributeService.getAttributes(subjectId, attribute, filters);
         if (CollectionUtils.isEmpty(attributeList)) {
             return resultList;
         }
@@ -538,11 +530,7 @@ public class PoolService {
 
         Search search = Search.createSearch();
         // 预算主体
-        if (subjectIds.size() > 1) {
-            search.addFilter(new SearchFilter(Pool.FIELD_SUBJECT_ID, subjectIds, SearchFilter.Operator.IN));
-        } else {
-            search.addFilter(new SearchFilter(Pool.FIELD_SUBJECT_ID, subjectIds.get(0)));
-        }
+        search.addFilter(new SearchFilter(Pool.FIELD_SUBJECT_ID, subjectId));
         // 预算维度
         if (attributeCodes.size() > 1) {
             search.addFilter(new SearchFilter(Pool.FIELD_ATTRIBUTE_CODE, attributeCodes, SearchFilter.Operator.IN));

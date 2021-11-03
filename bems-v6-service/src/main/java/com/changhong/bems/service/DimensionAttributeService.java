@@ -15,7 +15,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -212,20 +215,16 @@ public class DimensionAttributeService {
      * 按预算主体和维度属性查询
      * 用于预算占用
      *
-     * @param subjectIds 预算主体清单
+     * @param subjectId  预算主体id
      * @param attribute  维度组合
      * @param dimFilters 维度条件
      * @return 返回满足条件的维度清单
      */
-    public List<DimensionAttribute> getAttributes(List<String> subjectIds, String attribute, Collection<SearchFilter> dimFilters) {
+    public List<DimensionAttribute> getAttributes(String subjectId, String attribute, Collection<SearchFilter> dimFilters) {
         Search search = Search.createSearch();
         // 预算主体id
-        Set<String> subjectIdSet = new HashSet<>(subjectIds);
-        if (subjectIdSet.size() > 1) {
-            search.addFilter(new SearchFilter(DimensionAttribute.FIELD_SUBJECT_ID, subjectIdSet, SearchFilter.Operator.IN));
-        } else {
-            search.addFilter(new SearchFilter(DimensionAttribute.FIELD_SUBJECT_ID, subjectIds.get(0)));
-        }
+        search.addFilter(new SearchFilter(DimensionAttribute.FIELD_SUBJECT_ID, subjectId));
+
         // 预算维度组合
         search.addFilter(new SearchFilter(DimensionAttribute.FIELD_ATTRIBUTE, attribute));
         // 其他维度条件

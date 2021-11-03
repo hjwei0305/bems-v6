@@ -28,6 +28,15 @@ public interface BudgetApi {
     String PATH = "budget";
 
     /**
+     * 创建预算池
+     *
+     * @return 创建结果
+     */
+    @PostMapping(path = "create", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "创建预算池", notes = "创建预算池")
+    ResultData<Void> create();
+
+    /**
      * 使用预算
      * 包含占用和释放
      *

@@ -1,6 +1,7 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.commons.Constants;
+import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.dto.OperationType;
 import com.changhong.bems.dto.OrganizationDto;
 import com.changhong.bems.dto.PoolAttributeDto;
@@ -8,9 +9,9 @@ import com.changhong.bems.dto.use.BudgetFree;
 import com.changhong.bems.dto.use.BudgetRequest;
 import com.changhong.bems.dto.use.BudgetResponse;
 import com.changhong.bems.dto.use.BudgetUse;
-import com.changhong.bems.entity.Dimension;
 import com.changhong.bems.entity.DimensionAttribute;
 import com.changhong.bems.entity.LogRecord;
+import com.changhong.bems.entity.Subject;
 import com.changhong.bems.service.client.OrganizationManager;
 import com.changhong.bems.service.strategy.BudgetExecutionStrategy;
 import com.changhong.bems.service.strategy.DimensionMatchStrategy;
@@ -49,9 +50,11 @@ public class BudgetService {
     @Autowired
     private PoolService poolService;
     @Autowired
+    private SubjectService subjectService;
+    @Autowired
     private LogRecordService logRecordService;
     @Autowired
-    private DimensionService dimensionService;
+    private SubjectDimensionService subjectDimensionService;
     @Autowired
     private StrategyService strategyService;
     @Autowired(required = false)
@@ -163,10 +166,18 @@ public class BudgetService {
         d.按预算主体,占用时间范围,一致性维度作为条件查询满足条件的预算池
         3.找出最优预算池
          */
+        // 确定预算主体
+        Subject subject = subjectService.getSubject(useBudget.getCorpCode(), useBudget.getOrg());
+        if (Objects.isNull(subject)) {
+            // 预算占用时,未找到匹配的预算主体!
+            return ResultData.fail(ContextUtil.getMessage("pool_00014"));
+        }
+        String subjectId = subject.getId();
+
         // 预算占用日期
         LocalDate useDate = LocalDate.parse(useBudget.getDate(), DateTimeFormatter.ISO_DATE);
         // 按占用数据获取维度
-        Map<String, SearchFilter> otherDimensions = this.getOtherDimensionFilters(useBudget);
+        Map<String, SearchFilter> otherDimensions = this.getOtherDimensionFilters(subjectId, useBudget);
         // 组装所使用到的维度清单 -> 生成维度组合
         Set<String> codes = new HashSet<>(otherDimensions.keySet());
         codes.add(Constants.DIMENSION_CODE_ITEM);
@@ -178,8 +189,8 @@ public class BudgetService {
         // 查询满足条件的预算池(非必要维度)
         final Collection<SearchFilter> otherDimFilters = otherDimensions.values();
         // 按预算占用参数获取预算池大致范围
-        final List<PoolAttributeDto> poolAttributes = poolService.getBudgetPools(attribute, useDate,
-                useBudget.getCorpCode(), useBudget.getItem(), otherDimFilters);
+        final List<PoolAttributeDto> poolAttributes = poolService.getBudgetPools(subjectId, attribute, useDate,
+                useBudget.getItem(), otherDimFilters);
         if (CollectionUtils.isEmpty(poolAttributes)) {
             // 预算占用时,未找到满足条件的预算池!
             return ResultData.fail(ContextUtil.getMessage("pool_00009"));
@@ -284,7 +295,7 @@ public class BudgetService {
      * 按占用参数获取其他维度条件
      * 期间和科目为预制默认维度匹配,不在本范围中
      */
-    private Map<String, SearchFilter> getOtherDimensionFilters(BudgetUse use) {
+    private Map<String, SearchFilter> getOtherDimensionFilters(String subjectId, BudgetUse use) {
         // 占用的维度代码
         Map<String, SearchFilter> dimFilterMap = new HashMap<>(10);
         // 组织机构
@@ -292,7 +303,7 @@ public class BudgetService {
         if (Objects.nonNull(org)) {
             org = org.trim();
             if (StringUtils.isNotBlank(org) && !StringUtils.equalsIgnoreCase(Constants.NONE, org)) {
-                dimFilterMap.put(DimensionAttribute.FIELD_ORG, this.doDimensionStrategy(use, DimensionAttribute.FIELD_ORG, org));
+                dimFilterMap.put(DimensionAttribute.FIELD_ORG, this.doDimensionStrategy(use, subjectId, DimensionAttribute.FIELD_ORG, org));
             }
         }
         // 预算项目
@@ -300,7 +311,7 @@ public class BudgetService {
         if (Objects.nonNull(project)) {
             project = project.trim();
             if (StringUtils.isNotBlank(project) && !StringUtils.equalsIgnoreCase(Constants.NONE, project)) {
-                dimFilterMap.put(DimensionAttribute.FIELD_PROJECT, this.doDimensionStrategy(use, DimensionAttribute.FIELD_PROJECT, project));
+                dimFilterMap.put(DimensionAttribute.FIELD_PROJECT, this.doDimensionStrategy(use, subjectId, DimensionAttribute.FIELD_PROJECT, project));
             }
         }
         // 自定义1
@@ -308,7 +319,7 @@ public class BudgetService {
         if (Objects.nonNull(udf1)) {
             udf1 = udf1.trim();
             if (StringUtils.isNotBlank(udf1) && !StringUtils.equalsIgnoreCase(Constants.NONE, udf1)) {
-                dimFilterMap.put(DimensionAttribute.FIELD_UDF1, this.doDimensionStrategy(use, DimensionAttribute.FIELD_UDF1, udf1));
+                dimFilterMap.put(DimensionAttribute.FIELD_UDF1, this.doDimensionStrategy(use, subjectId, DimensionAttribute.FIELD_UDF1, udf1));
             }
         }
         // 自定义2
@@ -316,7 +327,7 @@ public class BudgetService {
         if (Objects.nonNull(udf2)) {
             udf2 = udf2.trim();
             if (StringUtils.isNotBlank(udf2) && !StringUtils.equalsIgnoreCase(Constants.NONE, udf2)) {
-                dimFilterMap.put(DimensionAttribute.FIELD_UDF2, this.doDimensionStrategy(use, DimensionAttribute.FIELD_UDF2, udf2));
+                dimFilterMap.put(DimensionAttribute.FIELD_UDF2, this.doDimensionStrategy(use, subjectId, DimensionAttribute.FIELD_UDF2, udf2));
             }
         }
         // 自定义3
@@ -324,7 +335,7 @@ public class BudgetService {
         if (Objects.nonNull(udf3)) {
             udf3 = udf3.trim();
             if (StringUtils.isNotBlank(udf3) && !StringUtils.equalsIgnoreCase(Constants.NONE, udf3)) {
-                dimFilterMap.put(DimensionAttribute.FIELD_UDF3, this.doDimensionStrategy(use, DimensionAttribute.FIELD_UDF3, udf3));
+                dimFilterMap.put(DimensionAttribute.FIELD_UDF3, this.doDimensionStrategy(use, subjectId, DimensionAttribute.FIELD_UDF3, udf3));
             }
         }
         // 自定义4
@@ -332,7 +343,7 @@ public class BudgetService {
         if (Objects.nonNull(udf4)) {
             udf4 = udf4.trim();
             if (StringUtils.isNotBlank(udf4) && !StringUtils.equalsIgnoreCase(Constants.NONE, udf4)) {
-                dimFilterMap.put(DimensionAttribute.FIELD_UDF4, this.doDimensionStrategy(use, DimensionAttribute.FIELD_UDF4, udf4));
+                dimFilterMap.put(DimensionAttribute.FIELD_UDF4, this.doDimensionStrategy(use, subjectId, DimensionAttribute.FIELD_UDF4, udf4));
             }
         }
         // 自定义5
@@ -340,7 +351,7 @@ public class BudgetService {
         if (Objects.nonNull(udf5)) {
             udf5 = udf5.trim();
             if (StringUtils.isNotBlank(udf5) && !StringUtils.equalsIgnoreCase(Constants.NONE, udf5)) {
-                dimFilterMap.put(DimensionAttribute.FIELD_UDF5, this.doDimensionStrategy(use, DimensionAttribute.FIELD_UDF5, udf5));
+                dimFilterMap.put(DimensionAttribute.FIELD_UDF5, this.doDimensionStrategy(use, subjectId, DimensionAttribute.FIELD_UDF5, udf5));
             }
         }
         return dimFilterMap;
@@ -354,8 +365,8 @@ public class BudgetService {
      * @return 返回维度策略获取过滤条件
      * @throws ServiceException 异常
      */
-    private SearchFilter doDimensionStrategy(BudgetUse budgetUse, String dimCode, String dimValue) {
-        Dimension dimension = dimensionService.findByCode(dimCode);
+    private SearchFilter doDimensionStrategy(BudgetUse budgetUse, String subjectId, String dimCode, String dimValue) {
+        DimensionDto dimension = subjectDimensionService.getDimension(subjectId, dimCode);
         if (Objects.isNull(dimension)) {
             // 维度[{0}]不存在
             throw new ServiceException(ContextUtil.getMessage("dimension_00002", dimCode));
@@ -366,7 +377,7 @@ public class BudgetService {
             // 策略实例
             DimensionMatchStrategy matchStrategy = strategyService.getMatchStrategy(dimension.getStrategyId());
             // 策略结果
-            ResultData<Object> resultData = matchStrategy.getMatchValue(budgetUse, dimension, dimValue);
+            ResultData<Object> resultData = matchStrategy.getMatchValue(budgetUse, dimValue);
             if (resultData.successful()) {
                 SearchFilter filter;
                 Object obj = resultData.getData();
