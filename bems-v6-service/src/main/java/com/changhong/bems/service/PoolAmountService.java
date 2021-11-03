@@ -1,12 +1,12 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.dao.PoolAmountDao;
-import com.changhong.bems.dao.PoolSummaryAmountDao;
+import com.changhong.bems.dao.PoolAttributeAmountDao;
 import com.changhong.bems.dto.OperationType;
 import com.changhong.bems.dto.PoolAmountQuotaDto;
 import com.changhong.bems.entity.Pool;
 import com.changhong.bems.entity.PoolAmount;
-import com.changhong.bems.entity.PoolSummaryAmount;
+import com.changhong.bems.entity.PoolAttributeAmount;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
@@ -31,7 +31,7 @@ public class PoolAmountService {
     private PoolAmountDao dao;
 
     @Autowired
-    private PoolSummaryAmountDao summaryAmountDao;
+    private PoolAttributeAmountDao poolAttributeAmountDao;
 
     /**
      * 按预算池id查询预算池当前余额
@@ -73,27 +73,26 @@ public class PoolAmountService {
         poolAmount.setAmount(poolAmount.getAmount().add(amount));
         dao.save(poolAmount);
 
-        PoolSummaryAmount summaryAmount = summaryAmountDao.findByProperty(PoolSummaryAmount.FIELD_POOL_ID, poolId);
-        if (Objects.isNull(summaryAmount)) {
-            summaryAmount = new PoolSummaryAmount();
-            summaryAmount.setPoolId(poolId);
-            summaryAmount.setPoolCode(poolCode);
-            summaryAmount.setSubjectId(pool.getSubjectId());
-            summaryAmount.setTenantCode(tenantCode);
+        PoolAttributeAmount attributeAmount = poolAttributeAmountDao.findByProperty(PoolAttributeAmount.FIELD_POOL_ID, poolId);
+        if (Objects.isNull(attributeAmount)) {
+            attributeAmount = new PoolAttributeAmount();
+            attributeAmount.setPoolId(poolId);
+            attributeAmount.setSubjectId(pool.getSubjectId());
+            attributeAmount.setTenantCode(tenantCode);
         }
         if (internal) {
             // 预算内部调整或分解
             switch (operation) {
                 case RELEASE:
                     // 调入
-                    summaryAmount.setReviseInAmount(summaryAmount.getReviseInAmount().add(amount));
+                    attributeAmount.setReviseInAmount(attributeAmount.getReviseInAmount().add(amount));
                     break;
                 case USE:
                     // 调出
-                    summaryAmount.setReviseOutAmount(summaryAmount.getReviseOutAmount().add(amount));
+                    attributeAmount.setReviseOutAmount(attributeAmount.getReviseOutAmount().add(amount));
                     break;
                 case FREED:
-                    summaryAmount.setReviseOutAmount(summaryAmount.getReviseOutAmount().subtract(amount));
+                    attributeAmount.setReviseOutAmount(attributeAmount.getReviseOutAmount().subtract(amount));
                     break;
                 default:
             }
@@ -102,18 +101,18 @@ public class PoolAmountService {
             switch (operation) {
                 case RELEASE:
                     // 外部注入
-                    summaryAmount.setInjectAmount(summaryAmount.getInjectAmount().add(amount));
+                    attributeAmount.setInjectAmount(attributeAmount.getInjectAmount().add(amount));
                     break;
                 case USE:
-                    summaryAmount.setUsedAmount(summaryAmount.getUsedAmount().add(amount));
+                    attributeAmount.setUsedAmount(attributeAmount.getUsedAmount().add(amount));
                     break;
                 case FREED:
-                    summaryAmount.setUsedAmount(summaryAmount.getUsedAmount().subtract(amount));
+                    attributeAmount.setUsedAmount(attributeAmount.getUsedAmount().subtract(amount));
                     break;
                 default:
             }
         }
-        summaryAmountDao.save(summaryAmount);
+        poolAttributeAmountDao.save(attributeAmount);
     }
 
     /**

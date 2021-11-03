@@ -12,33 +12,56 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
- * 预算池汇总金额(PoolSummaryAmount)实体类
+ * 预算池维度属性金额(PoolSummaryAmount)实体类
  *
  * @author sei
  * @since 2021-09-30 10:27:03
  */
 @Entity
-@Table(name = "pool_summary_amount")
+@Table(name = "pool_attribute_amount")
 @DynamicInsert
 @DynamicUpdate
-public class PoolSummaryAmount extends BaseEntity implements ITenant, Serializable {
+public class PoolAttributeAmount extends BaseEntity implements ITenant, Serializable {
     private static final long serialVersionUID = 921560050269283338L;
     public static final String FIELD_POOL_ID = "poolId";
+
+    /**
+     * 预算主体id
+     */
+    @Column(name = "subject_id", updatable = false)
+    private String subjectId;
+    /**
+     * 预算维度属性code
+     */
+    @Column(name = "attribute_code", updatable = false)
+    private Long attributeCode;
     /**
      * 预算池id
      */
     @Column(name = "pool_id", updatable = false)
     private String poolId;
     /**
-     * 预算池代码
+     * 所属年度
      */
-    @Column(name = "pool_code", updatable = false)
-    private String poolCode;
+    @Column(name = "year", updatable = false)
+    private Integer year;
     /**
-     * 预算主体id
+     * 所属月度
      */
-    @Column(name = "subject_id", updatable = false)
-    private String subjectId;
+    @Column(name = "month", updatable = false)
+    private Integer month;
+    /**
+     * 初始注入
+     * 通过注入且新产生预算池时的金额,作为初始注入金额,用于多维分析的差异计算
+     */
+    @Column(name = "init_inject_amount", updatable = false)
+    private BigDecimal initInjectAmount = BigDecimal.ZERO;
+    /**
+     * 初始调入
+     * 新产生预算池时的金额,作为初始注入金额,用于预算池分析的差异计算
+     */
+    @Column(name = "init_revise_in_amount", updatable = false)
+    private BigDecimal initReviseInAmount = BigDecimal.ZERO;
     /**
      * 总注入(外部)
      */
@@ -73,20 +96,52 @@ public class PoolSummaryAmount extends BaseEntity implements ITenant, Serializab
         this.poolId = poolId;
     }
 
-    public String getPoolCode() {
-        return poolCode;
-    }
-
-    public void setPoolCode(String poolCode) {
-        this.poolCode = poolCode;
-    }
-
     public String getSubjectId() {
         return subjectId;
     }
 
     public void setSubjectId(String subjectId) {
         this.subjectId = subjectId;
+    }
+
+    public Long getAttributeCode() {
+        return attributeCode;
+    }
+
+    public void setAttributeCode(Long attributeCode) {
+        this.attributeCode = attributeCode;
+    }
+
+    public Integer getYear() {
+        return year;
+    }
+
+    public void setYear(Integer year) {
+        this.year = year;
+    }
+
+    public Integer getMonth() {
+        return month;
+    }
+
+    public void setMonth(Integer month) {
+        this.month = month;
+    }
+
+    public BigDecimal getInitInjectAmount() {
+        return initInjectAmount;
+    }
+
+    public void setInitInjectAmount(BigDecimal initInjectAmount) {
+        this.initInjectAmount = initInjectAmount;
+    }
+
+    public BigDecimal getInitReviseInAmount() {
+        return initReviseInAmount;
+    }
+
+    public void setInitReviseInAmount(BigDecimal initReviseInAmount) {
+        this.initReviseInAmount = initReviseInAmount;
     }
 
     public BigDecimal getInjectAmount() {

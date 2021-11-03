@@ -58,6 +58,16 @@ public class PoolService {
     private SerialService serialService;
 
     /**
+     * 按预算池编码获取预算池
+     *
+     * @param poolCode 预算池编码
+     * @return 返回满足条件的预算池
+     */
+    public Pool getPool(String poolCode) {
+        return dao.findFirstByProperty(Pool.FIELD_CODE, poolCode);
+    }
+
+    /**
      * 按预算主体和属性hash获取预算池
      *
      * @param subjectId     预算主体id
@@ -196,13 +206,12 @@ public class PoolService {
      * 记录影响预算池余额的日志
      */
     @Transactional(rollbackFor = Exception.class)
-    public void poolAmountLog(String subjectId, long attributeCode, String poolCode,
-                              String bizId, String bizCode, String remark, BigDecimal amount,
+    public void poolAmountLog(Pool pool, String bizId, String bizCode, String remark, BigDecimal amount,
                               String eventCode, boolean internal, OperationType operation) {
-        LogRecord record = new LogRecord(poolCode, internal, operation, amount, eventCode);
+        LogRecord record = new LogRecord(pool.getCode(), internal, operation, amount, eventCode);
         record.setIsPoolAmount(Boolean.TRUE);
-        record.setSubjectId(subjectId);
-        record.setAttributeCode(attributeCode);
+        record.setSubjectId(pool.getSubjectId());
+        record.setAttributeCode(pool.getAttributeCode());
         record.setBizCode(bizCode);
         record.setBizId(bizId);
         record.setBizRemark(remark);
@@ -212,18 +221,17 @@ public class PoolService {
     /**
      * 记录不影响预算池余额的日志
      */
-    // @Transactional(rollbackFor = Exception.class)
-    public void nonPoolAmountLog(String subjectId, long attributeCode, String poolCode,
-                                 String bizId, String bizCode, String remark, BigDecimal amount,
+    @Transactional(rollbackFor = Exception.class)
+    public void nonPoolAmountLog(Pool pool, String bizId, String bizCode, String remark, BigDecimal amount,
                                  String eventCode, boolean internal, OperationType operation) {
-        // LogRecord record = new LogRecord(poolCode, internal, operation, amount, eventCode);
-        // record.setIsPoolAmount(Boolean.FALSE);
-        // record.setSubjectId(subjectId);
-        // record.setAttributeCode(attributeCode);
-        // record.setBizCode(bizCode);
-        // record.setBizId(bizId);
-        // record.setBizRemark(remark);
-        // this.recordLog(record);
+        LogRecord record = new LogRecord(pool.getCode(), internal, operation, amount, eventCode);
+        record.setIsPoolAmount(Boolean.FALSE);
+        record.setSubjectId(pool.getSubjectId());
+        record.setAttributeCode(pool.getAttributeCode());
+        record.setBizCode(bizCode);
+        record.setBizId(bizId);
+        record.setBizRemark(remark);
+        this.recordLog(record);
     }
 
     /**
@@ -247,7 +255,7 @@ public class PoolService {
         executionRecordService.save(record);
 
         // 检查当前记录是否影响预算池余额
-        if (record.getIsPoolAmount() && StringUtils.isNotBlank(record.getPoolCode())) {
+        if (record.getIsPoolAmount()) {
             /*
              在注入或分解是可能还没有预算池,此时只记录日志.
              注入或分解为负数的,必须存在预算池,提交流程时做预占用处理
@@ -283,13 +291,11 @@ public class PoolService {
                 dao.updateActiveStatus(pool.getId(), isActive);
                 if (isActive) {
                     // 解冻预算池
-                    this.nonPoolAmountLog(pool.getSubjectId(), pool.getAttributeCode(), pool.getCode(),
-                            bizId, bizCode, ContextUtil.getMessage("pool_00023"),
+                    this.nonPoolAmountLog(pool, bizId, bizCode, ContextUtil.getMessage("pool_00023"),
                             pool.getBalance(), Constants.EVENT_BUDGET_UNFREEZE, Boolean.TRUE, OperationType.FREED);
                 } else {
                     // 冻结预算池
-                    this.nonPoolAmountLog(pool.getSubjectId(), pool.getAttributeCode(), pool.getCode(),
-                            bizId, bizCode, ContextUtil.getMessage("pool_00022"),
+                    this.nonPoolAmountLog(pool, bizId, bizCode, ContextUtil.getMessage("pool_00022"),
                             pool.getBalance(), Constants.EVENT_BUDGET_FREEZE, Boolean.TRUE, OperationType.USE);
                 }
             }
@@ -383,12 +389,10 @@ public class PoolService {
             // 获取当前预算池余额
             BigDecimal balance = this.getPoolBalanceByCode(pool.getCode());
             // 当前预算池
-            this.poolAmountLog(pool.getSubjectId(), pool.getAttributeCode(), pool.getCode(),
-                    bizId, bizCode, ContextUtil.getMessage("pool_00020", nextPool.getCode()),
+            this.poolAmountLog(pool, bizId, bizCode, ContextUtil.getMessage("pool_00020", nextPool.getCode()),
                     balance, Constants.EVENT_BUDGET_TRUNDLE, Boolean.TRUE, OperationType.USE);
             // 目标预算池
-            this.poolAmountLog(nextPool.getSubjectId(), nextPool.getAttributeCode(), nextPool.getCode(),
-                    bizId, bizCode, ContextUtil.getMessage("pool_00021", pool.getCode()),
+            this.poolAmountLog(nextPool, bizId, bizCode, ContextUtil.getMessage("pool_00021", pool.getCode()),
                     balance, Constants.EVENT_BUDGET_TRUNDLE, Boolean.TRUE, OperationType.RELEASE);
         }
         return ResultData.success();

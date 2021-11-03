@@ -762,11 +762,10 @@ public class OrderService extends BaseEntityService<Order> {
         // 状态为草稿和确认中的可进行确认操作
         if (OrderStatus.DRAFT == status || OrderStatus.CONFIRMING == status) {
             String poolCode;
+            Pool pool = null;
             resultData = ResultData.success();
-            String subjectId = order.getSubjectId();
             String code = order.getCode();
             String remark = order.getRemark();
-            long attributeCode = detail.getAttributeCode();
             // 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
             switch (order.getOrderCategory()) {
                 case INJECTION:
@@ -776,45 +775,47 @@ public class OrderService extends BaseEntityService<Order> {
                             break;
                         }
                         poolCode = detail.getPoolCode();
-                        if (StringUtils.isBlank(poolCode)) {
+                        if (StringUtils.isNotBlank(poolCode)) {
+                            pool = poolService.getPool(poolCode);
+                        }
+                        if (Objects.isNull(pool)) {
                             LOG.error("预算池不存在. - " + JsonUtils.toJson(detail));
-                            // 预算池金额不能值为负数[{0}]
-                            resultData = ResultData.fail(ContextUtil.getMessage("pool_00004", detail.getAmount()));
+                            // 预算池不存在
+                            resultData = ResultData.fail(ContextUtil.getMessage("pool_00005"));
                             break;
                         }
                         if (StringUtils.isBlank(remark)) {
                             remark = eventService.getEventName(Constants.EVENT_BUDGET_INJECTION);
                         }
                         // 记录预算池执行日志.从无到有的新增预算,视为外部注入internal = Boolean.TRUE
-                        poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_INJECTION, Boolean.FALSE, OperationType.RELEASE);
+                        poolService.poolAmountLog(pool, detailId, code, remark, detail.getAmount(),
+                                Constants.EVENT_BUDGET_INJECTION, Boolean.FALSE, OperationType.RELEASE);
                     }
                     break;
                 case ADJUSTMENT:
-                    if (StringUtils.isBlank(remark)) {
-                        remark = eventService.getEventName(Constants.EVENT_BUDGET_ADJUSTMENT);
+                    poolCode = detail.getPoolCode();
+                    if (StringUtils.isNotBlank(poolCode)) {
+                        pool = poolService.getPool(poolCode);
                     }
+                    if (Objects.isNull(pool)) {
+                        LOG.error("预算池不存在. - " + JsonUtils.toJson(detail));
+                        // 预算池不存在
+                        resultData = ResultData.fail(ContextUtil.getMessage("pool_00005"));
+                        break;
+                    }
+
                     // 为保证性能仅对调减的预算池做额度检查
                     if (BigDecimal.ZERO.compareTo(detail.getAmount()) > 0) {
                         resultData = orderDetailService.checkAdjustmentDetail(order, detail);
                         if (resultData.failed()) {
                             break;
                         }
-                        poolCode = detail.getPoolCode();
-                        if (StringUtils.isBlank(poolCode)) {
-                            LOG.error("预算池不存在. - " + JsonUtils.toJson(detail));
-                            // 预算池金额不能值为负数[{0}]
-                            resultData = ResultData.fail(ContextUtil.getMessage("pool_00004", detail.getAmount()));
-                            break;
+                        if (StringUtils.isBlank(remark)) {
+                            remark = eventService.getEventName(Constants.EVENT_BUDGET_ADJUSTMENT);
                         }
                         // 记录预算池执行日志
-                        poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
+                        poolService.poolAmountLog(pool, detailId, code, remark,
                                 detail.getAmount().negate(), Constants.EVENT_BUDGET_ADJUSTMENT, Boolean.TRUE, OperationType.USE);
-                    } else {
-                        poolCode = detail.getPoolCode();
-                        // 记录预算池执行日志
-                        poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_ADJUSTMENT, Boolean.TRUE, OperationType.RELEASE);
                     }
                     break;
                 case SPLIT:
@@ -824,30 +825,37 @@ public class OrderService extends BaseEntityService<Order> {
                         if (StringUtils.isBlank(remark)) {
                             remark = eventService.getEventName(Constants.EVENT_BUDGET_SPLIT);
                         }
-                        // 当前预算池
-                        poolCode = detail.getPoolCode();
+
                         // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
                         if (BigDecimal.ZERO.compareTo(detail.getAmount()) > 0) {
-                            if (StringUtils.isBlank(poolCode)) {
+                            // 当前预算池
+                            poolCode = detail.getPoolCode();
+                            if (StringUtils.isNotBlank(poolCode)) {
+                                pool = poolService.getPool(poolCode);
+                            }
+                            if (Objects.isNull(pool)) {
                                 LOG.error("预算池不存在. - " + JsonUtils.toJson(detail));
-                                // 预算池金额不能值为负数[{0}]
-                                resultData = ResultData.fail(ContextUtil.getMessage("pool_00004", detail.getAmount()));
+                                // 预算池不存在
+                                resultData = ResultData.fail(ContextUtil.getMessage("pool_00005"));
                                 break;
                             }
                             // 记录预算池执行日志
-                            poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
+                            poolService.poolAmountLog(pool, detailId, code, remark,
                                     detail.getAmount(), Constants.EVENT_BUDGET_SPLIT, Boolean.TRUE, OperationType.USE);
-
-                            // 源预算池
-                            String originPoolCode = detail.getOriginPoolCode();
-                            // 记录预算池执行日志
-                            poolService.nonPoolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
-                                    detail.getAmount().negate(), Constants.EVENT_BUDGET_SPLIT, Boolean.TRUE, OperationType.RELEASE);
                         } else {
                             // 源预算池
                             String originPoolCode = detail.getOriginPoolCode();
+                            if (StringUtils.isNotBlank(originPoolCode)) {
+                                pool = poolService.getPool(originPoolCode);
+                            }
+                            if (Objects.isNull(pool)) {
+                                LOG.error("源预算池不存在. - " + JsonUtils.toJson(detail));
+                                // 预算池不存在
+                                resultData = ResultData.fail(ContextUtil.getMessage("pool_00005"));
+                                break;
+                            }
                             // 记录预算池执行日志
-                            poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
+                            poolService.poolAmountLog(pool, detailId, code, remark,
                                     detail.getAmount(), Constants.EVENT_BUDGET_SPLIT, Boolean.TRUE, OperationType.USE);
                         }
                     }
@@ -906,38 +914,52 @@ public class OrderService extends BaseEntityService<Order> {
         OrderStatus status = order.getStatus();
         // 撤销中的,确认中的,已确认的可进行撤销操作
         if (OrderStatus.CANCELING == status || OrderStatus.CONFIRMING == status || OrderStatus.CONFIRMED == status) {
+            Pool pool = null;
             // 当前预算池
             String poolCode = detail.getPoolCode();
-            String subjectId = order.getSubjectId();
             String code = order.getCode();
             String remark = order.getRemark();
-            long attributeCode = detail.getAttributeCode();
             resultData = ResultData.success();
             // 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
             switch (order.getOrderCategory()) {
                 case INJECTION:
-                    if (StringUtils.isBlank(remark)) {
-                        remark = eventService.getEventName(Constants.EVENT_BUDGET_INJECTION_CANCEL);
-                    }
                     // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
                     if (BigDecimal.ZERO.compareTo(detail.getAmount()) > 0) {
+                        if (StringUtils.isNotBlank(poolCode)) {
+                            pool = poolService.getPool(poolCode);
+                        }
+                        if (Objects.isNull(pool)) {
+                            LOG.error("预算池不存在. - " + JsonUtils.toJson(detail));
+                            // 预算池不存在
+                            resultData = ResultData.fail(ContextUtil.getMessage("pool_00005"));
+                            break;
+                        }
+                        if (StringUtils.isBlank(remark)) {
+                            remark = eventService.getEventName(Constants.EVENT_BUDGET_INJECTION_CANCEL);
+                        }
                         // 记录预算池执行日志
-                        poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
+                        poolService.poolAmountLog(pool, detailId, code, remark,
                                 detail.getAmount(), Constants.EVENT_BUDGET_INJECTION_CANCEL, Boolean.FALSE, OperationType.FREED);
                     }
                     break;
                 case ADJUSTMENT:
-                    if (StringUtils.isBlank(remark)) {
-                        remark = eventService.getEventName(Constants.EVENT_BUDGET_ADJUSTMENT_CANCEL);
-                    }
                     // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
                     if (BigDecimal.ZERO.compareTo(detail.getAmount()) > 0) {
+                        if (StringUtils.isNotBlank(poolCode)) {
+                            pool = poolService.getPool(poolCode);
+                        }
+                        if (Objects.isNull(pool)) {
+                            LOG.error("预算池不存在. - " + JsonUtils.toJson(detail));
+                            // 预算池不存在
+                            resultData = ResultData.fail(ContextUtil.getMessage("pool_00005"));
+                            break;
+                        }
+                        if (StringUtils.isBlank(remark)) {
+                            remark = eventService.getEventName(Constants.EVENT_BUDGET_ADJUSTMENT_CANCEL);
+                        }
                         // 记录预算池执行日志
-                        poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
+                        poolService.poolAmountLog(pool, detailId, code, remark,
                                 detail.getAmount().negate(), Constants.EVENT_BUDGET_ADJUSTMENT_CANCEL, Boolean.TRUE, OperationType.FREED);
-                    } else {
-                        poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_ADJUSTMENT_CANCEL, Boolean.TRUE, OperationType.FREED);
                     }
                     break;
                 case SPLIT:
@@ -947,19 +969,32 @@ public class OrderService extends BaseEntityService<Order> {
                     }
                     // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
                     if (BigDecimal.ZERO.compareTo(detail.getAmount()) > 0) {
-                        poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
+                        if (StringUtils.isNotBlank(poolCode)) {
+                            pool = poolService.getPool(poolCode);
+                        }
+                        if (Objects.isNull(pool)) {
+                            LOG.error("预算池不存在. - " + JsonUtils.toJson(detail));
+                            // 预算池不存在
+                            resultData = ResultData.fail(ContextUtil.getMessage("pool_00005"));
+                            break;
+                        }
+                        poolService.poolAmountLog(pool, detailId, code, remark,
                                 detail.getAmount(), Constants.EVENT_BUDGET_SPLIT_CANCEL, Boolean.TRUE, OperationType.FREED);
-
-                        // 源预算池
-                        String originPoolCode = detail.getOriginPoolCode();
-                        poolService.nonPoolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
-                                detail.getAmount().negate(), Constants.EVENT_BUDGET_SPLIT_CANCEL, Boolean.TRUE, OperationType.FREED);
                         break;
                     } else {
                         // 源预算池
                         String originPoolCode = detail.getOriginPoolCode();
+                        if (StringUtils.isNotBlank(originPoolCode)) {
+                            pool = poolService.getPool(originPoolCode);
+                        }
+                        if (Objects.isNull(pool)) {
+                            LOG.error("源预算池不存在. - " + JsonUtils.toJson(detail));
+                            // 预算池不存在
+                            resultData = ResultData.fail(ContextUtil.getMessage("pool_00005"));
+                            break;
+                        }
                         // 记录预算池执行日志
-                        poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
+                        poolService.poolAmountLog(pool, detailId, code, remark,
                                 detail.getAmount(), Constants.EVENT_BUDGET_SPLIT_CANCEL, Boolean.TRUE, OperationType.FREED);
                         break;
                     }
@@ -1018,62 +1053,61 @@ public class OrderService extends BaseEntityService<Order> {
         OrderStatus status = order.getStatus();
         // 已确认的,审批中的,生效中的可进行生效操作
         if (OrderStatus.CONFIRMED == status || OrderStatus.APPROVING == status || OrderStatus.EFFECTING == status) {
+            Pool pool = null;
             // 当前预算池
             String poolCode = detail.getPoolCode();
-            String subjectId = order.getSubjectId();
             String code = order.getCode();
             String remark = order.getRemark();
-            long attributeCode = detail.getAttributeCode();
             resultData = ResultData.success();
             // 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
             switch (order.getOrderCategory()) {
                 case INJECTION:
-                    if (StringUtils.isBlank(remark)) {
-                        remark = eventService.getEventName(Constants.EVENT_BUDGET_INJECTION);
-                    }
-                    if (StringUtils.isBlank(poolCode)) {
-                        // 预算池不存在,需要创建预算池
-                        ResultData<Pool> result =
-                                poolService.createPool(order.getSubjectId(), order.getCategoryId(), order.getCurrencyCode(), order.getCurrencyName(),
-                                        order.getManagerOrgCode(), order.getManagerOrgName(), order.getPeriodType(), detail);
-                        if (result.failed()) {
-                            resultData = ResultData.fail(result.getMessage());
-                            break;
-                        }
-                        Pool pool = result.getData();
-                        poolCode = pool.getCode();
-                        detail.setPoolCode(poolCode);
-                    }
                     // 订单状态由流程中变为已完成,金额小于等于0在提交流程时已提前占用,故此时不再重复占用,只记录日志
-                    if (BigDecimal.ZERO.compareTo(detail.getAmount()) > 0) {
-                        // 记录预算池执行日志
-                        poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount().negate(), Constants.EVENT_BUDGET_INJECTION, Boolean.FALSE, OperationType.FREED);
-
-                        poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_INJECTION, Boolean.FALSE, OperationType.RELEASE);
-                    } else {
-                        poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
+                    if (BigDecimal.ZERO.compareTo(detail.getAmount()) <= 0) {
+                        if (StringUtils.isBlank(poolCode)) {
+                            // 预算池不存在,需要创建预算池
+                            ResultData<Pool> result =
+                                    poolService.createPool(order.getSubjectId(), order.getCategoryId(), order.getCurrencyCode(), order.getCurrencyName(),
+                                            order.getManagerOrgCode(), order.getManagerOrgName(), order.getPeriodType(), detail);
+                            if (result.failed()) {
+                                resultData = ResultData.fail(result.getMessage());
+                                break;
+                            }
+                            pool = result.getData();
+                            poolCode = pool.getCode();
+                            detail.setPoolCode(poolCode);
+                        } else {
+                            pool = poolService.getPool(poolCode);
+                            if (Objects.isNull(pool)) {
+                                LOG.error("预算池不存在. - " + JsonUtils.toJson(detail));
+                                // 预算池不存在
+                                resultData = ResultData.fail(ContextUtil.getMessage("pool_00005"));
+                                break;
+                            }
+                        }
+                        if (StringUtils.isBlank(remark)) {
+                            remark = eventService.getEventName(Constants.EVENT_BUDGET_INJECTION);
+                        }
+                        poolService.poolAmountLog(pool, detailId, code, remark,
                                 detail.getAmount(), Constants.EVENT_BUDGET_INJECTION, Boolean.FALSE, OperationType.RELEASE);
                     }
                     break;
                 case ADJUSTMENT:
-                    if (StringUtils.isBlank(remark)) {
-                        remark = eventService.getEventName(Constants.EVENT_BUDGET_ADJUSTMENT);
-                    }
                     // 订单状态由流程中变为已完成,金额小于等于0在提交流程时已提前占用,故此时不再重复占用,只记录日志
-                    if (BigDecimal.ZERO.compareTo(detail.getAmount()) > 0) {
-                        // 记录预算池执行日志
-                        poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount().negate(), Constants.EVENT_BUDGET_ADJUSTMENT, Boolean.TRUE, OperationType.FREED);
-
-                        poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount().negate(), Constants.EVENT_BUDGET_ADJUSTMENT, Boolean.TRUE, OperationType.USE);
-                    } else {
-                        poolService.nonPoolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_ADJUSTMENT, Boolean.TRUE, OperationType.FREED);
-
-                        poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
+                    if (BigDecimal.ZERO.compareTo(detail.getAmount()) <= 0) {
+                        if (StringUtils.isNotBlank(poolCode)) {
+                            pool = poolService.getPool(poolCode);
+                        }
+                        if (Objects.isNull(pool)) {
+                            LOG.error("预算池不存在. - " + JsonUtils.toJson(detail));
+                            // 预算池不存在
+                            resultData = ResultData.fail(ContextUtil.getMessage("pool_00005"));
+                            break;
+                        }
+                        if (StringUtils.isBlank(remark)) {
+                            remark = eventService.getEventName(Constants.EVENT_BUDGET_ADJUSTMENT);
+                        }
+                        poolService.poolAmountLog(pool, detailId, code, remark,
                                 detail.getAmount(), Constants.EVENT_BUDGET_ADJUSTMENT, Boolean.TRUE, OperationType.RELEASE);
                     }
                     break;
@@ -1091,35 +1125,49 @@ public class OrderService extends BaseEntityService<Order> {
                             resultData = ResultData.fail(result.getMessage());
                             break;
                         }
-                        Pool pool = result.getData();
+                        pool = result.getData();
                         poolCode = pool.getCode();
                         detail.setPoolCode(poolCode);
+                    } else {
+                        pool = poolService.getPool(poolCode);
+                        if (Objects.isNull(pool)) {
+                            LOG.error("预算池不存在. - " + JsonUtils.toJson(detail));
+                            // 预算池不存在
+                            resultData = ResultData.fail(ContextUtil.getMessage("pool_00005"));
+                            break;
+                        }
                     }
                     // 源预算池
+                    Pool originPool = null;
                     String originPoolCode = detail.getOriginPoolCode();
+                    if (StringUtils.isNotBlank(originPoolCode)) {
+                        originPool = poolService.getPool(originPoolCode);
+                    }
+                    if (Objects.isNull(originPool)) {
+                        LOG.error("源预算池不存在. - " + JsonUtils.toJson(detail));
+                        // 预算池不存在
+                        resultData = ResultData.fail(ContextUtil.getMessage("pool_00005"));
+                        break;
+                    }
                     // 记录预算池执行日志
                     if (BigDecimal.ZERO.compareTo(detail.getAmount()) > 0) {
-                        poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, remark,
+                        poolService.poolAmountLog(pool, detailId, code, remark,
                                 detail.getAmount().negate(), Constants.EVENT_BUDGET_SPLIT, Boolean.TRUE, OperationType.FREED);
 
-                        poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, ContextUtil.getMessage("order_detail_00018", remark, originPoolCode),
+                        poolService.poolAmountLog(pool, detailId, code, ContextUtil.getMessage("order_detail_00018", remark, originPoolCode),
                                 detail.getAmount(), Constants.EVENT_BUDGET_SPLIT, Boolean.TRUE, OperationType.USE);
 
-                        // 源预算池
-                        poolService.nonPoolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
-                                detail.getAmount(), Constants.EVENT_BUDGET_SPLIT, Boolean.TRUE, OperationType.FREED);
-
-                        poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, ContextUtil.getMessage("order_detail_00019", remark, poolCode),
+                        poolService.poolAmountLog(originPool, detailId, code, ContextUtil.getMessage("order_detail_00019", remark, poolCode),
                                 detail.getAmount(), Constants.EVENT_BUDGET_SPLIT, Boolean.TRUE, OperationType.USE);
                     } else {
-                        poolService.poolAmountLog(subjectId, attributeCode, poolCode, detailId, code, ContextUtil.getMessage("order_detail_00018", remark, originPoolCode),
+                        poolService.poolAmountLog(pool, detailId, code, ContextUtil.getMessage("order_detail_00018", remark, originPoolCode),
                                 detail.getAmount(), Constants.EVENT_BUDGET_SPLIT, Boolean.TRUE, OperationType.RELEASE);
 
                         // 源预算池
-                        poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, remark,
+                        poolService.poolAmountLog(originPool, detailId, code, remark,
                                 detail.getAmount(), Constants.EVENT_BUDGET_SPLIT, Boolean.TRUE, OperationType.FREED);
 
-                        poolService.poolAmountLog(subjectId, attributeCode, originPoolCode, detailId, code, ContextUtil.getMessage("order_detail_00019", remark, poolCode),
+                        poolService.poolAmountLog(originPool, detailId, code, ContextUtil.getMessage("order_detail_00019", remark, poolCode),
                                 detail.getAmount(), Constants.EVENT_BUDGET_SPLIT, Boolean.TRUE, OperationType.USE);
                     }
                     break;
