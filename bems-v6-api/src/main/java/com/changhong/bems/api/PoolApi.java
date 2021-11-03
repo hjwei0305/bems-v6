@@ -1,6 +1,6 @@
 package com.changhong.bems.api;
 
-import com.changhong.bems.dto.LogRecordDto;
+import com.changhong.bems.dto.PoolLogDto;
 import com.changhong.bems.dto.PoolAttributeDto;
 import com.changhong.bems.dto.PoolQuickQueryParam;
 import com.changhong.sei.core.dto.ResultData;
@@ -86,6 +86,6 @@ public interface PoolApi {
      */
     @PostMapping(path = "findRecordByPage", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "分页查询预算执行日志", notes = "分页查询预算执行日志")
-    ResultData<PageResult<LogRecordDto>> findRecordByPage(@RequestBody Search search);
+    ResultData<PageResult<PoolLogDto>> findRecordByPage(@RequestBody Search search);
 
 }

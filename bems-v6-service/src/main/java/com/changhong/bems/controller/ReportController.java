@@ -5,9 +5,9 @@ import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.dto.LogRecordViewDto;
 import com.changhong.bems.dto.report.AnnualBudgetRequest;
 import com.changhong.bems.dto.report.AnnualBudgetResponse;
-import com.changhong.bems.entity.LogRecordView;
+import com.changhong.bems.entity.PoolLogView;
 import com.changhong.bems.service.CategoryService;
-import com.changhong.bems.service.LogRecordService;
+import com.changhong.bems.service.PoolLogService;
 import com.changhong.bems.service.ReportService;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
@@ -42,7 +42,7 @@ public class ReportController implements ReportApi {
     @Autowired
     private CategoryService categoryService;
     @Autowired
-    private LogRecordService logRecordService;
+    private PoolLogService poolLogService;
     @Autowired
     private ReportService reportService;
     @Autowired
@@ -78,9 +78,9 @@ public class ReportController implements ReportApi {
 
     @Override
     public ResultData<PageResult<LogRecordViewDto>> getLogRecords(Search search) {
-        PageResult<LogRecordView> pageResult = logRecordService.findViewByPage(search);
+        PageResult<PoolLogView> pageResult = poolLogService.findViewByPage(search);
         PageResult<LogRecordViewDto> result = new PageResult<>(pageResult);
-        List<LogRecordView> records = pageResult.getRows();
+        List<PoolLogView> records = pageResult.getRows();
         if (CollectionUtils.isNotEmpty(records)) {
             result.setRows(records.stream().map(r -> modelMapper.map(r, LogRecordViewDto.class)).collect(Collectors.toList()));
         }

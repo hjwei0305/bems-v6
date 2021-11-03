@@ -10,7 +10,7 @@ import com.changhong.bems.dto.use.BudgetRequest;
 import com.changhong.bems.dto.use.BudgetResponse;
 import com.changhong.bems.dto.use.BudgetUse;
 import com.changhong.bems.entity.DimensionAttribute;
-import com.changhong.bems.entity.LogRecord;
+import com.changhong.bems.entity.PoolLog;
 import com.changhong.bems.entity.Subject;
 import com.changhong.bems.service.client.OrganizationManager;
 import com.changhong.bems.service.strategy.BudgetExecutionStrategy;
@@ -52,7 +52,7 @@ public class BudgetService {
     @Autowired
     private SubjectService subjectService;
     @Autowired
-    private LogRecordService logRecordService;
+    private PoolLogService poolLogService;
     @Autowired
     private SubjectDimensionService subjectDimensionService;
     @Autowired
@@ -220,12 +220,12 @@ public class BudgetService {
      */
     private void freeBudget(String eventCode, String bizId, String remark) {
         // 检查占用是否需要释放
-        List<LogRecord> records = logRecordService.getUseRecords(eventCode, bizId);
+        List<PoolLog> records = poolLogService.getUseRecords(eventCode, bizId);
         if (CollectionUtils.isNotEmpty(records)) {
-            LogRecord newRecord;
-            for (LogRecord record : records) {
+            PoolLog newRecord;
+            for (PoolLog record : records) {
                 // 为保证占用幂等,避免重复释放,更新记录已释放标记
-                logRecordService.updateFreed(record.getId());
+                poolLogService.updateFreed(record.getId());
 
                 newRecord = record.clone();
                 newRecord.setOperation(OperationType.FREED);
@@ -254,18 +254,18 @@ public class BudgetService {
         BigDecimal amount = free.getAmount();
         String remark = free.getBizRemark();
         // 检查占用是否需要释放
-        List<LogRecord> records = logRecordService.getUseRecords(eventCode, bizId);
+        List<PoolLog> records = poolLogService.getUseRecords(eventCode, bizId);
         if (CollectionUtils.isNotEmpty(records)) {
-            LogRecord newRecord;
+            PoolLog newRecord;
             // 剩余释放金额
             BigDecimal balance = amount;
-            for (LogRecord record : records) {
+            for (PoolLog record : records) {
                 // 不能为负数
                 if (BigDecimal.ZERO.compareTo(balance) >= 0) {
                     continue;
                 }
                 // 为保证占用幂等,避免重复释放,更新记录已释放标记
-                logRecordService.updateFreed(record.getId());
+                poolLogService.updateFreed(record.getId());
 
                 newRecord = record.clone();
                 if (record.getAmount().compareTo(balance) > 0) {

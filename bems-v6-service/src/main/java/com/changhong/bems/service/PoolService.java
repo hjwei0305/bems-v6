@@ -53,7 +53,7 @@ public class PoolService {
     @Autowired
     private PoolAmountService poolAmountService;
     @Autowired
-    private LogRecordService executionRecordService;
+    private PoolLogService poolLogService;
     @Autowired(required = false)
     private SerialService serialService;
 
@@ -215,7 +215,7 @@ public class PoolService {
     @Transactional(rollbackFor = Exception.class)
     public void poolAmountLog(Pool pool, String bizId, String bizCode, String remark, BigDecimal amount,
                               String eventCode, boolean internal, OperationType operation) {
-        LogRecord record = new LogRecord(pool.getCode(), internal, operation, amount, eventCode);
+        PoolLog record = new PoolLog(pool.getCode(), internal, operation, amount, eventCode);
         record.setIsPoolAmount(Boolean.TRUE);
         record.setSubjectId(pool.getSubjectId());
         record.setAttributeCode(pool.getAttributeCode());
@@ -231,7 +231,7 @@ public class PoolService {
     @Transactional(rollbackFor = Exception.class)
     public void nonPoolAmountLog(Pool pool, String bizId, String bizCode, String remark, BigDecimal amount,
                                  String eventCode, boolean internal, OperationType operation) {
-        LogRecord record = new LogRecord(pool.getCode(), internal, operation, amount, eventCode);
+        PoolLog record = new PoolLog(pool.getCode(), internal, operation, amount, eventCode);
         record.setIsPoolAmount(Boolean.FALSE);
         record.setSubjectId(pool.getSubjectId());
         record.setAttributeCode(pool.getAttributeCode());
@@ -245,38 +245,29 @@ public class PoolService {
      * 预算执行日志分为两类:一种是影响预算池余额的日志,另一种是仅记录日志而不影响预算池余额
      * 如:在预占用时,金额大于0,则不影响预算池可用余额;仅当小于0时,才影响预算池可用余额
      *
-     * @param record 执行记录
+     * @param poolLog 执行记录
      */
     @Transactional(rollbackFor = Exception.class)
-    public void recordLog(LogRecord record) {
-        // 操作时间
-        record.setOpTime(LocalDateTime.now());
-        record.setTimestamp(System.nanoTime());
-        // 操作人
-        if (StringUtils.isBlank(record.getOpUserAccount())) {
-            SessionUser user = ContextUtil.getSessionUser();
-            record.setOpUserAccount(user.getAccount());
-            record.setOpUserName(user.getUserName());
-        }
+    public void recordLog(PoolLog poolLog) {
         // 记录执行日志
-        executionRecordService.save(record);
+        poolLogService.addLogRecord(poolLog);
 
         // 检查当前记录是否影响预算池余额
-        if (record.getIsPoolAmount()) {
+        if (poolLog.getIsPoolAmount()) {
             /*
              在注入或分解是可能还没有预算池,此时只记录日志.
              注入或分解为负数的,必须存在预算池,提交流程时做预占用处理
              */
-            Pool pool = dao.findFirstByProperty(Pool.CODE_FIELD, record.getPoolCode());
+            Pool pool = dao.findFirstByProperty(Pool.CODE_FIELD, poolLog.getPoolCode());
             if (Objects.nonNull(pool)) {
                 // 累计金额
-                poolAmountService.countAmount(pool, record.getInternal(), record.getOperation(), record.getAmount());
+                poolAmountService.countAmount(pool, poolLog.getInternal(), poolLog.getOperation(), poolLog.getAmount());
                 // 实时计算当前预算池可用金额
                 PoolAmountQuotaDto quota = poolAmountService.getPoolAmountQuota(pool.getCode());
                 // 更新预算池金额
                 dao.updateAmount(pool.getId(), quota.getTotalAmount(), quota.getUseAmount(), quota.getBalance());
             } else {
-                LOG.error("预算池[{}]不存在", record.getPoolCode());
+                LOG.error("预算池[{}]不存在", poolLog.getPoolCode());
             }
         }
     }
@@ -418,8 +409,8 @@ public class PoolService {
      * @param search 查询参数
      * @return 分页查询结果
      */
-    public PageResult<LogRecordView> findRecordByPage(Search search) {
-        return executionRecordService.findViewByPage(search);
+    public PageResult<PoolLogView> findRecordByPage(Search search) {
+        return poolLogService.findViewByPage(search);
     }
 
     /**

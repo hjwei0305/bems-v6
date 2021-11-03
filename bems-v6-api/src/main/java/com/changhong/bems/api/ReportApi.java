@@ -1,7 +1,6 @@
 package com.changhong.bems.api;
 
 import com.changhong.bems.dto.DimensionDto;
-import com.changhong.bems.dto.LogRecordDto;
 import com.changhong.bems.dto.LogRecordViewDto;
 import com.changhong.bems.dto.report.AnnualBudgetRequest;
 import com.changhong.bems.dto.report.AnnualBudgetResponse;

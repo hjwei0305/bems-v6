@@ -9,13 +9,13 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * 预算执行记录(ExecutionRecord)DTO类
+ * 预算池日志记录(PoolLog)DTO类
  *
  * @author sei
  * @since 2021-04-25 15:13:35
  */
-@ApiModel(description = "预算执行记录DTO")
-public class LogRecordDto extends BaseEntityDto {
+@ApiModel(description = "预算池日志记录DTO")
+public class PoolLogDto extends BaseEntityDto {
     private static final long serialVersionUID = -14976646322413614L;
     /**
      * 预算池编码

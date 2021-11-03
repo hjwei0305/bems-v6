@@ -1,7 +1,6 @@
 package com.changhong.bems.entity;
 
 import com.changhong.bems.dto.OperationType;
-import com.changhong.sei.core.entity.BaseEntity;
 import com.changhong.sei.core.entity.ITenant;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -12,22 +11,18 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * 预算执行记录(LogRecord)实体类
+ * 预算池日志记录(PoolLogView)实体类
  *
  * @author sei
  * @since 2021-04-25 15:10:03
  */
 @Entity
-@Table(name = "log_record")
-@DynamicInsert
-@DynamicUpdate
-public class LogRecord extends BaseEntity implements ITenant, Serializable, Cloneable {
+@Table(name = "view_pool_log")
+public class PoolLogView extends BaseAttribute implements ITenant, Serializable {
     private static final long serialVersionUID = -28943145565423431L;
-    public static final String FIELD_EVENT_CODE = "eventCode";
+    public static final String FIELD_EVENT_CODE = "bizEvent";
     public static final String FIELD_BIZ_ID = "bizId";
-    public static final String FIELD_INTERNAL = "internal";
     public static final String FIELD_OPERATION = "operation";
-    public static final String FIELD_IS_FREED = "isFreed";
     public static final String FIELD_TIMESTAMP = "timestamp";
     /**
      * 预算主体id
@@ -35,15 +30,15 @@ public class LogRecord extends BaseEntity implements ITenant, Serializable, Clon
     @Column(name = "subject_id", updatable = false)
     private String subjectId;
     /**
-     * 预算维度属性id
-     */
-    @Column(name = "attribute_code", updatable = false)
-    private Long attributeCode;
-    /**
      * 预算池编码
      */
     @Column(name = "pool_code")
     private String poolCode;
+    /**
+     * 所属年度
+     */
+    @Column(name = "year")
+    private Integer year;
     /**
      * 是否是预算内部操作
      * 内部操作: 预算调整,预算分解,预算结转
@@ -62,11 +57,6 @@ public class LogRecord extends BaseEntity implements ITenant, Serializable, Clon
      */
     @Column(name = "amount", updatable = false)
     private BigDecimal amount = BigDecimal.ZERO;
-    /**
-     * 是预算池金额
-     */
-    @Column(name = "is_pool_amount")
-    private Boolean isPoolAmount = Boolean.TRUE;
     /**
      * 操作时间
      */
@@ -91,7 +81,17 @@ public class LogRecord extends BaseEntity implements ITenant, Serializable, Clon
      * 业务事件
      */
     @Column(name = "biz_event", updatable = false)
-    private String eventCode;
+    private String bizEvent;
+    /**
+     * 业务事件
+     */
+    @Column(name = "biz_event_name", updatable = false)
+    private String eventName;
+    /**
+     * 业务来源系统
+     */
+    @Column(name = "biz_from", updatable = false)
+    private String bizFrom;
     /**
      * 业务单id
      */
@@ -108,27 +108,10 @@ public class LogRecord extends BaseEntity implements ITenant, Serializable, Clon
     @Column(name = "biz_remark", updatable = false)
     private String bizRemark;
     /**
-     * 是否已被释放
-     * 为保证占用的幂等性,通过此标记避免被重复释放
-     */
-    @Column(name = "is_freed")
-    private Boolean isFreed = Boolean.FALSE;
-    /**
      * 租户代码
      */
     @Column(name = "tenant_code")
     private String tenantCode;
-
-    public LogRecord() {
-    }
-
-    public LogRecord(String poolCode, boolean internal, OperationType operation, BigDecimal amount, String eventCode) {
-        this.poolCode = poolCode;
-        this.internal = internal;
-        this.operation = operation;
-        this.amount = amount;
-        this.eventCode = eventCode;
-    }
 
     public String getSubjectId() {
         return subjectId;
@@ -138,20 +121,20 @@ public class LogRecord extends BaseEntity implements ITenant, Serializable, Clon
         this.subjectId = subjectId;
     }
 
-    public Long getAttributeCode() {
-        return attributeCode;
-    }
-
-    public void setAttributeCode(Long attributeCode) {
-        this.attributeCode = attributeCode;
-    }
-
     public String getPoolCode() {
         return poolCode;
     }
 
     public void setPoolCode(String poolCode) {
         this.poolCode = poolCode;
+    }
+
+    public Integer getYear() {
+        return year;
+    }
+
+    public void setYear(Integer year) {
+        this.year = year;
     }
 
     public Boolean getInternal() {
@@ -168,14 +151,6 @@ public class LogRecord extends BaseEntity implements ITenant, Serializable, Clon
 
     public void setOperation(OperationType operation) {
         this.operation = operation;
-    }
-
-    public Boolean getIsPoolAmount() {
-        return isPoolAmount;
-    }
-
-    public void setIsPoolAmount(Boolean poolAmount) {
-        isPoolAmount = poolAmount;
     }
 
     public BigDecimal getAmount() {
@@ -234,12 +209,28 @@ public class LogRecord extends BaseEntity implements ITenant, Serializable, Clon
         this.bizCode = bizCode;
     }
 
-    public String getEventCode() {
-        return eventCode;
+    public String getBizEvent() {
+        return bizEvent;
     }
 
-    public void setEventCode(String bizEvent) {
-        this.eventCode = bizEvent;
+    public void setBizEvent(String bizEvent) {
+        this.bizEvent = bizEvent;
+    }
+
+    public String getEventName() {
+        return eventName;
+    }
+
+    public void setEventName(String eventName) {
+        this.eventName = eventName;
+    }
+
+    public String getBizFrom() {
+        return bizFrom;
+    }
+
+    public void setBizFrom(String bizFrom) {
+        this.bizFrom = bizFrom;
     }
 
     public String getBizRemark() {
@@ -248,14 +239,6 @@ public class LogRecord extends BaseEntity implements ITenant, Serializable, Clon
 
     public void setBizRemark(String bizRemark) {
         this.bizRemark = bizRemark;
-    }
-
-    public Boolean getIsFreed() {
-        return isFreed;
-    }
-
-    public void setIsFreed(Boolean isFreed) {
-        this.isFreed = isFreed;
     }
 
     @Override
@@ -269,9 +252,9 @@ public class LogRecord extends BaseEntity implements ITenant, Serializable, Clon
     }
 
     @Override
-    public LogRecord clone() {
+    public PoolLogView clone() {
         try {
-            return (LogRecord) super.clone();
+            return (PoolLogView) super.clone();
         } catch (CloneNotSupportedException e) {
             e.printStackTrace();
             return null;
