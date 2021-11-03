@@ -147,7 +147,7 @@ public class StrategyService {
      * @param itemCode  预算科目代码
      */
     public void cleanStrategyCache(String subjectId, String itemCode) {
-        String pattern = Constants.STRATEGY_CACHE_KEY_PREFIX.concat(":") + subjectId;
+        String pattern = Constants.STRATEGY_CACHE_KEY_PREFIX + subjectId;
         if (StringUtils.isNotBlank(itemCode)) {
             pattern = pattern + ":" + itemCode;
         } else {
@@ -168,7 +168,7 @@ public class StrategyService {
      */
     public ResultData<StrategyDto> getStrategy(String subjectId, String itemCode) {
         BoundValueOperations<String, Object> operations =
-                redisTemplate.boundValueOps(Constants.STRATEGY_CACHE_KEY_PREFIX.concat(":") + subjectId + ":" + itemCode);
+                redisTemplate.boundValueOps(Constants.STRATEGY_CACHE_KEY_PREFIX + subjectId + ":" + itemCode);
         // 预算主体策略
         StrategyDto strategy = (StrategyDto) operations.get();
         if (Objects.isNull(strategy)) {
