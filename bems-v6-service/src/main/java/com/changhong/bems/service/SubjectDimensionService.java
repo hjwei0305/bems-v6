@@ -81,10 +81,6 @@ public class SubjectDimensionService {
         DimensionDto dto = null;
         Dimension dimension = dimensionService.findByCode(code);
         if (Objects.nonNull(dimension)) {
-            Search search = Search.createSearch();
-            search.addFilter(new SearchFilter(SubjectDimension.FIELD_SUBJECT_ID, subjectId));
-            search.addFilter(new SearchFilter(SubjectDimension.FIELD_CODE, code));
-            SubjectDimension subjectDimension = dao.findOneByFilters(search);
             dto = new DimensionDto();
             dto.setCode(dimension.getCode());
             dto.setName(dimension.getName());
@@ -93,7 +89,12 @@ public class SubjectDimensionService {
             dto.setUiComponent(dimension.getUiComponent());
             dto.setRequired(dimension.getRequired());
             dto.setRank(dimension.getRank());
-            if (StringUtils.equals(dto.getCode(), subjectDimension.getCode())) {
+
+            Search search = Search.createSearch();
+            search.addFilter(new SearchFilter(SubjectDimension.FIELD_SUBJECT_ID, subjectId));
+            search.addFilter(new SearchFilter(SubjectDimension.FIELD_CODE, code));
+            SubjectDimension subjectDimension = dao.findOneByFilters(search);
+            if (Objects.nonNull(subjectDimension) && StringUtils.equals(dto.getCode(), subjectDimension.getCode())) {
                 dto.setId(subjectDimension.getId());
                 dto.setStrategyId(subjectDimension.getStrategyId());
                 dto.setStrategyName(strategyService.getNameByCode(subjectDimension.getStrategyId()));
