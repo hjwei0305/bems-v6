@@ -33,17 +33,17 @@ public class UsageTrendRequest implements Serializable {
      */
     @NotBlank
     @ApiModelProperty(value = "科目代码")
-    private String itemCode;
+    private String item;
     /**
      * 组织id
      */
     @ApiModelProperty(value = "组织id")
-    private String orgId;
+    private String org;
     /**
      * 项目号
      */
     @ApiModelProperty(value = "项目号")
-    private String projectCode;
+    private String project;
     /**
      * udf1
      */
@@ -86,28 +86,28 @@ public class UsageTrendRequest implements Serializable {
         this.year = year;
     }
 
-    public String getItemCode() {
-        return itemCode;
+    public String getItem() {
+        return item;
     }
 
-    public void setItemCode(String itemCode) {
-        this.itemCode = itemCode;
+    public void setItem(String item) {
+        this.item = item;
     }
 
-    public String getOrgId() {
-        return orgId;
+    public String getOrg() {
+        return org;
     }
 
-    public void setOrgId(String orgId) {
-        this.orgId = orgId;
+    public void setOrg(String org) {
+        this.org = org;
     }
 
-    public String getProjectCode() {
-        return projectCode;
+    public String getProject() {
+        return project;
     }
 
-    public void setProjectCode(String projectCode) {
-        this.projectCode = projectCode;
+    public void setProject(String project) {
+        this.project = project;
     }
 
     public String getUdf1() {
