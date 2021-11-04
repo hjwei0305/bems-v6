@@ -4,20 +4,20 @@ import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.dto.PoolLogDto;
 import com.changhong.bems.dto.report.ExecutionAnalysisRequest;
 import com.changhong.bems.dto.report.ExecutionAnalysisVo;
+import com.changhong.bems.dto.report.UsageTrendRequest;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * 预算分析报表(BudgetReport)API
@@ -68,19 +68,15 @@ public interface ReportApi {
      */
     @PostMapping(path = "executionAnalysis", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "预算分析报表数据", notes = "预算分析报表数据")
-    ResultData<List<ExecutionAnalysisVo>> executionAnalysis(@RequestBody ExecutionAnalysisRequest request);
+    ResultData<List<ExecutionAnalysisVo>> executionAnalysis(@RequestBody @Validated ExecutionAnalysisRequest request);
 
     /**
-     * 获取年度预算使用趋势报表数据
+     * 预算使用趋势报表数据
      *
-     * @param subjectId 预算主体
-     * @param itemCode  预算科目
-     * @param years     查询年度
-     * @return 年度预算分析报表数据结果
+     * @param request 查询
+     * @return 预算使用趋势报表数据结果
      */
-    @PostMapping(path = "annualUsageTrend/{subjectId}/{itemCode}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "获取年度预算使用趋势报表数据", notes = "获取年度预算使用趋势报表数据")
-    ResultData<Map<Integer, BigDecimal[]>> annualUsageTrend(@PathVariable("subjectId") String subjectId,
-                                                            @PathVariable("itemCode") String itemCode,
-                                                            @RequestBody @NotEmpty Set<Integer> years);
+    @PostMapping(path = "usageTrend", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "预算使用趋势报表数据", notes = "预算使用趋势报表数据")
+    ResultData<Map<Integer, BigDecimal[]>> usageTrend(@RequestBody @Validated UsageTrendRequest request);
 }

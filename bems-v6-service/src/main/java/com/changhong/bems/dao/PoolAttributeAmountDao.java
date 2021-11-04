@@ -11,6 +11,6 @@ import org.springframework.stereotype.Repository;
  * @since 2021-09-30 10:27:03
  */
 @Repository
-public interface PoolAttributeAmountDao extends BaseEntityDao<PoolAttributeAmount> {
+public interface PoolAttributeAmountDao extends BaseEntityDao<PoolAttributeAmount>, PoolAttributeAmountExtDao {
 
 }

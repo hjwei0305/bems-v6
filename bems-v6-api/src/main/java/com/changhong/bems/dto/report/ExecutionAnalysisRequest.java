@@ -3,6 +3,9 @@ package com.changhong.bems.dto.report;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.util.Set;
 
@@ -18,11 +21,14 @@ public class ExecutionAnalysisRequest implements Serializable {
     /**
      * 预算主体id
      */
+    @NotBlank
     @ApiModelProperty(value = "预算主体id")
     private String subjectId;
     /**
      * 所属年度
      */
+    @Min(2000)
+    @Max(2099)
     @ApiModelProperty(value = "所属年度")
     private Integer year;
     /**

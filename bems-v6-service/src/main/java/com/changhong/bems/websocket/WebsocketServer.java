@@ -51,6 +51,8 @@ public class WebsocketServer {
         SESSION_MAP.put(session.getId(), session);
 
         try {
+            TimeUnit.SECONDS.sleep(1);
+
             BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
             OrderStatistics statistics = (OrderStatistics) operations.get();
             while (Objects.nonNull(statistics)) {
@@ -62,7 +64,7 @@ public class WebsocketServer {
                 }
                 // 输出最新日志
                 send(session, ResultData.success(statistics));
-                TimeUnit.SECONDS.sleep(2);
+                TimeUnit.SECONDS.sleep(3);
                 statistics = (OrderStatistics) operations.get();
             }
             // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面

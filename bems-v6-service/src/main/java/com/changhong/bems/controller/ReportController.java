@@ -5,7 +5,7 @@ import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.dto.PoolLogDto;
 import com.changhong.bems.dto.report.ExecutionAnalysisRequest;
 import com.changhong.bems.dto.report.ExecutionAnalysisVo;
-import com.changhong.bems.entity.PoolLog;
+import com.changhong.bems.dto.report.UsageTrendRequest;
 import com.changhong.bems.service.CategoryService;
 import com.changhong.bems.service.PoolLogService;
 import com.changhong.bems.service.ReportService;
@@ -13,8 +13,6 @@ import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import io.swagger.annotations.Api;
-import org.apache.commons.collections.CollectionUtils;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,8 +23,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * 实现功能：预算分析报表服务
@@ -45,8 +41,6 @@ public class ReportController implements ReportApi {
     private PoolLogService poolLogService;
     @Autowired
     private ReportService reportService;
-    @Autowired
-    private ModelMapper modelMapper;
 
     /**
      * 通过预算主体获取其使用的维度清单
@@ -94,15 +88,13 @@ public class ReportController implements ReportApi {
     }
 
     /**
-     * 获取年度预算使用趋势报表数据
+     * 预算使用趋势报表数据
      *
-     * @param subjectId 预算主体
-     * @param itemCode  预算科目
-     * @param years     查询年度
-     * @return 年度预算分析报表数据结果
+     * @param request 查询
+     * @return 预算使用趋势报表数据结果
      */
     @Override
-    public ResultData<Map<Integer, BigDecimal[]>> annualUsageTrend(String subjectId, String itemCode, Set<Integer> years) {
-        return ResultData.success(reportService.annualUsageTrend(subjectId, itemCode, years));
+    public ResultData<Map<Integer, BigDecimal[]>> usageTrend(UsageTrendRequest request) {
+        return ResultData.success(reportService.usageTrend(request));
     }
 }
