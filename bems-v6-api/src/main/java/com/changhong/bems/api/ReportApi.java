@@ -1,10 +1,9 @@
 package com.changhong.bems.api;
 
 import com.changhong.bems.dto.DimensionDto;
-import com.changhong.bems.dto.LogRecordViewDto;
 import com.changhong.bems.dto.PoolLogDto;
 import com.changhong.bems.dto.report.ExecutionAnalysisRequest;
-import com.changhong.bems.dto.report.ExecutionAnalysisResponse;
+import com.changhong.bems.dto.report.ExecutionAnalysisVo;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
@@ -69,7 +68,7 @@ public interface ReportApi {
      */
     @PostMapping(path = "executionAnalysis", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "预算分析报表数据", notes = "预算分析报表数据")
-    ResultData<List<ExecutionAnalysisResponse>> executionAnalysis(@RequestBody ExecutionAnalysisRequest request);
+    ResultData<List<ExecutionAnalysisVo>> executionAnalysis(@RequestBody ExecutionAnalysisRequest request);
 
     /**
      * 获取年度预算使用趋势报表数据

@@ -6,7 +6,6 @@ import com.changhong.bems.dao.PoolDao;
 import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.*;
 import com.changhong.sei.core.context.ContextUtil;
-import com.changhong.sei.core.context.SessionUser;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
@@ -145,8 +144,8 @@ public class PoolService {
     /**
      * 创建预算池
      *
-     * @param pool          预算池
-     * @param baseAttribute 维度属性
+     * @param pool           预算池
+     * @param baseAttribute  维度属性
      * @param injectAmount   注入金额.通过注入且新产生预算池时的金额,作为初始注入金额,用于多维分析的差异计算
      * @param reviseInAmount 调入金额.新产生预算池时的金额,作为初始注入金额,用于预算池分析的差异计算
      * @return 创建结果
@@ -409,7 +408,7 @@ public class PoolService {
      * @param search 查询参数
      * @return 分页查询结果
      */
-    public PageResult<PoolLog> findRecordByPage(Search search) {
+    public PageResult<PoolLogDto> findRecordByPage(Search search) {
         return poolLogService.findByPage(search);
     }
 

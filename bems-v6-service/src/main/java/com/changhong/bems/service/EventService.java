@@ -229,4 +229,15 @@ public class EventService extends BaseEntityService<Event> {
         Event event = dao.findFirstByProperty(Event.CODE_FIELD, code);
         return Objects.isNull(event) ? "" : event.getName();
     }
+
+    /**
+     * 根据事件代码获取预算事件对象
+     *
+     * @param code 预算事件代码
+     * @return 预算事件对象
+     */
+    @Cacheable(key = "#code + '-Event'")
+    public Event getEvent(String code) {
+        return dao.findFirstByProperty(Event.CODE_FIELD, code);
+    }
 }

@@ -2,6 +2,8 @@ package com.changhong.bems.service;
 
 import com.changhong.bems.dao.PoolLogDao;
 import com.changhong.bems.dto.OperationType;
+import com.changhong.bems.dto.PoolLogDto;
+import com.changhong.bems.entity.Event;
 import com.changhong.bems.entity.PoolLog;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.context.SessionUser;
@@ -9,14 +11,15 @@ import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.dto.serach.SearchOrder;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * 预算池日志记录(PoolLog)业务逻辑实现类
@@ -28,6 +31,10 @@ import java.util.Objects;
 public class PoolLogService {
     @Autowired
     private PoolLogDao dao;
+    @Autowired
+    private EventService eventService;
+    @Autowired
+    private ModelMapper modelMapper;
 
     /**
      * 通过事件和业务id获取占用记录
@@ -76,12 +83,40 @@ public class PoolLogService {
         dao.updateFreed(id, Boolean.TRUE);
     }
 
-    public PageResult<PoolLog> findByPage(Search search) {
+    public PageResult<PoolLogDto> findByPage(Search search) {
         if (Objects.isNull(search)) {
             search = Search.createSearch();
         }
         // 按时间戳排序
         search.addSortOrder(SearchOrder.desc(PoolLog.FIELD_TIMESTAMP));
-        return dao.findByPage(search);
+        PageResult<PoolLog> pageResult = dao.findByPage(search);
+
+        PageResult<PoolLogDto> result = new PageResult<>(pageResult);
+        List<PoolLog> records = pageResult.getRows();
+        if (CollectionUtils.isNotEmpty(records)) {
+            Event event;
+            String eventCode;
+            Map<String, Event> eventMap = new HashMap<>(7);
+            PoolLogDto dto;
+            List<PoolLogDto> list = new ArrayList<>(records.size());
+            for (PoolLog log : records) {
+                eventCode = log.getEventCode();
+                dto = modelMapper.map(log, PoolLogDto.class);
+                dto.setEventName(eventCode);
+
+                event = eventMap.get(eventCode);
+                if (Objects.isNull(event)) {
+                    event = eventService.getEvent(eventCode);
+                    eventMap.put(eventCode, event);
+                }
+                if (Objects.nonNull(event)) {
+                    dto.setEventName(event.getName());
+                    dto.setBizFrom(event.getBizFrom());
+                }
+                list.add(dto);
+            }
+            result.setRows(list);
+        }
+        return result;
     }
 }

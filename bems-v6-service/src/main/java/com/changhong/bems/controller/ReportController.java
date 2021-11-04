@@ -2,12 +2,10 @@ package com.changhong.bems.controller;
 
 import com.changhong.bems.api.ReportApi;
 import com.changhong.bems.dto.DimensionDto;
-import com.changhong.bems.dto.LogRecordViewDto;
 import com.changhong.bems.dto.PoolLogDto;
 import com.changhong.bems.dto.report.ExecutionAnalysisRequest;
-import com.changhong.bems.dto.report.ExecutionAnalysisResponse;
+import com.changhong.bems.dto.report.ExecutionAnalysisVo;
 import com.changhong.bems.entity.PoolLog;
-import com.changhong.bems.entity.PoolLogView;
 import com.changhong.bems.service.CategoryService;
 import com.changhong.bems.service.PoolLogService;
 import com.changhong.bems.service.ReportService;
@@ -80,13 +78,8 @@ public class ReportController implements ReportApi {
 
     @Override
     public ResultData<PageResult<PoolLogDto>> getLogRecords(Search search) {
-        PageResult<PoolLog> pageResult = poolLogService.findByPage(search);
-        PageResult<PoolLogDto> result = new PageResult<>(pageResult);
-        List<PoolLog> records = pageResult.getRows();
-        if (CollectionUtils.isNotEmpty(records)) {
-            result.setRows(records.stream().map(r -> modelMapper.map(r, PoolLogDto.class)).collect(Collectors.toList()));
-        }
-        return ResultData.success(result);
+        PageResult<PoolLogDto> pageResult = poolLogService.findByPage(search);
+        return ResultData.success(pageResult);
     }
 
     /**
@@ -96,7 +89,7 @@ public class ReportController implements ReportApi {
      * @return 预算分析报表数据结果
      */
     @Override
-    public ResultData<List<ExecutionAnalysisResponse>> executionAnalysis(ExecutionAnalysisRequest request) {
+    public ResultData<List<ExecutionAnalysisVo>> executionAnalysis(ExecutionAnalysisRequest request) {
         return ResultData.success(reportService.executionAnalysis(request));
     }
 

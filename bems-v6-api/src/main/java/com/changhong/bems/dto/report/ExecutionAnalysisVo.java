@@ -13,7 +13,7 @@ import java.math.BigDecimal;
  * @version 1.0.00  2021-10-08 16:10
  */
 @ApiModel(description = "年度预算分析结果")
-public class ExecutionAnalysisResponse implements Serializable {
+public class ExecutionAnalysisVo implements Serializable {
     private static final long serialVersionUID = 927216826723414622L;
 
     /**
@@ -30,72 +30,72 @@ public class ExecutionAnalysisResponse implements Serializable {
      * 组织
      */
     @ApiModelProperty(value = "组织")
-    protected String org;
+    private String org;
     /**
      * 组织名称
      */
     @ApiModelProperty(value = "组织名称")
-    protected String orgName;
+    private String orgName;
     /**
      * 项目
      */
     @ApiModelProperty(value = "项目")
-    protected String project;
+    private String project;
     /**
      * 项目名称
      */
     @ApiModelProperty(value = "项目名称")
-    protected String projectName;
+    private String projectName;
     /**
      * 自定义1
      */
     @ApiModelProperty(value = "自定义1")
-    protected String udf1;
+    private String udf1;
     /**
      * 自定义1名称
      */
     @ApiModelProperty(value = "自定义1名称")
-    protected String udf1Name;
+    private String udf1Name;
     /**
      * 自定义2
      */
     @ApiModelProperty(value = "自定义2")
-    protected String udf2;
+    private String udf2;
     /**
      * 自定义2名称
      */
     @ApiModelProperty(value = "自定义2名称")
-    protected String udf2Name;
+    private String udf2Name;
     /**
      * 自定义3
      */
     @ApiModelProperty(value = "自定义3")
-    protected String udf3;
+    private String udf3;
     /**
      * 自定义3名称
      */
     @ApiModelProperty(value = "自定义3名称")
-    protected String udf3Name;
+    private String udf3Name;
     /**
      * 自定义4
      */
     @ApiModelProperty(value = "自定义4")
-    protected String udf4;
+    private String udf4;
     /**
      * 自定义4名称
      */
     @ApiModelProperty(value = "自定义4名称")
-    protected String udf4Name;
+    private String udf4Name;
     /**
      * 自定义5
      */
     @ApiModelProperty(value = "自定义5")
-    protected String udf5;
+    private String udf5;
     /**
      * 自定义5名称
      */
     @ApiModelProperty(value = "自定义5名称")
-    protected String udf5Name;
+    private String udf5Name;
 
     /**
      * 初始注入
@@ -113,6 +113,34 @@ public class ExecutionAnalysisResponse implements Serializable {
      */
     @ApiModelProperty(value = "总使用")
     private BigDecimal usedAmount = BigDecimal.ZERO;
+
+    public ExecutionAnalysisVo() {
+    }
+
+    public ExecutionAnalysisVo(String item, String itemName, String org, String orgName, String project, String projectName,
+                               String udf1, String udf1Name, String udf2, String udf2Name, String udf3, String udf3Name,
+                               String udf4, String udf4Name, String udf5, String udf5Name,
+                               BigDecimal initInjectAmount, BigDecimal injectAmount, BigDecimal usedAmount) {
+        this.item = item;
+        this.itemName = itemName;
+        this.org = org;
+        this.orgName = orgName;
+        this.project = project;
+        this.projectName = projectName;
+        this.udf1 = udf1;
+        this.udf1Name = udf1Name;
+        this.udf2 = udf2;
+        this.udf2Name = udf2Name;
+        this.udf3 = udf3;
+        this.udf3Name = udf3Name;
+        this.udf4 = udf4;
+        this.udf4Name = udf4Name;
+        this.udf5 = udf5;
+        this.udf5Name = udf5Name;
+        this.initInjectAmount = initInjectAmount;
+        this.injectAmount = injectAmount;
+        this.usedAmount = usedAmount;
+    }
 
     public String getItem() {
         return item;

@@ -1,11 +1,9 @@
 package com.changhong.bems.controller;
 
 import com.changhong.bems.api.PoolApi;
-import com.changhong.bems.dto.PoolLogDto;
 import com.changhong.bems.dto.PoolAttributeDto;
+import com.changhong.bems.dto.PoolLogDto;
 import com.changhong.bems.dto.PoolQuickQueryParam;
-import com.changhong.bems.entity.PoolLog;
-import com.changhong.bems.entity.PoolLogView;
 import com.changhong.bems.service.PoolService;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
@@ -13,17 +11,13 @@ import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.util.DateUtils;
 import com.changhong.sei.util.IdGenerator;
 import io.swagger.annotations.Api;
-import org.apache.commons.collections.CollectionUtils;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * 预算池(Pool)控制类
@@ -41,8 +35,6 @@ public class PoolController implements PoolApi {
      */
     @Autowired
     private PoolService service;
-    @Autowired
-    private ModelMapper modelMapper;
 
     /**
      * 分页查询业务实体
@@ -109,12 +101,8 @@ public class PoolController implements PoolApi {
      */
     @Override
     public ResultData<PageResult<PoolLogDto>> findRecordByPage(Search search) {
-        PageResult<PoolLog> pageResult = service.findRecordByPage(search);
-        PageResult<PoolLogDto> result = new PageResult<>(pageResult);
-        List<PoolLog> records = pageResult.getRows();
-        if (CollectionUtils.isNotEmpty(records)) {
-            result.setRows(records.stream().map(r -> modelMapper.map(r, PoolLogDto.class)).collect(Collectors.toList()));
-        }
-        return ResultData.success(result);
+        PageResult<PoolLogDto> pageResult = service.findRecordByPage(search);
+
+        return ResultData.success(pageResult);
     }
 }

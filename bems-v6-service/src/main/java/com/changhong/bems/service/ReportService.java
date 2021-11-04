@@ -2,7 +2,7 @@ package com.changhong.bems.service;
 
 import com.changhong.bems.dao.PoolDao;
 import com.changhong.bems.dto.report.ExecutionAnalysisRequest;
-import com.changhong.bems.dto.report.ExecutionAnalysisResponse;
+import com.changhong.bems.dto.report.ExecutionAnalysisVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +29,7 @@ public class ReportService {
      * @param request 预算分析报表数据查询
      * @return 预算分析报表数据结果
      */
-    public List<ExecutionAnalysisResponse> executionAnalysis(ExecutionAnalysisRequest request) {
+    public List<ExecutionAnalysisVo> executionAnalysis(ExecutionAnalysisRequest request) {
         return poolDao.executionAnalysis(request);
     }
 

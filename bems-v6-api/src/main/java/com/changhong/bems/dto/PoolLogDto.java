@@ -57,7 +57,7 @@ public class PoolLogDto extends BaseEntityDto {
      * 业务事件
      */
     @ApiModelProperty(value = "业务事件代码")
-    private String bizEvent;
+    private String eventCode;
     /**
      * 业务事件
      */
@@ -140,12 +140,12 @@ public class PoolLogDto extends BaseEntityDto {
         this.bizFrom = bizFrom;
     }
 
-    public String getBizEvent() {
-        return bizEvent;
+    public String getEventCode() {
+        return eventCode;
     }
 
-    public void setBizEvent(String bizEvent) {
-        this.bizEvent = bizEvent;
+    public void setEventCode(String eventCode) {
+        this.eventCode = eventCode;
     }
 
     public String getEventName() {
