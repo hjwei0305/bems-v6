@@ -147,21 +147,21 @@ public class PoolAttributeAmountDaoImpl extends BaseEntityDaoImpl<PoolAttributeA
 
         StringBuilder groupByField = new StringBuilder();
         // 科目
-        if (StringUtils.isNotBlank(request.getItemCode())) {
+        if (StringUtils.isNotBlank(request.getItem())) {
             jpql.append(" and a.item = :itemCode ");
-            params.put("itemCode", request.getItemCode());
+            params.put("itemCode", request.getItem());
         }
 
         // 组织
-        if (StringUtils.isNotBlank(request.getOrgId())) {
+        if (StringUtils.isNotBlank(request.getOrg())) {
             jpql.append(" and a.org = :orgId ");
-            params.put("orgId", request.getOrgId());
+            params.put("orgId", request.getOrg());
             groupByField.append(",a.org");
         }
         // 项目
-        if (StringUtils.isNotBlank(request.getProjectCode())) {
+        if (StringUtils.isNotBlank(request.getProject())) {
             jpql.append(" and a.project = :projectCode ");
-            params.put("projectCode", request.getProjectCode());
+            params.put("projectCode", request.getProject());
             groupByField.append(",a.project");
         }
         // 自定义1

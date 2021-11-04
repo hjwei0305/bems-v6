@@ -27,7 +27,7 @@ class ReportServiceTest extends BaseUnit5Test {
         UsageTrendRequest request = new UsageTrendRequest();
         request.setSubjectId("C81A4E58-BBD4-11EB-A896-0242C0A84429");
         request.setYear(new Integer[]{2021});
-        request.setItemCode("00001");
+        request.setItem("00001");
         Map<Integer, BigDecimal[]> map = service.usageTrend(request);
         System.out.println(map);
     }
