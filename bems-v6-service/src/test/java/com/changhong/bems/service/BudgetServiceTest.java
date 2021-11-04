@@ -30,11 +30,11 @@ class BudgetServiceTest extends BaseUnit5Test {
         BudgetUse use = new BudgetUse();
         use.setCorpCode("Q000");
         use.setEventCode("REIMBURSEMENT_USE");
-        use.setAmount(new BigDecimal(300));
+        use.setAmount(new BigDecimal(180));
         use.setBizId("USE_TEST_2");
         use.setBizCode("USE_TEST_2");
         use.setBizRemark("测试占用");
-        use.setDate("2021-11-04");
+        use.setDate("2020-10-24");
         use.setItem("00001");
         use.setOrg("435B09B6-D0E1-11EA-93C3-0242C0A8460D");
         useList.add(use);

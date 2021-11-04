@@ -1,15 +1,14 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.dao.PoolAttributeAmountDao;
-import com.changhong.bems.dto.report.ExecutionAnalysisRequest;
-import com.changhong.bems.dto.report.ExecutionAnalysisVo;
-import com.changhong.bems.dto.report.UsageTrendRequest;
-import com.changhong.bems.dto.report.UsageTrendVo;
+import com.changhong.bems.dto.PeriodType;
+import com.changhong.bems.dto.report.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +24,106 @@ import java.util.stream.Collectors;
 public class ReportService {
     @Autowired
     private PoolAttributeAmountDao poolAttributeAmountDao;
+
+    /**
+     * 预算概览报表数据
+     *
+     * @param request 预算概览报表数据查询
+     * @return 预算概览报表数据结果
+     */
+    public List<OverviewVo> overview(OverviewRequest request) {
+        List<OverviewVo> result = new ArrayList<>();
+        List<OverviewDataItemVo> list = poolAttributeAmountDao.overview(request);
+        if (CollectionUtils.isEmpty(list)) {
+            return result;
+        }
+        // 将结果按年分组
+        Map<Integer, List<OverviewDataItemVo>> mapData = list.stream().collect(Collectors.groupingBy(OverviewDataItemVo::getYear, Collectors.toList()));
+
+        int index;
+        OverviewVo vo;
+        PeriodType periodType = request.getPeriodType();
+        for (Map.Entry<Integer, List<OverviewDataItemVo>> entry : mapData.entrySet()) {
+            vo = new OverviewVo();
+            // 年度
+            vo.setYear(entry.getKey());
+            switch (periodType) {
+                case ANNUAL:
+                    // 可使用
+                    BigDecimal balance = BigDecimal.ZERO;
+                    // 已使用
+                    BigDecimal used = BigDecimal.ZERO;
+                    for (OverviewDataItemVo dataItem : entry.getValue()) {
+                        balance = balance.add(dataItem.getBalance());
+                        used = used.add(dataItem.getUsed());
+                    }
+                    vo.setBalance(new BigDecimal[]{balance});
+                    vo.setUsed(new BigDecimal[]{used});
+                    break;
+                case SEMIANNUAL:
+                    // 可使用
+                    BigDecimal[] semiannualB = new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO};
+                    // 已使用
+                    BigDecimal[] semiannualU = new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO};
+                    for (OverviewDataItemVo dataItem : entry.getValue()) {
+                        index = dataItem.getMonth();
+                        if (index <= 6) {
+                            semiannualB[0] = semiannualB[0].add(dataItem.getBalance());
+                            semiannualU[0] = semiannualU[0].add(dataItem.getUsed());
+                        } else {
+                            semiannualB[1] = semiannualB[1].add(dataItem.getBalance());
+                            semiannualU[1] = semiannualU[1].add(dataItem.getUsed());
+                        }
+                    }
+                    vo.setBalance(semiannualB);
+                    vo.setUsed(semiannualU);
+                case QUARTER:
+                    // 可使用
+                    BigDecimal[] quarterB = new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO};
+                    // 已使用
+                    BigDecimal[] quarterU = new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO};
+                    for (OverviewDataItemVo dataItem : entry.getValue()) {
+                        index = dataItem.getMonth();
+                        if (index <= 3) {
+                            quarterB[0] = quarterB[0].add(dataItem.getBalance());
+                            quarterU[0] = quarterU[0].add(dataItem.getUsed());
+                        } else if (index <= 6) {
+                            quarterB[1] = quarterB[1].add(dataItem.getBalance());
+                            quarterU[1] = quarterU[1].add(dataItem.getUsed());
+                        } else if (index <= 9) {
+                            quarterB[2] = quarterB[2].add(dataItem.getBalance());
+                            quarterU[2] = quarterU[2].add(dataItem.getUsed());
+                        } else {
+                            quarterB[3] = quarterB[3].add(dataItem.getBalance());
+                            quarterU[3] = quarterU[3].add(dataItem.getUsed());
+                        }
+                    }
+                    vo.setBalance(quarterB);
+                    vo.setUsed(quarterU);
+                    break;
+                case MONTHLY:
+                    // 可使用
+                    BigDecimal[] monthB = new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
+                            BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
+                            BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO};
+                    // 已使用
+                    BigDecimal[] monthU = new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
+                            BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
+                            BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO};
+                    for (OverviewDataItemVo dataItem : entry.getValue()) {
+                        index = dataItem.getMonth() - 1;
+                        monthB[index] = dataItem.getBalance();
+                        monthU[index] = dataItem.getUsed();
+                    }
+                    vo.setBalance(monthB);
+                    vo.setUsed(monthU);
+                    break;
+                default:
+            }
+            result.add(vo);
+        }
+        return result;
+    }
 
     /**
      * 预算分析报表数据

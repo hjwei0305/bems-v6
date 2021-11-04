@@ -1,10 +1,7 @@
 package com.changhong.bems.dao.impl;
 
 import com.changhong.bems.dao.PoolAttributeAmountExtDao;
-import com.changhong.bems.dto.report.ExecutionAnalysisRequest;
-import com.changhong.bems.dto.report.ExecutionAnalysisVo;
-import com.changhong.bems.dto.report.UsageTrendRequest;
-import com.changhong.bems.dto.report.UsageTrendVo;
+import com.changhong.bems.dto.report.*;
 import com.changhong.bems.entity.PoolAttributeAmount;
 import com.changhong.sei.core.dao.impl.BaseEntityDaoImpl;
 import org.apache.commons.collections.CollectionUtils;
@@ -24,6 +21,25 @@ public class PoolAttributeAmountDaoImpl extends BaseEntityDaoImpl<PoolAttributeA
 
     public PoolAttributeAmountDaoImpl(EntityManager entityManager) {
         super(PoolAttributeAmount.class, entityManager);
+    }
+
+    /**
+     * 预算概览分析
+     *
+     * @param request 查询
+     * @return 结果
+     */
+    @Override
+    public List<OverviewDataItemVo> overview(OverviewRequest request) {
+        String jpql = "select new com.changhong.bems.dto.report.OverviewDataItemVo(t.year,t.month,sum(t.injectAmount),sum(t.usedAmount)) from PoolAttributeAmount t " +
+                "join DimensionAttribute a on t.subjectId = a.subjectId and t.attributeCode = a.attributeCode " +
+                "where t.subjectId = :subjectId and t.year in (:year) group by t.year,t.month ";
+        Query query = entityManager.createQuery(jpql);
+        // 预算主体
+        query.setParameter("subjectId", request.getSubjectId());
+        // 预算年度
+        query.setParameter("year", request.getYears());
+        return query.getResultList();
     }
 
     /**

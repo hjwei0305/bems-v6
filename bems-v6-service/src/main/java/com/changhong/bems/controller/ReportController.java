@@ -3,9 +3,7 @@ package com.changhong.bems.controller;
 import com.changhong.bems.api.ReportApi;
 import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.dto.PoolLogDto;
-import com.changhong.bems.dto.report.ExecutionAnalysisRequest;
-import com.changhong.bems.dto.report.ExecutionAnalysisVo;
-import com.changhong.bems.dto.report.UsageTrendRequest;
+import com.changhong.bems.dto.report.*;
 import com.changhong.bems.service.CategoryService;
 import com.changhong.bems.service.PoolLogService;
 import com.changhong.bems.service.ReportService;
@@ -74,6 +72,17 @@ public class ReportController implements ReportApi {
     public ResultData<PageResult<PoolLogDto>> getLogRecords(Search search) {
         PageResult<PoolLogDto> pageResult = poolLogService.findByPage(search);
         return ResultData.success(pageResult);
+    }
+
+    /**
+     * 预算概览报表数据
+     *
+     * @param request 预算概览报表数据查询
+     * @return 预算概览报表数据结果
+     */
+    @Override
+    public ResultData<List<OverviewVo>> overview(OverviewRequest request) {
+        return ResultData.success(reportService.overview(request));
     }
 
     /**

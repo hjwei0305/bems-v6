@@ -2,9 +2,7 @@ package com.changhong.bems.api;
 
 import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.dto.PoolLogDto;
-import com.changhong.bems.dto.report.ExecutionAnalysisRequest;
-import com.changhong.bems.dto.report.ExecutionAnalysisVo;
-import com.changhong.bems.dto.report.UsageTrendRequest;
+import com.changhong.bems.dto.report.*;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
@@ -59,6 +57,16 @@ public interface ReportApi {
     @PostMapping(path = "getLogRecords", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "查询预算执行日志", notes = "查询预算执行日志")
     ResultData<PageResult<PoolLogDto>> getLogRecords(@RequestBody Search search);
+
+    /**
+     * 预算概览报表数据
+     *
+     * @param request 预算概览报表数据查询
+     * @return 预算概览报表数据结果
+     */
+    @PostMapping(path = "overview", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "预算概览报表数据", notes = "预算概览报表数据")
+    ResultData<List<OverviewVo>> overview(@RequestBody @Validated OverviewRequest request);
 
     /**
      * 预算分析报表数据

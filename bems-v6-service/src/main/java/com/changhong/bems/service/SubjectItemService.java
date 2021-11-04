@@ -171,6 +171,7 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
         if (Objects.isNull(search)) {
             search = Search.createSearch();
         }
+        search.addSortOrder(SearchOrder.asc(SubjectItem.FIELD_CODE));
         return findByPage(search);
     }
 
