@@ -4,6 +4,7 @@ import com.changhong.bems.api.PoolApi;
 import com.changhong.bems.dto.PoolLogDto;
 import com.changhong.bems.dto.PoolAttributeDto;
 import com.changhong.bems.dto.PoolQuickQueryParam;
+import com.changhong.bems.entity.PoolLog;
 import com.changhong.bems.entity.PoolLogView;
 import com.changhong.bems.service.PoolService;
 import com.changhong.sei.core.dto.ResultData;
@@ -108,9 +109,9 @@ public class PoolController implements PoolApi {
      */
     @Override
     public ResultData<PageResult<PoolLogDto>> findRecordByPage(Search search) {
-        PageResult<PoolLogView> pageResult = service.findRecordByPage(search);
+        PageResult<PoolLog> pageResult = service.findRecordByPage(search);
         PageResult<PoolLogDto> result = new PageResult<>(pageResult);
-        List<PoolLogView> records = pageResult.getRows();
+        List<PoolLog> records = pageResult.getRows();
         if (CollectionUtils.isNotEmpty(records)) {
             result.setRows(records.stream().map(r -> modelMapper.map(r, PoolLogDto.class)).collect(Collectors.toList()));
         }

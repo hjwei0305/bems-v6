@@ -3,6 +3,8 @@ package com.changhong.bems.dao.impl;
 import com.changhong.bems.dao.PoolExtDao;
 import com.changhong.bems.dto.PoolAttributeDto;
 import com.changhong.bems.dto.PoolQuickQueryParam;
+import com.changhong.bems.dto.report.ExecutionAnalysisRequest;
+import com.changhong.bems.dto.report.ExecutionAnalysisResponse;
 import com.changhong.bems.entity.Pool;
 import com.changhong.sei.core.dao.impl.BaseEntityDaoImpl;
 import com.changhong.sei.core.dto.serach.PageInfo;
@@ -13,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -208,5 +211,27 @@ order by p.code
         // 当前页
         pageResult.setPage(pageInfo.getPage());
         return pageResult;
+    }
+
+    /**
+     * 预算分析报表数据
+     *
+     * @param request 预算分析报表数据查询
+     * @return 预算分析报表数据结果
+     */
+    @Override
+    public List<ExecutionAnalysisResponse> executionAnalysis(ExecutionAnalysisRequest request) {
+        String jpql = "";
+        // if (CollectionUtils.isNotEmpty(itemCodes)) {
+        //     jpql += " and p.item in (:itemCodes)";
+        // }
+        jpql += " group by p.subjectId,p.year,p.item order by p.item";
+        Query query = entityManager.createQuery(jpql);
+        // query.setParameter("subjectId", subjectId);
+        // query.setParameter("year", year);
+        // if (CollectionUtils.isNotEmpty(itemCodes)) {
+        //     query.setParameter("itemCodes", itemCodes);
+        // }
+        return query.getResultList();
     }
 }

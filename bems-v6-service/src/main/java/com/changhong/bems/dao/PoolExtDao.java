@@ -2,8 +2,12 @@ package com.changhong.bems.dao;
 
 import com.changhong.bems.dto.PoolAttributeDto;
 import com.changhong.bems.dto.PoolQuickQueryParam;
+import com.changhong.bems.dto.report.ExecutionAnalysisRequest;
+import com.changhong.bems.dto.report.ExecutionAnalysisResponse;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
+
+import java.util.List;
 
 /**
  * 实现功能：
@@ -19,4 +23,13 @@ public interface PoolExtDao {
      * @return 分页结果
      */
     PageResult<PoolAttributeDto> queryPoolPaging(PoolQuickQueryParam search);
+
+    /**
+     * 预算分析报表数据
+     *
+     * @param request 预算分析报表数据查询
+     * @return 预算分析报表数据结果
+     */
+    List<ExecutionAnalysisResponse> executionAnalysis(ExecutionAnalysisRequest request);
+
 }

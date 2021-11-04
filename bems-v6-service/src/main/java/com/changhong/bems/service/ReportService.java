@@ -1,7 +1,8 @@
 package com.changhong.bems.service;
 
-import com.changhong.bems.dao.PoolReportViewDao;
-import com.changhong.bems.dto.report.AnnualBudgetResponse;
+import com.changhong.bems.dao.PoolDao;
+import com.changhong.bems.dto.report.ExecutionAnalysisRequest;
+import com.changhong.bems.dto.report.ExecutionAnalysisResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,17 +21,16 @@ import java.util.Set;
 @Service
 public class ReportService {
     @Autowired
-    private PoolReportViewDao poolReportViewDao;
+    private PoolDao poolDao;
 
     /**
-     * 获取年度预算分析报表数据
+     * 预算分析报表数据
      *
-     * @param subjectId 预算主体
-     * @param year      年度
-     * @return 年度预算分析报表数据结果
+     * @param request 预算分析报表数据查询
+     * @return 预算分析报表数据结果
      */
-    public List<AnnualBudgetResponse> annualBudgetAnalysis(String subjectId, Integer year, Set<String> itemCodes) {
-        return poolReportViewDao.annualBudgetAnalysis(subjectId, year, itemCodes);
+    public List<ExecutionAnalysisResponse> executionAnalysis(ExecutionAnalysisRequest request) {
+        return poolDao.executionAnalysis(request);
     }
 
     /**

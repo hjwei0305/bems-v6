@@ -1,10 +1,8 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.dao.PoolLogDao;
-import com.changhong.bems.dao.PoolLogViewDao;
 import com.changhong.bems.dto.OperationType;
 import com.changhong.bems.entity.PoolLog;
-import com.changhong.bems.entity.PoolLogView;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.context.SessionUser;
 import com.changhong.sei.core.dto.serach.PageResult;
@@ -20,7 +18,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-
 /**
  * 预算池日志记录(PoolLog)业务逻辑实现类
  *
@@ -31,8 +28,6 @@ import java.util.Objects;
 public class PoolLogService {
     @Autowired
     private PoolLogDao dao;
-    @Autowired
-    private PoolLogViewDao viewDao;
 
     /**
      * 通过事件和业务id获取占用记录
@@ -81,21 +76,12 @@ public class PoolLogService {
         dao.updateFreed(id, Boolean.TRUE);
     }
 
-    public PageResult<PoolLogView> findViewByPage(Search search) {
+    public PageResult<PoolLog> findByPage(Search search) {
         if (Objects.isNull(search)) {
             search = Search.createSearch();
         }
         // 按时间戳排序
-        search.addSortOrder(SearchOrder.desc(PoolLogView.FIELD_TIMESTAMP));
-        return viewDao.findByPage(search);
-    }
-
-    public List<PoolLogView> findLogs(Search search) {
-        if (Objects.isNull(search)) {
-            search = Search.createSearch();
-        }
-        // 按时间戳排序
-        search.addSortOrder(SearchOrder.desc(PoolLogView.FIELD_TIMESTAMP));
-        return viewDao.findByFilters(search);
+        search.addSortOrder(SearchOrder.desc(PoolLog.FIELD_TIMESTAMP));
+        return dao.findByPage(search);
     }
 }

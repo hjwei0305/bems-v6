@@ -3,8 +3,10 @@ package com.changhong.bems.controller;
 import com.changhong.bems.api.ReportApi;
 import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.dto.LogRecordViewDto;
-import com.changhong.bems.dto.report.AnnualBudgetRequest;
-import com.changhong.bems.dto.report.AnnualBudgetResponse;
+import com.changhong.bems.dto.PoolLogDto;
+import com.changhong.bems.dto.report.ExecutionAnalysisRequest;
+import com.changhong.bems.dto.report.ExecutionAnalysisResponse;
+import com.changhong.bems.entity.PoolLog;
 import com.changhong.bems.entity.PoolLogView;
 import com.changhong.bems.service.CategoryService;
 import com.changhong.bems.service.PoolLogService;
@@ -77,25 +79,25 @@ public class ReportController implements ReportApi {
     }
 
     @Override
-    public ResultData<PageResult<LogRecordViewDto>> getLogRecords(Search search) {
-        PageResult<PoolLogView> pageResult = poolLogService.findViewByPage(search);
-        PageResult<LogRecordViewDto> result = new PageResult<>(pageResult);
-        List<PoolLogView> records = pageResult.getRows();
+    public ResultData<PageResult<PoolLogDto>> getLogRecords(Search search) {
+        PageResult<PoolLog> pageResult = poolLogService.findByPage(search);
+        PageResult<PoolLogDto> result = new PageResult<>(pageResult);
+        List<PoolLog> records = pageResult.getRows();
         if (CollectionUtils.isNotEmpty(records)) {
-            result.setRows(records.stream().map(r -> modelMapper.map(r, LogRecordViewDto.class)).collect(Collectors.toList()));
+            result.setRows(records.stream().map(r -> modelMapper.map(r, PoolLogDto.class)).collect(Collectors.toList()));
         }
         return ResultData.success(result);
     }
 
     /**
-     * 获取年度预算分析报表数据
+     * 预算分析报表数据
      *
-     * @param request 年度预算分析查询
-     * @return 年度预算分析报表数据结果
+     * @param request 预算分析报表数据查询
+     * @return 预算分析报表数据结果
      */
     @Override
-    public ResultData<List<AnnualBudgetResponse>> annualBudgetAnalysis(AnnualBudgetRequest request) {
-        return ResultData.success(reportService.annualBudgetAnalysis(request.getSubjectId(), request.getYear(), request.getItemCodes()));
+    public ResultData<List<ExecutionAnalysisResponse>> executionAnalysis(ExecutionAnalysisRequest request) {
+        return ResultData.success(reportService.executionAnalysis(request));
     }
 
     /**

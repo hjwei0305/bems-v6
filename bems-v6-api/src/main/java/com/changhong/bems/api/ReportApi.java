@@ -2,8 +2,9 @@ package com.changhong.bems.api;
 
 import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.dto.LogRecordViewDto;
-import com.changhong.bems.dto.report.AnnualBudgetRequest;
-import com.changhong.bems.dto.report.AnnualBudgetResponse;
+import com.changhong.bems.dto.PoolLogDto;
+import com.changhong.bems.dto.report.ExecutionAnalysisRequest;
+import com.changhong.bems.dto.report.ExecutionAnalysisResponse;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
@@ -58,17 +59,17 @@ public interface ReportApi {
      */
     @PostMapping(path = "getLogRecords", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "查询预算执行日志", notes = "查询预算执行日志")
-    ResultData<PageResult<LogRecordViewDto>> getLogRecords(@RequestBody Search search);
+    ResultData<PageResult<PoolLogDto>> getLogRecords(@RequestBody Search search);
 
     /**
-     * 获取年度预算分析报表数据
+     * 预算分析报表数据
      *
-     * @param request 年度预算分析查询
-     * @return 年度预算分析报表数据结果
+     * @param request 预算分析报表数据查询
+     * @return 预算分析报表数据结果
      */
-    @PostMapping(path = "annualBudgetAnalysis", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "获取年度预算分析报表数据", notes = "获取年度预算分析报表数据")
-    ResultData<List<AnnualBudgetResponse>> annualBudgetAnalysis(@RequestBody AnnualBudgetRequest request);
+    @PostMapping(path = "executionAnalysis", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "预算分析报表数据", notes = "预算分析报表数据")
+    ResultData<List<ExecutionAnalysisResponse>> executionAnalysis(@RequestBody ExecutionAnalysisRequest request);
 
     /**
      * 获取年度预算使用趋势报表数据

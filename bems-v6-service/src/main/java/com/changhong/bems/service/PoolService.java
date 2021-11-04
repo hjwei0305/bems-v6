@@ -409,8 +409,8 @@ public class PoolService {
      * @param search 查询参数
      * @return 分页查询结果
      */
-    public PageResult<PoolLogView> findRecordByPage(Search search) {
-        return poolLogService.findViewByPage(search);
+    public PageResult<PoolLog> findRecordByPage(Search search) {
+        return poolLogService.findByPage(search);
     }
 
     /**
