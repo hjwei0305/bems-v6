@@ -11,6 +11,7 @@ import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
+import com.changhong.sei.core.dto.serach.SearchOrder;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
 import com.changhong.sei.core.service.bo.OperateResultWithData;
@@ -113,6 +114,7 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(SubjectItem.FIELD_SUBJECT_ID, subjectId));
         search.addFilter(new SearchFilter(SubjectItem.FROZEN, Boolean.FALSE));
+        search.addSortOrder(SearchOrder.asc(SubjectItem.FIELD_CODE));
         return findByFilters(search);
     }
 
