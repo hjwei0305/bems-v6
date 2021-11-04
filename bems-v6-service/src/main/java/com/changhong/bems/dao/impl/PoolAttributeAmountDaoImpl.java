@@ -4,6 +4,7 @@ import com.changhong.bems.dao.PoolAttributeAmountExtDao;
 import com.changhong.bems.dto.report.ExecutionAnalysisRequest;
 import com.changhong.bems.dto.report.ExecutionAnalysisVo;
 import com.changhong.bems.dto.report.UsageTrendRequest;
+import com.changhong.bems.dto.report.UsageTrendVo;
 import com.changhong.bems.entity.PoolAttributeAmount;
 import com.changhong.sei.core.dao.impl.BaseEntityDaoImpl;
 import org.apache.commons.collections.CollectionUtils;
@@ -11,9 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 实现功能：
@@ -124,8 +123,7 @@ public class PoolAttributeAmountDaoImpl extends BaseEntityDaoImpl<PoolAttributeA
             query.setParameter(entry.getKey(), entry.getValue());
         }
 
-        List<ExecutionAnalysisVo> list = query.getResultList();
-        return list;
+        return query.getResultList();
     }
 
     /**
@@ -135,16 +133,19 @@ public class PoolAttributeAmountDaoImpl extends BaseEntityDaoImpl<PoolAttributeA
      * @return 预算使用趋势报表数据结果
      */
     @Override
-    public List<PoolAttributeAmount> usageTrend(UsageTrendRequest request) {
+    public List<UsageTrendVo> usageTrend(UsageTrendRequest request) {
         Map<String, Object> params = new HashMap<>(7);
         StringBuilder jpql = new StringBuilder();
-        jpql.append("select t from PoolAttributeAmount t ")
+        jpql.append("select new com.changhong.bems.dto.report.UsageTrendVo(t.year,t.month,sum(t.usedAmount)) from PoolAttributeAmount t ")
                 .append("join DimensionAttribute a on t.subjectId = a.subjectId and t.attributeCode = a.attributeCode ");
         // 预算主体
         params.put("subjectId", request.getSubjectId());
         // 预算年度
-        params.put("year", request.getYear());
+        List<Integer> years = new ArrayList<>();
+        Collections.addAll(years, request.getYear());
+        params.put("year", years);
 
+        StringBuilder groupByField = new StringBuilder();
         // 科目
         if (StringUtils.isNotBlank(request.getItemCode())) {
             jpql.append(" and a.item = :itemCode ");
@@ -155,45 +156,51 @@ public class PoolAttributeAmountDaoImpl extends BaseEntityDaoImpl<PoolAttributeA
         if (StringUtils.isNotBlank(request.getOrgId())) {
             jpql.append(" and a.org = :orgId ");
             params.put("orgId", request.getOrgId());
+            groupByField.append(",a.org");
         }
         // 项目
         if (StringUtils.isNotBlank(request.getProjectCode())) {
             jpql.append(" and a.project = :projectCode ");
             params.put("projectCode", request.getProjectCode());
+            groupByField.append(",a.project");
         }
         // 自定义1
         if (StringUtils.isNotBlank(request.getUdf1())) {
             jpql.append(" and a.udf1 = :udf1 ");
             params.put("udf1", request.getUdf1());
+            groupByField.append(",a.udf1");
         }
         // 自定义2
         if (StringUtils.isNotBlank(request.getUdf2())) {
             jpql.append(" and a.udf2 = :udf2 ");
             params.put("udf2", request.getUdf2());
+            groupByField.append(",a.udf2");
         }
         // 自定义3
         if (StringUtils.isNotBlank(request.getUdf3())) {
             jpql.append(" and a.udf3 = :udf3 ");
             params.put("udf3", request.getUdf3());
+            groupByField.append(",a.udf3");
         }
         // 自定义4
         if (StringUtils.isNotBlank(request.getUdf4())) {
             jpql.append(" and a.udf4 = :udf4 ");
             params.put("udf4", request.getUdf4());
+            groupByField.append(",a.udf4");
         }
         // 自定义5
         if (StringUtils.isNotBlank(request.getUdf5())) {
             jpql.append(" and a.udf5 = :udf5 ");
             params.put("udf5", request.getUdf5());
+            groupByField.append(",a.udf5");
         }
-        jpql.append("where t.subjectId = :subjectId and t.year = :year ");
+        jpql.append("where t.subjectId = :subjectId and t.year in (:year) group by t.year,t.month,a.item ");
+        jpql.append(groupByField);
 
         Query query = entityManager.createQuery(jpql.toString());
         for (Map.Entry<String, Object> entry : params.entrySet()) {
             query.setParameter(entry.getKey(), entry.getValue());
         }
-
-        List<PoolAttributeAmount> list = query.getResultList();
-        return list;
+        return query.getResultList();
     }
 }

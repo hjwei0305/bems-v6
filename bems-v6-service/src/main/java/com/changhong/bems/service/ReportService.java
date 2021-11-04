@@ -1,17 +1,15 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.dao.PoolAttributeAmountDao;
-import com.changhong.bems.dao.PoolDao;
 import com.changhong.bems.dto.report.ExecutionAnalysisRequest;
 import com.changhong.bems.dto.report.ExecutionAnalysisVo;
 import com.changhong.bems.dto.report.UsageTrendRequest;
-import com.changhong.bems.entity.PoolAttributeAmount;
+import com.changhong.bems.dto.report.UsageTrendVo;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,15 +53,15 @@ public class ReportService {
             }
             result.put(year, data);
         }
-        List<PoolAttributeAmount> list = poolAttributeAmountDao.usageTrend(request);
-        Map<Integer, List<PoolAttributeAmount>> mapData = list.stream().collect(Collectors.groupingBy(PoolAttributeAmount::getYear, Collectors.toList()));
-        List<PoolAttributeAmount> usageList;
-        for (Map.Entry<Integer, List<PoolAttributeAmount>> entry : mapData.entrySet()) {
+        List<UsageTrendVo> list = poolAttributeAmountDao.usageTrend(request);
+        Map<Integer, List<UsageTrendVo>> mapData = list.stream().collect(Collectors.groupingBy(UsageTrendVo::getYear, Collectors.toList()));
+        List<UsageTrendVo> usageList;
+        for (Map.Entry<Integer, List<UsageTrendVo>> entry : mapData.entrySet()) {
             data = result.get(entry.getKey());
             usageList = entry.getValue();
             if (CollectionUtils.isNotEmpty(usageList)) {
-                for (PoolAttributeAmount usage : usageList) {
-                    data[usage.getMonth() - 1] = usage.getUsedAmount();
+                for (UsageTrendVo usage : usageList) {
+                    data[usage.getMonth() - 1] = usage.getAmount();
                 }
             }
         }

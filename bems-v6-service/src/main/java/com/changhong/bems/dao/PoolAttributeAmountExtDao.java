@@ -3,6 +3,7 @@ package com.changhong.bems.dao;
 import com.changhong.bems.dto.report.ExecutionAnalysisRequest;
 import com.changhong.bems.dto.report.ExecutionAnalysisVo;
 import com.changhong.bems.dto.report.UsageTrendRequest;
+import com.changhong.bems.dto.report.UsageTrendVo;
 import com.changhong.bems.entity.PoolAttributeAmount;
 
 import java.util.List;
@@ -29,5 +30,5 @@ public interface PoolAttributeAmountExtDao {
      * @param request 查询
      * @return 预算使用趋势报表数据结果
      */
-    List<PoolAttributeAmount> usageTrend(UsageTrendRequest request);
+    List<UsageTrendVo> usageTrend(UsageTrendRequest request);
 }
