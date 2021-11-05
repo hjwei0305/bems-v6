@@ -26,6 +26,7 @@ public class SubjectItemDto extends ItemDto {
     /**
      * 执行策略id
      */
+    @Size(max = 50)
     @ApiModelProperty(value = "执行策略id")
     private String strategyId;
     /**

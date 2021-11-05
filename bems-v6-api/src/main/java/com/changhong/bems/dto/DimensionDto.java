@@ -41,7 +41,7 @@ public class DimensionDto extends BaseEntityDto {
      * 维度策略id
      */
     @NotBlank
-    @Size(max = 36)
+    @Size(max = 50)
     @ApiModelProperty(value = "维度策略id", required = true)
     private String strategyId;
     /**

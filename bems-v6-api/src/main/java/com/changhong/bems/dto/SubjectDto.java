@@ -78,7 +78,7 @@ public class SubjectDto extends BaseEntityDto {
      * 执行策略id
      */
     @NotBlank
-    @Size(max = 36)
+    @Size(max = 50)
     @ApiModelProperty(value = "执行策略id", required = true)
     private String strategyId;
     /**
