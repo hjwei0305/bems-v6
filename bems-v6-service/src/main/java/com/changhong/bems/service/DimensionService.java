@@ -136,8 +136,13 @@ public class DimensionService extends BaseEntityService<Dimension> {
             dimension.setRequired(Boolean.TRUE);
             dimension.setRank(1);
             strategy = strategyService.getByCode(StringUtils.uncapitalize(PeriodMatchStrategy.class.getSimpleName()));
-            dimension.setStrategyId(strategy.getCode());
-            dimension.setStrategyName(strategy.getName());
+            if (Objects.nonNull(strategy)) {
+                dimension.setStrategyId(strategy.getCode());
+                dimension.setStrategyName(strategy.getName());
+            } else {
+                dimension.setStrategyId(Constants.NONE);
+                dimension.setStrategyName(Constants.NONE);
+            }
             dimension.setUiComponent("Period");
             super.save(dimension);
             dimensions.add(dimension);
@@ -149,8 +154,13 @@ public class DimensionService extends BaseEntityService<Dimension> {
             dimension.setRequired(Boolean.TRUE);
             dimension.setRank(2);
             strategy = strategyService.getByCode(StringUtils.uncapitalize(EqualMatchStrategy.class.getSimpleName()));
-            dimension.setStrategyId(strategy.getCode());
-            dimension.setStrategyName(strategy.getName());
+            if (Objects.nonNull(strategy)) {
+                dimension.setStrategyId(strategy.getCode());
+                dimension.setStrategyName(strategy.getName());
+            } else {
+                dimension.setStrategyId(Constants.NONE);
+                dimension.setStrategyName(Constants.NONE);
+            }
             dimension.setUiComponent("Subject");
             super.save(dimension);
             dimensions.add(dimension);
@@ -161,8 +171,13 @@ public class DimensionService extends BaseEntityService<Dimension> {
             dimension.setName(ContextUtil.getMessage("default_dimension_org"));
             dimension.setRank(3);
             strategy = strategyService.getByCode(StringUtils.uncapitalize(OrgTreeMatchStrategy.class.getSimpleName()));
-            dimension.setStrategyId(strategy.getCode());
-            dimension.setStrategyName(strategy.getName());
+            if (Objects.nonNull(strategy)) {
+                dimension.setStrategyId(strategy.getCode());
+                dimension.setStrategyName(strategy.getName());
+            } else {
+                dimension.setStrategyId(Constants.NONE);
+                dimension.setStrategyName(Constants.NONE);
+            }
             dimension.setUiComponent("Organization");
             super.save(dimension);
             dimensions.add(dimension);
@@ -173,8 +188,13 @@ public class DimensionService extends BaseEntityService<Dimension> {
             dimension.setName(ContextUtil.getMessage("default_dimension_project"));
             dimension.setRank(4);
             strategy = strategyService.getByCode(StringUtils.uncapitalize(EqualMatchStrategy.class.getSimpleName()));
-            dimension.setStrategyId(strategy.getCode());
-            dimension.setStrategyName(strategy.getName());
+            if (Objects.nonNull(strategy)) {
+                dimension.setStrategyId(strategy.getCode());
+                dimension.setStrategyName(strategy.getName());
+            } else {
+                dimension.setStrategyId(Constants.NONE);
+                dimension.setStrategyName(Constants.NONE);
+            }
             dimension.setUiComponent("ProjectList");
             super.save(dimension);
             dimensions.add(dimension);

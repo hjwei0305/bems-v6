@@ -71,7 +71,7 @@ public class AutoConfig {
      */
     @Bean
     @ConditionalOnMissingBean
-    public EqualMatchStrategy equalStrategy() {
+    public EqualMatchStrategy equalMatchStrategy() {
         return new DefaultEqualMatchStrategy();
     }
 
