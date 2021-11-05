@@ -77,6 +77,7 @@ public class ReportService {
                     }
                     vo.setBalance(semiannualB);
                     vo.setUsed(semiannualU);
+                    break;
                 case QUARTER:
                     // 可使用
                     BigDecimal[] quarterB = new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO};
