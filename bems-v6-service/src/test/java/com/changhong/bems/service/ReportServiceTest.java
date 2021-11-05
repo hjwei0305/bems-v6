@@ -27,7 +27,7 @@ class ReportServiceTest extends BaseUnit5Test {
         OverviewRequest request = new OverviewRequest();
         request.setSubjectId("C81A4E58-BBD4-11EB-A896-0242C0A84429");
         request.setYears(Lists.newArrayList(2021,2020));
-        request.setPeriodType(PeriodType.ANNUAL);
+        request.setPeriodType(PeriodType.MONTHLY);
         List<OverviewVo> list = service.overview(request);
         System.out.println(list);
     }
