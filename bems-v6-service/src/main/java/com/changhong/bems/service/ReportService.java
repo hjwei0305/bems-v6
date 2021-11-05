@@ -62,9 +62,9 @@ public class ReportService {
                     break;
                 case SEMIANNUAL:
                     // 可使用
-                    BigDecimal[] semiannualB = new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO};
+                    BigDecimal[] semiannualB = new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO};
                     // 已使用
-                    BigDecimal[] semiannualU = new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO};
+                    BigDecimal[] semiannualU = new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO};
                     for (OverviewDataItemVo dataItem : entry.getValue()) {
                         index = dataItem.getMonth();
                         if (index <= 6) {
