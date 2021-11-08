@@ -22,12 +22,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -47,6 +49,8 @@ public class DimensionService extends BaseEntityService<Dimension> {
     private CategoryService categoryService;
     @Autowired
     private StrategyService strategyService;
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     public static final String CACHE_KEY = "bems-v6:dimension";
 
@@ -75,6 +79,13 @@ public class DimensionService extends BaseEntityService<Dimension> {
                 return OperateResult.operationFailure("dimension_00001", obj);
             }
             dao.delete(dimension);
+
+            // 清空主体维度策略缓存
+            Set<String> keys = redisTemplate.keys(SubjectDimensionService.CACHE_KEY.concat(":*"));
+            if (CollectionUtils.isNotEmpty(keys)) {
+                redisTemplate.delete(keys);
+            }
+
             return OperateResult.operationSuccess();
         } else {
             // 维度不存在!
@@ -114,6 +125,13 @@ public class DimensionService extends BaseEntityService<Dimension> {
             // 设置为系统必须
             entity.setRequired(Boolean.TRUE);
         }
+
+        // 清空主体维度策略缓存
+        Set<String> keys = redisTemplate.keys(SubjectDimensionService.CACHE_KEY.concat(":*"));
+        if (CollectionUtils.isNotEmpty(keys)) {
+            redisTemplate.delete(keys);
+        }
+
         return super.save(entity);
     }
 

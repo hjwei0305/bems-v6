@@ -302,6 +302,12 @@ public class CategoryService extends BaseEntityService<Category> {
     @CacheEvict(key = "#categoryId")
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> assigne(String categoryId, Set<String> dimensionCodes) {
+        // 检查类型是否被使用.已使用的预算类型不能再做分配和取消分配操作
+        Order order = orderService.findFirstByProperty(Order.FIELD_CATEGORY_ID, categoryId);
+        if (Objects.nonNull(order)) {
+            // 已被使用,禁止删除!
+            return ResultData.fail(ContextUtil.getMessage("category_00001"));
+        }
         return categoryDimensionService.addCategoryDimension(categoryId, dimensionCodes);
     }
 
@@ -313,6 +319,12 @@ public class CategoryService extends BaseEntityService<Category> {
     @CacheEvict(key = "#categoryId")
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> unassigne(String categoryId, Set<String> dimensionCodes) {
+        // 检查类型是否被使用.已使用的预算类型不能再做分配和取消分配操作
+        Order order = orderService.findFirstByProperty(Order.FIELD_CATEGORY_ID, categoryId);
+        if (Objects.nonNull(order)) {
+            // 已被使用,禁止删除!
+            return ResultData.fail(ContextUtil.getMessage("category_00001"));
+        }
         List<CategoryDimension> dimensionList = categoryDimensionService.getCategoryDimensions(categoryId, dimensionCodes);
         if (CollectionUtils.isNotEmpty(dimensionList)) {
             Set<String> ids = dimensionList.stream().map(CategoryDimension::getId).collect(Collectors.toSet());
