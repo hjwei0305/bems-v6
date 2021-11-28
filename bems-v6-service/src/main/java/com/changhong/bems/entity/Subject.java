@@ -20,7 +20,7 @@ import java.io.Serializable;
  * @since 2021-04-22 12:54:25
  */
 @Entity
-@Table(name = "budget_subject")
+@Table(name = "subject")
 @DynamicInsert
 @DynamicUpdate
 public class Subject extends BaseAuditableEntity implements ITenant, IRank, ICodeUnique, IDataAuthEntity, Serializable {

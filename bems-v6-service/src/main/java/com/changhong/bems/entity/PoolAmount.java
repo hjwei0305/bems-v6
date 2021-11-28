@@ -18,7 +18,7 @@ import java.math.BigDecimal;
  * @since 2021-04-25 15:14:00
  */
 @Entity
-@Table(name = "budget_pool_amount")
+@Table(name = "pool_amount")
 @DynamicInsert
 @DynamicUpdate
 public class PoolAmount extends BaseEntity implements ITenant, Serializable {

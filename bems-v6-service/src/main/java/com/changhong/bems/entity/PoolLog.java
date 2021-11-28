@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
  * @since 2021-04-25 15:10:03
  */
 @Entity
-@Table(name = "budget_pool_log")
+@Table(name = "pool_log")
 @DynamicInsert
 @DynamicUpdate
 public class PoolLog extends BaseEntity implements ITenant, Serializable, Cloneable {

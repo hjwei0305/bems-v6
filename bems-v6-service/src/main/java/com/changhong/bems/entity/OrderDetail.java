@@ -21,7 +21,7 @@ import java.util.StringJoiner;
  * @since 2021-04-25 15:13:58
  */
 @Entity
-@Table(name = "budget_order_detail")
+@Table(name = "order_detail")
 @DynamicInsert
 @DynamicUpdate
 public class OrderDetail extends BaseAttribute implements ITenant, Serializable, Cloneable {

@@ -19,7 +19,7 @@ import java.io.Serializable;
  * @since 2021-04-22 12:54:23
  */
 @Entity
-@Table(name = "budget_dimension")
+@Table(name = "dimension")
 @DynamicInsert
 @DynamicUpdate
 public class Dimension extends BaseAuditableEntity implements ITenant, IRank, ICodeUnique, Serializable {

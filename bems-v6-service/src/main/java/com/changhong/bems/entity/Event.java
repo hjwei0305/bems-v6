@@ -20,7 +20,7 @@ import java.io.Serializable;
  * @since 2021-04-22 12:54:29
  */
 @Entity
-@Table(name = "budget_event")
+@Table(name = "event_")
 @DynamicInsert
 @DynamicUpdate
 public class Event extends BaseAuditableEntity implements ITenant, ICodeUnique, IRank, IFrozen, Serializable {
