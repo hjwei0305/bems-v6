@@ -56,7 +56,7 @@ public class OrderService extends BaseEntityService<Order> {
     @Autowired
     private OrderDetailService orderDetailService;
     @Autowired
-    private BudgetTypeService categoryService;
+    private CategoryService categoryService;
     @Autowired
     private PeriodService periodService;
     @Autowired
@@ -316,7 +316,7 @@ public class OrderService extends BaseEntityService<Order> {
             //添加单据行项时,预算类型不能为空.
             return ResultData.fail(ContextUtil.getMessage("order_detail_00003"));
         }
-        BudgetType category = categoryService.findOne(categoryId);
+        Category category = categoryService.findOne(categoryId);
         if (Objects.isNull(category)) {
             //预算类型[{0}]不存在.
             return ResultData.fail(ContextUtil.getMessage("category_00004", categoryId));

@@ -1,13 +1,13 @@
 package com.changhong.bems.controller;
 
-import com.changhong.bems.api.BudgetTypeApi;
+import com.changhong.bems.api.CategoryApi;
 import com.changhong.bems.dto.AssigneDimensionRequest;
-import com.changhong.bems.dto.BudgetTypeDto;
+import com.changhong.bems.dto.CategoryDto;
 import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.dto.OrderCategory;
-import com.changhong.bems.entity.BudgetType;
-import com.changhong.bems.service.BudgetTypeService;
-import com.changhong.bems.service.BudgetTypeConfigService;
+import com.changhong.bems.entity.Category;
+import com.changhong.bems.service.CategoryService;
+import com.changhong.bems.service.CategoryConfigService;
 import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.service.BaseEntityService;
@@ -32,19 +32,19 @@ import java.util.stream.Collectors;
  * @since 2021-04-22 12:54:27
  */
 @RestController
-@Api(value = "BudgetTypeApi", tags = "预算类型服务")
-@RequestMapping(path = BudgetTypeApi.PATH, produces = MediaType.APPLICATION_JSON_VALUE)
-public class BudgetTypeController extends BaseEntityController<BudgetType, BudgetTypeDto> implements BudgetTypeApi {
+@Api(value = "CategoryApi", tags = "预算类型服务")
+@RequestMapping(path = CategoryApi.PATH, produces = MediaType.APPLICATION_JSON_VALUE)
+public class CategoryController extends BaseEntityController<Category, CategoryDto> implements CategoryApi {
     /**
      * 预算类型服务对象
      */
     @Autowired
-    private BudgetTypeService service;
+    private CategoryService service;
     @Autowired
-    private BudgetTypeConfigService orderConfigService;
+    private CategoryConfigService orderConfigService;
 
     @Override
-    public BaseEntityService<BudgetType> getService() {
+    public BaseEntityService<Category> getService() {
         return service;
     }
 
@@ -55,10 +55,10 @@ public class BudgetTypeController extends BaseEntityController<BudgetType, Budge
      * @return 操作结果
      */
     @Override
-    public ResultData<BudgetTypeDto> save(BudgetTypeDto dto) {
+    public ResultData<CategoryDto> save(CategoryDto dto) {
         // 数据转换 to Entity
-        BudgetType entity = convertToEntity(dto);
-        ResultData<BudgetType> resultData = service.saveOrUpdate(entity, dto.getOrderCategories());
+        Category entity = convertToEntity(dto);
+        ResultData<Category> resultData = service.saveOrUpdate(entity, dto.getOrderCategories());
         if (resultData.successful()) {
             // 数据转换 to DTO
             return ResultData.success(convertToDto(resultData.getData()));
@@ -73,16 +73,16 @@ public class BudgetTypeController extends BaseEntityController<BudgetType, Budge
      * @return 查询结果
      */
     @Override
-    public ResultData<List<BudgetTypeDto>> findByGeneral() {
-        List<BudgetTypeDto> dtoList;
-        List<BudgetType> list = service.findByGeneral();
+    public ResultData<List<CategoryDto>> findByGeneral() {
+        List<CategoryDto> dtoList;
+        List<Category> list = service.findByGeneral();
         if (CollectionUtils.isNotEmpty(list)) {
             dtoList = new ArrayList<>();
-            BudgetTypeDto categoryDto;
-            Set<String> ids = list.stream().map(BudgetType::getId).collect(Collectors.toSet());
+            CategoryDto categoryDto;
+            Set<String> ids = list.stream().map(Category::getId).collect(Collectors.toSet());
             Map<String, OrderCategory[]> mapData = orderConfigService.findPeriodTypes(ids);
-            for (BudgetType category : list) {
-                categoryDto = dtoModelMapper.map(category, BudgetTypeDto.class);
+            for (Category category : list) {
+                categoryDto = dtoModelMapper.map(category, CategoryDto.class);
                 categoryDto.setOrderCategories(mapData.get(category.getId()));
                 dtoList.add(categoryDto);
             }
@@ -99,16 +99,16 @@ public class BudgetTypeController extends BaseEntityController<BudgetType, Budge
      * @return 分页查询结果
      */
     @Override
-    public ResultData<List<BudgetTypeDto>> findBySubject(String subjectId) {
-        List<BudgetTypeDto> dtoList;
-        List<BudgetType> list = service.findBySubject(subjectId);
+    public ResultData<List<CategoryDto>> findBySubject(String subjectId) {
+        List<CategoryDto> dtoList;
+        List<Category> list = service.findBySubject(subjectId);
         if (CollectionUtils.isNotEmpty(list)) {
             dtoList = new ArrayList<>();
-            BudgetTypeDto categoryDto;
-            Set<String> ids = list.stream().map(BudgetType::getId).collect(Collectors.toSet());
+            CategoryDto categoryDto;
+            Set<String> ids = list.stream().map(Category::getId).collect(Collectors.toSet());
             Map<String, OrderCategory[]> mapData = orderConfigService.findPeriodTypes(ids);
-            for (BudgetType category : list) {
-                categoryDto = dtoModelMapper.map(category, BudgetTypeDto.class);
+            for (Category category : list) {
+                categoryDto = dtoModelMapper.map(category, CategoryDto.class);
                 categoryDto.setOrderCategories(mapData.get(category.getId()));
                 dtoList.add(categoryDto);
             }
@@ -205,7 +205,7 @@ public class BudgetTypeController extends BaseEntityController<BudgetType, Budge
      * @return 业务实体
      */
     @Override
-    public ResultData<List<BudgetTypeDto>> getByCategory(String subjectId, String category) {
+    public ResultData<List<CategoryDto>> getByCategory(String subjectId, String category) {
         return ResultData.success(convertToDtos(service.getByCategory(subjectId, EnumUtils.getEnum(OrderCategory.class, category))));
     }
 }

@@ -1,85 +1,84 @@
-package com.changhong.bems.entity;
+package com.changhong.bems.dto;
 
-import com.changhong.bems.dto.CategoryType;
-import com.changhong.bems.dto.PeriodType;
-import com.changhong.sei.core.entity.BaseAuditableEntity;
-import com.changhong.sei.core.entity.IFrozen;
-import com.changhong.sei.core.entity.ITenant;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
+import com.changhong.sei.core.dto.BaseEntityDto;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 
-import javax.persistence.*;
-import java.io.Serializable;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
- * 预算类型(Category)实体类
+ * 预算类型(Category)DTO类
  *
  * @author sei
- * @since 2021-04-22 12:54:26
+ * @since 2021-04-22 12:54:27
  */
-@Entity
-@Table(name = "budget_type")
-@DynamicInsert
-@DynamicUpdate
-public class BudgetType extends BaseAuditableEntity implements ITenant, IFrozen, Serializable {
-    private static final long serialVersionUID = -73245932408668629L;
-    public static final String FIELD_SUBJECT_ID = "subjectId";
-    public static final String FIELD_CATEGORY_TYPE = "type";
-    public static final String FIELD_NAME = "name";
-    public static final String FIELD_PERIOD_TYPE = "periodType";
+@ApiModel(description = "预算类型DTO")
+public class CategoryDto extends BaseEntityDto {
+    private static final long serialVersionUID = -16657201188691998L;
     /**
      * 名称
      */
-    @Column(name = "name")
+    @NotBlank
+    @Size(max = 50)
+    @ApiModelProperty(value = "名称", required = true)
     private String name;
     /**
      * 类型分类
      */
-    @Column(name = "category_type")
-    @Enumerated(EnumType.STRING)
+    @NotNull
+    @ApiModelProperty(value = "类型分类", required = true)
     private CategoryType type;
     /**
      * 预算主体id
      */
-    @Column(name = "subject_id")
+    @Size(max = 36)
+    @ApiModelProperty(value = "预算主体id", example = "为空时，为通用类型")
     private String subjectId;
     /**
      * 预算主体名称
      */
-    @Column(name = "subject_name")
+    @ApiModelProperty(value = "预算主体名称")
     private String subjectName;
     /**
      * 期间类型
      */
-    @Column(name = "period_type")
-    @Enumerated(EnumType.STRING)
+    @NotNull
+    @ApiModelProperty(value = "期间类型", required = true)
     private PeriodType periodType;
+    /**
+     * 订单类型清单
+     */
+    @NotNull
+    @ApiModelProperty(value = "支持的订单类型清单", required = true)
+    private OrderCategory[] orderCategories;
+
     /**
      * 允许使用(业务可用)
      */
-    @Column(name = "is_use")
-    private Boolean use;
+    @ApiModelProperty(value = "允许使用(业务可用)")
+    private Boolean use = Boolean.FALSE;
     /**
      * 允许结转
      */
-    @Column(name = "is_roll")
-    private Boolean roll;
+    @ApiModelProperty(value = "允许结转")
+    private Boolean roll = Boolean.FALSE;
     /**
      * 是否冻结
      */
-    @Column(name = "frozen")
+    @ApiModelProperty(value = "是否冻结")
     private Boolean frozen = Boolean.FALSE;
     /**
      * 参考id
      */
-    @Column(name = "reference_id")
-    private String referenceId = "none";
+    @ApiModelProperty(value = "参考id")
+    private String referenceId;
     /**
      * 租户代码
      */
-    @Column(name = "tenant_code")
+    @ApiModelProperty(value = "租户代码")
     private String tenantCode;
-
 
     public String getName() {
         return name;
@@ -121,6 +120,14 @@ public class BudgetType extends BaseAuditableEntity implements ITenant, IFrozen,
         this.periodType = periodType;
     }
 
+    public OrderCategory[] getOrderCategories() {
+        return orderCategories;
+    }
+
+    public void setOrderCategories(OrderCategory[] orderCategories) {
+        this.orderCategories = orderCategories;
+    }
+
     public Boolean getUse() {
         return use;
     }
@@ -137,12 +144,10 @@ public class BudgetType extends BaseAuditableEntity implements ITenant, IFrozen,
         this.roll = roll;
     }
 
-    @Override
     public Boolean getFrozen() {
         return frozen;
     }
 
-    @Override
     public void setFrozen(Boolean frozen) {
         this.frozen = frozen;
     }
@@ -155,14 +160,11 @@ public class BudgetType extends BaseAuditableEntity implements ITenant, IFrozen,
         this.referenceId = referenceId;
     }
 
-    @Override
     public String getTenantCode() {
         return tenantCode;
     }
 
-    @Override
     public void setTenantCode(String tenantCode) {
         this.tenantCode = tenantCode;
     }
-
 }

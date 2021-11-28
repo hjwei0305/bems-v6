@@ -3,8 +3,8 @@ package com.changhong.bems.service;
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.DimensionDao;
 import com.changhong.bems.dto.StrategyDto;
-import com.changhong.bems.entity.BudgetType;
-import com.changhong.bems.entity.BudgetTypeDimension;
+import com.changhong.bems.entity.Category;
+import com.changhong.bems.entity.CategoryDimension;
 import com.changhong.bems.entity.Dimension;
 import com.changhong.bems.service.strategy.EqualMatchStrategy;
 import com.changhong.bems.service.strategy.OrgTreeMatchStrategy;
@@ -42,9 +42,9 @@ public class DimensionService extends BaseEntityService<Dimension> {
     @Autowired
     private DimensionDao dao;
     @Autowired
-    private BudgetTypeDimensionService categoryDimensionService;
+    private CategoryDimensionService categoryDimensionService;
     @Autowired
-    private BudgetTypeService categoryService;
+    private CategoryService categoryService;
     @Autowired
     private StrategyService strategyService;
 
@@ -67,9 +67,9 @@ public class DimensionService extends BaseEntityService<Dimension> {
     public OperateResult delete(String id) {
         Dimension dimension = dao.findOne(id);
         if (Objects.nonNull(dimension)) {
-            BudgetTypeDimension categoryDimension = categoryDimensionService.getByDimensionCode(dimension.getCode());
+            CategoryDimension categoryDimension = categoryDimensionService.getByDimensionCode(dimension.getCode());
             if (Objects.nonNull(categoryDimension)) {
-                BudgetType category = categoryService.findOne(categoryDimension.getCategoryId());
+                Category category = categoryService.findOne(categoryDimension.getCategoryId());
                 String obj = Objects.isNull(category) ? categoryDimension.getCategoryId() : category.getName();
                 // 维度已被预算类型[{0}]使用,禁止删除
                 return OperateResult.operationFailure("dimension_00001", obj);

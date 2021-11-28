@@ -32,7 +32,7 @@ public class DimensionAttributeService {
     @Autowired
     private DimensionAttributeDao dao;
     @Autowired
-    private BudgetTypeService categoryService;
+    private CategoryService categoryService;
     @Autowired
     private CacheBuilder cacheBuilder;
 

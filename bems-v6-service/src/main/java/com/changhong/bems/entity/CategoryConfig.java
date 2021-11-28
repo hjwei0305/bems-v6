@@ -20,7 +20,7 @@ import java.io.Serializable;
 @Table(name = "budget_type_config")
 @DynamicInsert
 @DynamicUpdate
-public class BudgetTypeConfig extends BaseAuditableEntity implements ITenant, Serializable {
+public class CategoryConfig extends BaseAuditableEntity implements ITenant, Serializable {
     private static final long serialVersionUID = 202364499187955339L;
     public static final String FIELD_CATEGORY_ID = "categoryId";
     public static final String FIELD_ORDER_CATEGORY = "orderCategory";

@@ -1,6 +1,6 @@
 package com.changhong.bems.dao;
 
-import com.changhong.bems.entity.BudgetType;
+import com.changhong.bems.entity.Category;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import org.springframework.stereotype.Repository;
 
@@ -11,6 +11,6 @@ import org.springframework.stereotype.Repository;
  * @since 2021-04-22 12:54:26
  */
 @Repository
-public interface BudgetTypeDao extends BaseEntityDao<BudgetType> {
+public interface CategoryDao extends BaseEntityDao<Category> {
 
 }

@@ -6,7 +6,7 @@ import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
 import com.changhong.bems.entity.vo.TemplateHeadVo;
-import com.changhong.bems.service.BudgetTypeService;
+import com.changhong.bems.service.CategoryService;
 import com.changhong.bems.service.DimensionComponentService;
 import com.changhong.bems.service.OrderDetailService;
 import com.changhong.bems.service.OrderService;
@@ -59,7 +59,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     @Autowired
     private OrderDetailService orderDetailService;
     @Autowired
-    private BudgetTypeService categoryService;
+    private CategoryService categoryService;
     @Autowired
     private DimensionComponentService dimensionComponentService;
     @Autowired

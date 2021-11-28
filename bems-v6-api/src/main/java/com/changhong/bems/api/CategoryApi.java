@@ -1,7 +1,7 @@
 package com.changhong.bems.api;
 
 import com.changhong.bems.dto.AssigneDimensionRequest;
-import com.changhong.bems.dto.BudgetTypeDto;
+import com.changhong.bems.dto.CategoryDto;
 import com.changhong.bems.dto.DimensionDto;
 import com.changhong.sei.core.api.BaseEntityApi;
 import com.changhong.sei.core.dto.ResultData;
@@ -21,8 +21,8 @@ import java.util.List;
  * @since 2021-04-22 12:54:27
  */
 @Valid
-@FeignClient(name = "bems-v6", path = BudgetTypeApi.PATH)
-public interface BudgetTypeApi extends BaseEntityApi<BudgetTypeDto> {
+@FeignClient(name = "bems-v6", path = CategoryApi.PATH)
+public interface CategoryApi extends BaseEntityApi<CategoryDto> {
     String PATH = "category";
 
     /**
@@ -32,7 +32,7 @@ public interface BudgetTypeApi extends BaseEntityApi<BudgetTypeDto> {
      */
     @GetMapping(path = "findByGeneral")
     @ApiOperation(value = "查询通用预算类型", notes = "查询通用预算类型")
-    ResultData<List<BudgetTypeDto>> findByGeneral();
+    ResultData<List<CategoryDto>> findByGeneral();
 
     /**
      * 根据预算主体查询私有预算类型
@@ -42,7 +42,7 @@ public interface BudgetTypeApi extends BaseEntityApi<BudgetTypeDto> {
      */
     @GetMapping(path = "findBySubject")
     @ApiOperation(value = "根据预算主体查询私有预算类型", notes = "根据预算主体查询私有预算类型")
-    ResultData<List<BudgetTypeDto>> findBySubject(@RequestParam("subjectId") String subjectId);
+    ResultData<List<CategoryDto>> findBySubject(@RequestParam("subjectId") String subjectId);
 
     /**
      * 引用通用预算类型
@@ -127,5 +127,5 @@ public interface BudgetTypeApi extends BaseEntityApi<BudgetTypeDto> {
             @ApiImplicitParam(name = "category", value = "管理类型(订单类型),可用值:INJECTION,ADJUSTMENT,SPLIT", dataTypeClass = String.class)
     })
     @ApiOperation(value = "通过订单类型获取预算类型", notes = "通过订单类型获取预算类型")
-    ResultData<List<BudgetTypeDto>> getByCategory(@RequestParam("subjectId") String subjectId, @RequestParam("category") String category);
+    ResultData<List<CategoryDto>> getByCategory(@RequestParam("subjectId") String subjectId, @RequestParam("category") String category);
 }

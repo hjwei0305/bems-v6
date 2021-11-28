@@ -21,7 +21,7 @@ import java.io.Serializable;
 @Table(name = "budget_type_dimension")
 @DynamicInsert
 @DynamicUpdate
-public class BudgetTypeDimension extends BaseEntity implements ITenant, IRank, Serializable {
+public class CategoryDimension extends BaseEntity implements ITenant, IRank, Serializable {
     private static final long serialVersionUID = -76720938483283048L;
     public static final String FIELD_DIMENSION_CODE = "dimensionCode";
     public static final String FIELD_CATEGORY_ID = "categoryId";

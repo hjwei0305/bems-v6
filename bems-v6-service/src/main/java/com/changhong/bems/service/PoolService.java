@@ -46,7 +46,7 @@ public class PoolService {
     @Autowired
     private PeriodService periodService;
     @Autowired
-    private BudgetTypeService categoryService;
+    private CategoryService categoryService;
     @Autowired
     private StrategyService strategyService;
     @Autowired
@@ -128,7 +128,7 @@ public class PoolService {
             // 期间类型
             pool.setPeriodType(periodType);
 
-            BudgetType category = categoryService.findOne(categoryId);
+            Category category = categoryService.findOne(categoryId);
             if (Objects.isNull(category)) {
                 // 预算类型不存在
                 return ResultData.fail(ContextUtil.getMessage("category_00004", categoryId));
