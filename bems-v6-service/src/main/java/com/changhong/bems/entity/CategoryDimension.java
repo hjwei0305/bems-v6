@@ -18,7 +18,7 @@ import java.io.Serializable;
  * @since 2021-04-22 12:54:24
  */
 @Entity
-@Table(name = "category_dimension")
+@Table(name = "budget_type_dimension")
 @DynamicInsert
 @DynamicUpdate
 public class CategoryDimension extends BaseEntity implements ITenant, IRank, Serializable {

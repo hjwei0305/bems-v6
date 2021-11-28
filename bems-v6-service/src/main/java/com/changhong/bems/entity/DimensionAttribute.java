@@ -17,7 +17,7 @@ import java.util.Objects;
  * @since 2021-04-22 12:54:28
  */
 @Entity
-@Table(name = "dimension_attribute")
+@Table(name = "budget_dimension_attribute")
 @DynamicInsert
 @DynamicUpdate
 public class DimensionAttribute extends BaseAttribute implements ITenant, Serializable {

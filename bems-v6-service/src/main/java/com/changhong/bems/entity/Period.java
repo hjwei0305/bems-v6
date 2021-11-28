@@ -17,7 +17,7 @@ import java.time.LocalDate;
  * @since 2021-04-22 12:54:22
  */
 @Entity
-@Table(name = "period")
+@Table(name = "budget_period")
 @DynamicInsert
 @DynamicUpdate
 public class Period extends BaseAuditableEntity implements ITenant, Serializable {

@@ -21,7 +21,7 @@ import java.util.List;
  * @since 2021-04-25 15:13:56
  */
 @Entity
-@Table(name = "order_head")
+@Table(name = "budget_order_head")
 @DynamicInsert
 @DynamicUpdate
 public class Order extends BaseAuditableEntity implements ITenant, ICodeUnique, Serializable {
