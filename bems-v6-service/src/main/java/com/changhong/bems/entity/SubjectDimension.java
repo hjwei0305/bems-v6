@@ -18,7 +18,7 @@ import java.io.Serializable;
  * @version 1.0.00  2021-11-01 13:12
  */
 @Entity
-@Table(name = "subject_dimension")
+@Table(name = "budget_subject_dimension")
 @DynamicInsert
 @DynamicUpdate
 public class SubjectDimension extends BaseAuditableEntity implements ITenant, Serializable {

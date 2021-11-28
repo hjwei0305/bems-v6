@@ -17,7 +17,7 @@ import java.io.Serializable;
  * @since 2021-09-24 09:12:59
  */
 @Entity
-@Table(name = "category_config")
+@Table(name = "budget_type_config")
 @DynamicInsert
 @DynamicUpdate
 public class CategoryConfig extends BaseAuditableEntity implements ITenant, Serializable {
