@@ -1,6 +1,6 @@
 package com.changhong.bems.dao;
 
-import com.changhong.bems.entity.CategoryDimension;
+import com.changhong.bems.entity.BudgetTypeDimension;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import org.springframework.stereotype.Repository;
 
@@ -11,6 +11,6 @@ import org.springframework.stereotype.Repository;
  * @since 2021-04-22 12:54:24
  */
 @Repository
-public interface CategoryDimensionDao extends BaseEntityDao<CategoryDimension> {
+public interface BudgetTypeDimensionDao extends BaseEntityDao<BudgetTypeDimension> {
 
 }

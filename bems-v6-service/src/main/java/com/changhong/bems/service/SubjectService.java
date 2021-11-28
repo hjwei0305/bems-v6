@@ -5,7 +5,7 @@ import com.changhong.bems.dao.SubjectDao;
 import com.changhong.bems.dto.CorporationDto;
 import com.changhong.bems.dto.CurrencyDto;
 import com.changhong.bems.dto.OrganizationDto;
-import com.changhong.bems.entity.Category;
+import com.changhong.bems.entity.BudgetType;
 import com.changhong.bems.entity.Period;
 import com.changhong.bems.entity.Subject;
 import com.changhong.bems.entity.SubjectItem;
@@ -50,7 +50,7 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
     @Autowired(required = false)
     private OrganizationManager organizationManager;
     @Autowired
-    private CategoryService categoryService;
+    private BudgetTypeService categoryService;
     @Autowired
     private PeriodService periodService;
     @Autowired
@@ -201,7 +201,7 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
             // 已被预算期间[{0}]使用,禁止删除!
             return OperateResult.operationFailure("subject_00002", period.getName());
         }
-        Category category = categoryService.findFirstByProperty(Category.FIELD_SUBJECT_ID, id);
+        BudgetType category = categoryService.findFirstByProperty(BudgetType.FIELD_SUBJECT_ID, id);
         if (Objects.nonNull(category)) {
             // 已被预算类型[{0}]使用,禁止删除!
             return OperateResult.operationFailure("subject_00001", category.getName());

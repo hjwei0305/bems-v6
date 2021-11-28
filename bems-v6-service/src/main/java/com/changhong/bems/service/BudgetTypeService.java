@@ -1,6 +1,6 @@
 package com.changhong.bems.service;
 
-import com.changhong.bems.dao.CategoryDao;
+import com.changhong.bems.dao.BudgetTypeDao;
 import com.changhong.bems.dto.CategoryType;
 import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.dto.OrderCategory;
@@ -33,27 +33,27 @@ import java.util.stream.Collectors;
  * @since 2021-04-22 12:54:26
  */
 @Service
-@CacheConfig(cacheNames = CategoryService.CACHE_KEY)
-public class CategoryService extends BaseEntityService<Category> {
+@CacheConfig(cacheNames = BudgetTypeService.CACHE_KEY)
+public class BudgetTypeService extends BaseEntityService<BudgetType> {
     @Autowired
-    private CategoryDao dao;
+    private BudgetTypeDao dao;
     @Autowired
     private SubjectService subjectService;
     @Autowired
     private OrderService orderService;
     @Autowired
-    private CategoryDimensionService categoryDimensionService;
+    private BudgetTypeDimensionService categoryDimensionService;
     @Autowired
     private DimensionService dimensionService;
     @Autowired
     private SubjectDimensionService subjectDimensionService;
     @Autowired
-    private CategoryConfigService categoryConfigService;
+    private BudgetTypeConfigService categoryConfigService;
 
     public static final String CACHE_KEY = "bems-v6:category:dimension";
 
     @Override
-    protected BaseEntityDao<Category> getDao() {
+    protected BaseEntityDao<BudgetType> getDao() {
         return dao;
     }
 
@@ -66,7 +66,7 @@ public class CategoryService extends BaseEntityService<Category> {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public OperateResult delete(String id) {
-        Category category = dao.findOne(id);
+        BudgetType category = dao.findOne(id);
         if (Objects.isNull(category)) {
             return OperateResult.operationFailure("category_00004", id);
         }
@@ -83,7 +83,7 @@ public class CategoryService extends BaseEntityService<Category> {
      * 数据保存操作
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Category> saveOrUpdate(Category entity, OrderCategory[] orderCategories) {
+    public ResultData<BudgetType> saveOrUpdate(BudgetType entity, OrderCategory[] orderCategories) {
         Validation.notNull(entity, "持久化对象不能为空");
         if (CategoryType.GENERAL == entity.getType()) {
             entity.setSubjectId(CategoryType.GENERAL.name());
@@ -106,17 +106,17 @@ public class CategoryService extends BaseEntityService<Category> {
                 entity.setTenantCode(ContextUtil.getTenantCode());
             }
         } else {
-            search.addFilter(new SearchFilter(Category.ID, entity.getId(), SearchFilter.Operator.NE));
+            search.addFilter(new SearchFilter(BudgetType.ID, entity.getId(), SearchFilter.Operator.NE));
         }
-        search.addFilter(new SearchFilter(Category.FIELD_SUBJECT_ID, entity.getSubjectId()));
-        search.addFilter(new SearchFilter(Category.FIELD_NAME, entity.getName()));
-        Category existed = dao.findFirstByFilters(search);
+        search.addFilter(new SearchFilter(BudgetType.FIELD_SUBJECT_ID, entity.getSubjectId()));
+        search.addFilter(new SearchFilter(BudgetType.FIELD_NAME, entity.getName()));
+        BudgetType existed = dao.findFirstByFilters(search);
         if (Objects.nonNull(existed)) {
             // 已存在预算类型
             return ResultData.fail(ContextUtil.getMessage("category_00006", existed.getName()));
         }
 
-        Category saveEntity = dao.save(entity);
+        BudgetType saveEntity = dao.save(entity);
         if (isNew) {
             if (CategoryType.PRIVATE == entity.getType()
                     && StringUtils.isNotBlank(entity.getReferenceId()) && !"none".equals(entity.getReferenceId())) {
@@ -137,8 +137,8 @@ public class CategoryService extends BaseEntityService<Category> {
      *
      * @return 查询结果
      */
-    public List<Category> findByGeneral() {
-        return dao.findListByProperty(Category.FIELD_TYPE, CategoryType.GENERAL);
+    public List<BudgetType> findByGeneral() {
+        return dao.findListByProperty(BudgetType.FIELD_CATEGORY_TYPE, CategoryType.GENERAL);
     }
 
     /**
@@ -147,17 +147,17 @@ public class CategoryService extends BaseEntityService<Category> {
      * @param subjectId 预算主体id
      * @return 分页查询结果
      */
-    public List<Category> findBySubject(String subjectId) {
-        List<Category> categoryList = new ArrayList<>();
-        List<Category> generalList = findByGeneral();
-        List<Category> privateList = dao.findListByProperty(Category.FIELD_SUBJECT_ID, subjectId);
+    public List<BudgetType> findBySubject(String subjectId) {
+        List<BudgetType> categoryList = new ArrayList<>();
+        List<BudgetType> generalList = findByGeneral();
+        List<BudgetType> privateList = dao.findListByProperty(BudgetType.FIELD_SUBJECT_ID, subjectId);
         if (CollectionUtils.isEmpty(privateList)) {
             if (CollectionUtils.isNotEmpty(generalList)) {
                 categoryList.addAll(generalList);
             }
         } else {
             if (CollectionUtils.isNotEmpty(generalList)) {
-                Set<String> ids = privateList.stream().map(Category::getReferenceId).filter(StringUtils::isNotBlank).collect(Collectors.toSet());
+                Set<String> ids = privateList.stream().map(BudgetType::getReferenceId).filter(StringUtils::isNotBlank).collect(Collectors.toSet());
                 if (CollectionUtils.isNotEmpty(ids)) {
                     categoryList.addAll(generalList.stream().filter(c -> !ids.contains(c.getId())).collect(Collectors.toList()));
                 } else {
@@ -178,8 +178,8 @@ public class CategoryService extends BaseEntityService<Category> {
      */
     public List<DimensionDto> findDimensionBySubject(String subjectId) {
         // 获取当前主体的预算类型
-        List<Category> categoryList = this.findBySubject(subjectId);
-        Set<String> categoryIds = categoryList.stream().map(Category::getId).collect(Collectors.toSet());
+        List<BudgetType> categoryList = this.findBySubject(subjectId);
+        Set<String> categoryIds = categoryList.stream().map(BudgetType::getId).collect(Collectors.toSet());
         // 按预算类型获取使用的维度代码
         Set<String> dimensionCodeSet = categoryDimensionService.getDimensionCodeByCategory(categoryIds);
         // 按主体获取预算维度及维度策略
@@ -203,7 +203,7 @@ public class CategoryService extends BaseEntityService<Category> {
             return ResultData.fail(ContextUtil.getMessage("subject_00003", subjectId));
         }
 
-        Category category = dao.findOne(id);
+        BudgetType category = dao.findOne(id);
         if (Objects.isNull(category)) {
             // 预算类型不存在
             return ResultData.fail(ContextUtil.getMessage("category_00004", id));
@@ -213,7 +213,7 @@ public class CategoryService extends BaseEntityService<Category> {
                 return ResultData.fail(ContextUtil.getMessage("category_00005", category.getName()));
             }
         }
-        Category privateCategory = new Category();
+        BudgetType privateCategory = new BudgetType();
         privateCategory.setName(category.getName());
         privateCategory.setType(CategoryType.PRIVATE);
         privateCategory.setSubjectId(subjectId);
@@ -224,7 +224,7 @@ public class CategoryService extends BaseEntityService<Category> {
         privateCategory.setReferenceId(id);
         // 获取当前预算类型支持的订单类型
         OrderCategory[] orderCategories = categoryConfigService.findPeriodTypes(id);
-        ResultData<Category> result = this.saveOrUpdate(privateCategory, orderCategories);
+        ResultData<BudgetType> result = this.saveOrUpdate(privateCategory, orderCategories);
         if (result.successful()) {
             return ResultData.success();
         } else {
@@ -240,7 +240,7 @@ public class CategoryService extends BaseEntityService<Category> {
      */
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> frozen(String id, boolean frozen) {
-        Category category = dao.findOne(id);
+        BudgetType category = dao.findOne(id);
         if (Objects.isNull(category)) {
             // 预算类型不存在
             return ResultData.fail(ContextUtil.getMessage("category_00004", id));
@@ -258,9 +258,9 @@ public class CategoryService extends BaseEntityService<Category> {
      */
     public List<Dimension> getUnassigned(String categoryId) {
         List<Dimension> dimensionList = dimensionService.findAll();
-        List<CategoryDimension> categoryDimensions = categoryDimensionService.getByCategoryId(categoryId);
+        List<BudgetTypeDimension> categoryDimensions = categoryDimensionService.getByCategoryId(categoryId);
         if (CollectionUtils.isNotEmpty(categoryDimensions)) {
-            Set<String> codes = categoryDimensions.stream().map(CategoryDimension::getDimensionCode).collect(Collectors.toSet());
+            Set<String> codes = categoryDimensions.stream().map(BudgetTypeDimension::getDimensionCode).collect(Collectors.toSet());
             return dimensionList.stream().filter(d -> !codes.contains(d.getCode())).collect(Collectors.toList());
         } else {
             return dimensionList;
@@ -276,16 +276,16 @@ public class CategoryService extends BaseEntityService<Category> {
     @Cacheable(key = "#categoryId")
     public List<DimensionDto> getAssigned(String categoryId) {
         List<DimensionDto> list = new ArrayList<>();
-        Category category = dao.findOne(categoryId);
+        BudgetType category = dao.findOne(categoryId);
         if (Objects.isNull(category)) {
             return list;
         }
         // 预算类型分配的维度
-        List<CategoryDimension> categoryDimensions = categoryDimensionService.getByCategoryId(categoryId);
+        List<BudgetTypeDimension> categoryDimensions = categoryDimensionService.getByCategoryId(categoryId);
         if (CollectionUtils.isNotEmpty(categoryDimensions)) {
             // 获取预算主体可用的维度(策略)
             list = subjectDimensionService.getDimensions(category.getSubjectId());
-            Set<String> codeSet = categoryDimensions.stream().map(CategoryDimension::getDimensionCode).collect(Collectors.toSet());
+            Set<String> codeSet = categoryDimensions.stream().map(BudgetTypeDimension::getDimensionCode).collect(Collectors.toSet());
             // 按可用的维度过滤
             list = list.stream().filter(d -> codeSet.contains(d.getCode())).collect(Collectors.toList());
             // 排序
@@ -325,9 +325,9 @@ public class CategoryService extends BaseEntityService<Category> {
             // 已被使用,禁止删除!
             return ResultData.fail(ContextUtil.getMessage("category_00001"));
         }
-        List<CategoryDimension> dimensionList = categoryDimensionService.getCategoryDimensions(categoryId, dimensionCodes);
+        List<BudgetTypeDimension> dimensionList = categoryDimensionService.getCategoryDimensions(categoryId, dimensionCodes);
         if (CollectionUtils.isNotEmpty(dimensionList)) {
-            Set<String> ids = dimensionList.stream().map(CategoryDimension::getId).collect(Collectors.toSet());
+            Set<String> ids = dimensionList.stream().map(BudgetTypeDimension::getId).collect(Collectors.toSet());
             categoryDimensionService.removeCategoryDimension(ids);
         }
         return ResultData.success();
@@ -339,25 +339,25 @@ public class CategoryService extends BaseEntityService<Category> {
      * @param category 订单类型
      * @return 业务实体
      */
-    public List<Category> getByCategory(String subjectId, OrderCategory category) {
+    public List<BudgetType> getByCategory(String subjectId, OrderCategory category) {
         Search search = Search.createSearch();
-        search.addFilter(new SearchFilter(Category.FIELD_SUBJECT_ID, subjectId));
-        search.addFilter(new SearchFilter(Category.FIELD_TYPE, CategoryType.PRIVATE));
-        search.addFilter(new SearchFilter(Category.FROZEN, Boolean.FALSE));
-        List<Category> privateList = dao.findByFilters(search);
+        search.addFilter(new SearchFilter(BudgetType.FIELD_SUBJECT_ID, subjectId));
+        search.addFilter(new SearchFilter(BudgetType.FIELD_CATEGORY_TYPE, CategoryType.PRIVATE));
+        search.addFilter(new SearchFilter(BudgetType.FROZEN, Boolean.FALSE));
+        List<BudgetType> privateList = dao.findByFilters(search);
 
         search.clearAll();
-        search.addFilter(new SearchFilter(Category.FIELD_TYPE, CategoryType.GENERAL));
-        search.addFilter(new SearchFilter(Category.FROZEN, Boolean.FALSE));
-        List<Category> generalList = dao.findByFilters(search);
-        List<Category> categoryList = new ArrayList<>();
+        search.addFilter(new SearchFilter(BudgetType.FIELD_CATEGORY_TYPE, CategoryType.GENERAL));
+        search.addFilter(new SearchFilter(BudgetType.FROZEN, Boolean.FALSE));
+        List<BudgetType> generalList = dao.findByFilters(search);
+        List<BudgetType> categoryList = new ArrayList<>();
         if (CollectionUtils.isEmpty(privateList)) {
             if (CollectionUtils.isNotEmpty(generalList)) {
                 categoryList.addAll(generalList);
             }
         } else {
             if (CollectionUtils.isNotEmpty(generalList)) {
-                Set<String> ids = privateList.stream().map(Category::getReferenceId).filter(StringUtils::isNotBlank).collect(Collectors.toSet());
+                Set<String> ids = privateList.stream().map(BudgetType::getReferenceId).filter(StringUtils::isNotBlank).collect(Collectors.toSet());
                 if (CollectionUtils.isNotEmpty(ids)) {
                     categoryList.addAll(generalList.stream().filter(c -> !ids.contains(c.getId())).collect(Collectors.toList()));
                 } else {
@@ -366,7 +366,7 @@ public class CategoryService extends BaseEntityService<Category> {
             }
             categoryList.addAll(privateList);
         }
-        Set<String> ids = categoryList.stream().map(Category::getId).collect(Collectors.toSet());
+        Set<String> ids = categoryList.stream().map(BudgetType::getId).collect(Collectors.toSet());
         if (CollectionUtils.isNotEmpty(ids)) {
             // 按预算类型id清单和订单类型获取配置的预算期间
             Set<PeriodType> periodTypeSet = categoryConfigService.findPeriodTypes(ids, category);

@@ -4,7 +4,7 @@ import com.changhong.bems.api.ReportApi;
 import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.dto.PoolLogDto;
 import com.changhong.bems.dto.report.*;
-import com.changhong.bems.service.CategoryService;
+import com.changhong.bems.service.BudgetTypeService;
 import com.changhong.bems.service.PoolLogService;
 import com.changhong.bems.service.ReportService;
 import com.changhong.sei.core.dto.ResultData;
@@ -34,7 +34,7 @@ import java.util.Map;
 public class ReportController implements ReportApi {
 
     @Autowired
-    private CategoryService categoryService;
+    private BudgetTypeService categoryService;
     @Autowired
     private PoolLogService poolLogService;
     @Autowired

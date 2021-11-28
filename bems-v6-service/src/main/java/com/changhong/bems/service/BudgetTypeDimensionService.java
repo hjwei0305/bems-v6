@@ -1,7 +1,7 @@
 package com.changhong.bems.service;
 
-import com.changhong.bems.dao.CategoryDimensionDao;
-import com.changhong.bems.entity.CategoryDimension;
+import com.changhong.bems.dao.BudgetTypeDimensionDao;
+import com.changhong.bems.entity.BudgetTypeDimension;
 import com.changhong.bems.entity.Dimension;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.ResultData;
@@ -22,9 +22,9 @@ import java.util.stream.Collectors;
  * @since 2021-04-22 12:54:24
  */
 @Service
-public class CategoryDimensionService {
+public class BudgetTypeDimensionService {
     @Autowired
-    private CategoryDimensionDao dao;
+    private BudgetTypeDimensionDao dao;
     @Autowired
     private DimensionService dimensionService;
 
@@ -37,11 +37,11 @@ public class CategoryDimensionService {
     public void addRequiredDimension(String categoryId) {
         // 租户代码
         String tenantCode = ContextUtil.getTenantCode();
-        CategoryDimension categoryDimension;
-        List<CategoryDimension> dimensionList = new ArrayList<>();
+        BudgetTypeDimension categoryDimension;
+        List<BudgetTypeDimension> dimensionList = new ArrayList<>();
         List<Dimension> dimensions = dimensionService.getRequired();
         for (Dimension dimension : dimensions) {
-            categoryDimension = new CategoryDimension();
+            categoryDimension = new BudgetTypeDimension();
             categoryDimension.setCategoryId(categoryId);
             categoryDimension.setDimensionCode(dimension.getCode());
             categoryDimension.setRank(dimension.getRank());
@@ -55,11 +55,11 @@ public class CategoryDimensionService {
     public void addReferenceDimension(String categoryId, String referenceId) {
         // 租户代码
         String tenantCode = ContextUtil.getTenantCode();
-        CategoryDimension categoryDimension;
-        List<CategoryDimension> dimensionList = new ArrayList<>();
-        List<CategoryDimension> dimensions = this.getByCategoryId(referenceId);
-        for (CategoryDimension dimension : dimensions) {
-            categoryDimension = new CategoryDimension();
+        BudgetTypeDimension categoryDimension;
+        List<BudgetTypeDimension> dimensionList = new ArrayList<>();
+        List<BudgetTypeDimension> dimensions = this.getByCategoryId(referenceId);
+        for (BudgetTypeDimension dimension : dimensions) {
+            categoryDimension = new BudgetTypeDimension();
             categoryDimension.setCategoryId(categoryId);
             categoryDimension.setDimensionCode(dimension.getDimensionCode());
             categoryDimension.setRank(dimension.getRank());
@@ -73,15 +73,15 @@ public class CategoryDimensionService {
     public ResultData<Void> addCategoryDimension(String categoryId, Set<String> dimensionCodes) {
         // 租户代码
         String tenantCode = ContextUtil.getTenantCode();
-        List<CategoryDimension> dimensionList = new ArrayList<>();
-        CategoryDimension categoryDimension;
+        List<BudgetTypeDimension> dimensionList = new ArrayList<>();
+        BudgetTypeDimension categoryDimension;
         for (String code : dimensionCodes) {
             Dimension dimension = dimensionService.findByCode(code);
             if (Objects.isNull(dimension)) {
                 // 维度不存在
                 return ResultData.fail(ContextUtil.getMessage("dimension_00002", code));
             }
-            categoryDimension = new CategoryDimension();
+            categoryDimension = new BudgetTypeDimension();
             categoryDimension.setCategoryId(categoryId);
             categoryDimension.setDimensionCode(dimension.getCode());
             categoryDimension.setRank(dimension.getRank());
@@ -103,8 +103,8 @@ public class CategoryDimensionService {
      * @param categoryId 预算类型id
      * @return 返回分配关系清单
      */
-    public List<CategoryDimension> getByCategoryId(String categoryId) {
-        return dao.findListByProperty(CategoryDimension.FIELD_CATEGORY_ID, categoryId);
+    public List<BudgetTypeDimension> getByCategoryId(String categoryId) {
+        return dao.findListByProperty(BudgetTypeDimension.FIELD_CATEGORY_ID, categoryId);
     }
 
     /**
@@ -115,12 +115,12 @@ public class CategoryDimensionService {
      */
     public Set<String> getDimensionCodeByCategory(Set<String> categoryIds) {
         Search search = Search.createSearch();
-        search.addFilter(new SearchFilter(CategoryDimension.FIELD_CATEGORY_ID, categoryIds, SearchFilter.Operator.IN));
-        List<CategoryDimension> list = dao.findByFilters(search);
+        search.addFilter(new SearchFilter(BudgetTypeDimension.FIELD_CATEGORY_ID, categoryIds, SearchFilter.Operator.IN));
+        List<BudgetTypeDimension> list = dao.findByFilters(search);
 
         Set<String> dimensionCodeSet;
         if (CollectionUtils.isNotEmpty(list)) {
-            dimensionCodeSet = list.stream().map(CategoryDimension::getDimensionCode).collect(Collectors.toSet());
+            dimensionCodeSet = list.stream().map(BudgetTypeDimension::getDimensionCode).collect(Collectors.toSet());
         } else {
             dimensionCodeSet = new HashSet<>();
         }
@@ -128,8 +128,8 @@ public class CategoryDimensionService {
         return dimensionCodeSet;
     }
 
-    public CategoryDimension getByDimensionCode(String dimensionCode) {
-        return dao.findFirstByProperty(CategoryDimension.FIELD_DIMENSION_CODE, dimensionCode);
+    public BudgetTypeDimension getByDimensionCode(String dimensionCode) {
+        return dao.findFirstByProperty(BudgetTypeDimension.FIELD_DIMENSION_CODE, dimensionCode);
     }
 
     /**
@@ -139,10 +139,10 @@ public class CategoryDimensionService {
      * @param codes      预算维度代码
      * @return 返回分配关系清单
      */
-    public List<CategoryDimension> getCategoryDimensions(String categoryId, Collection<String> codes) {
+    public List<BudgetTypeDimension> getCategoryDimensions(String categoryId, Collection<String> codes) {
         Search search = Search.createSearch();
-        search.addFilter(new SearchFilter(CategoryDimension.FIELD_CATEGORY_ID, categoryId));
-        search.addFilter(new SearchFilter(CategoryDimension.FIELD_DIMENSION_CODE, codes, SearchFilter.Operator.IN));
+        search.addFilter(new SearchFilter(BudgetTypeDimension.FIELD_CATEGORY_ID, categoryId));
+        search.addFilter(new SearchFilter(BudgetTypeDimension.FIELD_DIMENSION_CODE, codes, SearchFilter.Operator.IN));
         return dao.findByFilters(search);
     }
 
