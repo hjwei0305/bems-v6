@@ -81,4 +81,14 @@ public class OrganizationManager {
     public ResultData<List<OrganizationDto>> getParentNodes(String nodeId, boolean includeSelf) {
         return client.getParentNodes(nodeId, includeSelf);
     }
+
+    /**
+     * 通过id集合获取组织机构清单
+     *
+     * @param orgIds id集合
+     * @return 组织机构
+     */
+    public ResultData<List<OrganizationDto>> findOrganizationByIds(Set<String> orgIds) {
+        return client.findOrganizationByIds(orgIds);
+    }
 }

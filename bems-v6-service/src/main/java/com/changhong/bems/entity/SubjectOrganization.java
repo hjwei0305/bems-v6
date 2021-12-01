@@ -24,6 +24,7 @@ import java.io.Serializable;
 public class SubjectOrganization extends BaseAuditableEntity implements ITenant, Serializable {
     private static final long serialVersionUID = -3836655083039242219L;
     public static final String FIELD_SUBJECT_ID = "subjectId";
+    public static final String FIELD_ORG_ID = "orgId";
     /**
      * 预算主体id
      */

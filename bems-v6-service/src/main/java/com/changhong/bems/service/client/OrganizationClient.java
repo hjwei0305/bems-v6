@@ -4,6 +4,7 @@ import com.changhong.bems.dto.OrganizationDto;
 import com.changhong.sei.core.dto.ResultData;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -72,4 +73,13 @@ public interface OrganizationClient {
      */
     @GetMapping(path = "getParentNodes")
     ResultData<List<OrganizationDto>> getParentNodes(@RequestParam("nodeId") String nodeId, @RequestParam("includeSelf") boolean includeSelf);
+
+    /**
+     * 通过id集合获取组织机构清单
+     *
+     * @param orgIds id集合
+     * @return 组织机构
+     */
+    @PostMapping(path = "findOrganizationByIds")
+    ResultData<List<OrganizationDto>> findOrganizationByIds(@RequestBody Set<String> orgIds);
 }

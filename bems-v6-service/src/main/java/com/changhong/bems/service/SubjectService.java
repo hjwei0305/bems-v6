@@ -247,10 +247,39 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
                 // 公司[{0}]下已存在一个项目级主体[{1}].
                 return OperateResultWithData.operationFailure("subject_00011", entity.getCorporationCode(), existed.getName());
             }
-        } else if (Objects.equals(Classification.DEPARTMENT, entity.getClassification())
-                && CollectionUtils.isEmpty(entity.getOrgList())) {
-            // 组织级预算主体需维护适用组织范围
-            return OperateResultWithData.operationFailure("subject_00006");
+        } else if (Objects.equals(Classification.COST_CENTER, entity.getClassification())) {
+            // 检查同一公司下有且只有一个成本中心级主体
+            Search search = Search.createSearch();
+            search.addFilter(new SearchFilter(Subject.FIELD_CORP_CODE, entity.getCorporationCode()));
+            search.addFilter(new SearchFilter(Subject.FIELD_CLASSIFICATION, Classification.COST_CENTER));
+            Subject existed = dao.findFirstByFilters(search);
+            if (Objects.nonNull(existed) && !StringUtils.equals(entity.getId(), existed.getId())) {
+                // 公司[{0}]下已存在一个成本中心级主体[{1}].
+                return OperateResultWithData.operationFailure("subject_00014", entity.getCorporationCode(), existed.getName());
+            }
+        } else if (Objects.equals(Classification.DEPARTMENT, entity.getClassification())) {
+            if (CollectionUtils.isEmpty(entity.getOrgList())) {
+                // 组织级预算主体需维护适用组织范围
+                return OperateResultWithData.operationFailure("subject_00006");
+            } else {
+                Set<String> orgIds = entity.getOrgList().stream().map(OrganizationDto::getId).collect(Collectors.toSet());
+                List<SubjectOrganization> soList = subjectOrganizationDao.findByFilter(new SearchFilter(SubjectOrganization.FIELD_ORG_ID, orgIds, SearchFilter.Operator.IN));
+                if (CollectionUtils.isNotEmpty(soList)) {
+                    if (StringUtils.isBlank(entity.getId())) {
+                        // 新增主体
+                        // 组织机构[{0}]已在预算主体[{1}]中.
+                        return OperateResultWithData.operationFailure("subject_00015");
+                    } else {
+                        // 修改主体
+                        for (SubjectOrganization so : soList) {
+                            if (!entity.getId().equals(so.getSubjectId())) {
+                                // 组织机构[{0}]已在预算主体[{1}]中.
+                                return OperateResultWithData.operationFailure("subject_00015");
+                            }
+                        }
+                    }
+                }
+            }
         }
         Subject existed = dao.findByProperty(Subject.FIELD_NAME, entity.getName());
         if (Objects.nonNull(existed) && !StringUtils.equals(entity.getId(), existed.getId())) {
@@ -272,17 +301,28 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
             if (CollectionUtils.isNotEmpty(orgList)) {
                 subjectOrganizationDao.deleteAll(orgList);
             }
-            SubjectOrganization org;
-            orgList = new ArrayList<>();
-            for (OrganizationDto orgDto : entity.getOrgList()) {
-                org = new SubjectOrganization();
-                org.setSubjectId(entity.getId());
-                org.setOrgId(orgDto.getId());
-                org.setOrgName(orgDto.getName());
-                org.setTenantCode(entity.getTenantCode());
-                orgList.add(org);
+            List<OrganizationDto> orgDtoList;
+            Set<String> orgIds = entity.getOrgList().stream().map(OrganizationDto::getId).collect(Collectors.toSet());
+            if (CollectionUtils.isNotEmpty(orgIds)) {
+                ResultData<List<OrganizationDto>> orgResult = organizationManager.findOrganizationByIds(orgIds);
+                if (orgResult.successful()) {
+                    orgDtoList = orgResult.getData();
+                    if (CollectionUtils.isNotEmpty(orgDtoList)) {
+                        SubjectOrganization org;
+                        orgList = new ArrayList<>();
+                        for (OrganizationDto orgDto : orgDtoList) {
+                            org = new SubjectOrganization();
+                            org.setSubjectId(entity.getId());
+                            org.setOrgId(orgDto.getId());
+                            org.setOrgCode(orgDto.getCode());
+                            org.setOrgName(orgDto.getNamePath());
+                            org.setTenantCode(entity.getTenantCode());
+                            orgList.add(org);
+                        }
+                        subjectOrganizationDao.save(orgList);
+                    }
+                }
             }
-            subjectOrganizationDao.save(orgList);
         }
         return OperateResultWithData.operationSuccessWithData(entity);
     }
