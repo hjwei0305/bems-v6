@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -235,7 +236,6 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
         if (StringUtils.isBlank(entity.getCode())) {
             entity.setCode(String.valueOf(IdGenerator.nextId()));
         }
-
         if (Objects.equals(Classification.PROJECT, entity.getClassification())) {
             // 检查同一公司下有且只有一个项目级主体
             Search search = Search.createSearch();
@@ -260,27 +260,6 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
             if (CollectionUtils.isEmpty(entity.getOrgList())) {
                 // 组织级预算主体需维护适用组织范围
                 return OperateResultWithData.operationFailure("subject_00006");
-            } else {
-                Set<String> orgIds = entity.getOrgList().stream().map(OrganizationDto::getId).collect(Collectors.toSet());
-                List<SubjectOrganization> soList = subjectOrganizationDao.findByFilter(new SearchFilter(SubjectOrganization.FIELD_ORG_ID, orgIds, SearchFilter.Operator.IN));
-                if (CollectionUtils.isNotEmpty(soList)) {
-                    if (Boolean.TRUE == isNew) {
-                        // 新增主体
-                        SubjectOrganization so = soList.get(0);
-                        Subject subject = dao.findOne(so.getSubjectId());
-                        // 组织机构[{0}]已在预算主体[{1}]中.
-                        return OperateResultWithData.operationFailure("subject_00015", so.getOrgName(), subject.getName());
-                    } else {
-                        // 修改主体
-                        for (SubjectOrganization so : soList) {
-                            if (!entity.getId().equals(so.getSubjectId())) {
-                                Subject subject = dao.findOne(so.getSubjectId());
-                                // 组织机构[{0}]已在预算主体[{1}]中.
-                                return OperateResultWithData.operationFailure("subject_00015", so.getOrgName(), subject.getName());
-                            }
-                        }
-                    }
-                }
             }
         }
         Subject existed = dao.findByProperty(Subject.FIELD_NAME, entity.getName());
@@ -291,29 +270,30 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
         // 持久化
         dao.save(entity);
 
-        if (Boolean.FALSE == isNew) {
-            // 编辑后处理
-            // 清除策略缓存
-            strategyService.cleanStrategyCache(entity.getId(), null);
-        } else {
+        if (Boolean.TRUE == isNew) {
             // 新增后处理
             // 保存组织级主体关联的组织机构
             if (Objects.equals(Classification.DEPARTMENT, entity.getClassification())) {
-                List<SubjectOrganization> orgList;
-                // // 获取分配的组织机构清单
-                // orgList = this.getSubjectOrganizations(entity.getId());
-                // if (CollectionUtils.isNotEmpty(orgList)) {
-                //     subjectOrganizationDao.deleteAll(orgList);
-                // }
                 List<OrganizationDto> orgDtoList;
                 Set<String> orgIds = entity.getOrgList().stream().map(OrganizationDto::getId).collect(Collectors.toSet());
                 if (CollectionUtils.isNotEmpty(orgIds)) {
+                    List<SubjectOrganization> soList = subjectOrganizationDao.findByFilter(new SearchFilter(SubjectOrganization.FIELD_ORG_ID, orgIds, SearchFilter.Operator.IN));
+                    if (CollectionUtils.isNotEmpty(soList)) {
+                        // 回滚事务
+                        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                        // 新增主体
+                        SubjectOrganization so = soList.get(0);
+                        Subject subject = dao.findOne(so.getSubjectId());
+                        // 组织机构[{0}]已在预算主体[{1}]中.
+                        return OperateResultWithData.operationFailure("subject_00015", so.getOrgName(), subject.getName());
+                    }
+
                     ResultData<List<OrganizationDto>> orgResult = organizationManager.findOrganizationByIds(orgIds);
                     if (orgResult.successful()) {
                         orgDtoList = orgResult.getData();
                         if (CollectionUtils.isNotEmpty(orgDtoList)) {
                             SubjectOrganization org;
-                            orgList = new ArrayList<>();
+                            soList = new ArrayList<>();
                             for (OrganizationDto orgDto : orgDtoList) {
                                 org = new SubjectOrganization();
                                 org.setSubjectId(entity.getId());
@@ -321,13 +301,17 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
                                 org.setOrgCode(orgDto.getCode());
                                 org.setOrgName(orgDto.getNamePath());
                                 org.setTenantCode(entity.getTenantCode());
-                                orgList.add(org);
+                                soList.add(org);
                             }
-                            subjectOrganizationDao.save(orgList);
+                            subjectOrganizationDao.save(soList);
                         }
                     }
                 }
             }
+        } else {
+            // 编辑后处理
+            // 清除策略缓存
+            strategyService.cleanStrategyCache(entity.getId(), null);
         }
         return OperateResultWithData.operationSuccessWithData(entity);
     }
