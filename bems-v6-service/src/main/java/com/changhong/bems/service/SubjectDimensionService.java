@@ -1,8 +1,11 @@
 package com.changhong.bems.service;
 
+import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.SubjectDimensionDao;
+import com.changhong.bems.dto.Classification;
 import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.entity.Dimension;
+import com.changhong.bems.entity.Subject;
 import com.changhong.bems.entity.SubjectDimension;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.ResultData;
@@ -37,6 +40,8 @@ public class SubjectDimensionService {
     private DimensionService dimensionService;
     @Autowired
     private StrategyService strategyService;
+    @Autowired
+    private SubjectService subjectService;
 
     /**
      * 按预算主体获取维度清单
@@ -47,30 +52,38 @@ public class SubjectDimensionService {
     @Cacheable(key = "#subjectId")
     public List<DimensionDto> getDimensions(String subjectId) {
         List<DimensionDto> dimensionList = new ArrayList<>();
-
-        List<Dimension> dimensions = dimensionService.findAll();
-        if (CollectionUtils.isNotEmpty(dimensions)) {
-            List<SubjectDimension> subjectDimensions = dao.findListByProperty(SubjectDimension.FIELD_SUBJECT_ID, subjectId);
-            DimensionDto dto;
-            for (Dimension dimension : dimensions) {
-                dto = new DimensionDto();
-                dto.setCode(dimension.getCode());
-                dto.setName(dimension.getName());
-                dto.setStrategyId(dimension.getStrategyId());
-                dto.setStrategyName(dimension.getStrategyName());
-                dto.setUiComponent(dimension.getUiComponent());
-                dto.setRequired(dimension.getRequired());
-                dto.setRank(dimension.getRank());
-                if (CollectionUtils.isNotEmpty(subjectDimensions)) {
-                    for (SubjectDimension sd : subjectDimensions) {
-                        if (StringUtils.equals(dto.getCode(), sd.getCode())) {
-                            dto.setId(sd.getId());
-                            dto.setStrategyId(sd.getStrategyId());
-                            dto.setStrategyName(strategyService.getNameByCode(sd.getStrategyId()));
+        Subject subject = subjectService.findOne(subjectId);
+        if (Objects.nonNull(subject)) {
+            List<Dimension> dimensions = dimensionService.findAll();
+            if (CollectionUtils.isNotEmpty(dimensions)) {
+                List<SubjectDimension> subjectDimensions = dao.findListByProperty(SubjectDimension.FIELD_SUBJECT_ID, subjectId);
+                DimensionDto dto;
+                for (Dimension dimension : dimensions) {
+                    // 组织级预算主体无项目维度
+                    if (Objects.equals(Classification.DEPARTMENT, subject.getClassification())) {
+                        if (StringUtils.equals(Constants.DIMENSION_CODE_PROJECT, dimension.getCode())) {
+                            continue;
                         }
                     }
+                    dto = new DimensionDto();
+                    dto.setCode(dimension.getCode());
+                    dto.setName(dimension.getName());
+                    dto.setStrategyId(dimension.getStrategyId());
+                    dto.setStrategyName(dimension.getStrategyName());
+                    dto.setUiComponent(dimension.getUiComponent());
+                    dto.setRequired(dimension.getRequired());
+                    dto.setRank(dimension.getRank());
+                    if (CollectionUtils.isNotEmpty(subjectDimensions)) {
+                        for (SubjectDimension sd : subjectDimensions) {
+                            if (StringUtils.equals(dto.getCode(), sd.getCode())) {
+                                dto.setId(sd.getId());
+                                dto.setStrategyId(sd.getStrategyId());
+                                dto.setStrategyName(strategyService.getNameByCode(sd.getStrategyId()));
+                            }
+                        }
+                    }
+                    dimensionList.add(dto);
                 }
-                dimensionList.add(dto);
             }
         }
         return dimensionList;

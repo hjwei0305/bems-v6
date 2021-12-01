@@ -1,17 +1,16 @@
 package com.changhong.bems.entity;
 
+import com.changhong.bems.dto.Classification;
 import com.changhong.sei.core.dto.IRank;
 import com.changhong.sei.core.dto.auth.IDataAuthEntity;
 import com.changhong.sei.core.entity.BaseAuditableEntity;
-import com.changhong.sei.core.entity.ICodeUnique;
 import com.changhong.sei.core.entity.ITenant;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Set;
 
 /**
  * 预算主体(Subject)实体类
@@ -23,9 +22,8 @@ import java.io.Serializable;
 @Table(name = "subject")
 @DynamicInsert
 @DynamicUpdate
-public class Subject extends BaseAuditableEntity implements ITenant, IRank, ICodeUnique, IDataAuthEntity, Serializable {
+public class Subject extends BaseAuditableEntity implements ITenant, IRank, IDataAuthEntity, Serializable {
     private static final long serialVersionUID = 851011858666429840L;
-    public static final String FIELD_STRATEGY_ID = "strategyId";
     public static final String FIELD_CORP_CODE = "corporationCode";
     public static final String FIELD_NAME = "name";
     /**
@@ -49,20 +47,11 @@ public class Subject extends BaseAuditableEntity implements ITenant, IRank, ICod
     @Column(name = "corporation_name")
     private String corporationName;
     /**
-     * 组织id
+     * 预算分类
      */
-    @Column(name = "org_id")
-    private String orgId;
-    /**
-     * 组织代码
-     */
-    @Column(name = "org_code")
-    private String orgCode;
-    /**
-     * 组织名称
-     */
-    @Column(name = "org_name")
-    private String orgName;
+    @Column(name = "classification", updatable = false)
+    @Enumerated(EnumType.STRING)
+    private Classification classification;
     /**
      * 币种代码
      */
@@ -93,6 +82,11 @@ public class Subject extends BaseAuditableEntity implements ITenant, IRank, ICod
      */
     @Column(name = "tenant_code")
     private String tenantCode;
+    /**
+     * 临时字段
+     */
+    @Transient
+    private Set<String> orgIds;
 
     @Override
     public String getCode() {
@@ -130,28 +124,12 @@ public class Subject extends BaseAuditableEntity implements ITenant, IRank, ICod
         this.corporationName = corporationName;
     }
 
-    public String getOrgId() {
-        return orgId;
+    public Classification getClassification() {
+        return classification;
     }
 
-    public void setOrgId(String orgId) {
-        this.orgId = orgId;
-    }
-
-    public String getOrgCode() {
-        return orgCode;
-    }
-
-    public void setOrgCode(String orgCode) {
-        this.orgCode = orgCode;
-    }
-
-    public String getOrgName() {
-        return orgName;
-    }
-
-    public void setOrgName(String orgName) {
-        this.orgName = orgName;
+    public void setClassification(Classification classification) {
+        this.classification = classification;
     }
 
     public String getCurrencyCode() {
@@ -205,4 +183,11 @@ public class Subject extends BaseAuditableEntity implements ITenant, IRank, ICod
         this.tenantCode = tenantCode;
     }
 
+    public Set<String> getOrgIds() {
+        return orgIds;
+    }
+
+    public void setOrgIds(Set<String> orgIds) {
+        this.orgIds = orgIds;
+    }
 }

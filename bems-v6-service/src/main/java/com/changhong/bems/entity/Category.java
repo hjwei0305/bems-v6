@@ -1,6 +1,7 @@
 package com.changhong.bems.entity;
 
 import com.changhong.bems.dto.CategoryType;
+import com.changhong.bems.dto.Classification;
 import com.changhong.bems.dto.PeriodType;
 import com.changhong.sei.core.entity.BaseAuditableEntity;
 import com.changhong.sei.core.entity.IFrozen;
@@ -24,6 +25,7 @@ import java.io.Serializable;
 public class Category extends BaseAuditableEntity implements ITenant, IFrozen, Serializable {
     private static final long serialVersionUID = -73245932408668629L;
     public static final String FIELD_SUBJECT_ID = "subjectId";
+    public static final String FIELD_CLASSIFICATION = "classification";
     public static final String FIELD_TYPE = "type";
     public static final String FIELD_NAME = "name";
     public static final String FIELD_PERIOD_TYPE = "periodType";
@@ -33,9 +35,15 @@ public class Category extends BaseAuditableEntity implements ITenant, IFrozen, S
     @Column(name = "name")
     private String name;
     /**
+     * 预算分类
+     */
+    @Column(name = "classification")
+    @Enumerated(EnumType.STRING)
+    private Classification classification;
+    /**
      * 类型分类
      */
-    @Column(name = "type_")
+    @Column(name = "category_type")
     @Enumerated(EnumType.STRING)
     private CategoryType type;
     /**
@@ -80,13 +88,20 @@ public class Category extends BaseAuditableEntity implements ITenant, IFrozen, S
     @Column(name = "tenant_code")
     private String tenantCode;
 
-
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Classification getClassification() {
+        return classification;
+    }
+
+    public void setClassification(Classification classification) {
+        this.classification = classification;
     }
 
     public CategoryType getType() {

@@ -74,7 +74,7 @@ public class DimensionComponentService {
      * @param subjectId 预算主体id
      * @return 期间清单
      */
-    public ResultData<OrganizationDto> getOrgTree(String subjectId) {
+    public ResultData<List<OrganizationDto>> getOrgTree(String subjectId) {
         return subjectService.getOrgTree(subjectId);
     }
 

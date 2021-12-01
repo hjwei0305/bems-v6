@@ -2,6 +2,7 @@ package com.changhong.bems.service.client;
 
 import com.changhong.bems.dto.CorporationDto;
 import com.changhong.sei.core.dto.ResultData;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,6 +17,16 @@ import java.util.List;
  */
 @FeignClient(name = "sei-basic", path = "corporation", fallback = CorporationClientFallback.class)
 public interface CorporationClient {
+
+
+    /**
+     * 根据公司代码查询公司
+     *
+     * @param code 公司代码
+     * @return 公司
+     */
+    @GetMapping(path = "findByCode")
+    ResultData<CorporationDto> findByCode(@RequestParam("code") String code);
 
     /**
      * 获取当前用户有权限的公司清单(未冻结)

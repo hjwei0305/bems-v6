@@ -15,6 +15,17 @@ import java.util.List;
  */
 @Component
 public class CorporationClientFallback implements CorporationClient {
+    /**
+     * 根据公司代码查询公司
+     *
+     * @param code 公司代码
+     * @return 公司
+     */
+    @Override
+    public ResultData<CorporationDto> findByCode(String code) {
+        // 公司接口访问异常
+        return ResultData.fail(ContextUtil.getMessage("external_001"));
+    }
 
     /**
      * 获取当前用户有权限的公司清单(未冻结)

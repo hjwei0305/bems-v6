@@ -70,7 +70,7 @@ public class DimensionComponentController implements DimensionComponentApi {
      * @return 期间清单
      */
     @Override
-    public ResultData<OrganizationDto> getOrgTree(String subjectId) {
+    public ResultData<List<OrganizationDto>> getOrgTree(String subjectId) {
         return service.getOrgTree(subjectId);
     }
 

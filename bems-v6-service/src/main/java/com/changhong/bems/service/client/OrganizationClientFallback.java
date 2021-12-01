@@ -6,6 +6,7 @@ import com.changhong.sei.core.dto.ResultData;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 实现功能：
@@ -58,6 +59,18 @@ public class OrganizationClientFallback implements OrganizationClient {
      */
     @Override
     public ResultData<List<OrganizationDto>> getChildrenNodes4Unfrozen(String nodeId) {
+        // 币种接口访问异常
+        return ResultData.fail(ContextUtil.getMessage("external_003"));
+    }
+
+    /**
+     * 通过组织机构id清单获取下级组织机构清单
+     *
+     * @param orgIds 组织机构id清单
+     * @return 组织机构清单（非树形）
+     */
+    @Override
+    public ResultData<List<OrganizationDto>> getChildrenNodes4UnfrozenByIds(Set<String> orgIds) {
         // 币种接口访问异常
         return ResultData.fail(ContextUtil.getMessage("external_003"));
     }

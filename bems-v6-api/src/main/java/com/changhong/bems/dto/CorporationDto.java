@@ -47,6 +47,11 @@ public class CorporationDto implements Serializable {
      */
     @ApiModelProperty(value = "本位币货币名称")
     private String baseCurrencyName;
+    /**
+     * 组织机构Id
+     */
+    @ApiModelProperty(value = "组织机构Id")
+    private String organizationId;
 
     public String getId() {
         return id;
@@ -94,5 +99,13 @@ public class CorporationDto implements Serializable {
 
     public void setBaseCurrencyName(String baseCurrencyName) {
         this.baseCurrencyName = baseCurrencyName;
+    }
+
+    public String getOrganizationId() {
+        return organizationId;
+    }
+
+    public void setOrganizationId(String organizationId) {
+        this.organizationId = organizationId;
     }
 }

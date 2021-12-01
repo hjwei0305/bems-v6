@@ -5,6 +5,7 @@ import com.changhong.sei.core.dto.ResultData;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 实现功能：
@@ -58,6 +59,16 @@ public class OrganizationManager {
      */
     public ResultData<List<OrganizationDto>> getChildrenNodes4Unfrozen(String nodeId) {
         return client.getChildrenNodes4Unfrozen(nodeId);
+    }
+
+    /**
+     * 通过组织机构id清单获取下级组织机构清单
+     *
+     * @param orgIds 组织机构id清单
+     * @return 组织机构清单（非树形）
+     */
+    public ResultData<List<OrganizationDto>> getChildrenNodes4UnfrozenByIds(Set<String> orgIds) {
+        return client.getChildrenNodes4UnfrozenByIds(orgIds);
     }
 
     /**

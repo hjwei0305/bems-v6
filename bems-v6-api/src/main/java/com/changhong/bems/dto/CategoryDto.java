@@ -25,6 +25,12 @@ public class CategoryDto extends BaseEntityDto {
     @ApiModelProperty(value = "名称", required = true)
     private String name;
     /**
+     * 预算分类
+     */
+    @NotNull
+    @ApiModelProperty(value = "预算分类", required = true)
+    private Classification classification;
+    /**
      * 类型分类
      */
     @NotNull
@@ -86,6 +92,14 @@ public class CategoryDto extends BaseEntityDto {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Classification getClassification() {
+        return classification;
+    }
+
+    public void setClassification(Classification classification) {
+        this.classification = classification;
     }
 
     public CategoryType getType() {

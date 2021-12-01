@@ -60,7 +60,7 @@ public interface DimensionComponentApi {
     @GetMapping(path = "getOrgTree")
     @ApiImplicitParam(name = "subjectId", value = "预算主体id", dataTypeClass = String.class, required = true)
     @ApiOperation(value = "获取组织机构", notes = "按预算主体获取组织机构(维度组件专用)")
-    ResultData<OrganizationDto> getOrgTree(@RequestParam("subjectId") String subjectId);
+    ResultData<List<OrganizationDto>> getOrgTree(@RequestParam("subjectId") String subjectId);
 
     /**
      * 按预算主体获取公司项目

@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 /**
@@ -16,13 +17,6 @@ import javax.validation.constraints.Size;
 @ApiModel(description = "预算主体DTO")
 public class SubjectDto extends BaseEntityDto {
     private static final long serialVersionUID = -52007275362348933L;
-    /**
-     * 主体代码
-     */
-    @NotBlank
-    @Size(max = 30)
-    @ApiModelProperty(value = "主体代码", required = true)
-    private String code;
     /**
      * 主体名称
      */
@@ -44,24 +38,11 @@ public class SubjectDto extends BaseEntityDto {
     @ApiModelProperty(value = "公司名称")
     private String corporationName;
     /**
-     * 组织ID
+     * 预算分类
      */
-    @NotBlank
-    @Size(max = 36)
-    @ApiModelProperty(value = "组织ID", required = true)
-    private String orgId;
-    /**
-     * 组织代码
-     */
-    @Size(max = 30)
-    @ApiModelProperty(value = "组织代码")
-    private String orgCode;
-    /**
-     * 组织名称
-     */
-    @Size(max = 50)
-    @ApiModelProperty(value = "组织名称")
-    private String orgName;
+    @NotNull
+    @ApiModelProperty(value = "预算分类", required = true)
+    private Classification classification;
     /**
      * 币种代码
      */
@@ -98,20 +79,20 @@ public class SubjectDto extends BaseEntityDto {
     @ApiModelProperty(value = "租户代码")
     private String tenantCode;
 
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
-
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Classification getClassification() {
+        return classification;
+    }
+
+    public void setClassification(Classification classification) {
+        this.classification = classification;
     }
 
     public String getCorporationCode() {
@@ -128,30 +109,6 @@ public class SubjectDto extends BaseEntityDto {
 
     public void setCorporationName(String corporationName) {
         this.corporationName = corporationName;
-    }
-
-    public String getOrgId() {
-        return orgId;
-    }
-
-    public void setOrgId(String orgId) {
-        this.orgId = orgId;
-    }
-
-    public String getOrgCode() {
-        return orgCode;
-    }
-
-    public void setOrgCode(String orgCode) {
-        this.orgCode = orgCode;
-    }
-
-    public String getOrgName() {
-        return orgName;
-    }
-
-    public void setOrgName(String orgName) {
-        this.orgName = orgName;
     }
 
     public String getCurrencyCode() {

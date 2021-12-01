@@ -2,12 +2,13 @@ package com.changhong.bems.service.client;
 
 import com.changhong.bems.dto.OrganizationDto;
 import com.changhong.sei.core.dto.ResultData;
-import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 实现功能：
@@ -51,8 +52,16 @@ public interface OrganizationClient {
      * @return 组织机构清单（非树形）
      */
     @GetMapping(path = "getChildrenNodes4Unfrozen")
-    @ApiOperation(value = "获取非树形组织机构清单", notes = "通过组织机构id获取非树形组织机构清单")
     ResultData<List<OrganizationDto>> getChildrenNodes4Unfrozen(@RequestParam("nodeId") String nodeId);
+
+    /**
+     * 通过组织机构id清单获取下级组织机构清单
+     *
+     * @param orgIds 组织机构id清单
+     * @return 组织机构清单（非树形）
+     */
+    @GetMapping(path = "getChildrenNodes4UnfrozenByIds")
+    ResultData<List<OrganizationDto>> getChildrenNodes4UnfrozenByIds(@RequestBody Set<String> orgIds);
 
     /**
      * 获取一个节点的所有父节点
