@@ -1,8 +1,8 @@
 package com.changhong.bems.sdk.client;
 
-import com.changhong.bems.sdk.dto.BudgetPoolAmountDto;
-import com.changhong.bems.sdk.dto.BudgetRequest;
-import com.changhong.bems.sdk.dto.BudgetResponse;
+import com.changhong.bems.dto.BudgetPoolAmountDto;
+import com.changhong.bems.dto.BudgetRequest;
+import com.changhong.bems.dto.BudgetResponse;
 import com.changhong.sei.core.dto.ResultData;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;

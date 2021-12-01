@@ -2,5 +2,6 @@ rootProject.name = 'bems-v6'
 
 include 'bems-v6-service'
 include 'bems-v6-api'
-include 'bems-sdk'
+include 'bems-v6-sdk'
+include 'bems-v6-common'
 

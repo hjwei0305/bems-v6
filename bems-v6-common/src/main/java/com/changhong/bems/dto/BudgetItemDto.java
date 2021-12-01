@@ -1,6 +1,8 @@
-package com.changhong.bems.sdk.dto;
+package com.changhong.bems.dto;
 
 import com.changhong.sei.core.dto.BaseEntityDto;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
@@ -11,6 +13,7 @@ import javax.validation.constraints.Size;
  * @author sei
  * @since 2021-04-22 12:54:30
  */
+@ApiModel(description = "预算科目DTO")
 public class BudgetItemDto extends BaseEntityDto {
     private static final long serialVersionUID = -85112390830826629L;
     /**
@@ -18,13 +21,20 @@ public class BudgetItemDto extends BaseEntityDto {
      */
     @NotBlank
     @Size(max = 30)
+    @ApiModelProperty(value = "代码", required = true)
     private String code;
     /**
      * 名称
      */
     @NotBlank
     @Size(max = 50)
+    @ApiModelProperty(value = "名称", required = true)
     private String name;
+    /**
+     * 租户代码
+     */
+    @ApiModelProperty(value = "租户代码")
+    private String tenantCode;
 
     public String getCode() {
         return code;
@@ -40,5 +50,13 @@ public class BudgetItemDto extends BaseEntityDto {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getTenantCode() {
+        return tenantCode;
+    }
+
+    public void setTenantCode(String tenantCode) {
+        this.tenantCode = tenantCode;
     }
 }

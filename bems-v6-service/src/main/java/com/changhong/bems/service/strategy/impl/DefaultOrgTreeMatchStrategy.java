@@ -1,7 +1,7 @@
 package com.changhong.bems.service.strategy.impl;
 
 import com.changhong.bems.dto.OrganizationDto;
-import com.changhong.bems.dto.use.BudgetUse;
+import com.changhong.bems.dto.BudgetUse;
 import com.changhong.bems.service.client.OrganizationManager;
 import com.changhong.bems.service.strategy.OrgTreeMatchStrategy;
 import com.changhong.sei.core.context.ContextUtil;

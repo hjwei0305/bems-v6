@@ -3,10 +3,7 @@ package com.changhong.bems.service;
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.SubjectDao;
 import com.changhong.bems.dao.SubjectOrganizationDao;
-import com.changhong.bems.dto.Classification;
-import com.changhong.bems.dto.CorporationDto;
-import com.changhong.bems.dto.CurrencyDto;
-import com.changhong.bems.dto.OrganizationDto;
+import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.*;
 import com.changhong.bems.service.client.CorporationManager;
 import com.changhong.bems.service.client.CurrencyManager;
@@ -394,16 +391,24 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
      * 如果组织为空,则默认返回第一个
      * 如果组织不为空,则按组织树路径向上匹配预算主体上配置的组织
      *
-     * @param corpCode 公司代码
+     * @param classification 预算分类
+     * @param useBudget      预算占用参数
      * @return 返回预算主体清单
      */
-    public Subject getSubject(String corpCode, String orgId) {
+    public Subject getSubject(Classification classification, BudgetUse useBudget) {
         Subject subject = null;
-        List<Subject> subjectList = dao.findListByProperty(Subject.FIELD_CORP_CODE, corpCode);
+        // 公司代码
+        String corpCode = useBudget.getCorpCode();
+        Search search = Search.createSearch();
+        search.addFilter(new SearchFilter(Subject.FIELD_CORP_CODE, corpCode));
+        search.addFilter(new SearchFilter(Subject.FIELD_CLASSIFICATION, classification));
+        List<Subject> subjectList = dao.findByFilters(search);
         if (CollectionUtils.isNotEmpty(subjectList)) {
             if (subjectList.size() == 1) {
                 subject = subjectList.get(0);
             } else {
+                // 组织机构id
+                String orgId = useBudget.getOrg();
                 if (StringUtils.isBlank(orgId) || StringUtils.equalsIgnoreCase(Constants.NONE, orgId)) {
                     subject = subjectList.get(0);
                 } else {
@@ -420,18 +425,32 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
                         }
                     }
                     if (Objects.nonNull(orgMap)) {
-                    /*
-                        组织机构向上查找规则:
-                        1.按组织机构树路径,从预算占用的节点开始,向上依次查找
-                        2.当按组织节点找到存在的预算池,不管余额是否满足,都将停止向上查找
-                     */
+                        // 预算主体id清单
+                        Set<String> subjectIds = new HashSet<>();
+                        Map<String, Subject> subjectMap = new HashMap<>();
+                        for (Subject subj : subjectList) {
+                            subjectIds.add(subj.getId());
+                            subjectMap.put(subj.getId(), subj);
+                        }
+                        // 按预算主体id清单查询关联的组织机构
+                        List<SubjectOrganization> subjectOrgList = subjectOrganizationDao.findByFilter(new SearchFilter(SubjectOrganization.FIELD_SUBJECT_ID, subjectIds, SearchFilter.Operator.IN));
+                        // 组织机构id与预算主体映射
+                        Map<String, Subject> orgSubjectMap = new HashMap<>();
+                        if (CollectionUtils.isNotEmpty(subjectOrgList)) {
+                            for (SubjectOrganization so : subjectOrgList) {
+                                orgSubjectMap.put(so.getOrgId(), subjectMap.get(so.getSubjectId()));
+                            }
+                        }
+                        /*
+                            组织机构向上查找规则:
+                            1.按组织机构树路径,从预算占用的节点开始,向上依次查找
+                            2.当按组织节点找到存在的预算池,不管余额是否满足,都将停止向上查找
+                         */
                         String parentId = orgId;
                         OrganizationDto org = orgMap.get(parentId);
                         while (Objects.nonNull(org)) {
-                            String oId = org.getId();
                             // 按组织id匹配预算池
-                            /* TODO 改名后修改
-                            subject = subjectList.stream().filter(p -> StringUtils.equals(oId, p.getOrgId())).findFirst().orElse(null);
+                            subject = orgSubjectMap.get(org.getId());
                             if (Objects.nonNull(subject)) {
                                 break;
                             } else {
@@ -442,7 +461,7 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
                                 } else {
                                     org = null;
                                 }
-                            }*/
+                            }
                         }
                     }
                 }

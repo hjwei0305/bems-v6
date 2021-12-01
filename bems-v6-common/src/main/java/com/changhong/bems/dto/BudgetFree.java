@@ -1,9 +1,8 @@
-package com.changhong.bems.dto.use;
+package com.changhong.bems.dto;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
-import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
@@ -39,10 +38,11 @@ public class BudgetFree implements Serializable {
     @ApiModelProperty(value = "业务描述")
     private String bizRemark;
     /**
-     * 占用金额
+     * 释放金额
+     * 如果等于0,则释放上次全部占用金额;如果不为0,则按指定金额释放预算
      */
     // @Digits(integer = 36, fraction = 2)
-    @ApiModelProperty(value = "占用金额")
+    @ApiModelProperty(value = "释放金额", example = "如果等于0,则释放上次全部占用金额;如果不为0,则按指定金额释放预算")
     private BigDecimal amount = BigDecimal.ZERO;
 
     public BudgetFree() {

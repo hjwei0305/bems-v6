@@ -1,6 +1,6 @@
 package com.changhong.bems.api;
 
-import com.changhong.bems.dto.ItemDto;
+import com.changhong.bems.dto.BudgetItemDto;
 import com.changhong.sei.core.api.BaseEntityApi;
 import com.changhong.sei.core.api.FindByPageApi;
 import com.changhong.sei.core.dto.ResultData;
@@ -22,7 +22,7 @@ import javax.validation.Valid;
  */
 @Valid
 @FeignClient(name = "bems-v6", path = ItemApi.PATH)
-public interface ItemApi extends BaseEntityApi<ItemDto>, FindByPageApi<ItemDto> {
+public interface ItemApi extends BaseEntityApi<BudgetItemDto>, FindByPageApi<BudgetItemDto> {
     String PATH = "item";
 
     /**
@@ -33,5 +33,5 @@ public interface ItemApi extends BaseEntityApi<ItemDto>, FindByPageApi<ItemDto> 
      */
     @PostMapping(path = "getBudgetItems", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "分页获取预算科目", notes = "分页获取预算科目(外部系统集成专用)")
-    ResultData<PageResult<ItemDto>> getBudgetItems(@RequestBody Search search);
+    ResultData<PageResult<BudgetItemDto>> getBudgetItems(@RequestBody Search search);
 }

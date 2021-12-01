@@ -1,6 +1,6 @@
 package com.changhong.bems.service.strategy;
 
-import com.changhong.bems.dto.use.BudgetUse;
+import com.changhong.bems.dto.BudgetUse;
 import com.changhong.sei.core.dto.ResultData;
 
 /**

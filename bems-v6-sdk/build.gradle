@@ -2,6 +2,8 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 
 dependencies {
+    compile project(':bems-v6-common')
+
     implementation(
             "com.changhong.sei:sei-cloud:$sei_version"
     )

@@ -1,14 +1,7 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.commons.Constants;
-import com.changhong.bems.dto.DimensionDto;
-import com.changhong.bems.dto.OperationType;
-import com.changhong.bems.dto.OrganizationDto;
-import com.changhong.bems.dto.PoolAttributeDto;
-import com.changhong.bems.dto.use.BudgetFree;
-import com.changhong.bems.dto.use.BudgetRequest;
-import com.changhong.bems.dto.use.BudgetResponse;
-import com.changhong.bems.dto.use.BudgetUse;
+import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.DimensionAttribute;
 import com.changhong.bems.entity.PoolLog;
 import com.changhong.bems.entity.Subject;
@@ -21,6 +14,7 @@ import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.util.JsonUtils;
 import com.changhong.sei.exception.ServiceException;
 import com.changhong.sei.util.ArithUtils;
+import com.changhong.sei.util.EnumUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -83,6 +77,7 @@ public class BudgetService {
             List<BudgetFree> freeList = request.getFreeList();
             if (CollectionUtils.isNotEmpty(freeList)) {
                 for (BudgetFree free : freeList) {
+                    // 如果等于0,则释放上次全部占用金额;如果不为0,则按指定金额释放预算
                     if (BigDecimal.ZERO.compareTo(free.getAmount()) == 0) {
                         // 按原先占用记录释放全部金额
                         this.freeBudget(free.getEventCode(), free.getBizId(), free.getBizRemark());
@@ -101,7 +96,7 @@ public class BudgetService {
                 ResultData<BudgetResponse> resultData;
                 String successMessage = ContextUtil.getMessage("pool_00003");
                 for (BudgetUse budgetUse : useList) {
-                    resultData = this.useBudget(budgetUse);
+                    resultData = this.useBudget(request.getClassification(), budgetUse);
                     if (resultData.successful()) {
                         budgetResponse = resultData.getData();
                         budgetResponse.setSuccess(Boolean.TRUE);
@@ -147,11 +142,35 @@ public class BudgetService {
      * @param useBudget 占用数据
      * @return 返回占用结果
      */
-    private ResultData<BudgetResponse> useBudget(BudgetUse useBudget) {
+    private ResultData<BudgetResponse> useBudget(Classification classification, BudgetUse useBudget) {
         // 事件代码
         String eventCode = useBudget.getEventCode();
         // 业务id
         String bizId = useBudget.getBizId();
+
+        switch (classification) {
+            case DEPARTMENT:
+                // 组织级预算,检查组织机构是否为空
+                if (StringUtils.isBlank(useBudget.getOrg()) || StringUtils.equals(Constants.NONE, useBudget.getOrg())) {
+                    return ResultData.fail(ContextUtil.getMessage("pool_00038"));
+                }
+                break;
+            case PROJECT:
+                // 项目级预算,检查项目是否为空
+                if (StringUtils.isBlank(useBudget.getProject()) || StringUtils.equals(Constants.NONE, useBudget.getProject())) {
+                    return ResultData.fail(ContextUtil.getMessage("pool_00039"));
+                }
+                break;
+            case COST_CENTER:
+                // 成本中心级预算,检查成本中心是否为空
+                if (StringUtils.isBlank(useBudget.getCostCenter()) || StringUtils.equals(Constants.NONE, useBudget.getCostCenter())) {
+                    return ResultData.fail(ContextUtil.getMessage("pool_00040"));
+                }
+                break;
+            default:
+                // 不支持的预算分类
+                return ResultData.fail(ContextUtil.getMessage("pool_00034", classification));
+        }
 
         // 释放原先占用
         this.freeBudget(eventCode, bizId, useBudget.getBizRemark());
@@ -167,10 +186,10 @@ public class BudgetService {
         3.找出最优预算池
          */
         // 确定预算主体
-        Subject subject = subjectService.getSubject(useBudget.getCorpCode(), useBudget.getOrg());
+        Subject subject = subjectService.getSubject(classification, useBudget);
         if (Objects.isNull(subject)) {
             // 预算占用时,未找到匹配的预算主体!
-            return ResultData.fail(ContextUtil.getMessage("pool_00014"));
+            return ResultData.fail(ContextUtil.getMessage("pool_00014", ContextUtil.getMessage(EnumUtils.getEnumItemRemark(Classification.class, classification))));
         }
         String subjectId = subject.getId();
 
@@ -193,11 +212,11 @@ public class BudgetService {
                 useBudget.getItem(), otherDimFilters);
         if (CollectionUtils.isEmpty(poolAttributes)) {
             // 预算占用时,未找到满足条件的预算池!
-            return ResultData.fail(ContextUtil.getMessage("pool_00009"));
+            return ResultData.fail(ContextUtil.getMessage("pool_00009", subject.getName()));
         }
 
         // 获取最优预算池
-        ResultData<PoolAttributeDto> resultData = this.getOptimalPool(attribute, useBudget, poolAttributes);
+        ResultData<PoolAttributeDto> resultData = this.getOptimalPool(subject, attribute, useBudget, poolAttributes);
         if (resultData.failed()) {
             return ResultData.fail(resultData.getMessage());
         }
@@ -423,7 +442,7 @@ public class BudgetService {
      * @param poolAttributes 占用预算池范围清单
      * @return 预算池使用优先级
      */
-    private ResultData<PoolAttributeDto> getOptimalPool(String attribute, BudgetUse useBudget, List<PoolAttributeDto> poolAttributes) {
+    private ResultData<PoolAttributeDto> getOptimalPool(Subject subject, String attribute, BudgetUse useBudget, List<PoolAttributeDto> poolAttributes) {
         List<PoolAttributeDto> pools = null;
         // 组织id
         String orgId = useBudget.getOrg();
@@ -486,7 +505,7 @@ public class BudgetService {
 
         if (CollectionUtils.isEmpty(pools)) {
             // 预算占用时,未找到满足条件的预算池!
-            return ResultData.fail(ContextUtil.getMessage("pool_00009"));
+            return ResultData.fail(ContextUtil.getMessage("pool_00009", subject.getName()));
         }
         // 按期间类型下标进行排序: 下标值越大优先级越高
         pools = pools.stream().sorted(Comparator.comparingInt(p -> p.getPeriodType().ordinal())).collect(Collectors.toList());

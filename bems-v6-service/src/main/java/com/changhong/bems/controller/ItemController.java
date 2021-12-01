@@ -1,7 +1,7 @@
 package com.changhong.bems.controller;
 
 import com.changhong.bems.api.ItemApi;
-import com.changhong.bems.dto.ItemDto;
+import com.changhong.bems.dto.BudgetItemDto;
 import com.changhong.bems.entity.Item;
 import com.changhong.bems.service.ItemService;
 import com.changhong.sei.core.controller.BaseEntityController;
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Api(value = "ItemApi", tags = "预算科目服务")
 @RequestMapping(path = ItemApi.PATH, produces = MediaType.APPLICATION_JSON_VALUE)
-public class ItemController extends BaseEntityController<Item, ItemDto> implements ItemApi {
+public class ItemController extends BaseEntityController<Item, BudgetItemDto> implements ItemApi {
     /**
      * 预算科目服务对象
      */
@@ -43,7 +43,7 @@ public class ItemController extends BaseEntityController<Item, ItemDto> implemen
      * @return 分页查询结果
      */
     @Override
-    public ResultData<PageResult<ItemDto>> findByPage(Search search) {
+    public ResultData<PageResult<BudgetItemDto>> findByPage(Search search) {
         return convertToDtoPageResult(service.findByPage(search));
     }
 
@@ -54,7 +54,7 @@ public class ItemController extends BaseEntityController<Item, ItemDto> implemen
      * @return 分页查询结果
      */
     @Override
-    public ResultData<PageResult<ItemDto>> getBudgetItems(Search search) {
+    public ResultData<PageResult<BudgetItemDto>> getBudgetItems(Search search) {
         return convertToDtoPageResult(service.findByPage(search));
     }
 }

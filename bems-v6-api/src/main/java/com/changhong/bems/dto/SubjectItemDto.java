@@ -13,7 +13,7 @@ import javax.validation.constraints.Size;
  * @since 2021-04-22 12:54:30
  */
 @ApiModel(description = "预算主体科目DTO")
-public class SubjectItemDto extends ItemDto {
+public class SubjectItemDto extends BudgetItemDto {
     private static final long serialVersionUID = -85112390830826629L;
 
     /**
