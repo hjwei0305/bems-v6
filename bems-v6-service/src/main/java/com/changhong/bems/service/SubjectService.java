@@ -230,6 +230,8 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
     @Override
     @Transactional(rollbackFor = Exception.class)
     public OperateResultWithData<Subject> save(Subject entity) {
+        boolean isNew = entity.isNew();
+
         if (StringUtils.isBlank(entity.getCode())) {
             entity.setCode(String.valueOf(IdGenerator.nextId()));
         }
@@ -262,16 +264,19 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
                 Set<String> orgIds = entity.getOrgList().stream().map(OrganizationDto::getId).collect(Collectors.toSet());
                 List<SubjectOrganization> soList = subjectOrganizationDao.findByFilter(new SearchFilter(SubjectOrganization.FIELD_ORG_ID, orgIds, SearchFilter.Operator.IN));
                 if (CollectionUtils.isNotEmpty(soList)) {
-                    if (StringUtils.isBlank(entity.getId())) {
+                    if (Boolean.TRUE == isNew) {
                         // 新增主体
+                        SubjectOrganization so = soList.get(0);
+                        Subject subject = dao.findOne(so.getSubjectId());
                         // 组织机构[{0}]已在预算主体[{1}]中.
-                        return OperateResultWithData.operationFailure("subject_00015");
+                        return OperateResultWithData.operationFailure("subject_00015", so.getOrgName(), subject.getName());
                     } else {
                         // 修改主体
                         for (SubjectOrganization so : soList) {
                             if (!entity.getId().equals(so.getSubjectId())) {
+                                Subject subject = dao.findOne(so.getSubjectId());
                                 // 组织机构[{0}]已在预算主体[{1}]中.
-                                return OperateResultWithData.operationFailure("subject_00015");
+                                return OperateResultWithData.operationFailure("subject_00015", so.getOrgName(), subject.getName());
                             }
                         }
                     }
@@ -283,40 +288,43 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
             // 已存在预算主体
             return OperateResultWithData.operationFailure("subject_00005", existed.getName());
         }
+        // 持久化
+        dao.save(entity);
 
-        if (StringUtils.isNotBlank(entity.getId())) {
+        if (Boolean.FALSE == isNew) {
+            // 编辑后处理
             // 清除策略缓存
             strategyService.cleanStrategyCache(entity.getId(), null);
-        }
-        // 持久化
-        entity = dao.save(entity);
-
-        // 保存组织级主体关联的组织机构
-        if (Objects.equals(Classification.DEPARTMENT, entity.getClassification())) {
-            // 获取分配的组织机构清单
-            List<SubjectOrganization> orgList = this.getSubjectOrganizations(entity.getId());
-            if (CollectionUtils.isNotEmpty(orgList)) {
-                subjectOrganizationDao.deleteAll(orgList);
-            }
-            List<OrganizationDto> orgDtoList;
-            Set<String> orgIds = entity.getOrgList().stream().map(OrganizationDto::getId).collect(Collectors.toSet());
-            if (CollectionUtils.isNotEmpty(orgIds)) {
-                ResultData<List<OrganizationDto>> orgResult = organizationManager.findOrganizationByIds(orgIds);
-                if (orgResult.successful()) {
-                    orgDtoList = orgResult.getData();
-                    if (CollectionUtils.isNotEmpty(orgDtoList)) {
-                        SubjectOrganization org;
-                        orgList = new ArrayList<>();
-                        for (OrganizationDto orgDto : orgDtoList) {
-                            org = new SubjectOrganization();
-                            org.setSubjectId(entity.getId());
-                            org.setOrgId(orgDto.getId());
-                            org.setOrgCode(orgDto.getCode());
-                            org.setOrgName(orgDto.getNamePath());
-                            org.setTenantCode(entity.getTenantCode());
-                            orgList.add(org);
+        } else {
+            // 新增后处理
+            // 保存组织级主体关联的组织机构
+            if (Objects.equals(Classification.DEPARTMENT, entity.getClassification())) {
+                List<SubjectOrganization> orgList;
+                // // 获取分配的组织机构清单
+                // orgList = this.getSubjectOrganizations(entity.getId());
+                // if (CollectionUtils.isNotEmpty(orgList)) {
+                //     subjectOrganizationDao.deleteAll(orgList);
+                // }
+                List<OrganizationDto> orgDtoList;
+                Set<String> orgIds = entity.getOrgList().stream().map(OrganizationDto::getId).collect(Collectors.toSet());
+                if (CollectionUtils.isNotEmpty(orgIds)) {
+                    ResultData<List<OrganizationDto>> orgResult = organizationManager.findOrganizationByIds(orgIds);
+                    if (orgResult.successful()) {
+                        orgDtoList = orgResult.getData();
+                        if (CollectionUtils.isNotEmpty(orgDtoList)) {
+                            SubjectOrganization org;
+                            orgList = new ArrayList<>();
+                            for (OrganizationDto orgDto : orgDtoList) {
+                                org = new SubjectOrganization();
+                                org.setSubjectId(entity.getId());
+                                org.setOrgId(orgDto.getId());
+                                org.setOrgCode(orgDto.getCode());
+                                org.setOrgName(orgDto.getNamePath());
+                                org.setTenantCode(entity.getTenantCode());
+                                orgList.add(org);
+                            }
+                            subjectOrganizationDao.save(orgList);
                         }
-                        subjectOrganizationDao.save(orgList);
                     }
                 }
             }
