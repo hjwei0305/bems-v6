@@ -10,6 +10,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * 预算类型维度关系(CategoryDimension)实体类
@@ -79,5 +80,28 @@ public class CategoryDimension extends BaseEntity implements ITenant, IRank, Ser
     @Override
     public void setTenantCode(String tenantCode) {
         this.tenantCode = tenantCode;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        CategoryDimension that = (CategoryDimension) o;
+        if (!Objects.equals(categoryId, that.categoryId)) {
+            return false;
+        }
+        return Objects.equals(dimensionCode, that.dimensionCode);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (categoryId != null ? categoryId.hashCode() : 0);
+        result = 31 * result + (dimensionCode != null ? dimensionCode.hashCode() : 0);
+        return result;
     }
 }

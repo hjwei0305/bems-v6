@@ -60,6 +60,15 @@ public class SubjectDimensionService {
                     if (StringUtils.equals(Constants.DIMENSION_CODE_PROJECT, dimension.getCode())) {
                         continue;
                     }
+                    if (StringUtils.equals(Constants.DIMENSION_CODE_COST_CENTER, dimension.getCode())) {
+                        continue;
+                    }
+                }
+                // 成本中心级预算无组织维度
+                else if (Objects.equals(Classification.COST_CENTER, classification)) {
+                    if (StringUtils.equals(Constants.DIMENSION_CODE_ORG, dimension.getCode())) {
+                        continue;
+                    }
                 }
                 dto = new DimensionDto();
                 dto.setCode(dimension.getCode());

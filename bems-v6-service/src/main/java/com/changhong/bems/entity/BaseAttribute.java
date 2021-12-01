@@ -19,15 +19,16 @@ import java.io.Serializable;
 @Access(AccessType.FIELD)
 public abstract class BaseAttribute extends BaseEntity implements Serializable {
     private static final long serialVersionUID = 8867286168446471538L;
-    public static final String FIELD_PERIOD = "period";
-    public static final String FIELD_ITEM = "item";
-    public static final String FIELD_ORG = "org";
-    public static final String FIELD_PROJECT = "project";
-    public static final String FIELD_UDF1 = "udf1";
-    public static final String FIELD_UDF2 = "udf2";
-    public static final String FIELD_UDF3 = "udf3";
-    public static final String FIELD_UDF4 = "udf4";
-    public static final String FIELD_UDF5 = "udf5";
+    public static final String FIELD_PERIOD = Constants.DIMENSION_CODE_PERIOD;
+    public static final String FIELD_ITEM = Constants.DIMENSION_CODE_ITEM;
+    public static final String FIELD_ORG = Constants.DIMENSION_CODE_ORG;
+    public static final String FIELD_PROJECT = Constants.DIMENSION_CODE_PROJECT;
+    public static final String FIELD_COST_CENTER = Constants.DIMENSION_CODE_COST_CENTER;
+    public static final String FIELD_UDF1 = Constants.DIMENSION_CODE_UDF1;
+    public static final String FIELD_UDF2 = Constants.DIMENSION_CODE_UDF2;
+    public static final String FIELD_UDF3 = Constants.DIMENSION_CODE_UDF3;
+    public static final String FIELD_UDF4 = Constants.DIMENSION_CODE_UDF4;
+    public static final String FIELD_UDF5 = Constants.DIMENSION_CODE_UDF5;
     public static final String FIELD_ATTRIBUTE = "attribute";
     public static final String FIELD_ATTRIBUTE_CODE = "attributeCode";
 
@@ -82,6 +83,16 @@ public abstract class BaseAttribute extends BaseEntity implements Serializable {
      */
     @Column(name = "project_name")
     protected String projectName;
+    /**
+     * 成本中心
+     */
+    @Column(name = "cost_center", updatable = false)
+    protected String costCenter = Constants.NONE;
+    /**
+     * 成本中心名称
+     */
+    @Column(name = "cost_center_name")
+    protected String costCenterName;
     /**
      * 自定义1
      */
@@ -203,6 +214,22 @@ public abstract class BaseAttribute extends BaseEntity implements Serializable {
 
     public void setProjectName(String projectName) {
         this.projectName = projectName;
+    }
+
+    public String getCostCenter() {
+        return costCenter;
+    }
+
+    public void setCostCenter(String costCenter) {
+        this.costCenter = costCenter;
+    }
+
+    public String getCostCenterName() {
+        return costCenterName;
+    }
+
+    public void setCostCenterName(String costCenterName) {
+        this.costCenterName = costCenterName;
     }
 
     public String getUdf1() {

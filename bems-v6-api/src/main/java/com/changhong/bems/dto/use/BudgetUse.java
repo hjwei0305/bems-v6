@@ -3,7 +3,6 @@ package com.changhong.bems.dto.use;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
-import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
@@ -87,6 +86,12 @@ public class BudgetUse implements Serializable {
     @Size(max = 36)
     @ApiModelProperty(value = "项目")
     private String project;
+    /**
+     * 成本中心
+     */
+    @Size(max = 50)
+    @ApiModelProperty(value = "成本中心")
+    private String costCenter;
     /**
      * 自定义1
      */
@@ -217,6 +222,15 @@ public class BudgetUse implements Serializable {
 
     public BudgetUse setProject(String project) {
         this.project = project;
+        return this;
+    }
+
+    public String getCostCenter() {
+        return costCenter;
+    }
+
+    public BudgetUse setCostCenter(String costCenter) {
+        this.costCenter = costCenter;
         return this;
     }
 

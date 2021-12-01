@@ -198,6 +198,23 @@ public class DimensionService extends BaseEntityService<Dimension> {
             dimension.setUiComponent("ProjectList");
             super.save(dimension);
             dimensions.add(dimension);
+
+            dimension = new Dimension();
+            dimension.setCode(Constants.DIMENSION_CODE_COST_CENTER);
+            // 成本中心
+            dimension.setName(ContextUtil.getMessage("default_dimension_cost_center"));
+            dimension.setRank(5);
+            strategy = strategyService.getByCode(StringUtils.uncapitalize(EqualMatchStrategy.class.getSimpleName()));
+            if (Objects.nonNull(strategy)) {
+                dimension.setStrategyId(strategy.getCode());
+                dimension.setStrategyName(strategy.getName());
+            } else {
+                dimension.setStrategyId(Constants.NONE);
+                dimension.setStrategyName(Constants.NONE);
+            }
+            dimension.setUiComponent("CostCenterList");
+            super.save(dimension);
+            dimensions.add(dimension);
         }
         return ResultData.success(dimensions);
     }

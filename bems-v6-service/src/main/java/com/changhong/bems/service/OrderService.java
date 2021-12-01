@@ -258,6 +258,8 @@ public class OrderService extends BaseEntityService<Order> {
                     dimensionMap.put(Constants.DIMENSION_CODE_ORG, orderDto.getOrg());
                 } else if (StringUtils.equals(Constants.DIMENSION_CODE_PROJECT, dimensionCode)) {
                     dimensionMap.put(Constants.DIMENSION_CODE_PROJECT, orderDto.getProject());
+                } else if (StringUtils.equals(Constants.DIMENSION_CODE_COST_CENTER, dimensionCode)) {
+                    dimensionMap.put(Constants.DIMENSION_CODE_COST_CENTER, orderDto.getCostCenter());
                 } else if (StringUtils.equals(Constants.DIMENSION_CODE_UDF1, dimensionCode)) {
                     dimensionMap.put(Constants.DIMENSION_CODE_UDF1, orderDto.getUdf1());
                 } else if (StringUtils.equals(Constants.DIMENSION_CODE_UDF2, dimensionCode)) {
@@ -415,6 +417,10 @@ public class OrderService extends BaseEntityService<Order> {
                                 detail.setProject(temp);
                             } else if (Constants.DIMENSION_CODE_PROJECT.concat("Name").equals(headVo.getFiled())) {
                                 detail.setProjectName(temp);
+                            } else if (Constants.DIMENSION_CODE_COST_CENTER.equals(headVo.getFiled())) {
+                                detail.setCostCenter(temp);
+                            } else if (Constants.DIMENSION_CODE_COST_CENTER.concat("Name").equals(headVo.getFiled())) {
+                                detail.setCostCenterName(temp);
                             } else if (Constants.DIMENSION_CODE_UDF1.equals(headVo.getFiled())) {
                                 detail.setUdf1(temp);
                             } else if (Constants.DIMENSION_CODE_UDF1.concat("Name").equals(headVo.getFiled())) {
@@ -1275,6 +1281,11 @@ public class OrderService extends BaseEntityService<Order> {
         else if (StringUtils.equals(Constants.DIMENSION_CODE_PROJECT, dimensionCode)) {
             detail.setProject(dimension.getValue());
             detail.setProjectName(dimension.getText());
+        }
+        // 成本中心
+        else if (StringUtils.equals(Constants.DIMENSION_CODE_COST_CENTER, dimensionCode)) {
+            detail.setCostCenter(dimension.getValue());
+            detail.setCostCenterName(dimension.getText());
         } else if (StringUtils.equals(Constants.DIMENSION_CODE_UDF1, dimensionCode)) {
             detail.setUdf1(dimension.getValue());
             detail.setUdf1Name(dimension.getText());

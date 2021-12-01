@@ -121,6 +121,11 @@ public class AddOrderDetail extends BaseEntityDto implements Serializable {
     @ApiModelProperty(value = "项目")
     private Set<OrderDimension> project;
     /**
+     * 成本中心
+     */
+    @ApiModelProperty(value = "成本中心")
+    private Set<OrderDimension> costCenter;
+    /**
      * 自定义1
      */
     @ApiModelProperty(value = "自定义1")
@@ -304,6 +309,14 @@ public class AddOrderDetail extends BaseEntityDto implements Serializable {
 
     public void setProject(Set<OrderDimension> project) {
         this.project = project;
+    }
+
+    public Set<OrderDimension> getCostCenter() {
+        return costCenter;
+    }
+
+    public void setCostCenter(Set<OrderDimension> costCenter) {
+        this.costCenter = costCenter;
     }
 
     public Set<OrderDimension> getUdf1() {

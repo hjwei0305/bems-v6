@@ -1,6 +1,9 @@
 package com.changhong.bems.service;
 
+import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.CategoryDimensionDao;
+import com.changhong.bems.dto.Classification;
+import com.changhong.bems.entity.Category;
 import com.changhong.bems.entity.CategoryDimension;
 import com.changhong.bems.entity.Dimension;
 import com.changhong.sei.core.context.ContextUtil;
@@ -31,20 +34,40 @@ public class CategoryDimensionService {
     /**
      * 添加必要维度
      *
-     * @param categoryId 预算类型id
+     * @param category 预算类型
      */
     @Transactional(rollbackFor = Exception.class)
-    public void addRequiredDimension(String categoryId) {
+    public void addRequiredDimension(Category category) {
         // 租户代码
         String tenantCode = ContextUtil.getTenantCode();
         CategoryDimension categoryDimension;
-        List<CategoryDimension> dimensionList = new ArrayList<>();
+        Set<CategoryDimension> dimensionList = new HashSet<>();
         List<Dimension> dimensions = dimensionService.getRequired();
         for (Dimension dimension : dimensions) {
             categoryDimension = new CategoryDimension();
-            categoryDimension.setCategoryId(categoryId);
+            categoryDimension.setCategoryId(category.getId());
             categoryDimension.setDimensionCode(dimension.getCode());
             categoryDimension.setRank(dimension.getRank());
+            categoryDimension.setTenantCode(tenantCode);
+            dimensionList.add(categoryDimension);
+        }
+        // 按预算分类增加必要维度
+        if (Objects.equals(Classification.DEPARTMENT, category.getClassification())) {
+            categoryDimension = new CategoryDimension();
+            categoryDimension.setCategoryId(category.getId());
+            categoryDimension.setDimensionCode(Constants.DIMENSION_CODE_ORG);
+            categoryDimension.setTenantCode(tenantCode);
+            dimensionList.add(categoryDimension);
+        } else if (Objects.equals(Classification.PROJECT, category.getClassification())) {
+            categoryDimension = new CategoryDimension();
+            categoryDimension.setCategoryId(category.getId());
+            categoryDimension.setDimensionCode(Constants.DIMENSION_CODE_PROJECT);
+            categoryDimension.setTenantCode(tenantCode);
+            dimensionList.add(categoryDimension);
+        } else if (Objects.equals(Classification.COST_CENTER, category.getClassification())) {
+            categoryDimension = new CategoryDimension();
+            categoryDimension.setCategoryId(category.getId());
+            categoryDimension.setDimensionCode(Constants.DIMENSION_CODE_COST_CENTER);
             categoryDimension.setTenantCode(tenantCode);
             dimensionList.add(categoryDimension);
         }

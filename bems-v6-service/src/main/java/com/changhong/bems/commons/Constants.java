@@ -21,6 +21,7 @@ public final class Constants {
     public static final String DIMENSION_CODE_ITEM = "item";
     public static final String DIMENSION_CODE_ORG = "org";
     public static final String DIMENSION_CODE_PROJECT = "project";
+    public static final String DIMENSION_CODE_COST_CENTER = "costCenter";
     public static final String DIMENSION_CODE_UDF1 = "udf1";
     public static final String DIMENSION_CODE_UDF2 = "udf2";
     public static final String DIMENSION_CODE_UDF3 = "udf3";
@@ -37,6 +38,8 @@ public final class Constants {
         DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_ORG, ContextUtil.getMessage("default_dimension_org")));
         // 项目
         DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_PROJECT, ContextUtil.getMessage("default_dimension_project")));
+        // 成本中心
+        DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_COST_CENTER, ContextUtil.getMessage("default_dimension_cost_center")));
         // 自定义维度
         DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF1, ContextUtil.getMessage("default_dimension_udf1")));
         DEFAULT_DIMENSION_CODES.add(new KeyValueDto(DIMENSION_CODE_UDF2, ContextUtil.getMessage("default_dimension_udf2")));

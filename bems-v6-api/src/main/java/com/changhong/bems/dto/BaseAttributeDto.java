@@ -65,6 +65,16 @@ public class BaseAttributeDto extends BaseEntityDto {
     @ApiModelProperty(value = "项目名称")
     protected String projectName;
     /**
+     * 成本中心
+     */
+    @ApiModelProperty(value = "成本中心")
+    protected String costCenter;
+    /**
+     * 成本中心名称
+     */
+    @ApiModelProperty(value = "成本中心名称")
+    protected String costCenterName;
+    /**
      * 自定义1
      */
     @ApiModelProperty(value = "自定义1")
@@ -193,6 +203,22 @@ public class BaseAttributeDto extends BaseEntityDto {
 
     public void setProjectName(String projectName) {
         this.projectName = projectName;
+    }
+
+    public String getCostCenter() {
+        return costCenter;
+    }
+
+    public void setCostCenter(String costCenter) {
+        this.costCenter = costCenter;
+    }
+
+    public String getCostCenterName() {
+        return costCenterName;
+    }
+
+    public void setCostCenterName(String costCenterName) {
+        this.costCenterName = costCenterName;
     }
 
     public String getUdf1() {

@@ -47,8 +47,6 @@ public class CategoryService extends BaseEntityService<Category> {
     @Autowired
     private CategoryDimensionService categoryDimensionService;
     @Autowired
-    private DimensionService dimensionService;
-    @Autowired
     private SubjectDimensionService subjectDimensionService;
     @Autowired
     private CategoryConfigService categoryConfigService;
@@ -127,7 +125,7 @@ public class CategoryService extends BaseEntityService<Category> {
                 categoryDimensionService.addReferenceDimension(entity.getId(), entity.getReferenceId());
             } else {
                 // 新增添加必须的维度
-                categoryDimensionService.addRequiredDimension(entity.getId());
+                categoryDimensionService.addRequiredDimension(entity);
             }
         }
         // 更新订单配置

@@ -137,6 +137,12 @@ public class DimensionComponentService {
                     return ResultData.fail(listResultData.getMessage());
                 }
                 break;
+            case Constants.DIMENSION_CODE_COST_CENTER:
+                data.put("head", Lists.newArrayList("成本中心", "成本中心名称"));
+                // TODO 提供成本中心接口
+                return ResultData.fail(ContextUtil.getMessage("dimension_00006"));
+
+                // break;
             case Constants.DIMENSION_CODE_UDF1:
                 // TODO 提供二开接口
                 return ResultData.fail(ContextUtil.getMessage("dimension_00006"));

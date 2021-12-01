@@ -314,6 +314,14 @@ public class BudgetService {
                 dimFilterMap.put(DimensionAttribute.FIELD_PROJECT, this.doDimensionStrategy(use, subjectId, DimensionAttribute.FIELD_PROJECT, project));
             }
         }
+        // 成本中心
+        String costCenter = use.getCostCenter();
+        if (Objects.nonNull(costCenter)) {
+            costCenter = costCenter.trim();
+            if (StringUtils.isNotBlank(costCenter) && !StringUtils.equalsIgnoreCase(Constants.NONE, costCenter)) {
+                dimFilterMap.put(DimensionAttribute.FIELD_COST_CENTER, this.doDimensionStrategy(use, subjectId, DimensionAttribute.FIELD_COST_CENTER, costCenter));
+            }
+        }
         // 自定义1
         String udf1 = use.getUdf1();
         if (Objects.nonNull(udf1)) {

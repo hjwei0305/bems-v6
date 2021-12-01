@@ -139,6 +139,10 @@ public class DimensionAttributeService {
         if (StringUtils.isNotBlank(baseAttribute.getProject())) {
             search.addFilter(new SearchFilter(DimensionAttribute.FIELD_PROJECT, baseAttribute.getProject()));
         }
+        // 成本中心
+        if (StringUtils.isNotBlank(baseAttribute.getCostCenter())) {
+            search.addFilter(new SearchFilter(DimensionAttribute.FIELD_COST_CENTER, baseAttribute.getCostCenter()));
+        }
         // 自定义1
         if (StringUtils.isNotBlank(baseAttribute.getUdf1())) {
             search.addFilter(new SearchFilter(DimensionAttribute.FIELD_UDF1, baseAttribute.getUdf1()));
@@ -187,6 +191,10 @@ public class DimensionAttributeService {
         // 项目
         if (StringUtils.isNotBlank(baseAttribute.getProject())) {
             search.addFilter(new SearchFilter(DimensionAttribute.FIELD_PROJECT, baseAttribute.getProject()));
+        }
+        // 成本中心
+        if (StringUtils.isNotBlank(baseAttribute.getCostCenter())) {
+            search.addFilter(new SearchFilter(DimensionAttribute.FIELD_COST_CENTER, baseAttribute.getCostCenter()));
         }
         // 自定义1
         if (StringUtils.isNotBlank(baseAttribute.getUdf1())) {
