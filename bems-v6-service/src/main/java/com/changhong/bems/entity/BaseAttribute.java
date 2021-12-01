@@ -318,6 +318,7 @@ public abstract class BaseAttribute extends BaseEntity implements Serializable {
         hash = 31 * hash + this.getPeriod().hashCode();
         hash = 31 * hash + this.getOrg().hashCode();
         hash = 31 * hash + this.getProject().hashCode();
+        hash = 31 * hash + this.getCostCenter().hashCode();
 
         hash = 31 * hash + this.getUdf1().hashCode();
         hash = 31 * hash + this.getUdf2().hashCode();
