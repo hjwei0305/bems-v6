@@ -307,6 +307,7 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
                         }
                     }
                 }
+                entity = this.findOne(entity.getId());
             }
         } else {
             // 编辑后处理
