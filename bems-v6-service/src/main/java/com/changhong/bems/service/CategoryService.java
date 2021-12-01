@@ -1,10 +1,7 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.dao.CategoryDao;
-import com.changhong.bems.dto.CategoryType;
-import com.changhong.bems.dto.DimensionDto;
-import com.changhong.bems.dto.OrderCategory;
-import com.changhong.bems.dto.PeriodType;
+import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.Category;
 import com.changhong.bems.entity.CategoryDimension;
 import com.changhong.bems.entity.Order;
@@ -150,7 +147,18 @@ public class CategoryService extends BaseEntityService<Category> {
      */
     public List<Category> findBySubject(String subjectId) {
         List<Category> categoryList = new ArrayList<>();
-        List<Category> generalList = findByGeneral();
+        // 获取预算主体
+        Subject subject = subjectService.getSubject(subjectId);
+        if (Objects.isNull(subject)) {
+            return categoryList;
+        }
+
+        // 获取当前预算分类通用的类型
+        Search search = Search.createSearch();
+        search.addFilter(new SearchFilter(Category.FIELD_TYPE, CategoryType.GENERAL));
+        search.addFilter(new SearchFilter(Category.FIELD_CLASSIFICATION, subject.getClassification()));
+        List<Category> generalList = dao.findByFilters(search);
+        // 获取当前主体私有的类型
         List<Category> privateList = dao.findListByProperty(Category.FIELD_SUBJECT_ID, subjectId);
         if (CollectionUtils.isEmpty(privateList)) {
             if (CollectionUtils.isNotEmpty(generalList)) {
@@ -158,6 +166,7 @@ public class CategoryService extends BaseEntityService<Category> {
             }
         } else {
             if (CollectionUtils.isNotEmpty(generalList)) {
+                // 过滤引用通用的类型
                 Set<String> ids = privateList.stream().map(Category::getReferenceId).filter(StringUtils::isNotBlank).collect(Collectors.toSet());
                 if (CollectionUtils.isNotEmpty(ids)) {
                     categoryList.addAll(generalList.stream().filter(c -> !ids.contains(c.getId())).collect(Collectors.toList()));
@@ -198,7 +207,7 @@ public class CategoryService extends BaseEntityService<Category> {
      */
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> reference(String subjectId, String id) {
-        Subject subject = subjectService.findOne(subjectId);
+        Subject subject = subjectService.getSubject(subjectId);
         if (Objects.isNull(subject)) {
             // 预算主体不存在
             return ResultData.fail(ContextUtil.getMessage("subject_00003", subjectId));
@@ -212,6 +221,10 @@ public class CategoryService extends BaseEntityService<Category> {
             if (CategoryType.GENERAL != category.getType()) {
                 // 不是通用预算类型
                 return ResultData.fail(ContextUtil.getMessage("category_00005", category.getName()));
+            }
+            if (subject.getClassification() != category.getClassification()) {
+                // 当前类型的预算分类[{0}]与预算主体的分类[{1}]不一致!
+                return ResultData.fail(ContextUtil.getMessage("category_00008", category.getName()));
             }
         }
         Category privateCategory = new Category();

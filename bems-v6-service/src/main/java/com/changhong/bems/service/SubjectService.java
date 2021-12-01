@@ -340,6 +340,15 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
     }
 
     /**
+     * 基于主键查询单一数据对象
+     *
+     * @param id 主体id
+     */
+    public Subject getSubject(String id) {
+        return dao.findOne(id);
+    }
+
+    /**
      * 通过公司代码获取预算主体
      * 如果公司存在多个预算主体,则还需要通过组织确定
      * 如果组织为空,则默认返回第一个

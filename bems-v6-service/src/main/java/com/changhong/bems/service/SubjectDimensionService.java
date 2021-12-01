@@ -91,7 +91,7 @@ public class SubjectDimensionService {
      * @return 查询结果
      */
     public List<DimensionDto> getDimensions(String subjectId) {
-        Subject subject = subjectService.findOne(subjectId);
+        Subject subject = subjectService.getSubject(subjectId);
         if (Objects.nonNull(subject)) {
             List<DimensionDto> dimensionList = this.getDimensionsByClassification(subject.getClassification());
             if (CollectionUtils.isNotEmpty(dimensionList)) {

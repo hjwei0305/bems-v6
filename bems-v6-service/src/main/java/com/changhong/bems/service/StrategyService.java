@@ -181,7 +181,7 @@ public class StrategyService {
                 }
             }
             if (Objects.isNull(strategy)) {
-                Subject subject = subjectService.findOne(subjectId);
+                Subject subject = subjectService.getSubject(subjectId);
                 if (Objects.nonNull(subject)) {
                     strategy = this.getByCode(subject.getStrategyId());
                     if (Objects.isNull(strategy)) {

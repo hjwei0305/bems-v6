@@ -184,7 +184,7 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
      */
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> assigne(String subjectId, Set<String> itemCodes) {
-        Subject subject = subjectService.findOne(subjectId);
+        Subject subject = subjectService.getSubject(subjectId);
         if (Objects.isNull(subject)) {
             // 预算类型已被使用,不允许修改
             return ResultData.fail(ContextUtil.getMessage("subject_00003", subjectId));
@@ -235,7 +235,7 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
             return resultData;
         }
 
-        Subject subject = subjectService.findOne(referenceId);
+        Subject subject = subjectService.getSubject(referenceId);
         if (Objects.isNull(subject)) {
             // 未找到引用的预算主体
             return ResultData.fail(ContextUtil.getMessage("subject_item_00004", referenceId));
