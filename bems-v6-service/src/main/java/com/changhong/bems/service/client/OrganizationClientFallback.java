@@ -87,4 +87,16 @@ public class OrganizationClientFallback implements OrganizationClient {
         // 币种接口访问异常
         return ResultData.fail(ContextUtil.getMessage("external_003"));
     }
+
+    /**
+     * 通过id集合获取组织机构清单
+     *
+     * @param orgIds id集合
+     * @return 组织机构
+     */
+    @Override
+    public ResultData<List<OrganizationDto>> findOrganizationByIds(Set<String> orgIds) {
+        // 币种接口访问异常
+        return ResultData.fail(ContextUtil.getMessage("external_003"));
+    }
 }
