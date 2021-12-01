@@ -15,6 +15,8 @@ import com.changhong.sei.basic.sdk.UserAuthorizeManager;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
+import com.changhong.sei.core.dto.serach.Search;
+import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.DataAuthEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
@@ -24,6 +26,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -95,16 +98,35 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
     }
 
     /**
-     * 获取组织机构树(不包含冻结)
+     * 按公司代码获取组织机构树(不包含冻结)
      *
+     * @param corpCode 公司代码
      * @return 组织机构树清单
      */
-    public ResultData<List<OrganizationDto>> findOrgTree() {
+    public ResultData<OrganizationDto> findOrgTree(String corpCode) {
+        ResultData<OrganizationDto> resultData;
         if (Objects.nonNull(organizationManager)) {
-            return organizationManager.findOrgTreeWithoutFrozen();
+            ResultData<CorporationDto> corpResultData = corporationManager.findByCode(corpCode);
+            if (corpResultData.successful()) {
+                CorporationDto corporation = corpResultData.getData();
+                if (Objects.nonNull(corporation)) {
+                    if (StringUtils.isNotBlank(corporation.getOrganizationId())) {
+                        resultData = organizationManager.getTree4Unfrozen(corporation.getOrganizationId());
+                    } else {
+                        // 公司[{0}]对应的组织机构未配置，请检查！
+                        resultData = ResultData.fail(ContextUtil.getMessage("subject_00013", corpCode));
+                    }
+                } else {
+                    // 公司[{0}]不存在，请检查！
+                    resultData = ResultData.fail(ContextUtil.getMessage("subject_00012", corpCode));
+                }
+            } else {
+                resultData = ResultData.fail(corpResultData.getMessage());
+            }
         } else {
-            return ResultData.fail(ContextUtil.getMessage("pool_00030"));
+            resultData = ResultData.fail(ContextUtil.getMessage("pool_00030"));
         }
+        return resultData;
     }
 
     /**
@@ -137,7 +159,8 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
             // 通过组织机构id获取组织机构清单
             ResultData<List<OrganizationDto>> resultData;
             if (Objects.equals(Classification.DEPARTMENT, subject.getClassification())) {
-                List<SubjectOrganization> subjectOrganizations = subjectOrganizationDao.findListByProperty(SubjectOrganization.FIELD_SUBJECT_ID, subjectId);
+                // 获取分配的组织机构清单
+                List<SubjectOrganization> subjectOrganizations = this.getSubjectOrganizations(subjectId);
                 if (CollectionUtils.isNotEmpty(subjectOrganizations)) {
                     Set<String> nodeIds = subjectOrganizations.stream().map(SubjectOrganization::getOrgId).collect(Collectors.toSet());
                     resultData = organizationManager.getChildrenNodes4UnfrozenByIds(nodeIds);
@@ -177,14 +200,36 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
     }
 
     /**
+     * 按组织级主体id获取分配的组织机构
+     *
+     * @param subjectId 组织级主体id
+     * @return 分配的组织机构清单
+     */
+    public List<SubjectOrganization> getSubjectOrganizations(String subjectId) {
+        return subjectOrganizationDao.findListByProperty(SubjectOrganization.FIELD_SUBJECT_ID, subjectId);
+    }
+
+    /**
      * 数据保存操作
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public OperateResultWithData<Subject> save(Subject entity) {
         if (StringUtils.isBlank(entity.getCode())) {
             entity.setCode(String.valueOf(IdGenerator.nextId()));
         }
-        if (Objects.equals(Classification.DEPARTMENT, entity.getClassification())
+
+        if (Objects.equals(Classification.PROJECT, entity.getClassification())) {
+            // 检查同一公司下有且只有一个项目级主体
+            Search search = Search.createSearch();
+            search.addFilter(new SearchFilter(Subject.FIELD_CORP_CODE, entity.getCorporationCode()));
+            search.addFilter(new SearchFilter(Subject.FIELD_CLASSIFICATION, Classification.PROJECT));
+            Subject existed = dao.findFirstByFilters(search);
+            if (Objects.nonNull(existed) && !StringUtils.equals(entity.getId(), existed.getId())) {
+                // 公司[{0}]下已存在一个项目级主体[{1}].
+                return OperateResultWithData.operationFailure("subject_00011", entity.getCorporationCode(), existed.getName());
+            }
+        } else if (Objects.equals(Classification.DEPARTMENT, entity.getClassification())
                 && CollectionUtils.isEmpty(entity.getOrgIds())) {
             // 组织级预算主体需维护适用组织范围
             return OperateResultWithData.operationFailure("subject_00006");
@@ -204,8 +249,8 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
 
         // 保存组织级主体关联的组织机构
         if (Objects.equals(Classification.DEPARTMENT, entity.getClassification())) {
-            List<SubjectOrganization> orgList;
-            orgList = subjectOrganizationDao.findListByProperty(SubjectOrganization.FIELD_SUBJECT_ID, entity.getId());
+            // 获取分配的组织机构清单
+            List<SubjectOrganization> orgList = this.getSubjectOrganizations(entity.getId());
             if (CollectionUtils.isNotEmpty(orgList)) {
                 subjectOrganizationDao.deleteAll(orgList);
             }

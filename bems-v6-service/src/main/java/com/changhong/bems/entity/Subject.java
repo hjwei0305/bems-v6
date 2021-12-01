@@ -25,6 +25,7 @@ import java.util.Set;
 public class Subject extends BaseAuditableEntity implements ITenant, IRank, IDataAuthEntity, Serializable {
     private static final long serialVersionUID = 851011858666429840L;
     public static final String FIELD_CORP_CODE = "corporationCode";
+    public static final String FIELD_CLASSIFICATION = "classification";
     public static final String FIELD_NAME = "name";
     /**
      * 主体代码

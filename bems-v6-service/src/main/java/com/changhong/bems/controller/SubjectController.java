@@ -1,11 +1,9 @@
 package com.changhong.bems.controller;
 
 import com.changhong.bems.api.SubjectApi;
-import com.changhong.bems.dto.CorporationDto;
-import com.changhong.bems.dto.CurrencyDto;
-import com.changhong.bems.dto.OrganizationDto;
-import com.changhong.bems.dto.SubjectDto;
+import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.Subject;
+import com.changhong.bems.entity.SubjectOrganization;
 import com.changhong.bems.service.SubjectService;
 import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
@@ -14,12 +12,16 @@ import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.service.BaseEntityService;
 import io.swagger.annotations.Api;
+import org.apache.commons.collections.CollectionUtils;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 预算主体(Subject)控制类
@@ -36,6 +38,8 @@ public class SubjectController extends BaseEntityController<Subject, SubjectDto>
      */
     @Autowired
     private SubjectService service;
+    @Autowired
+    private ModelMapper modelMapper;
 
     @Override
     public BaseEntityService<Subject> getService() {
@@ -106,12 +110,31 @@ public class SubjectController extends BaseEntityController<Subject, SubjectDto>
     }
 
     /**
-     * 获取组织机构树(不包含冻结)
+     * 按公司代码获取组织机构树(不包含冻结)
      *
+     * @param corpCode 公司代码
      * @return 组织机构树清单
      */
     @Override
-    public ResultData<List<OrganizationDto>> findOrgTree() {
-        return service.findOrgTree();
+    public ResultData<OrganizationDto> findOrgTreeByCorpCode(String corpCode) {
+        return service.findOrgTree(corpCode);
+    }
+
+    /**
+     * 按组织级主体id获取分配的组织机构
+     *
+     * @param id 组织级主体id
+     * @return 分配的组织机构清单
+     */
+    @Override
+    public ResultData<List<SubjectOrganizationDto>> getSubjectOrganizations(String id) {
+        List<SubjectOrganizationDto> list;
+        List<SubjectOrganization> organizations = service.getSubjectOrganizations(id);
+        if (CollectionUtils.isNotEmpty(organizations)) {
+            list = organizations.stream().map(o -> modelMapper.map(o, SubjectOrganizationDto.class)).collect(Collectors.toList());
+        } else {
+            list = Collections.emptyList();
+        }
+        return ResultData.success(list);
     }
 }
