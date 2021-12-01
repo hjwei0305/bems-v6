@@ -210,6 +210,24 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
     }
 
     /**
+     * 更新一个预算主体冻结状态
+     *
+     * @param id id
+     * @return 更新结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ResultData<Void> updateFrozen(String id, boolean state) {
+        Subject subject = dao.findOne(id);
+        if (Objects.isNull(subject)) {
+            // 业务领域不存在.
+            return ResultData.fail(ContextUtil.getMessage("subject_00003", id));
+        }
+        subject.setFrozen(state);
+        dao.save(subject);
+        return ResultData.success();
+    }
+
+    /**
      * 数据保存操作
      */
     @Override

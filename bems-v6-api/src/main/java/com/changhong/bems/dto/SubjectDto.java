@@ -75,6 +75,11 @@ public class SubjectDto extends BaseEntityDto {
     @ApiModelProperty(value = "排序")
     private Integer rank = 0;
     /**
+     * 冻结
+     */
+    @ApiModelProperty(value = "冻结")
+    private Boolean frozen = Boolean.FALSE;
+    /**
      * 租户代码
      */
     @ApiModelProperty(value = "租户代码")
@@ -155,6 +160,14 @@ public class SubjectDto extends BaseEntityDto {
 
     public void setRank(Integer rank) {
         this.rank = rank;
+    }
+
+    public Boolean getFrozen() {
+        return frozen;
+    }
+
+    public void setFrozen(Boolean frozen) {
+        this.frozen = frozen;
     }
 
     public String getTenantCode() {

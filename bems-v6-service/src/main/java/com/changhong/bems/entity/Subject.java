@@ -2,9 +2,9 @@ package com.changhong.bems.entity;
 
 import com.changhong.bems.dto.Classification;
 import com.changhong.bems.dto.OrganizationDto;
-import com.changhong.sei.core.dto.IRank;
 import com.changhong.sei.core.dto.auth.IDataAuthEntity;
 import com.changhong.sei.core.entity.BaseAuditableEntity;
+import com.changhong.sei.core.entity.IFrozen;
 import com.changhong.sei.core.entity.ITenant;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -23,7 +23,7 @@ import java.util.Set;
 @Table(name = "subject")
 @DynamicInsert
 @DynamicUpdate
-public class Subject extends BaseAuditableEntity implements ITenant, IRank, IDataAuthEntity, Serializable {
+public class Subject extends BaseAuditableEntity implements ITenant, IFrozen, IDataAuthEntity, Serializable {
     private static final long serialVersionUID = 851011858666429840L;
     public static final String FIELD_CORP_CODE = "corporationCode";
     public static final String FIELD_CLASSIFICATION = "classification";
@@ -79,6 +79,11 @@ public class Subject extends BaseAuditableEntity implements ITenant, IRank, IDat
      */
     @Column(name = "rank")
     private Integer rank = 0;
+    /**
+     * 冻结
+     */
+    @Column(name = "frozen_")
+    private Boolean frozen = Boolean.FALSE;
     /**
      * 租户代码
      */
@@ -166,13 +171,22 @@ public class Subject extends BaseAuditableEntity implements ITenant, IRank, IDat
         this.strategyName = strategyName;
     }
 
-    @Override
     public Integer getRank() {
         return rank;
     }
 
     public void setRank(Integer rank) {
         this.rank = rank;
+    }
+
+    @Override
+    public Boolean getFrozen() {
+        return frozen;
+    }
+
+    @Override
+    public void setFrozen(Boolean frozen) {
+        this.frozen = frozen;
     }
 
     @Override

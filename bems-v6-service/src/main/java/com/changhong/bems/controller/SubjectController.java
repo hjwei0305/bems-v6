@@ -90,6 +90,28 @@ public class SubjectController extends BaseEntityController<Subject, SubjectDto>
     }
 
     /**
+     * 启用一个预算主体
+     *
+     * @param id id
+     * @return 启用结果
+     */
+    @Override
+    public ResultData<Void> enable(String id) {
+        return service.updateFrozen(id, Boolean.FALSE);
+    }
+
+    /**
+     * 禁用一个预算主体
+     *
+     * @param id id
+     * @return 禁用结果
+     */
+    @Override
+    public ResultData<Void> disable(String id) {
+        return service.updateFrozen(id, Boolean.TRUE);
+    }
+
+    /**
      * 获取币种数据
      *
      * @return 查询结果

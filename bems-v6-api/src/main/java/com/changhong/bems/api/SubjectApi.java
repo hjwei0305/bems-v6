@@ -8,6 +8,7 @@ import com.changhong.sei.core.dto.ResultData;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
@@ -23,6 +24,26 @@ import java.util.List;
 @FeignClient(name = "bems-v6", path = SubjectApi.PATH)
 public interface SubjectApi extends BaseEntityApi<SubjectDto>, FindByPageApi<SubjectDto>, DataAuthEntityApi<SubjectDto> {
     String PATH = "subject";
+
+    /**
+     * 启用一个预算主体
+     *
+     * @param id id
+     * @return 启用结果
+     */
+    @PostMapping(path = "enable")
+    @ApiOperation(value = "启用一个预算主体", notes = "启用一个预算主体")
+    ResultData<Void> enable(@RequestParam("id") String id);
+
+    /**
+     * 禁用一个预算主体
+     *
+     * @param id id
+     * @return 禁用结果
+     */
+    @PostMapping(path = "disable")
+    @ApiOperation(value = "禁用一个预算主体", notes = "禁用一个预算主体")
+    ResultData<Void> disable(@RequestParam("id") String id);
 
     /**
      * 获取币种数据
