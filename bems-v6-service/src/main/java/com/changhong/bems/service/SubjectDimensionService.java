@@ -44,49 +44,64 @@ public class SubjectDimensionService {
     private SubjectService subjectService;
 
     /**
+     * 按预算分类获取维度清单
+     *
+     * @param classification 预算分类
+     * @return 维度清单
+     */
+    public List<DimensionDto> getDimensionsByClassification(Classification classification) {
+        List<DimensionDto> dimensionList = new ArrayList<>();
+        List<Dimension> dimensions = dimensionService.findAll();
+        if (CollectionUtils.isNotEmpty(dimensions)) {
+            DimensionDto dto;
+            for (Dimension dimension : dimensions) {
+                // 组织级预算主体无项目维度
+                if (Objects.equals(Classification.DEPARTMENT, classification)) {
+                    if (StringUtils.equals(Constants.DIMENSION_CODE_PROJECT, dimension.getCode())) {
+                        continue;
+                    }
+                }
+                dto = new DimensionDto();
+                dto.setCode(dimension.getCode());
+                dto.setName(dimension.getName());
+                dto.setStrategyId(dimension.getStrategyId());
+                dto.setStrategyName(dimension.getStrategyName());
+                dto.setUiComponent(dimension.getUiComponent());
+                dto.setRequired(dimension.getRequired());
+                dto.setRank(dimension.getRank());
+                dimensionList.add(dto);
+            }
+        }
+        return dimensionList;
+    }
+
+    /**
      * 按预算主体获取维度清单
      *
      * @param subjectId 预算主体id
      * @return 查询结果
      */
-    @Cacheable(key = "#subjectId")
     public List<DimensionDto> getDimensions(String subjectId) {
-        List<DimensionDto> dimensionList = new ArrayList<>();
         Subject subject = subjectService.findOne(subjectId);
         if (Objects.nonNull(subject)) {
-            List<Dimension> dimensions = dimensionService.findAll();
-            if (CollectionUtils.isNotEmpty(dimensions)) {
+            List<DimensionDto> dimensionList = this.getDimensionsByClassification(subject.getClassification());
+            if (CollectionUtils.isNotEmpty(dimensionList)) {
                 List<SubjectDimension> subjectDimensions = dao.findListByProperty(SubjectDimension.FIELD_SUBJECT_ID, subjectId);
-                DimensionDto dto;
-                for (Dimension dimension : dimensions) {
-                    // 组织级预算主体无项目维度
-                    if (Objects.equals(Classification.DEPARTMENT, subject.getClassification())) {
-                        if (StringUtils.equals(Constants.DIMENSION_CODE_PROJECT, dimension.getCode())) {
-                            continue;
-                        }
-                    }
-                    dto = new DimensionDto();
-                    dto.setCode(dimension.getCode());
-                    dto.setName(dimension.getName());
-                    dto.setStrategyId(dimension.getStrategyId());
-                    dto.setStrategyName(dimension.getStrategyName());
-                    dto.setUiComponent(dimension.getUiComponent());
-                    dto.setRequired(dimension.getRequired());
-                    dto.setRank(dimension.getRank());
-                    if (CollectionUtils.isNotEmpty(subjectDimensions)) {
-                        for (SubjectDimension sd : subjectDimensions) {
-                            if (StringUtils.equals(dto.getCode(), sd.getCode())) {
-                                dto.setId(sd.getId());
-                                dto.setStrategyId(sd.getStrategyId());
-                                dto.setStrategyName(strategyService.getNameByCode(sd.getStrategyId()));
+                if (CollectionUtils.isNotEmpty(subjectDimensions)) {
+                    for (SubjectDimension sd : subjectDimensions) {
+                        for (DimensionDto dimension : dimensionList) {
+                            if (StringUtils.equals(dimension.getCode(), sd.getCode())) {
+                                dimension.setId(sd.getId());
+                                dimension.setStrategyId(sd.getStrategyId());
+                                dimension.setStrategyName(strategyService.getNameByCode(sd.getStrategyId()));
                             }
                         }
                     }
-                    dimensionList.add(dto);
                 }
+                return dimensionList;
             }
         }
-        return dimensionList;
+        return new ArrayList<>();
     }
 
     @Cacheable(key = "#subjectId + ':' + #code")

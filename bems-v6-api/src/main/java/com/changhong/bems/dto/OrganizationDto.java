@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 实现功能: 组织机构DTO
@@ -134,5 +135,22 @@ public class OrganizationDto implements Serializable {
 
     public void setChildren(List<OrganizationDto> children) {
         this.children = children;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        OrganizationDto that = (OrganizationDto) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
     }
 }

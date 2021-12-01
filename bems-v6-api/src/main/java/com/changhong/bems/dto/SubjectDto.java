@@ -7,6 +7,7 @@ import io.swagger.annotations.ApiModelProperty;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.Set;
 
 /**
  * 预算主体(Subject)DTO类
@@ -78,6 +79,11 @@ public class SubjectDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "租户代码")
     private String tenantCode;
+    /**
+     * 组织级预算主体关联的组织机构
+     */
+    @ApiModelProperty(value = "组织级预算主体关联的组织机构")
+    private Set<OrganizationDto> orgList;
 
     public String getName() {
         return name;
@@ -157,5 +163,13 @@ public class SubjectDto extends BaseEntityDto {
 
     public void setTenantCode(String tenantCode) {
         this.tenantCode = tenantCode;
+    }
+
+    public Set<OrganizationDto> getOrgList() {
+        return orgList;
+    }
+
+    public void setOrgList(Set<OrganizationDto> orgList) {
+        this.orgList = orgList;
     }
 }

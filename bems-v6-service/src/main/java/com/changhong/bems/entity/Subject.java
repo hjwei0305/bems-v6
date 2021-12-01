@@ -1,6 +1,7 @@
 package com.changhong.bems.entity;
 
 import com.changhong.bems.dto.Classification;
+import com.changhong.bems.dto.OrganizationDto;
 import com.changhong.sei.core.dto.IRank;
 import com.changhong.sei.core.dto.auth.IDataAuthEntity;
 import com.changhong.sei.core.entity.BaseAuditableEntity;
@@ -87,7 +88,7 @@ public class Subject extends BaseAuditableEntity implements ITenant, IRank, IDat
      * 临时字段
      */
     @Transient
-    private Set<String> orgIds;
+    private Set<OrganizationDto> orgList;
 
     @Override
     public String getCode() {
@@ -184,11 +185,11 @@ public class Subject extends BaseAuditableEntity implements ITenant, IRank, IDat
         this.tenantCode = tenantCode;
     }
 
-    public Set<String> getOrgIds() {
-        return orgIds;
+    public Set<OrganizationDto> getOrgList() {
+        return orgList;
     }
 
-    public void setOrgIds(Set<String> orgIds) {
-        this.orgIds = orgIds;
+    public void setOrgList(Set<OrganizationDto> orgList) {
+        this.orgList = orgList;
     }
 }

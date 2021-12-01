@@ -5,7 +5,10 @@ import com.changhong.bems.dto.CategoryType;
 import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.dto.OrderCategory;
 import com.changhong.bems.dto.PeriodType;
-import com.changhong.bems.entity.*;
+import com.changhong.bems.entity.Category;
+import com.changhong.bems.entity.CategoryDimension;
+import com.changhong.bems.entity.Order;
+import com.changhong.bems.entity.Subject;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
@@ -256,8 +259,19 @@ public class CategoryService extends BaseEntityService<Category> {
      * @param categoryId 预算类型
      * @return 子实体清单
      */
-    public List<Dimension> getUnassigned(String categoryId) {
-        List<Dimension> dimensionList = dimensionService.findAll();
+    public List<DimensionDto> getUnassigned(String categoryId) {
+        List<DimensionDto> list = new ArrayList<>();
+        Category category = dao.findOne(categoryId);
+        if (Objects.isNull(category)) {
+            return list;
+        }
+        List<DimensionDto> dimensionList;
+        // 获取预算主体可用的维度(策略)
+        if (CategoryType.GENERAL == category.getType()) {
+            dimensionList = subjectDimensionService.getDimensionsByClassification(category.getClassification());
+        } else {
+            dimensionList = subjectDimensionService.getDimensions(category.getSubjectId());
+        }
         List<CategoryDimension> categoryDimensions = categoryDimensionService.getByCategoryId(categoryId);
         if (CollectionUtils.isNotEmpty(categoryDimensions)) {
             Set<String> codes = categoryDimensions.stream().map(CategoryDimension::getDimensionCode).collect(Collectors.toSet());
@@ -275,21 +289,28 @@ public class CategoryService extends BaseEntityService<Category> {
      */
     @Cacheable(key = "#categoryId")
     public List<DimensionDto> getAssigned(String categoryId) {
-        List<DimensionDto> list = new ArrayList<>();
         Category category = dao.findOne(categoryId);
         if (Objects.isNull(category)) {
-            return list;
+            return new ArrayList<>();
         }
+
+        List<DimensionDto> list;
         // 预算类型分配的维度
         List<CategoryDimension> categoryDimensions = categoryDimensionService.getByCategoryId(categoryId);
         if (CollectionUtils.isNotEmpty(categoryDimensions)) {
             // 获取预算主体可用的维度(策略)
-            list = subjectDimensionService.getDimensions(category.getSubjectId());
+            if (CategoryType.GENERAL == category.getType()) {
+                list = subjectDimensionService.getDimensionsByClassification(category.getClassification());
+            } else {
+                list = subjectDimensionService.getDimensions(category.getSubjectId());
+            }
             Set<String> codeSet = categoryDimensions.stream().map(CategoryDimension::getDimensionCode).collect(Collectors.toSet());
             // 按可用的维度过滤
             list = list.stream().filter(d -> codeSet.contains(d.getCode())).collect(Collectors.toList());
             // 排序
             list.sort(Comparator.comparing(DimensionDto::getRank));
+        } else {
+            list = new ArrayList<>();
         }
         return list;
     }

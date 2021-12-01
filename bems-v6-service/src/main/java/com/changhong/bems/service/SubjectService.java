@@ -230,7 +230,7 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
                 return OperateResultWithData.operationFailure("subject_00011", entity.getCorporationCode(), existed.getName());
             }
         } else if (Objects.equals(Classification.DEPARTMENT, entity.getClassification())
-                && CollectionUtils.isEmpty(entity.getOrgIds())) {
+                && CollectionUtils.isEmpty(entity.getOrgList())) {
             // 组织级预算主体需维护适用组织范围
             return OperateResultWithData.operationFailure("subject_00006");
         }
@@ -256,10 +256,11 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
             }
             SubjectOrganization org;
             orgList = new ArrayList<>();
-            for (String orgId : entity.getOrgIds()) {
+            for (OrganizationDto orgDto : entity.getOrgList()) {
                 org = new SubjectOrganization();
                 org.setSubjectId(entity.getId());
-                org.setOrgId(orgId);
+                org.setOrgId(orgDto.getId());
+                org.setOrgName(orgDto.getName());
                 org.setTenantCode(entity.getTenantCode());
                 orgList.add(org);
             }
@@ -291,6 +292,33 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
             return OperateResult.operationFailure("subject_00001", category.getName());
         }
         return OperateResult.operationSuccess();
+    }
+
+    /**
+     * 基于主键查询单一数据对象
+     *
+     * @param id 主体id
+     */
+    @Override
+    public Subject findOne(String id) {
+        Subject subject = dao.findOne(id);
+        if (Objects.nonNull(subject)) {
+            if (Objects.equals(Classification.DEPARTMENT, subject.getClassification())) {
+                List<SubjectOrganization> list = this.getSubjectOrganizations(id);
+                if (CollectionUtils.isNotEmpty(list)) {
+                    OrganizationDto org;
+                    Set<OrganizationDto> orgSet = new HashSet<>(list.size());
+                    for (SubjectOrganization so : list) {
+                        org = new OrganizationDto();
+                        org.setId(so.getOrgId());
+                        org.setName(so.getOrgName());
+                        orgSet.add(org);
+                    }
+                    subject.setOrgList(orgSet);
+                }
+            }
+        }
+        return subject;
     }
 
     /**

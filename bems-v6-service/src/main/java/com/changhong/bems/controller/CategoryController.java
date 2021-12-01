@@ -160,9 +160,7 @@ public class CategoryController extends BaseEntityController<Category, CategoryD
      */
     @Override
     public ResultData<List<DimensionDto>> getUnassigned(String categoryId) {
-        return ResultData.success(service.getUnassigned(categoryId)
-                .stream().map(d -> dtoModelMapper.map(d, DimensionDto.class))
-                .collect(Collectors.toList()));
+        return ResultData.success(service.getUnassigned(categoryId));
     }
 
     /**
