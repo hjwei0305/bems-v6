@@ -240,6 +240,7 @@ public class CategoryService extends BaseEntityService<Category> {
         privateCategory.setUse(category.getUse());
         privateCategory.setRoll(category.getRoll());
         privateCategory.setReferenceId(id);
+        privateCategory.setClassification(category.getClassification());
         // 获取当前预算类型支持的订单类型
         OrderCategory[] orderCategories = categoryConfigService.findPeriodTypes(id);
         ResultData<Category> result = this.saveOrUpdate(privateCategory, orderCategories);
