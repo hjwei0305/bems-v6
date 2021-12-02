@@ -1,7 +1,10 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.dao.CategoryDao;
-import com.changhong.bems.dto.*;
+import com.changhong.bems.dto.CategoryType;
+import com.changhong.bems.dto.DimensionDto;
+import com.changhong.bems.dto.OrderCategory;
+import com.changhong.bems.dto.PeriodType;
 import com.changhong.bems.entity.Category;
 import com.changhong.bems.entity.CategoryDimension;
 import com.changhong.bems.entity.Order;
@@ -365,32 +368,8 @@ public class CategoryService extends BaseEntityService<Category> {
      * @return 业务实体
      */
     public List<Category> getByCategory(String subjectId, OrderCategory category) {
-        Search search = Search.createSearch();
-        search.addFilter(new SearchFilter(Category.FIELD_SUBJECT_ID, subjectId));
-        search.addFilter(new SearchFilter(Category.FIELD_TYPE, CategoryType.PRIVATE));
-        search.addFilter(new SearchFilter(Category.FROZEN, Boolean.FALSE));
-        List<Category> privateList = dao.findByFilters(search);
-
-        search.clearAll();
-        search.addFilter(new SearchFilter(Category.FIELD_TYPE, CategoryType.GENERAL));
-        search.addFilter(new SearchFilter(Category.FROZEN, Boolean.FALSE));
-        List<Category> generalList = dao.findByFilters(search);
-        List<Category> categoryList = new ArrayList<>();
-        if (CollectionUtils.isEmpty(privateList)) {
-            if (CollectionUtils.isNotEmpty(generalList)) {
-                categoryList.addAll(generalList);
-            }
-        } else {
-            if (CollectionUtils.isNotEmpty(generalList)) {
-                Set<String> ids = privateList.stream().map(Category::getReferenceId).filter(StringUtils::isNotBlank).collect(Collectors.toSet());
-                if (CollectionUtils.isNotEmpty(ids)) {
-                    categoryList.addAll(generalList.stream().filter(c -> !ids.contains(c.getId())).collect(Collectors.toList()));
-                } else {
-                    categoryList.addAll(generalList);
-                }
-            }
-            categoryList.addAll(privateList);
-        }
+        // 获取当前主体的预算类型
+        List<Category> categoryList = this.findBySubject(subjectId);
         Set<String> ids = categoryList.stream().map(Category::getId).collect(Collectors.toSet());
         if (CollectionUtils.isNotEmpty(ids)) {
             // 按预算类型id清单和订单类型获取配置的预算期间
@@ -398,7 +377,6 @@ public class CategoryService extends BaseEntityService<Category> {
             // 过滤满足配置条件的预算类型
             categoryList = categoryList.stream().filter(c -> periodTypeSet.contains(c.getPeriodType())).collect(Collectors.toList());
         }
-
         return categoryList;
     }
 }
