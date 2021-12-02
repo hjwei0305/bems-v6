@@ -3,6 +3,7 @@ package com.changhong.bems.service.client;
 import com.changhong.bems.dto.OrganizationDto;
 import com.changhong.sei.core.dto.ResultData;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -61,7 +62,7 @@ public interface OrganizationClient {
      * @param orgIds 组织机构id清单
      * @return 组织机构清单（非树形）
      */
-    @GetMapping(path = "getChildrenNodes4UnfrozenByIds")
+    @PostMapping(path = "getChildrenNodes4UnfrozenByIds", consumes = MediaType.APPLICATION_JSON_VALUE)
     ResultData<List<OrganizationDto>> getChildrenNodes4UnfrozenByIds(@RequestBody Set<String> orgIds);
 
     /**
@@ -80,6 +81,6 @@ public interface OrganizationClient {
      * @param orgIds id集合
      * @return 组织机构
      */
-    @PostMapping(path = "findOrganizationByIds")
+    @PostMapping(path = "findOrganizationByIds", consumes = MediaType.APPLICATION_JSON_VALUE)
     ResultData<List<OrganizationDto>> findOrganizationByIds(@RequestBody Set<String> orgIds);
 }

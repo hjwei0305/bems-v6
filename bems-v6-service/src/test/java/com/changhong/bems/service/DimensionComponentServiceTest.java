@@ -1,5 +1,6 @@
 package com.changhong.bems.service;
 
+import com.changhong.bems.dto.OrganizationDto;
 import com.changhong.bems.dto.ProjectDto;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.test.BaseUnit5Test;
@@ -30,6 +31,9 @@ class DimensionComponentServiceTest extends BaseUnit5Test {
 
     @Test
     void getOrgTree() {
+        String subjectId = "7F757D51-532E-11EC-ABD0-0242C0A84424";
+        ResultData<List<OrganizationDto>> resultData = service.getOrgTree(subjectId);
+        System.out.println(resultData);
     }
 
     @Test
