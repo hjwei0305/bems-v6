@@ -46,7 +46,7 @@ class SubjectServiceTest extends BaseUnit5Test {
 
     @Test
     void save() {
-        String json = "{\"id\":\"6B5AC673-52B2-11EC-94F8-0242C0A84427\",\"name\":\"1111\",\"corporationCode\":\"Q000\",\"corporationName\":\"四川虹信软件股份有限公司\",\"classification\":\"DEPARTMENT\",\"currencyCode\":\"CNY\",\"currencyName\":\"人民币\",\"strategyId\":\"limitExecutionStrategy\",\"strategyName\":\"强控\",\"rank\":0,\"frozen\":false,\"tenantCode\":\"10044\",\"orgList\":[{\"name\":\"四川虹信软件股份有限公司\",\"namePath\":\"/四川长虹电子控股集团有限公司/消费者BG/长虹多媒体公司/智慧业务BG/四川虹信软件股份有限公司\",\"id\":\"435B09B6-D0E1-11EA-93C3-0242C0A8460D\"}]}";
+        String json = "{\"classification\":\"DEPARTMENT\",\"currencyCode\":\"CNY\",\"strategyId\":\"limitExecutionStrategy\",\"corporationCode\":\"Q000\",\"corporationName\":\"四川虹信软件股份有限公司\",\"classificationName\":\"部门级\",\"name\":\"测试\",\"currencyName\":\"人民币\",\"strategyName\":\"强控\",\"frozen\":false,\"orgList\":[{\"name\":\"四川虹信软件股份有限公司\",\"namePath\":\"/四川长虹电子控股集团有限公司/消费者BG/长虹多媒体公司/智慧业务BG/四川虹信软件股份有限公司\",\"id\":\"435B09B6-D0E1-11EA-93C3-0242C0A8460D\"},{\"name\":\"综合管理部\",\"namePath\":\"/四川长虹电子控股集团有限公司/消费者BG/长虹多媒体公司/智慧业务BG/四川虹信软件股份有限公司/综合管理部\",\"id\":\"6CDB948C-D0E1-11EA-93C3-0242C0A8460D\"}]}";
         Subject subject = JsonUtils.fromJson(json, Subject.class);
         OperateResultWithData<Subject> result = service.save(subject);
         System.out.println(result);

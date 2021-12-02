@@ -361,6 +361,7 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
                         org = new OrganizationDto();
                         org.setId(so.getOrgId());
                         org.setName(so.getOrgName());
+                        org.setNamePath(so.getOrgNamePath());
                         orgSet.add(org);
                     }
                     subject.setOrgList(orgSet);
