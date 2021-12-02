@@ -37,13 +37,13 @@ public class Category extends BaseAuditableEntity implements ITenant, IFrozen, S
     /**
      * 预算分类
      */
-    @Column(name = "classification")
+    @Column(name = "classification", updatable = false)
     @Enumerated(EnumType.STRING)
     private Classification classification;
     /**
      * 类型分类
      */
-    @Column(name = "category_type")
+    @Column(name = "category_type", updatable = false)
     @Enumerated(EnumType.STRING)
     private CategoryType type;
     /**

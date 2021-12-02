@@ -31,7 +31,7 @@ public class Subject extends BaseAuditableEntity implements ITenant, IFrozen, ID
     /**
      * 主体代码
      */
-    @Column(name = "code")
+    @Column(name = "code", updatable = false)
     private String code;
     /**
      * 主体名称
@@ -41,12 +41,12 @@ public class Subject extends BaseAuditableEntity implements ITenant, IFrozen, ID
     /**
      * 公司代码
      */
-    @Column(name = "corporation_code")
+    @Column(name = "corporation_code", updatable = false)
     private String corporationCode;
     /**
      * 公司名称
      */
-    @Column(name = "corporation_name")
+    @Column(name = "corporation_name", updatable = false)
     private String corporationName;
     /**
      * 预算分类
@@ -57,12 +57,12 @@ public class Subject extends BaseAuditableEntity implements ITenant, IFrozen, ID
     /**
      * 币种代码
      */
-    @Column(name = "currency_code")
+    @Column(name = "currency_code", updatable = false)
     private String currencyCode;
     /**
      * 币种名称
      */
-    @Column(name = "currency_name")
+    @Column(name = "currency_name", updatable = false)
     private String currencyName;
     /**
      * 执行策略id
