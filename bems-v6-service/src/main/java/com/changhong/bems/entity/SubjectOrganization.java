@@ -50,6 +50,11 @@ public class SubjectOrganization extends BaseAuditableEntity implements ITenant,
      */
     @Column(name = "org_name")
     private String orgName;
+    /**
+     * 组织名称路径
+     */
+    @Column(name = "org_name_path")
+    private String orgNamePath;
 
     public String getSubjectId() {
         return subjectId;
@@ -91,5 +96,13 @@ public class SubjectOrganization extends BaseAuditableEntity implements ITenant,
 
     public void setOrgName(String orgName) {
         this.orgName = orgName;
+    }
+
+    public String getOrgNamePath() {
+        return orgNamePath;
+    }
+
+    public void setOrgNamePath(String orgNamePath) {
+        this.orgNamePath = orgNamePath;
     }
 }

@@ -31,15 +31,18 @@ public class SubjectOrganizationDto extends BaseEntityDto {
     /**
      * 组织代码
      */
-    @Size(max = 30)
     @ApiModelProperty(value = "组织代码")
     private String orgCode;
     /**
      * 组织名称
      */
-    @Size(max = 50)
     @ApiModelProperty(value = "组织名称")
     private String orgName;
+    /**
+     * 组织名称路径
+     */
+    @ApiModelProperty(value = "组织名称路径")
+    private String orgNamePath;
 
     public String getSubjectId() {
         return subjectId;
@@ -71,5 +74,13 @@ public class SubjectOrganizationDto extends BaseEntityDto {
 
     public void setOrgName(String orgName) {
         this.orgName = orgName;
+    }
+
+    public String getOrgNamePath() {
+        return orgNamePath;
+    }
+
+    public void setOrgNamePath(String orgNamePath) {
+        this.orgNamePath = orgNamePath;
     }
 }
