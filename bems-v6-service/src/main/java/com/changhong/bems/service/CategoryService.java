@@ -189,13 +189,17 @@ public class CategoryService extends BaseEntityService<Category> {
     public List<DimensionDto> findDimensionBySubject(String subjectId) {
         // 获取当前主体的预算类型
         List<Category> categoryList = this.findBySubject(subjectId);
-        Set<String> categoryIds = categoryList.stream().map(Category::getId).collect(Collectors.toSet());
-        // 按预算类型获取使用的维度代码
-        Set<String> dimensionCodeSet = categoryDimensionService.getDimensionCodeByCategory(categoryIds);
-        // 按主体获取预算维度及维度策略
-        List<DimensionDto> dimensions = subjectDimensionService.getDimensions(subjectId);
-        // 按使用的维度过滤
-        return dimensions.stream().filter(d -> dimensionCodeSet.contains(d.getCode())).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(categoryList)) {
+            Set<String> categoryIds = categoryList.stream().map(Category::getId).collect(Collectors.toSet());
+            // 按预算类型获取使用的维度代码
+            Set<String> dimensionCodeSet = categoryDimensionService.getDimensionCodeByCategory(categoryIds);
+            // 按主体获取预算维度及维度策略
+            List<DimensionDto> dimensions = subjectDimensionService.getDimensions(subjectId);
+            // 按使用的维度过滤
+            return dimensions.stream().filter(d -> dimensionCodeSet.contains(d.getCode())).collect(Collectors.toList());
+        } else {
+            return new ArrayList<>();
+        }
     }
 
     /**

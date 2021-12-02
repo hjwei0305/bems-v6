@@ -29,6 +29,10 @@ class CategoryServiceTest extends BaseUnit5Test {
 
     @Test
     void findDimensionBySubject() {
+        String subjectId = "060C72D7-532F-11EC-A5BE-0242C0A84425";
+
+        List<DimensionDto> list = service.findDimensionBySubject(subjectId);
+        System.out.println(list);
     }
 
     @Test
