@@ -108,9 +108,9 @@ order by p.code
             paramMap.put("orgIds", queryParam.getOrgIds());
         }
         // 预算项目编码清单
-        if (CollectionUtils.isNotEmpty(queryParam.getProjectCodes())) {
-            fromAndWhere.append("and a.project in (:projectCodes) ");
-            paramMap.put("projectCodes", queryParam.getProjectCodes());
+        if (CollectionUtils.isNotEmpty(queryParam.getProjectIds())) {
+            fromAndWhere.append("and a.project in (:projectIds) ");
+            paramMap.put("projectIds", queryParam.getProjectIds());
         }
         // 自定义1清单
         if (CollectionUtils.isNotEmpty(queryParam.getUdf1s())) {

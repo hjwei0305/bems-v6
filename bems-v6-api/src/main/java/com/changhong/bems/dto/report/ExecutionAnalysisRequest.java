@@ -42,10 +42,10 @@ public class ExecutionAnalysisRequest implements Serializable {
     @ApiModelProperty(value = "组织id清单")
     private Set<String> orgIds;
     /**
-     * 项目号清单
+     * 项目Id清单
      */
-    @ApiModelProperty(value = "项目号清单")
-    private Set<String> projectCodes;
+    @ApiModelProperty(value = "项目Id清单")
+    private Set<String> projectIds;
     /**
      * udf1清单
      */
@@ -104,12 +104,12 @@ public class ExecutionAnalysisRequest implements Serializable {
         this.orgIds = orgIds;
     }
 
-    public Set<String> getProjectCodes() {
-        return projectCodes;
+    public Set<String> getProjectIds() {
+        return projectIds;
     }
 
-    public void setProjectCodes(Set<String> projectCodes) {
-        this.projectCodes = projectCodes;
+    public void setProjectIds(Set<String> projectIds) {
+        this.projectIds = projectIds;
     }
 
     public Set<String> getUdf1s() {

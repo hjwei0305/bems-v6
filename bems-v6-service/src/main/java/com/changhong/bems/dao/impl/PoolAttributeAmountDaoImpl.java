@@ -77,9 +77,9 @@ public class PoolAttributeAmountDaoImpl extends BaseEntityDaoImpl<PoolAttributeA
             selectField.append(",'',''");
         }
         // 项目
-        if (CollectionUtils.isNotEmpty(request.getProjectCodes())) {
-            jpql.append(" and a.project in (:projectCodes) ");
-            params.put("projectCodes", request.getProjectCodes());
+        if (CollectionUtils.isNotEmpty(request.getProjectIds())) {
+            jpql.append(" and a.project in (:projectIds) ");
+            params.put("projectIds", request.getProjectIds());
             selectField.append(",a.project,max(a.projectName)");
             groupByField.append(",a.project");
         } else {
@@ -176,8 +176,8 @@ public class PoolAttributeAmountDaoImpl extends BaseEntityDaoImpl<PoolAttributeA
         }
         // 项目
         if (StringUtils.isNotBlank(request.getProject())) {
-            jpql.append(" and a.project = :projectCode ");
-            params.put("projectCode", request.getProject());
+            jpql.append(" and a.project = :project ");
+            params.put("project", request.getProject());
             groupByField.append(",a.project");
         }
         // 自定义1
