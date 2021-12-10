@@ -128,11 +128,11 @@ public class DimensionComponentService {
                 }
                 break;
             case Constants.DIMENSION_CODE_PROJECT:
-                data.put("head", Lists.newArrayList("项目代码", "项目名称"));
+                data.put("head", Lists.newArrayList("项目id", "项目名称"));
                 ResultData<List<ProjectDto>> listResultData = projectManager.findByErpCode(subject.getCorporationCode());
                 if (listResultData.successful()) {
                     List<ProjectDto> projectList = listResultData.getData();
-                    list = projectList.stream().map(o -> new KeyValueDto(o.getCode(), o.getName())).collect(Collectors.toList());
+                    list = projectList.stream().map(o -> new KeyValueDto(o.getId(), o.getName())).collect(Collectors.toList());
                 } else {
                     return ResultData.fail(listResultData.getMessage());
                 }

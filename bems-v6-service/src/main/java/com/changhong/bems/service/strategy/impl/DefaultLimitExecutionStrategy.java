@@ -44,7 +44,7 @@ public class DefaultLimitExecutionStrategy extends BaseExecutionStrategy impleme
         BigDecimal poolBalance = poolService.getPoolBalanceByCode(poolCode);
         if (useAmount.compareTo(poolBalance) > 0) {
             // 预算占用时,当前余额[{0}]不满足占用金额[{1}]!
-            String message = ContextUtil.getMessage("pool_00013", poolBalance, useAmount);
+            String message = ContextUtil.getMessage("pool_00013", poolCode, poolBalance, useAmount);
             LOG.error(message);
             return ResultData.fail(message);
         }
