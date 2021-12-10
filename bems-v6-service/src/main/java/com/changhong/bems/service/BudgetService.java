@@ -96,6 +96,11 @@ public class BudgetService {
                 ResultData<BudgetResponse> resultData;
                 String successMessage = ContextUtil.getMessage("pool_00003");
                 for (BudgetUse budgetUse : useList) {
+                    // 释放原先占用
+                    this.freeBudget(budgetUse.getEventCode(), budgetUse.getBizId(), budgetUse.getBizRemark());
+                }
+
+                for (BudgetUse budgetUse : useList) {
                     resultData = this.useBudget(budgetUse.getClassification(), budgetUse);
                     if (resultData.successful()) {
                         budgetResponse = resultData.getData();
@@ -171,9 +176,6 @@ public class BudgetService {
                 // 不支持的预算分类
                 return ResultData.fail(ContextUtil.getMessage("pool_00034", classification));
         }
-
-        // 释放原先占用
-        this.freeBudget(eventCode, bizId, useBudget.getBizRemark());
 
         // 再按新数据占用
         /*
