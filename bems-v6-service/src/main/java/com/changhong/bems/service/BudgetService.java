@@ -100,6 +100,7 @@ public class BudgetService {
                     this.freeBudget(budgetUse.getEventCode(), budgetUse.getBizId(), budgetUse.getBizRemark());
                 }
 
+                boolean success = true;
                 for (BudgetUse budgetUse : useList) {
                     resultData = this.useBudget(budgetUse.getClassification(), budgetUse);
                     if (resultData.successful()) {
@@ -108,6 +109,7 @@ public class BudgetService {
                         budgetResponse.setMessage(successMessage);
                         responses.add(budgetResponse);
                     } else {
+                        success = false;
                         responses.clear();
                         budgetResponse = new BudgetResponse();
                         budgetResponse.setBizId(budgetUse.getBizId());
@@ -117,6 +119,29 @@ public class BudgetService {
                         // 回滚事务
                         TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                         break;
+                    }
+                }
+
+                if (success) {
+                    List<BudgetUseResult> list;
+                    Map<String, List<BudgetUseResult>> map = new HashMap<>();
+                    for (BudgetResponse response : responses) {
+                        list = map.get(response.getBizId());
+                        if (Objects.isNull(list)) {
+                            list = new ArrayList<>();
+                        }
+                        list.addAll(response.getUseResults());
+                        map.put(response.getBizId(), list);
+                    }
+                    responses.clear();
+                    BudgetResponse response;
+                    for (Map.Entry<String, List<BudgetUseResult>> entry : map.entrySet()) {
+                        response = new BudgetResponse();
+                        response.setBizId(entry.getKey());
+                        response.setSuccess(Boolean.TRUE);
+                        response.setMessage("ok");
+                        response.setUseResults(entry.getValue());
+                        responses.add(response);
                     }
                 }
                 result = ResultData.success(responses);
