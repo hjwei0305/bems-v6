@@ -4,7 +4,6 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,9 +17,6 @@ import java.util.List;
 @ApiModel(description = "预算占用")
 public class BudgetRequest implements Serializable {
     private static final long serialVersionUID = -3676168862062617480L;
-    @NotNull
-    @ApiModelProperty(value = "预算分类")
-    private Classification classification;
 
     @Valid
     @ApiModelProperty(value = "预算占用清单")
@@ -28,14 +24,6 @@ public class BudgetRequest implements Serializable {
     @Valid
     @ApiModelProperty(value = "预算释放清单")
     private List<BudgetFree> freeList;
-
-    public Classification getClassification() {
-        return classification;
-    }
-
-    public void setClassification(Classification classification) {
-        this.classification = classification;
-    }
 
     public List<BudgetUse> getUseList() {
         return useList;

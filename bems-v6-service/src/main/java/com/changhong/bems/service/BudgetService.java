@@ -96,7 +96,7 @@ public class BudgetService {
                 ResultData<BudgetResponse> resultData;
                 String successMessage = ContextUtil.getMessage("pool_00003");
                 for (BudgetUse budgetUse : useList) {
-                    resultData = this.useBudget(request.getClassification(), budgetUse);
+                    resultData = this.useBudget(budgetUse.getClassification(), budgetUse);
                     if (resultData.successful()) {
                         budgetResponse = resultData.getData();
                         budgetResponse.setSuccess(Boolean.TRUE);

@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
@@ -19,7 +20,9 @@ import java.util.StringJoiner;
 @ApiModel(description = "预算占用DTO")
 public class BudgetUse implements Serializable {
     private static final long serialVersionUID = -855723956309550319L;
-
+    @NotNull
+    @ApiModelProperty(value = "预算分类")
+    private Classification classification;
     /**
      * 公司代码
      */
@@ -133,6 +136,14 @@ public class BudgetUse implements Serializable {
         this.bizId = bizId;
         this.date = date;
         this.item = item;
+    }
+
+    public Classification getClassification() {
+        return classification;
+    }
+
+    public void setClassification(Classification classification) {
+        this.classification = classification;
     }
 
     public String getCorpCode() {
