@@ -284,8 +284,12 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
                         // 新增主体
                         SubjectOrganization so = soList.get(0);
                         Subject subject = dao.findOne(so.getSubjectId());
-                        // 组织机构[{0}]已在预算主体[{1}]中.
-                        return OperateResultWithData.operationFailure("subject_00015", so.getOrgName(), subject.getName());
+                        if (Objects.nonNull(subject)) {
+                            // 组织机构[{0}]已在预算主体[{1}]中.
+                            return OperateResultWithData.operationFailure("subject_00015", so.getOrgName(), subject.getName());
+                        } else {
+                            return OperateResultWithData.operationFailure("subject_00015", so.getOrgName(), so.getSubjectId());
+                        }
                     }
 
                     ResultData<List<OrganizationDto>> orgResult = organizationManager.findOrganizationByIds(orgIds);
