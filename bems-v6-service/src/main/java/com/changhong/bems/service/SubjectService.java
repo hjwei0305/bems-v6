@@ -323,12 +323,19 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
     }
 
     /**
-     * 删除数据保存数据之前额外操作回调方法 子类根据需要覆写添加逻辑即可
+     * 主键删除
      *
-     * @param id 待删除数据对象主键
+     * @param id 主键
+     * @return 返回操作结果对象
      */
     @Override
-    protected OperateResult preDelete(String id) {
+    @Transactional(rollbackFor = Exception.class)
+    public OperateResult delete(String id) {
+        Subject subject = dao.findOne(id);
+        if (Objects.isNull(subject)) {
+            // 预算主体[{0}]不存在!
+            return OperateResult.operationFailure("subject_00003", id);
+        }
         SubjectItem item = subjectItemService.findFirstByProperty(SubjectItem.FIELD_SUBJECT_ID, id);
         if (Objects.nonNull(item)) {
             // 已被预算科目[{0}]使用,禁止删除!
@@ -344,6 +351,17 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
             // 已被预算类型[{0}]使用,禁止删除!
             return OperateResult.operationFailure("subject_00001", category.getName());
         }
+
+        if (Classification.DEPARTMENT == subject.getClassification()) {
+            // 组织级预算主体,需先移除关联的组织
+            List<SubjectOrganization> soList = this.getSubjectOrganizations(id);
+            if (CollectionUtils.isNotEmpty(soList)) {
+                subjectOrganizationDao.deleteAll(soList);
+            }
+        }
+
+        // 删除主体
+        dao.delete(subject);
         return OperateResult.operationSuccess();
     }
 
