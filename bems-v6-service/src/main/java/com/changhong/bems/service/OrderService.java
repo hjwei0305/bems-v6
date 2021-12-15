@@ -5,12 +5,12 @@ import com.changhong.bems.dao.OrderDao;
 import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.*;
 import com.changhong.bems.entity.vo.TemplateHeadVo;
+import com.changhong.bems.service.client.CorporationProjectManager;
 import com.changhong.bems.service.client.OrganizationManager;
 import com.changhong.bems.service.mq.BudgetOrderProducer;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
-import com.changhong.sei.core.dto.TreeEntity;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
@@ -60,7 +60,13 @@ public class OrderService extends BaseEntityService<Order> {
     @Autowired
     private PeriodService periodService;
     @Autowired
+    private SubjectItemService subjectItemService;
+    @Autowired
+    private SubjectService subjectService;
+    @Autowired
     private OrganizationManager organizationManager;
+    @Autowired
+    private CorporationProjectManager corporationProjectManager;
     @Autowired(required = false)
     private SerialService serialService;
     @Autowired
@@ -313,6 +319,10 @@ public class OrderService extends BaseEntityService<Order> {
             //导入的订单行项数据不能为空
             return ResultData.fail(ContextUtil.getMessage("order_detail_00012"));
         }
+        Subject subject = subjectService.getSubject(orderDto.getSubjectId());
+        if (Objects.isNull(subject)) {
+            return ResultData.fail(ContextUtil.getMessage("subject_00003", orderDto.getSubjectName()));
+        }
         String categoryId = orderDto.getCategoryId();
         if (StringUtils.isBlank(categoryId)) {
             //添加单据行项时,预算类型不能为空.
@@ -362,13 +372,53 @@ public class OrderService extends BaseEntityService<Order> {
             // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
             this.setProcessStatus(orderId, Boolean.TRUE);
 
+            // 获取预算期间数据
             List<Period> periods = periodService.findBySubjectUnclosed(order.getSubjectId(), category.getPeriodType());
             Map<String, String> periodMap;
             if (CollectionUtils.isNotEmpty(periods)) {
                 periodMap = periods.parallelStream().collect(Collectors.toMap(Period::getId, Period::getName));
+                periods.clear();
             } else {
                 // 预算期间不存在
                 return ResultData.fail(ContextUtil.getMessage("period_00002"));
+            }
+            // 获取预算科目数据
+            List<SubjectItem> subjectItems = subjectItemService.findBySubjectUnfrozen(order.getSubjectId());
+            Map<String, String> subjectItemMap;
+            if (CollectionUtils.isNotEmpty(periods)) {
+                subjectItemMap = subjectItems.parallelStream().collect(Collectors.toMap(SubjectItem::getCode, SubjectItem::getName));
+                subjectItems.clear();
+            } else {
+                // 未找到预算主体[{0}]的可用科目!
+                return ResultData.fail(ContextUtil.getMessage("subject_item_00005", order.getSubjectName()));
+            }
+            // 获取组织数据
+            ResultData<List<OrganizationDto>> orgResult = subjectService.getOrgChildren(order.getSubjectId());
+            Map<String, String> orgMap;
+            if (orgResult.successful()) {
+                List<OrganizationDto> orgList = orgResult.getData();
+                if (CollectionUtils.isNotEmpty(orgList)) {
+                    orgMap = orgList.parallelStream().collect(Collectors.toMap(OrganizationDto::getId, OrganizationDto::getName));
+                    orgList.clear();
+                } else {
+                    return ResultData.fail(ContextUtil.getMessage("order_detail_00021"));
+                }
+            } else {
+                return ResultData.fail(orgResult.getMessage());
+            }
+            // 获取组织数据
+            ResultData<List<ProjectDto>> projectResult = corporationProjectManager.findByErpCode(subject.getCorporationCode());
+            Map<String, String> projectMap;
+            if (projectResult.successful()) {
+                List<ProjectDto> projectList = projectResult.getData();
+                if (CollectionUtils.isNotEmpty(projectList)) {
+                    projectMap = projectList.parallelStream().collect(Collectors.toMap(ProjectDto::getId, ProjectDto::getName));
+                    projectList.clear();
+                } else {
+                    return ResultData.fail(ContextUtil.getMessage("order_detail_00022"));
+                }
+            } else {
+                return ResultData.fail(orgResult.getMessage());
             }
             try {
                 OrderDetail detail;
@@ -389,6 +439,7 @@ public class OrderService extends BaseEntityService<Order> {
                             // 导入的金额不是数字
                             detail.setErrMsg(ContextUtil.getMessage("order_detail_00015"));
                         } else {
+                            // 期间
                             if (Constants.DIMENSION_CODE_PERIOD.equals(headVo.getFiled())) {
                                 String periodName = periodMap.get(temp);
                                 if (StringUtils.isNotBlank(periodName)) {
@@ -396,32 +447,54 @@ public class OrderService extends BaseEntityService<Order> {
                                     detail.setPeriodName(periodName);
                                 } else {
                                     detail.setHasErr(Boolean.TRUE);
-                                    // 导入的期间数据不是当前预算类型要求的
+                                    // 错误的预算期间数据
                                     detail.setErrMsg(ContextUtil.getMessage("order_detail_00017"));
                                 }
-//                            } else if (Constants.DIMENSION_CODE_PERIOD.concat("Name").equals(headVo.getFiled())) {
-//                                detail.setPeriodName(temp);
-                            } else if (Constants.DIMENSION_CODE_ITEM.equals(headVo.getFiled())) {
-                                detail.setItem(temp);
-                            } else if (Constants.DIMENSION_CODE_ITEM.concat("Name").equals(headVo.getFiled())) {
-                                detail.setItemName(temp);
-                            } else if (Constants.DIMENSION_CODE_ORG.equals(headVo.getFiled())) {
-                                detail.setOrg(temp);
-                            } else if (Constants.DIMENSION_CODE_ORG.concat("Name").equals(headVo.getFiled())) {
-                                try {
-                                    detail.setOrgName(temp.substring(temp.lastIndexOf(TreeEntity.NAME_DELIMITER) + 1));
-                                } catch (Exception e) {
-                                    detail.setOrgName(temp);
+                            }
+                            // 科目
+                            else if (Constants.DIMENSION_CODE_ITEM.equals(headVo.getFiled())) {
+                                String itemName = subjectItemMap.get(temp);
+                                if (StringUtils.isNotBlank(itemName)) {
+                                    detail.setItem(temp);
+                                    detail.setItemName(itemName);
+                                } else {
+                                    detail.setHasErr(Boolean.TRUE);
+                                    // 错误的预算科目数据
+                                    detail.setErrMsg(ContextUtil.getMessage("order_detail_00020"));
                                 }
-                            } else if (Constants.DIMENSION_CODE_PROJECT.equals(headVo.getFiled())) {
-                                detail.setProject(temp);
-                            } else if (Constants.DIMENSION_CODE_PROJECT.concat("Name").equals(headVo.getFiled())) {
-                                detail.setProjectName(temp);
-                            } else if (Constants.DIMENSION_CODE_COST_CENTER.equals(headVo.getFiled())) {
+                            }
+                            // 组织
+                            else if (Constants.DIMENSION_CODE_ORG.equals(headVo.getFiled())) {
+                                String orgName = orgMap.get(temp);
+                                if (StringUtils.isNotBlank(orgName)) {
+                                    detail.setOrg(temp);
+                                    detail.setOrgName(orgName);
+                                } else {
+                                    detail.setHasErr(Boolean.TRUE);
+                                    // 错误的组织数据
+                                    detail.setErrMsg(ContextUtil.getMessage("order_detail_00021"));
+                                }
+                            }
+                            // 项目
+                            else if (Constants.DIMENSION_CODE_PROJECT.equals(headVo.getFiled())) {
+                                String projectName = projectMap.get(temp);
+                                if (StringUtils.isNotBlank(projectName)) {
+                                    detail.setProject(temp);
+                                    detail.setProjectName(temp);
+                                } else {
+                                    detail.setHasErr(Boolean.TRUE);
+                                    // 错误的公司项目数据
+                                    detail.setErrMsg(ContextUtil.getMessage("order_detail_00022"));
+                                }
+                            }
+                            // 成本中心
+                            else if (Constants.DIMENSION_CODE_COST_CENTER.equals(headVo.getFiled())) {
                                 detail.setCostCenter(temp);
                             } else if (Constants.DIMENSION_CODE_COST_CENTER.concat("Name").equals(headVo.getFiled())) {
                                 detail.setCostCenterName(temp);
-                            } else if (Constants.DIMENSION_CODE_UDF1.equals(headVo.getFiled())) {
+                            }
+                            // 扩展1
+                            else if (Constants.DIMENSION_CODE_UDF1.equals(headVo.getFiled())) {
                                 detail.setUdf1(temp);
                             } else if (Constants.DIMENSION_CODE_UDF1.concat("Name").equals(headVo.getFiled())) {
                                 detail.setUdf1Name(temp);

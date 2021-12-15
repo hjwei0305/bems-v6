@@ -86,7 +86,7 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
      * 数据保存操作
      */
     @Override
-    @CacheEvict(key = "#entity.subjectId + ':' + #entity.code")
+    @CacheEvict(allEntries = true)
     @Transactional(rollbackFor = Exception.class)
     public OperateResultWithData<SubjectItem> save(SubjectItem entity) {
         // 清除策略缓存
@@ -110,6 +110,7 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
      * @param subjectId 预算主体id
      * @return 分页查询结果
      */
+    @Cacheable(key = "#subjectId")
     public List<SubjectItem> findBySubjectUnfrozen(String subjectId) {
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(SubjectItem.FIELD_SUBJECT_ID, subjectId));
