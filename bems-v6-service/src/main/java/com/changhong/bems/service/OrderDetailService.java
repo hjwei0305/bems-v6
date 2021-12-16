@@ -313,6 +313,8 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     detail.setOrderId(orderId);
                     // 维度属性组合
                     detail.setAttribute(attribute);
+                    // 创建时间
+                    detail.setCreatedDate(LocalDateTime.now());
                     if (detail.getHasErr()) {
                         // 对导入时数据校验结果持久化处理
                         this.save(detail);
@@ -369,8 +371,6 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                         detail.setHasErr(Boolean.TRUE);
                         detail.setErrMsg(result.getMessage());
                     }
-                    // 创建时间
-                    detail.setCreatedDate(LocalDateTime.now());
                     this.save(detail);
                     OrderStatistics finalStatistics = statistics;
                     CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
