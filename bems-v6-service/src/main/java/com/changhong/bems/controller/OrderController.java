@@ -374,7 +374,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             Map<String, List<OrderDetailDto>> group;
             if (CollectionUtils.isNotEmpty(allChildren)) {
                 group = allChildren.stream().map(d -> modelMapper.map(d, OrderDetailDto.class))
-                        .collect(Collectors.groupingBy(OrderDetailDto::getOriginPoolCode));
+                        .collect(Collectors.groupingBy(OrderDetailDto::getId));
             } else {
                 group = new HashMap<>();
             }
@@ -382,10 +382,9 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             List<OrderDetailDto> dtoList = new ArrayList<>(details.size());
             for (OrderDetail detail : details) {
                 dto = modelMapper.map(detail, OrderDetailDto.class);
-                if (StringUtils.isNotBlank(detail.getOriginPoolCode())) {
-                    if (!StringUtils.equals(Constants.NONE, detail.getOriginPoolCode())) {
-                        dto.setChildren(group.get(detail.getOriginPoolCode()));
-                    }
+                dto.setChildren(group.get(detail.getId()));
+                if (StringUtils.equals(Constants.NONE, detail.getOriginPoolCode())) {
+                    dto.setOriginPoolCode(null);
                 }
                 dtoList.add(dto);
             }
