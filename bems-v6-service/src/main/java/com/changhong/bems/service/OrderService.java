@@ -333,6 +333,11 @@ public class OrderService extends BaseEntityService<Order> {
             //预算类型[{0}]不存在.
             return ResultData.fail(ContextUtil.getMessage("category_00004", categoryId));
         }
+        List<DimensionDto> dimensions = categoryService.getAssigned(categoryId);
+        if (CollectionUtils.isEmpty(dimensions)) {
+            // 预算类型[{0}]下未找到预算维度
+            return ResultData.fail(ContextUtil.getMessage("category_00007"));
+        }
 
         // 通过单据Id检查预算主体和类型是否被修改
         ResultData<String> resultData = this.checkDimension(orderDto.getId(), orderDto.getSubjectId(), categoryId);
@@ -392,33 +397,43 @@ public class OrderService extends BaseEntityService<Order> {
                 // 未找到预算主体[{0}]的可用科目!
                 return ResultData.fail(ContextUtil.getMessage("subject_item_00005", order.getSubjectName()));
             }
-            // 获取组织数据
-            ResultData<List<OrganizationDto>> orgResult = subjectService.getOrgChildren(order.getSubjectId());
+
             Map<String, String> orgMap;
-            if (orgResult.successful()) {
-                List<OrganizationDto> orgList = orgResult.getData();
-                if (CollectionUtils.isNotEmpty(orgList)) {
-                    orgMap = orgList.parallelStream().collect(Collectors.toMap(OrganizationDto::getId, OrganizationDto::getName));
-                    orgList.clear();
+            if (dimensions.stream().map(DimensionDto::getCode).anyMatch(Constants.DIMENSION_CODE_ORG::equals)) {
+                // 获取组织数据
+                ResultData<List<OrganizationDto>> orgResult = subjectService.getOrgChildren(order.getSubjectId());
+                if (orgResult.successful()) {
+                    List<OrganizationDto> orgList = orgResult.getData();
+                    if (CollectionUtils.isNotEmpty(orgList)) {
+                        orgMap = orgList.parallelStream().collect(Collectors.toMap(OrganizationDto::getId, OrganizationDto::getName));
+                        orgList.clear();
+                    } else {
+                        return ResultData.fail(ContextUtil.getMessage("order_detail_00021"));
+                    }
                 } else {
-                    return ResultData.fail(ContextUtil.getMessage("order_detail_00021"));
+                    return ResultData.fail(orgResult.getMessage());
                 }
             } else {
-                return ResultData.fail(orgResult.getMessage());
+                orgMap = new HashMap<>(7);
             }
-            // 获取组织数据
-            ResultData<List<ProjectDto>> projectResult = corporationProjectManager.findByErpCode(subject.getCorporationCode());
+
             Map<String, String> projectMap;
-            if (projectResult.successful()) {
-                List<ProjectDto> projectList = projectResult.getData();
-                if (CollectionUtils.isNotEmpty(projectList)) {
-                    projectMap = projectList.parallelStream().collect(Collectors.toMap(ProjectDto::getId, ProjectDto::getName));
-                    projectList.clear();
+            if (dimensions.stream().map(DimensionDto::getCode).anyMatch(Constants.DIMENSION_CODE_ORG::equals)) {
+                // 获取组织数据
+                ResultData<List<ProjectDto>> projectResult = corporationProjectManager.findByErpCode(subject.getCorporationCode());
+                if (projectResult.successful()) {
+                    List<ProjectDto> projectList = projectResult.getData();
+                    if (CollectionUtils.isNotEmpty(projectList)) {
+                        projectMap = projectList.parallelStream().collect(Collectors.toMap(ProjectDto::getId, ProjectDto::getName));
+                        projectList.clear();
+                    } else {
+                        return ResultData.fail(ContextUtil.getMessage("order_detail_00022"));
+                    }
                 } else {
-                    return ResultData.fail(ContextUtil.getMessage("order_detail_00022"));
+                    return ResultData.fail(projectResult.getMessage());
                 }
             } else {
-                return ResultData.fail(orgResult.getMessage());
+                projectMap = new HashMap<>(7);
             }
             try {
                 OrderDetail detail;
@@ -436,8 +451,8 @@ public class OrderService extends BaseEntityService<Order> {
                         temp = data.get(headVo.getIndex());
                         if (StringUtils.isBlank(temp)) {
                             detail.setHasErr(Boolean.TRUE);
-                            // 导入的金额不是数字
-                            detail.setErrMsg(ContextUtil.getMessage("order_detail_00015"));
+                            // 存在错误的导入数据
+                            detail.setErrMsg(ContextUtil.getMessage("order_detail_00023"));
                         } else {
                             // 期间
                             if (Constants.DIMENSION_CODE_PERIOD.equals(headVo.getFiled())) {
@@ -490,7 +505,6 @@ public class OrderService extends BaseEntityService<Order> {
                             // 成本中心
                             else if (Constants.DIMENSION_CODE_COST_CENTER.equals(headVo.getFiled())) {
                                 detail.setCostCenter(temp);
-                            } else if (Constants.DIMENSION_CODE_COST_CENTER.concat("Name").equals(headVo.getFiled())) {
                                 detail.setCostCenterName(temp);
                             }
                             // 扩展1
