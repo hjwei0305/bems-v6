@@ -383,9 +383,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             for (OrderDetail detail : details) {
                 dto = modelMapper.map(detail, OrderDetailDto.class);
                 if (StringUtils.isNotBlank(detail.getOriginPoolCode())) {
-                    if (StringUtils.equals(Constants.NONE, detail.getOriginPoolCode())) {
-                        dto.setOriginPoolCode("");
-                    } else {
+                    if (!StringUtils.equals(Constants.NONE, detail.getOriginPoolCode())) {
                         dto.setChildren(group.get(detail.getOriginPoolCode()));
                     }
                 }
