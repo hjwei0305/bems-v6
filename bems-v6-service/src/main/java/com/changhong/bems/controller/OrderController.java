@@ -2,6 +2,7 @@ package com.changhong.bems.controller;
 
 import com.alibaba.excel.EasyExcel;
 import com.changhong.bems.api.OrderApi;
+import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
@@ -382,7 +383,11 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             for (OrderDetail detail : details) {
                 dto = modelMapper.map(detail, OrderDetailDto.class);
                 if (StringUtils.isNotBlank(detail.getOriginPoolCode())) {
-                    dto.setChildren(group.get(detail.getOriginPoolCode()));
+                    if (StringUtils.equals(Constants.NONE, detail.getOriginPoolCode())) {
+                        dto.setOriginPoolCode("");
+                    } else {
+                        dto.setChildren(group.get(detail.getOriginPoolCode()));
+                    }
                 }
                 dtoList.add(dto);
             }
