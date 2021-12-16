@@ -137,9 +137,9 @@ class OrderControllerTest extends BaseUnit5Test {
     @Test
     @Rollback
     void importBudge() {
-        String json = " {\"id\":null,\"subjectId\":\"C81A4E58-BBD4-11EB-A896-0242C0A84429\",\"subjectName\":\"四川虹信软件股份有限公司\",\"currencyCode\":\"CNY\",\"currencyName\":\"人民币\",\"categoryId\":\"18A3D44E-BBD5-11EB-A896-0242C0A84429\",\"categoryName\":\"月度预算\",\"periodType\":\"MONTHLY\",\"orderCategory\":\"SPLIT\",\"applyOrgId\":\"877035BF-A40C-11E7-A8B9-02420B99179E\",\"applyOrgCode\":\"10607\",\"applyOrgName\":\"四川长虹电子控股集团有限公司\",\"managerOrgId\":null,\"managerOrgCode\":null,\"managerOrgName\":null,\"remark\":null,\"period\":[],\"item\":[],\"org\":[],\"project\":[],\"udf1\":[],\"udf2\":[],\"udf3\":[],\"udf4\":[],\"udf5\":[]}";
+        String json = "{\"subjectId\":\"28935032-5CBD-11EC-8DA7-0242C0A84413\",\"currencyCode\":\"CNY\",\"currencyName\":\"人民币\",\"applyOrgId\":\"F3EDB465-5CAA-11EC-A743-0242C0A8440A\",\"applyOrgCode\":\"EPPEN\",\"categoryId\":\"7194738B-5D4A-11EC-8DA7-0242C0A84413\",\"orderCategory\":\"INJECTION\",\"periodType\":\"ANNUAL\",\"subjectName\":\"宁夏伊品生物科技股份有限公司\",\"applyOrgName\":\"伊品生物\",\"categoryName\":\"部门年度预算\",\"docIds\":[]}";
         AddOrderDetail order = JsonUtils.fromJson(json, AddOrderDetail.class);
-        File file = new File("/Users/chaoma/Downloads/月度预算导入模板 (1).xlsx");
+        File file = new File("/Users/chaoma/Downloads/部门年度预算导入模板 (1).xlsx");
         MultipartFile multipartFile = null;
         try {
             multipartFile = new MockMultipartFile(file.getName(), file.getName(), null, FileUtils.readFileToByteArray(file));

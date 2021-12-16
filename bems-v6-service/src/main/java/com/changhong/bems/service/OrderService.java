@@ -390,7 +390,7 @@ public class OrderService extends BaseEntityService<Order> {
             // 获取预算科目数据
             List<SubjectItem> subjectItems = subjectItemService.findBySubjectUnfrozen(order.getSubjectId());
             Map<String, String> subjectItemMap;
-            if (CollectionUtils.isNotEmpty(periods)) {
+            if (CollectionUtils.isNotEmpty(subjectItems)) {
                 subjectItemMap = subjectItems.parallelStream().collect(Collectors.toMap(SubjectItem::getCode, SubjectItem::getName));
                 subjectItems.clear();
             } else {
@@ -418,7 +418,7 @@ public class OrderService extends BaseEntityService<Order> {
             }
 
             Map<String, String> projectMap;
-            if (dimensions.stream().map(DimensionDto::getCode).anyMatch(Constants.DIMENSION_CODE_ORG::equals)) {
+            if (dimensions.stream().map(DimensionDto::getCode).anyMatch(Constants.DIMENSION_CODE_PROJECT::equals)) {
                 // 获取组织数据
                 ResultData<List<ProjectDto>> projectResult = corporationProjectManager.findByErpCode(subject.getCorporationCode());
                 if (projectResult.successful()) {

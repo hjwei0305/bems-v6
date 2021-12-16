@@ -306,7 +306,7 @@ public class CategoryService extends BaseEntityService<Category> {
      * @param categoryId 预算类型
      * @return 子实体清单
      */
-    @Cacheable(key = "#categoryId")
+    @Cacheable(key = "#categoryId", unless = "#result.empty")
     public List<DimensionDto> getAssigned(String categoryId) {
         Category category = dao.findOne(categoryId);
         if (Objects.isNull(category)) {
