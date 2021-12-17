@@ -8,10 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -42,20 +39,24 @@ public class ReportService {
 
         int index;
         OverviewVo vo;
+        List<OverviewDataItemVo> itemList;
         PeriodType periodType = request.getPeriodType();
-        for (Map.Entry<Integer, List<OverviewDataItemVo>> entry : mapData.entrySet()) {
+        for (Integer year : request.getYears()) {
             vo = new OverviewVo();
             // 年度
-            vo.setYear(entry.getKey());
+            vo.setYear(year);
             switch (periodType) {
                 case ANNUAL:
                     // 可使用
                     BigDecimal balance = BigDecimal.ZERO;
                     // 已使用
                     BigDecimal used = BigDecimal.ZERO;
-                    for (OverviewDataItemVo dataItem : entry.getValue()) {
-                        balance = balance.add(dataItem.getBalance());
-                        used = used.add(dataItem.getUsed());
+                    itemList = mapData.get(year);
+                    if (Objects.nonNull(itemList)) {
+                        for (OverviewDataItemVo dataItem : itemList) {
+                            balance = balance.add(dataItem.getBalance());
+                            used = used.add(dataItem.getUsed());
+                        }
                     }
                     vo.setBalance(new BigDecimal[]{balance});
                     vo.setUsed(new BigDecimal[]{used});
@@ -65,14 +66,17 @@ public class ReportService {
                     BigDecimal[] semiannualB = new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO};
                     // 已使用
                     BigDecimal[] semiannualU = new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO};
-                    for (OverviewDataItemVo dataItem : entry.getValue()) {
-                        index = dataItem.getMonth();
-                        if (index <= 6) {
-                            semiannualB[0] = semiannualB[0].add(dataItem.getBalance());
-                            semiannualU[0] = semiannualU[0].add(dataItem.getUsed());
-                        } else {
-                            semiannualB[1] = semiannualB[1].add(dataItem.getBalance());
-                            semiannualU[1] = semiannualU[1].add(dataItem.getUsed());
+                    itemList = mapData.get(year);
+                    if (Objects.nonNull(itemList)) {
+                        for (OverviewDataItemVo dataItem : itemList) {
+                            index = dataItem.getMonth();
+                            if (index <= 6) {
+                                semiannualB[0] = semiannualB[0].add(dataItem.getBalance());
+                                semiannualU[0] = semiannualU[0].add(dataItem.getUsed());
+                            } else {
+                                semiannualB[1] = semiannualB[1].add(dataItem.getBalance());
+                                semiannualU[1] = semiannualU[1].add(dataItem.getUsed());
+                            }
                         }
                     }
                     vo.setBalance(semiannualB);
@@ -83,20 +87,23 @@ public class ReportService {
                     BigDecimal[] quarterB = new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO};
                     // 已使用
                     BigDecimal[] quarterU = new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO};
-                    for (OverviewDataItemVo dataItem : entry.getValue()) {
-                        index = dataItem.getMonth();
-                        if (index <= 3) {
-                            quarterB[0] = quarterB[0].add(dataItem.getBalance());
-                            quarterU[0] = quarterU[0].add(dataItem.getUsed());
-                        } else if (index <= 6) {
-                            quarterB[1] = quarterB[1].add(dataItem.getBalance());
-                            quarterU[1] = quarterU[1].add(dataItem.getUsed());
-                        } else if (index <= 9) {
-                            quarterB[2] = quarterB[2].add(dataItem.getBalance());
-                            quarterU[2] = quarterU[2].add(dataItem.getUsed());
-                        } else {
-                            quarterB[3] = quarterB[3].add(dataItem.getBalance());
-                            quarterU[3] = quarterU[3].add(dataItem.getUsed());
+                    itemList = mapData.get(year);
+                    if (Objects.nonNull(itemList)) {
+                        for (OverviewDataItemVo dataItem : itemList) {
+                            index = dataItem.getMonth();
+                            if (index <= 3) {
+                                quarterB[0] = quarterB[0].add(dataItem.getBalance());
+                                quarterU[0] = quarterU[0].add(dataItem.getUsed());
+                            } else if (index <= 6) {
+                                quarterB[1] = quarterB[1].add(dataItem.getBalance());
+                                quarterU[1] = quarterU[1].add(dataItem.getUsed());
+                            } else if (index <= 9) {
+                                quarterB[2] = quarterB[2].add(dataItem.getBalance());
+                                quarterU[2] = quarterU[2].add(dataItem.getUsed());
+                            } else {
+                                quarterB[3] = quarterB[3].add(dataItem.getBalance());
+                                quarterU[3] = quarterU[3].add(dataItem.getUsed());
+                            }
                         }
                     }
                     vo.setBalance(quarterB);
@@ -111,10 +118,13 @@ public class ReportService {
                     BigDecimal[] monthU = new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
                             BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
                             BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO};
-                    for (OverviewDataItemVo dataItem : entry.getValue()) {
-                        index = dataItem.getMonth() - 1;
-                        monthB[index] = dataItem.getBalance();
-                        monthU[index] = dataItem.getUsed();
+                    itemList = mapData.get(year);
+                    if (Objects.nonNull(itemList)) {
+                        for (OverviewDataItemVo dataItem : itemList) {
+                            index = dataItem.getMonth() - 1;
+                            monthB[index] = dataItem.getBalance();
+                            monthU[index] = dataItem.getUsed();
+                        }
                     }
                     vo.setBalance(monthB);
                     vo.setUsed(monthU);
