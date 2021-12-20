@@ -10,7 +10,6 @@ import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
-import com.changhong.sei.core.limiter.support.lock.SeiLock;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
 import com.changhong.sei.util.EnumUtils;
@@ -72,85 +71,17 @@ public class PeriodService extends BaseEntityService<Period> {
         }
     }
 
-    // /**
-    //  * 通过预算期间id查询所有可用的预算期间
-    //  * 预算池溯源使用
-    //  * 预算期间：
-    //  * 1.自定义期间：以“=”匹配
-    //  * 2.非自定义期间：按枚举@see {@link PeriodType}向下匹配（年度 < 半年度 < 季度 < 月度）
-    //  * <p>
-    //  * 优先使用自定义 > 月度 > 季度 > 半年度 > 年度
-    //  *
-    //  * @param periodId 预算期间id
-    //  * @return 预算期间清单
-    //  */
-    // public List<Period> findAvailablePeriods(String periodId) {
-    //     List<Period> periods = new ArrayList<>();
-    //     Period period = dao.findOne(periodId);
-    //     if (Objects.nonNull(period)) {
-    //         //自定义期间
-    //         if (PeriodType.CUSTOMIZE == period.getType()) {
-    //             periods.add(period);
-    //         } else {
-    //             Search search = Search.createSearch();
-    //             //年份
-    //             search.addFilter(new SearchFilter(Period.FIELD_YEAR, period.getYear()));
-    //             //预算公司
-    //             search.addFilter(new SearchFilter(Period.FIELD_SUBJECT_ID, period.getSubjectId()));
-    //             //未关闭
-    //             search.addFilter(new SearchFilter(Period.FIELD_CLOSED, Boolean.FALSE));
-    //             Set<PeriodType> periodTypeSet = new HashSet<>();
-    //             //年度
-    //             if (PeriodType.ANNUAL == period.getType()) {
-    //                 periodTypeSet.add(PeriodType.ANNUAL);
-    //             } else if (PeriodType.SEMIANNUAL == period.getType()) {
-    //                 //半年度
-    //                 periodTypeSet.add(PeriodType.ANNUAL);
-    //                 periodTypeSet.add(PeriodType.SEMIANNUAL);
-    //             } else if (PeriodType.QUARTER == period.getType()) {
-    //                 //季度
-    //                 periodTypeSet.add(PeriodType.ANNUAL);
-    //                 periodTypeSet.add(PeriodType.SEMIANNUAL);
-    //                 periodTypeSet.add(PeriodType.QUARTER);
-    //             } else if (PeriodType.MONTHLY == period.getType()) {
-    //                 //月度
-    //                 periodTypeSet.add(PeriodType.ANNUAL);
-    //                 periodTypeSet.add(PeriodType.SEMIANNUAL);
-    //                 periodTypeSet.add(PeriodType.QUARTER);
-    //                 periodTypeSet.add(PeriodType.MONTHLY);
-    //             } else {
-    //                 return null;
-    //             }
-    //             search.addFilter(new SearchFilter(Period.FIELD_TYPE, periodTypeSet, SearchFilter.Operator.IN));
-    //             //时间段(期间内)
-    //             search.addFilter(new SearchFilter(Period.FIELD_START_DATE, period.getStartDate(), SearchFilter.Operator.LE));
-    //             search.addFilter(new SearchFilter(Period.FIELD_END_DATE, period.getEndDate(), SearchFilter.Operator.GE));
-    //
-    //             periods = findByFilters(search);
-    //         }
-    //     }
-    //     return periods;
-    // }
-
     /**
      * 关闭过期预算期间调度定时任务
      * 定时任务执行，关闭过期预算期间
      *
      * @return 操作结果
      */
-    @SeiLock(key = "'bemsv6:closingOverduePeriod'", fallback = "closingOverduePeriodFallback")
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> closingOverduePeriod() {
         int num = dao.closingOverduePeriod(LocalDate.now());
         LOG.info("关闭过期的预算期间: {}个", num);
         return ResultData.success();
-    }
-
-    /**
-     * closingOverduePeriod方法的降级处理
-     */
-    public ResultData<Void> closingOverduePeriodFallback() {
-        return ResultData.fail("关闭过期预算期间调度定时任务正在结转处理中.");
     }
 
     /**

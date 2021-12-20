@@ -8,9 +8,9 @@ import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
 import com.changhong.bems.entity.vo.TemplateHeadVo;
 import com.changhong.bems.service.CategoryService;
-import com.changhong.bems.service.DimensionComponentService;
 import com.changhong.bems.service.OrderDetailService;
 import com.changhong.bems.service.OrderService;
+import com.changhong.bems.service.cust.BudgetDimensionCustManager;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
@@ -19,7 +19,6 @@ import com.changhong.sei.core.dto.flow.FlowStatus;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
-import com.changhong.sei.core.log.LogUtil;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.util.JsonUtils;
 import com.changhong.sei.util.ArithUtils;
@@ -62,7 +61,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     @Autowired
     private CategoryService categoryService;
     @Autowired
-    private DimensionComponentService dimensionComponentService;
+    private BudgetDimensionCustManager budgetDimensionCustManager;
     @Autowired
     private ModelMapper modelMapper;
 
@@ -400,8 +399,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      */
     @Override
     public ResultData<String> importBudge(AddOrderDetail order, MultipartFile file) {
-        LogUtil.bizLog("上传订单数据 {}", JsonUtils.toJson(order));
-        LogUtil.bizLog("上传文件名 {}", file.getOriginalFilename());
+        // LogUtil.bizLog("上传订单数据 {}", JsonUtils.toJson(order));
+        // LogUtil.bizLog("上传文件名 {}", file.getOriginalFilename());
         try {
             List<Map<Integer, String>> list = EasyExcel.read(file.getInputStream())
                     // 指定sheet,默认从0开始
@@ -435,7 +434,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      */
     @Override
     public ResultData<Map<String, Object>> getDimensionValues(String subjectId, String dimCode) {
-        return dimensionComponentService.getDimensionValues(subjectId, dimCode);
+        return budgetDimensionCustManager.getDimensionValues(subjectId, dimCode);
     }
 
     /**

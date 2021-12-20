@@ -4,7 +4,7 @@ import com.changhong.bems.api.DimensionComponentApi;
 import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.Period;
 import com.changhong.bems.entity.SubjectItem;
-import com.changhong.bems.service.DimensionComponentService;
+import com.changhong.bems.service.cust.BudgetDimensionCustManager;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.util.EnumUtils;
 import io.swagger.annotations.Api;
@@ -32,7 +32,7 @@ public class DimensionComponentController implements DimensionComponentApi {
      * 预算维度组件服务
      */
     @Autowired
-    private DimensionComponentService service;
+    private BudgetDimensionCustManager budgetDimensionCustManager;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -46,7 +46,7 @@ public class DimensionComponentController implements DimensionComponentApi {
      */
     @Override
     public ResultData<List<SubjectItemDto>> getBudgetItems(String subjectId) {
-        List<SubjectItem> subjectItems = service.getBudgetItems(subjectId);
+        List<SubjectItem> subjectItems = budgetDimensionCustManager.getBudgetItems(subjectId);
         return ResultData.success(subjectItems.stream().map(s -> modelMapper.map(s, SubjectItemDto.class)).collect(Collectors.toList()));
     }
 
@@ -59,7 +59,7 @@ public class DimensionComponentController implements DimensionComponentApi {
      */
     @Override
     public ResultData<List<PeriodDto>> getPeriods(String subjectId, String type) {
-        List<Period> periods = service.getPeriods(subjectId, EnumUtils.getEnum(PeriodType.class, type));
+        List<Period> periods = budgetDimensionCustManager.getPeriods(subjectId, EnumUtils.getEnum(PeriodType.class, type));
         return ResultData.success(periods.stream().map(s -> modelMapper.map(s, PeriodDto.class)).collect(Collectors.toList()));
     }
 
@@ -71,13 +71,13 @@ public class DimensionComponentController implements DimensionComponentApi {
      */
     @Override
     public ResultData<List<OrganizationDto>> getOrgTree(String subjectId) {
-        return service.getOrgTree(subjectId);
+        return budgetDimensionCustManager.getOrgTree(subjectId);
     }
 
     /**
      * 按预算主体获取公司项目
      *
-     * @param request   查询公司项目请求
+     * @param request 查询公司项目请求
      * @return 公司项目
      */
     @Override
@@ -85,6 +85,6 @@ public class DimensionComponentController implements DimensionComponentApi {
         String subjectId = request.getSubjectId();
         String searchValue = request.getSearchValue();
         Set<String> excludeIds = request.getExcludeIds();
-        return service.getProjects(subjectId, searchValue, excludeIds);
+        return budgetDimensionCustManager.getProjects(subjectId, searchValue, excludeIds);
     }
 }

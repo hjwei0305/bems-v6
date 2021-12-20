@@ -25,8 +25,8 @@ class ReportServiceTest extends BaseUnit5Test {
     @Test
     void overview() {
         OverviewRequest request = new OverviewRequest();
-        request.setSubjectId("C81A4E58-BBD4-11EB-A896-0242C0A84429");
-        request.setYears(Lists.newArrayList(2021,2020));
+        request.setSubjectId("7F757D51-532E-11EC-ABD0-0242C0A84424");
+        request.setYears(Lists.newArrayList(2021, 2019));
         request.setPeriodType(PeriodType.MONTHLY);
         List<OverviewVo> list = service.overview(request);
         System.out.println(list);
@@ -36,7 +36,7 @@ class ReportServiceTest extends BaseUnit5Test {
     void usageTrend() {
         UsageTrendRequest request = new UsageTrendRequest();
         request.setSubjectId("C81A4E58-BBD4-11EB-A896-0242C0A84429");
-        request.setYear(new Integer[]{2021,2020});
+        request.setYear(new Integer[]{2021, 2020});
         request.setItem("00001");
         Map<Integer, BigDecimal[]> map = service.usageTrend(request);
         System.out.println(map);

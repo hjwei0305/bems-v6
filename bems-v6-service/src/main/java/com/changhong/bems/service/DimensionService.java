@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * @since 2021-04-22 12:54:23
  */
 @Service
-@CacheConfig(cacheNames = DimensionService.CACHE_KEY)
+@CacheConfig(cacheNames = Constants.DIMENSION_CACHE_KEY_PREFIX)
 public class DimensionService extends BaseEntityService<Dimension> {
     @Autowired
     private DimensionDao dao;
@@ -47,8 +47,6 @@ public class DimensionService extends BaseEntityService<Dimension> {
     private CategoryService categoryService;
     @Autowired
     private StrategyService strategyService;
-
-    public static final String CACHE_KEY = "bems-v6:dimension";
 
     @Override
     protected BaseEntityDao<Dimension> getDao() {

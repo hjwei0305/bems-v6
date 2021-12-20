@@ -1,4 +1,4 @@
-package com.changhong.bems.service;
+package com.changhong.bems.service.cust;
 
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.KeyValueDto;
@@ -8,12 +8,19 @@ import com.changhong.bems.dto.ProjectDto;
 import com.changhong.bems.entity.Period;
 import com.changhong.bems.entity.Subject;
 import com.changhong.bems.entity.SubjectItem;
+import com.changhong.bems.service.PeriodService;
+import com.changhong.bems.service.SubjectItemService;
+import com.changhong.bems.service.SubjectService;
 import com.changhong.bems.service.client.CorporationProjectManager;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.ResultData;
 import com.google.common.collect.Lists;
+import org.apache.commons.collections.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.data.redis.core.BoundValueOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -22,10 +29,16 @@ import java.util.stream.Collectors;
  * 实现功能：
  *
  * @author 马超(Vision.Mac)
- * @version 1.0.00  2021-06-08 13:07
+ * @version 1.0.00  2021-12-20 12:25
  */
-@Service
-public class DimensionComponentService {
+public class DefaultBudgetDimensionCustManager implements BudgetDimensionCustManager {
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultBudgetDimensionCustManager.class);
+
+    /**
+     * 预算主体服务对象
+     */
+    @Autowired
+    private SubjectService subjectService;
     /**
      * 预算主体科目服务对象
      */
@@ -37,15 +50,16 @@ public class DimensionComponentService {
     @Autowired
     private SubjectItemService subjectItemService;
     /**
-     * 预算主体服务对象
-     */
-    @Autowired
-    private SubjectService subjectService;
-    /**
      * 公司项目服务对象
      */
     @Autowired
     private CorporationProjectManager projectManager;
+
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    public DefaultBudgetDimensionCustManager(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     /**
      * 获取指定预算主体的科目(维度组件专用)
@@ -53,6 +67,7 @@ public class DimensionComponentService {
      * @param subjectId 预算主体id
      * @return 子实体清单
      */
+    @Override
     public List<SubjectItem> getBudgetItems(String subjectId) {
         return subjectItemService.findBySubjectUnfrozen(subjectId);
     }
@@ -64,6 +79,7 @@ public class DimensionComponentService {
      * @param type      预算期间类型
      * @return 期间清单
      */
+    @Override
     public List<Period> getPeriods(String subjectId, PeriodType type) {
         return periodService.findBySubjectUnclosed(subjectId, type);
     }
@@ -74,6 +90,7 @@ public class DimensionComponentService {
      * @param subjectId 预算主体id
      * @return 期间清单
      */
+    @Override
     public ResultData<List<OrganizationDto>> getOrgTree(String subjectId) {
         return subjectService.getOrgTree(subjectId);
     }
@@ -84,6 +101,7 @@ public class DimensionComponentService {
      * @param subjectId 预算主体id
      * @return 期间清单
      */
+    @Override
     public ResultData<List<ProjectDto>> getProjects(String subjectId, String searchValue, Set<String> excludeIds) {
         Subject subject = subjectService.getSubject(subjectId);
         if (Objects.isNull(subject)) {
@@ -99,6 +117,7 @@ public class DimensionComponentService {
      * @param dimCode   预算维度代码
      * @return 导出预算模版数据
      */
+    @Override
     public ResultData<Map<String, Object>> getDimensionValues(String subjectId, String dimCode) {
         Subject subject = subjectService.getSubject(subjectId);
         if (Objects.isNull(subject)) {
@@ -142,7 +161,7 @@ public class DimensionComponentService {
                 // TODO 提供成本中心接口
                 return ResultData.fail(ContextUtil.getMessage("dimension_00006"));
 
-                // break;
+            // break;
             case Constants.DIMENSION_CODE_UDF1:
                 // TODO 提供二开接口
                 return ResultData.fail(ContextUtil.getMessage("dimension_00006"));
@@ -160,5 +179,69 @@ public class DimensionComponentService {
         }
         data.put("data", list);
         return ResultData.success(data);
+    }
+
+    /**
+     * 按维度获取指定预算主体下的名称与值映射关系
+     * 如:map.put("科目名称","科目代码")
+     *
+     * @param subject 预算主体
+     * @param dimCode 预算维度代码
+     * @return 维度名称与值映射关系
+     */
+    @Override
+    @SuppressWarnings({"unchecked", "ConstantConditions"})
+    public Map<String, String> getDimensionNameValueMap(Subject subject, String dimCode) {
+        String subjectId = subject.getId();
+        BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.DIMENSION_MAP_CACHE_KEY_PREFIX.concat(dimCode).concat(":").concat(subjectId));
+        Map<String, String> data = (Map<String, String>) operations.get();
+        if (Objects.nonNull(data) && !data.isEmpty()) {
+            return data;
+        }
+
+        data = new HashMap<>();
+        switch (dimCode) {
+            case Constants.DIMENSION_CODE_PERIOD:
+                List<Period> periods = periodService.findBySubjectUnclosed(subjectId);
+                if (CollectionUtils.isNotEmpty(periods)) {
+                    data = periods.parallelStream().collect(Collectors.toMap(Period::getName, Period::getId));
+                }
+                break;
+            case Constants.DIMENSION_CODE_ITEM:
+                List<SubjectItem> subjectItems = subjectItemService.findBySubjectUnfrozen(subjectId);
+                if (CollectionUtils.isNotEmpty(subjectItems)) {
+                    data = subjectItems.parallelStream().collect(Collectors.toMap(SubjectItem::getName, SubjectItem::getCode));
+                }
+                break;
+            case Constants.DIMENSION_CODE_ORG:
+                ResultData<List<OrganizationDto>> resultData = subjectService.getOrgChildren(subjectId);
+                if (resultData.successful()) {
+                    List<OrganizationDto> orgList = resultData.getData();
+                    data = orgList.parallelStream().collect(Collectors.toMap(OrganizationDto::getName, OrganizationDto::getId));
+                }
+                break;
+            case Constants.DIMENSION_CODE_PROJECT:
+                ResultData<List<ProjectDto>> listResultData = projectManager.findByErpCode(subject.getCorporationCode());
+                if (listResultData.successful()) {
+                    List<ProjectDto> projectList = listResultData.getData();
+                    data = projectList.stream().collect(Collectors.toMap(ProjectDto::getName, ProjectDto::getId));
+                }
+                break;
+            case Constants.DIMENSION_CODE_COST_CENTER:
+                // TODO 提供成本中心接口
+
+                // break;
+            case Constants.DIMENSION_CODE_UDF1:
+                // TODO 提供二开接口
+            case Constants.DIMENSION_CODE_UDF2:
+            case Constants.DIMENSION_CODE_UDF3:
+            case Constants.DIMENSION_CODE_UDF4:
+            case Constants.DIMENSION_CODE_UDF5:
+                LOG.error(ContextUtil.getMessage("dimension_00006"));
+            default:
+                // 不支持的预算维度
+                LOG.error(ContextUtil.getMessage("dimension_00005", dimCode));
+        }
+        return data;
     }
 }

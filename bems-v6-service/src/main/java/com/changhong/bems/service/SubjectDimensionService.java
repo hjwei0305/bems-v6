@@ -31,9 +31,8 @@ import java.util.Objects;
  * @version 1.0.00  2021-11-02 14:57
  */
 @Service
-@CacheConfig(cacheNames = SubjectDimensionService.CACHE_KEY)
+@CacheConfig(cacheNames = Constants.DIMENSION_SUBJECT_CACHE_KEY_PREFIX)
 public class SubjectDimensionService {
-    public static final String CACHE_KEY = "bems-v6:dimension:subject";
     @Autowired
     private SubjectDimensionDao dao;
     @Autowired

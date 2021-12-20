@@ -1,0 +1,4 @@
+# Auto Configure
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.changhong.bems.config.AutoConfig,\
+com.changhong.bems.config.CustConfig
