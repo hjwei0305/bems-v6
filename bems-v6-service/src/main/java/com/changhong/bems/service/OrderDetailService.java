@@ -304,7 +304,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
 
                 for (OrderDetail detail : detailList) {
                     // 更新缓存
-                    operations.set(statistics);
+                    // operations.set(statistics);
 
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("正在处理行项: " + JsonUtils.toJson(detail));
