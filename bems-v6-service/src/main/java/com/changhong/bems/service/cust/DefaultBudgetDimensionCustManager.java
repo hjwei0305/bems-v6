@@ -127,37 +127,37 @@ public class DefaultBudgetDimensionCustManager implements BudgetDimensionCustMan
         Map<String, Object> data = new HashMap<>();
         switch (dimCode) {
             case Constants.DIMENSION_CODE_PERIOD:
-                data.put("head", Lists.newArrayList("ID", "名称"));
+                data.put("head", Lists.newArrayList("预算期间"));
                 List<Period> periods = periodService.findBySubjectUnclosed(subjectId);
-                list = periods.stream().map(p -> new KeyValueDto(p.getId(), p.getName())).collect(Collectors.toList());
+                list = periods.stream().map(p -> new KeyValueDto(p.getName(), p.getName())).collect(Collectors.toList());
                 break;
             case Constants.DIMENSION_CODE_ITEM:
-                data.put("head", Lists.newArrayList("代码", "名称"));
+                data.put("head", Lists.newArrayList("预算科目"));
                 List<SubjectItem> subjectItems = subjectItemService.findBySubjectUnfrozen(subjectId);
-                list = subjectItems.stream().map(p -> new KeyValueDto(p.getCode(), p.getName())).collect(Collectors.toList());
+                list = subjectItems.stream().map(p -> new KeyValueDto(p.getName(), p.getName())).collect(Collectors.toList());
                 break;
             case Constants.DIMENSION_CODE_ORG:
-                data.put("head", Lists.newArrayList("ID", "名称"));
+                data.put("head", Lists.newArrayList("组织机构", "组织路径"));
                 ResultData<List<OrganizationDto>> resultData = subjectService.getOrgChildren(subjectId);
                 if (resultData.successful()) {
                     List<OrganizationDto> orgList = resultData.getData();
-                    list = orgList.stream().map(o -> new KeyValueDto(o.getId(), o.getNamePath())).collect(Collectors.toList());
+                    list = orgList.stream().map(o -> new KeyValueDto(o.getName(), o.getNamePath())).collect(Collectors.toList());
                 } else {
                     return ResultData.fail(resultData.getMessage());
                 }
                 break;
             case Constants.DIMENSION_CODE_PROJECT:
-                data.put("head", Lists.newArrayList("项目id", "项目名称"));
+                data.put("head", Lists.newArrayList("公司项目"));
                 ResultData<List<ProjectDto>> listResultData = projectManager.findByErpCode(subject.getCorporationCode());
                 if (listResultData.successful()) {
                     List<ProjectDto> projectList = listResultData.getData();
-                    list = projectList.stream().map(o -> new KeyValueDto(o.getId(), o.getName())).collect(Collectors.toList());
+                    list = projectList.stream().map(o -> new KeyValueDto(o.getName(), o.getName())).collect(Collectors.toList());
                 } else {
                     return ResultData.fail(listResultData.getMessage());
                 }
                 break;
             case Constants.DIMENSION_CODE_COST_CENTER:
-                data.put("head", Lists.newArrayList("成本中心", "成本中心名称"));
+                data.put("head", Lists.newArrayList("成本中心"));
                 // TODO 提供成本中心接口
                 return ResultData.fail(ContextUtil.getMessage("dimension_00006"));
 
