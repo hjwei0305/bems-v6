@@ -402,9 +402,20 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      * @return 检查结果
      */
     @Override
-    public ResultData<String> importBudge(AddOrderDetail order, MultipartFile file) {
+    public ResultData<String> importBudge(AddOrderDetail orderDto, MultipartFile file) {
         // LogUtil.bizLog("上传订单数据 {}", JsonUtils.toJson(order));
         // LogUtil.bizLog("上传文件名 {}", file.getOriginalFilename());
+        String categoryId = orderDto.getCategoryId();
+        if (org.apache.commons.lang.StringUtils.isBlank(categoryId)) {
+            //添加单据行项时,预算类型不能为空.
+            return ResultData.fail(ContextUtil.getMessage("order_detail_00003"));
+        }
+        // 通过单据Id检查预算主体和类型是否被修改
+        ResultData<String> resultData = service.checkDimension(orderDto.getId(), orderDto.getSubjectId(), categoryId);
+        if (resultData.failed()) {
+            return ResultData.fail(resultData.getMessage());
+        }
+
         try {
             List<Map<Integer, String>> list = EasyExcel.read(file.getInputStream())
                     // 指定sheet,默认从0开始
@@ -412,7 +423,66 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                     // 数据读取起始行.从头开始读,并将第一行数据进行校验
                     .headRowNumber(0)
                     .doReadSync();
-            return service.importOrderDetails(order, list);
+
+            if (CollectionUtils.isEmpty(list)) {
+                //导入的订单行项数据不能为空
+                return ResultData.fail(ContextUtil.getMessage("order_detail_00012"));
+            }
+
+            List<DimensionDto> dimensions = categoryService.getAssigned(orderDto.getCategoryId());
+            if (CollectionUtils.isEmpty(dimensions)) {
+                // 预算类型[{0}]下未找到预算维度
+                return ResultData.fail(ContextUtil.getMessage("category_00007"));
+            }
+
+            // 预算类型获取模版
+            List<TemplateHeadVo> templateHead = new ArrayList<>();
+            // 模版检查
+            {
+                // 导入模版
+                Map<Integer, String> head = list.get(0);
+                if (Objects.nonNull(head)) {
+                    String dimName;
+                    TemplateHeadVo headVo;
+                    for (DimensionDto dim : dimensions) {
+                        headVo = null;
+                        dimName = ContextUtil.getMessage("default_dimension_".concat(dim.getCode()));
+                        for (Map.Entry<Integer, String> entry : head.entrySet()) {
+                            if (org.apache.commons.lang.StringUtils.equals(dimName, entry.getValue())) {
+                                headVo = new TemplateHeadVo(entry.getKey(), dim.getCode(), dimName);
+                                templateHead.add(headVo);
+                                break;
+                            }
+                        }
+                        if (Objects.isNull(headVo)) {
+                            // 预算数据导入模版不正确
+                            return ResultData.fail(ContextUtil.getMessage("order_detail_00014"));
+                        }
+                    }
+
+                    dimName = ContextUtil.getMessage("budget_template_amount");
+                    for (Map.Entry<Integer, String> entry : head.entrySet()) {
+                        if (org.apache.commons.lang.StringUtils.equals(dimName, entry.getValue())) {
+                            headVo = new TemplateHeadVo(entry.getKey(), OrderDetail.FIELD_AMOUNT, dimName);
+                            templateHead.add(headVo);
+                            break;
+                        }
+                    }
+                } else {
+                    // 预算数据导入模版不正确
+                    return ResultData.fail(ContextUtil.getMessage("order_detail_00014"));
+                }
+            }
+
+            Order order = modelMapper.map(orderDto, Order.class);
+            // 保存订单头
+            ResultData<Order> orderResult = service.saveOrder(order, null);
+            if (orderResult.successful()) {
+                service.importOrderDetails(order, templateHead, list);
+                return ResultData.success(order.getId());
+            } else {
+                return ResultData.fail(orderResult.getMessage());
+            }
         } catch (Exception e) {
             return ResultData.fail(ContextUtil.getMessage("order_detail_00013", ExceptionUtils.getRootCause(e)));
         }

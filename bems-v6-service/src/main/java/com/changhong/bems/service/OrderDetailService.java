@@ -271,9 +271,6 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         // 预算维度组合
         final String attribute = resultData.getData();
 
-        // 创建一个单线程执行器,保证任务按顺序执行(FIFO)
-        //noinspection AlibabaThreadPoolCreation
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
         try {
             ////////////// 分组处理,防止数据太多导致异常(in查询限制)  //////////////
             // 计算组数
@@ -306,6 +303,9 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                 }
 
                 for (OrderDetail detail : detailList) {
+                    // 更新缓存
+                    operations.set(statistics);
+
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("正在处理行项: " + JsonUtils.toJson(detail));
                     }
@@ -320,9 +320,6 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                         this.save(detail);
                         // 错误数加1
                         statistics.addFailures();
-                        // 更新缓存
-                        OrderStatistics finalStatistics = statistics;
-                        CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
                         continue;
                     }
 
@@ -335,9 +332,6 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                         this.save(detail);
                         // 错误数加1
                         statistics.addFailures();
-                        // 更新缓存
-                        OrderStatistics finalStatistics = statistics;
-                        CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
                         continue;
                     } else {
                         // 记录hash值
@@ -372,14 +366,11 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                         detail.setErrMsg(result.getMessage());
                     }
                     this.save(detail);
-                    OrderStatistics finalStatistics = statistics;
-                    CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
                 }
             }
         } catch (ServiceException e) {
             LOG.error("异步生成单据行项异常", e);
         } finally {
-            executorService.shutdown();
             // 清除缓存
             redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
         }
