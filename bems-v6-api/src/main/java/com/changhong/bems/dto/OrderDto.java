@@ -140,6 +140,11 @@ public class OrderDto extends BaseEntityDto {
     @ApiModelProperty(value = "创建时间", example = "2021-04-22 12:01:10")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     protected Date createdDate;
+    /**
+     * 明细是否存在错误
+     */
+    @ApiModelProperty(value = "明细是否存在错误")
+    private Boolean hasErr = Boolean.FALSE;
 
     @ApiModelProperty(value = "维度")
     private List<DimensionDto> dimensions;
@@ -332,6 +337,14 @@ public class OrderDto extends BaseEntityDto {
 
     public void setCreatedDate(Date createdDate) {
         this.createdDate = createdDate;
+    }
+
+    public Boolean getHasErr() {
+        return hasErr;
+    }
+
+    public void setHasErr(Boolean hasErr) {
+        this.hasErr = hasErr;
     }
 
     public List<DimensionDto> getDimensions() {

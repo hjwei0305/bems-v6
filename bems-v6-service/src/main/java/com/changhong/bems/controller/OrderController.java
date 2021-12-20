@@ -250,6 +250,10 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             return ResultData.fail(ContextUtil.getMessage("order_00001"));
         }
         OrderDto dto = dtoModelMapper.map(order, OrderDto.class);
+        ResultData<Void> resultData = service.checkDetailHasErr(orderId);
+        if (resultData.failed()) {
+            dto.setHasErr(Boolean.TRUE);
+        }
         List<DimensionDto> dimensions = categoryService.getAssigned(order.getCategoryId());
         dto.setDimensions(dimensions);
         return ResultData.success(dto);
