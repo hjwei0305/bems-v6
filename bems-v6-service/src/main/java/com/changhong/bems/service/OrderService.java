@@ -347,7 +347,7 @@ public class OrderService extends BaseEntityService<Order> {
      * @param order        业务实体
      * @param templateHead 模版
      */
-    @Async
+    @Transactional(rollbackFor = Exception.class)
     public void importOrderDetails(Order order, List<TemplateHeadVo> templateHead, List<Map<Integer, String>> details) {
         if (Objects.isNull(order)) {
             //导入的订单头数据不能为空

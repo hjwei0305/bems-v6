@@ -23,6 +23,7 @@ import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.util.JsonUtils;
 import com.changhong.sei.util.ArithUtils;
 import com.changhong.sei.util.EnumUtils;
+import com.changhong.sei.utils.AsyncRunUtil;
 import io.swagger.annotations.Api;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -64,6 +65,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     private BudgetDimensionCustManager budgetDimensionCustManager;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private AsyncRunUtil asyncRunUtil;
 
     @Override
     public BaseEntityService<Order> getService() {
