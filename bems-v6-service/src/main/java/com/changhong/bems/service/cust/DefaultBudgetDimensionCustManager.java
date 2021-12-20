@@ -129,12 +129,12 @@ public class DefaultBudgetDimensionCustManager implements BudgetDimensionCustMan
             case Constants.DIMENSION_CODE_PERIOD:
                 data.put("head", Lists.newArrayList("预算期间"));
                 List<Period> periods = periodService.findBySubjectUnclosed(subjectId);
-                list = periods.stream().map(p -> new KeyValueDto(p.getName(), p.getName())).collect(Collectors.toList());
+                list = periods.stream().map(p -> new KeyValueDto(p.getName(), "")).collect(Collectors.toList());
                 break;
             case Constants.DIMENSION_CODE_ITEM:
                 data.put("head", Lists.newArrayList("预算科目"));
                 List<SubjectItem> subjectItems = subjectItemService.findBySubjectUnfrozen(subjectId);
-                list = subjectItems.stream().map(p -> new KeyValueDto(p.getName(), p.getName())).collect(Collectors.toList());
+                list = subjectItems.stream().map(p -> new KeyValueDto(p.getName(), "")).collect(Collectors.toList());
                 break;
             case Constants.DIMENSION_CODE_ORG:
                 data.put("head", Lists.newArrayList("组织机构", "组织路径"));
@@ -151,7 +151,7 @@ public class DefaultBudgetDimensionCustManager implements BudgetDimensionCustMan
                 ResultData<List<ProjectDto>> listResultData = projectManager.findByErpCode(subject.getCorporationCode());
                 if (listResultData.successful()) {
                     List<ProjectDto> projectList = listResultData.getData();
-                    list = projectList.stream().map(o -> new KeyValueDto(o.getName(), o.getName())).collect(Collectors.toList());
+                    list = projectList.stream().map(o -> new KeyValueDto(o.getName(), "")).collect(Collectors.toList());
                 } else {
                     return ResultData.fail(listResultData.getMessage());
                 }
