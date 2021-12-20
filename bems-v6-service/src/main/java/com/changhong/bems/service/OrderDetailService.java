@@ -271,6 +271,9 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         // 预算维度组合
         final String attribute = resultData.getData();
 
+        // 创建一个单线程执行器,保证任务按顺序执行(FIFO)
+        //noinspection AlibabaThreadPoolCreation
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
         try {
             ////////////// 分组处理,防止数据太多导致异常(in查询限制)  //////////////
             // 计算组数
@@ -305,6 +308,8 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                 for (OrderDetail detail : detailList) {
                     // 更新缓存
                     // operations.set(statistics);
+                    OrderStatistics finalStatistics = statistics;
+                    CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
 
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("正在处理行项: " + JsonUtils.toJson(detail));
@@ -373,6 +378,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         } finally {
             // 清除缓存
             redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+            executorService.shutdown();
         }
     }
 
