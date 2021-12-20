@@ -205,6 +205,15 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     ResultData<String> importBudge(@RequestPart("order") AddOrderDetail order, @RequestPart("file") MultipartFile file);
 
     /**
+     * 导出预算订单明细数据
+     *
+     * @return 导出的明细数据
+     */
+    @GetMapping(path = "export")
+    @ApiOperation(value = "导出预算订单明细数据", notes = "导出预算订单明细数据")
+    ResultData<Map<String, Object>> exportBudgeDetails(@RequestParam("orderId") String orderId);
+
+    /**
      * 获取预算模版格式数据
      *
      * @param categoryId 预算类型id

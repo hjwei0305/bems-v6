@@ -111,6 +111,43 @@ public class OrderService extends BaseEntityService<Order> {
     }
 
     /**
+     * 导出预算订单明细数据
+     *
+     * @param orderId 订单id
+     * @return 导出的明细数据
+     */
+    public ResultData<Map<String, Object>> exportBudgeDetails(String orderId) {
+        Order order = dao.findOne(orderId);
+        if (Objects.isNull(order)) {
+            return ResultData.fail(ContextUtil.getMessage("order_00001"));
+        }
+        LinkedList<TemplateHeadVo> head = new LinkedList<>();
+        List<DimensionDto> dimensions = categoryService.getAssigned(order.getCategoryId());
+        if (CollectionUtils.isNotEmpty(dimensions)) {
+            int index = 0;
+            for (DimensionDto dto : dimensions) {
+                head.add(new TemplateHeadVo(index++, dto.getCode().concat("Name"), ContextUtil.getMessage("default_dimension_" + dto.getCode())));
+            }
+            head.add(new TemplateHeadVo(index, OrderDetail.FIELD_AMOUNT, ContextUtil.getMessage("budget_template_amount")));
+
+            // 检查是否存在错误行项
+            long hasErrCount = orderDetailService.getHasErrCount(orderId);
+            if (hasErrCount > 0) {
+                head.add(new TemplateHeadVo(index + 1, OrderDetail.FIELD_ERRMSG, ContextUtil.getMessage("budget_template_errmsg")));
+            }
+
+            Map<String, Object> data = new HashMap<>(7);
+            data.put("head", head);
+            List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
+            data.put("data", details);
+            return ResultData.success(data);
+        } else {
+            // 预算类型[{0}]下未找到预算维度
+            return ResultData.fail(ContextUtil.getMessage("category_00007", order.getCategoryName()));
+        }
+    }
+
+    /**
      * 获取预算模版格式数据
      *
      * @param categoryId 预算类型id

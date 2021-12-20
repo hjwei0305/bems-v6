@@ -415,6 +415,17 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     }
 
     /**
+     * 导出预算订单明细数据
+     *
+     * @param orderId 订单id
+     * @return 导出的明细数据
+     */
+    @Override
+    public ResultData<Map<String, Object>> exportBudgeDetails(String orderId) {
+        return service.exportBudgeDetails(orderId);
+    }
+
+    /**
      * 获取预算模版格式数据
      *
      * @param categoryId 预算类型id
