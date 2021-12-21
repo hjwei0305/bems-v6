@@ -4,7 +4,6 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.StringJoiner;
 
@@ -49,7 +48,6 @@ public class OrderStatistics implements Serializable {
     public OrderStatistics(String orderId, int total, LocalDateTime startTime) {
         this.orderId = orderId;
         this.total = total;
-        this.startTime = startTime;
     }
 
     public String getOrderId() {
@@ -88,30 +86,6 @@ public class OrderStatistics implements Serializable {
         this.failures++;
     }
 
-    public long getDuration() {
-        if (null == startTime) {
-            return 0;
-        } else {
-            return Duration.between(startTime, LocalDateTime.now()).toMillis();
-        }
-    }
-
-    public long getEstimatedTime() {
-        /*
-        共100个
-        已处理80个
-        耗时60秒
-        每个耗时 60/80 = 0.75 秒/个
-        预计完成时间 = (100 - 80) * 0.75
-         */
-        int processed = getSuccesses() + getFailures();
-        if (processed > 0) {
-            return (getTotal() - processed) * (getDuration() / processed);
-        } else {
-            return -1;
-        }
-    }
-
     public boolean getFinish() {
         return total - successes - failures == 0;
     }
@@ -123,7 +97,6 @@ public class OrderStatistics implements Serializable {
                 .add("total=" + total)
                 .add("successes=" + successes)
                 .add("failures=" + failures)
-                .add("startTime=" + startTime)
                 .toString();
     }
 }

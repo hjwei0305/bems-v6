@@ -447,7 +447,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                         headVo = null;
                         dimName = ContextUtil.getMessage("default_dimension_".concat(dim.getCode()));
                         for (Map.Entry<Integer, String> entry : head.entrySet()) {
-                            if (org.apache.commons.lang.StringUtils.equals(dimName, entry.getValue())) {
+                            if (StringUtils.equals(dimName, entry.getValue())) {
                                 headVo = new TemplateHeadVo(entry.getKey(), dim.getCode(), dimName);
                                 templateHead.add(headVo);
                                 break;
@@ -461,7 +461,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
 
                     dimName = ContextUtil.getMessage("budget_template_amount");
                     for (Map.Entry<Integer, String> entry : head.entrySet()) {
-                        if (org.apache.commons.lang.StringUtils.equals(dimName, entry.getValue())) {
+                        if (StringUtils.equals(dimName, entry.getValue())) {
                             headVo = new TemplateHeadVo(entry.getKey(), OrderDetail.FIELD_AMOUNT, dimName);
                             templateHead.add(headVo);
                             break;
