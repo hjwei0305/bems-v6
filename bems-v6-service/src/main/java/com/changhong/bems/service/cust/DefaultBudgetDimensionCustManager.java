@@ -23,6 +23,7 @@ import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -230,7 +231,7 @@ public class DefaultBudgetDimensionCustManager implements BudgetDimensionCustMan
             case Constants.DIMENSION_CODE_COST_CENTER:
                 // TODO 提供成本中心接口
 
-                // break;
+                break;
             case Constants.DIMENSION_CODE_UDF1:
                 // TODO 提供二开接口
             case Constants.DIMENSION_CODE_UDF2:
@@ -238,9 +239,13 @@ public class DefaultBudgetDimensionCustManager implements BudgetDimensionCustMan
             case Constants.DIMENSION_CODE_UDF4:
             case Constants.DIMENSION_CODE_UDF5:
                 LOG.error(ContextUtil.getMessage("dimension_00006"));
+                break;
             default:
                 // 不支持的预算维度
                 LOG.error(ContextUtil.getMessage("dimension_00005", dimCode));
+        }
+        if (!data.isEmpty()) {
+            operations.set(data, 10, TimeUnit.HOURS);
         }
         return data;
     }

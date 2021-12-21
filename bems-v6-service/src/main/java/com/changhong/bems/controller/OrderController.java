@@ -487,6 +487,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             stopWatch.stop();
             stopWatch.start("保存订单头");
             Order order = modelMapper.map(orderDto, Order.class);
+            // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
+            order.setProcessing(Boolean.TRUE);
             // 保存订单头
             ResultData<Order> orderResult = service.saveOrder(order, null);
             stopWatch.stop();
