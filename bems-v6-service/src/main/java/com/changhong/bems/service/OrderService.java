@@ -368,7 +368,7 @@ public class OrderService extends BaseEntityService<Order> {
         // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
         this.setProcessStatus(orderId, Boolean.TRUE);
 
-        OrderStatistics statistics = new OrderStatistics(orderId, details.size(), LocalDateTime.now());
+        OrderStatistics statistics = new OrderStatistics(orderId, details.size());
         BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX + orderId);
         // 设置默认过期时间:1天
         operations.set(statistics, 10, TimeUnit.HOURS);
@@ -688,7 +688,7 @@ public class OrderService extends BaseEntityService<Order> {
                 // 按订单id设置所有行项的处理状态为处理中
                 orderDetailService.setProcessing4All(orderId);
 
-                OrderStatistics statistics = new OrderStatistics(orderId, details.size(), LocalDateTime.now());
+                OrderStatistics statistics = new OrderStatistics(orderId, details.size());
                 BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
                 // 设置默认过期时间:1天
                 operations.set(statistics, 10, TimeUnit.HOURS);
@@ -737,7 +737,7 @@ public class OrderService extends BaseEntityService<Order> {
             // 按订单id设置所有行项的处理状态为处理中
             orderDetailService.setProcessing4All(orderId);
 
-            OrderStatistics statistics = new OrderStatistics(orderId, details.size(), LocalDateTime.now());
+            OrderStatistics statistics = new OrderStatistics(orderId, details.size());
             BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
             // 设置默认过期时间:1天
             operations.set(statistics, 10, TimeUnit.HOURS);
@@ -799,7 +799,7 @@ public class OrderService extends BaseEntityService<Order> {
                 dao.updateAmount(orderId);
                 // 按订单id设置所有行项的处理状态为处理中
                 orderDetailService.setProcessing4All(orderId);
-                OrderStatistics statistics = new OrderStatistics(orderId, details.size(), LocalDateTime.now());
+                OrderStatistics statistics = new OrderStatistics(orderId, details.size());
                 BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
                 // 设置默认过期时间:1天
                 operations.set(statistics, 10, TimeUnit.HOURS);

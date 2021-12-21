@@ -4,7 +4,6 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.StringJoiner;
 
 /**
@@ -36,16 +35,11 @@ public class OrderStatistics implements Serializable {
      */
     @ApiModelProperty(value = "失败数")
     private int failures = 0;
-    /**
-     * 开始时间
-     */
-    @ApiModelProperty(value = "开始时间")
-    protected LocalDateTime startTime;
 
     public OrderStatistics() {
     }
 
-    public OrderStatistics(String orderId, int total, LocalDateTime startTime) {
+    public OrderStatistics(String orderId, int total) {
         this.orderId = orderId;
         this.total = total;
     }
@@ -72,10 +66,6 @@ public class OrderStatistics implements Serializable {
 
     public void setFailures(int failures) {
         this.failures = failures;
-    }
-
-    public LocalDateTime getStartTime() {
-        return startTime;
     }
 
     public void addSuccesses() {

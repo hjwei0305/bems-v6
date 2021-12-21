@@ -265,7 +265,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             return;
         }
 
-        OrderStatistics statistics = new OrderStatistics(orderId, details.size(), LocalDateTime.now());
+        OrderStatistics statistics = new OrderStatistics(orderId, details.size());
         BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
         // 设置默认过期时间:1天
         operations.set(statistics, 10, TimeUnit.HOURS);

@@ -266,6 +266,16 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     @ApiOperation(value = "预算申请单生效", notes = "已确认的预算申请单直接生效")
     ResultData<OrderDto> effectiveOrder(@RequestParam("orderId") String orderId);
 
+    /**
+     * 获取订单处理状态
+     *
+     * @param orderId 订单id
+     * @return 处理状态
+     */
+    @GetMapping(path = "getProcessingStatus")
+    @ApiOperation(value = "获取订单处理状态", notes = "获取订单处理状态")
+    ResultData<OrderStatistics> getProcessingStatus(@RequestParam("orderId") String orderId);
+
     ///////////////////////流程集成 start//////////////////////////////
 
     /**

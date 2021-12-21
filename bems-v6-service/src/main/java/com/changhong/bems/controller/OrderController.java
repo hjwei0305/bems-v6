@@ -32,6 +32,7 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -68,6 +69,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     private ModelMapper modelMapper;
     @Autowired
     private AsyncRunUtil asyncRunUtil;
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Override
     public BaseEntityService<Order> getService() {
@@ -584,6 +587,26 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             // 预算生效失败
             return ResultData.fail(ContextUtil.getMessage("order_00008", resultData.getMessage()));
         }
+    }
+
+    /**
+     * 获取订单处理状态
+     *
+     * @param orderId 订单id
+     * @return 处理状态
+     */
+    @Override
+    public ResultData<OrderStatistics> getProcessingStatus(String orderId) {
+        OrderStatistics statistics = (OrderStatistics) redisTemplate.opsForValue().get(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+        if (Objects.nonNull(statistics)) {
+            if (statistics.getFinish()) {
+                // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
+                service.setProcessStatus(orderId, Boolean.FALSE);
+            }
+        } else {
+            statistics = new OrderStatistics();
+        }
+        return ResultData.success(statistics);
     }
 
     ///////////////////////流程集成 start//////////////////////////////
