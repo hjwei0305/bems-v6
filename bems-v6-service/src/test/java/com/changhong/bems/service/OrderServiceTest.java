@@ -103,8 +103,8 @@ class OrderServiceTest extends BaseUnit5Test {
     void confirmUseBudget() {
         StopWatch stopWatch = StopWatch.createStarted();
 
-        String detailId = "F5B05C90-CE7A-11EB-997A-0242C0A8442C";
-        ResultData<Void> resultData = service.confirmUseBudget(detailId);
+        String orderId = "F5B05C90-CE7A-11EB-997A-0242C0A8442C";
+        ResultData<Order> resultData = service.confirm(orderId);
         stopWatch.stop();
         System.out.println("耗时: " + stopWatch.getTime());
         System.out.println(resultData);
@@ -114,8 +114,8 @@ class OrderServiceTest extends BaseUnit5Test {
     void effectiveUseBudget() {
         StopWatch stopWatch = StopWatch.createStarted();
 
-        String detailId = "16837168-CD9B-11EB-A68D-0242C0A84429";
-        ResultData<Void> resultData = service.effectiveUseBudget(detailId);
+        String orderId = "16837168-CD9B-11EB-A68D-0242C0A84429";
+        ResultData<Order> resultData = service.effective(orderId);
         stopWatch.stop();
         System.out.println("耗时: " + stopWatch.getTime());
         System.out.println(resultData);

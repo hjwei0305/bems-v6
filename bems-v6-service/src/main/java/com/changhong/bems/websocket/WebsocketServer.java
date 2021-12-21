@@ -2,6 +2,7 @@ package com.changhong.bems.websocket;
 
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.OrderStatistics;
+import com.changhong.bems.service.OrderDetailService;
 import com.changhong.bems.service.OrderService;
 import com.changhong.bems.websocket.config.MyEndpointConfigure;
 import com.changhong.sei.core.dto.ResultData;
@@ -38,6 +39,8 @@ public class WebsocketServer {
     private RedisTemplate<String, Object> redisTemplate;
     @Autowired
     private OrderService orderService;
+    @Autowired
+    private OrderDetailService orderDetailService;
 
     /**
      * 连接建立成功调用的方法
@@ -65,8 +68,12 @@ public class WebsocketServer {
                 TimeUnit.SECONDS.sleep(3);
                 statistics = (OrderStatistics) redisTemplate.opsForValue().get(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
             }
-            // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
-            orderService.setProcessStatus(orderId, Boolean.FALSE);
+            // 获取处理中的订单行项数.等于0表示处理完订单所有行项
+            long processingCount = orderDetailService.getProcessingCount(orderId);
+            if (processingCount == 0) {
+                // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
+                orderService.setProcessStatus(orderId, Boolean.FALSE);
+            }
 
             statistics = new OrderStatistics();
             send(session, ResultData.success(statistics));
