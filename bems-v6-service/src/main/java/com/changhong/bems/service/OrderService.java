@@ -36,6 +36,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import org.springframework.util.StopWatch;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -371,7 +372,8 @@ public class OrderService extends BaseEntityService<Order> {
         BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX + orderId);
         // 设置默认过期时间:1天
         operations.set(statistics, 10, TimeUnit.HOURS);
-
+        StopWatch stopWatch = new StopWatch("导入处理");
+        stopWatch.start("导入数据预处理");
         try {
             Map<String, String> periodMap = null, subjectItemMap = null, orgMap = null, projectMap = null, costCenterMap = null,
                     udf1Map = null, udf2Map = null, udf3Map = null, udf4Map = null, udf5Map = null;
@@ -547,8 +549,12 @@ public class OrderService extends BaseEntityService<Order> {
                 }
                 orderDetails.add(detail);
             }
+            stopWatch.stop();
+            stopWatch.start("持久化");
             // 保存订单行项.在导入时,若存在相同的行项则需要覆盖处理
             orderDetailService.addOrderItems(order, orderDetails, Boolean.TRUE);
+            stopWatch.stop();
+            LOG.info("预算导入处理耗时:\n{}", stopWatch.prettyPrint());
         } catch (ServiceException e) {
             LOG.error("异步导入单据行项异常", e);
         }

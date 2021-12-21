@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -408,32 +409,40 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     public ResultData<String> importBudge(AddOrderDetail orderDto, MultipartFile file) {
         // LogUtil.bizLog("上传订单数据 {}", JsonUtils.toJson(order));
         // LogUtil.bizLog("上传文件名 {}", file.getOriginalFilename());
+        StopWatch stopWatch = new StopWatch("导入");
         String categoryId = orderDto.getCategoryId();
         if (StringUtils.isBlank(categoryId)) {
             //添加单据行项时,预算类型不能为空.
             return ResultData.fail(ContextUtil.getMessage("order_detail_00003"));
         }
+        stopWatch.start("检查维度");
         // 通过单据Id检查预算主体和类型是否被修改
         ResultData<String> resultData = service.checkDimension(orderDto.getId(), orderDto.getSubjectId(), categoryId);
         if (resultData.failed()) {
             return ResultData.fail(resultData.getMessage());
         }
+        stopWatch.stop();
         try {
+            stopWatch.start("读取excel");
             List<Map<Integer, String>> list = EasyExcel.read(file.getInputStream())
                     // 指定sheet,默认从0开始
                     .sheet(0)
                     // 数据读取起始行.从头开始读,并将第一行数据进行校验
                     .headRowNumber(0)
                     .doReadSync();
+            stopWatch.stop();
             if (CollectionUtils.isEmpty(list)) {
                 //导入的订单行项数据不能为空
                 return ResultData.fail(ContextUtil.getMessage("order_detail_00012"));
             }
+            stopWatch.start("获取维度");
             List<DimensionDto> dimensions = categoryService.getAssigned(orderDto.getCategoryId());
             if (CollectionUtils.isEmpty(dimensions)) {
                 // 预算类型[{0}]下未找到预算维度
                 return ResultData.fail(ContextUtil.getMessage("category_00007"));
             }
+            stopWatch.stop();
+            stopWatch.start("检查模版");
             // 预算类型获取模版
             List<TemplateHeadVo> templateHead = new ArrayList<>();
             // 模版检查
@@ -447,7 +456,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                         headVo = null;
                         dimName = ContextUtil.getMessage("default_dimension_".concat(dim.getCode()));
                         for (Map.Entry<Integer, String> entry : head.entrySet()) {
-                            if (StringUtils.equals(dimName, entry.getValue())) {
+                            if (org.apache.commons.lang.StringUtils.equals(dimName, entry.getValue())) {
                                 headVo = new TemplateHeadVo(entry.getKey(), dim.getCode(), dimName);
                                 templateHead.add(headVo);
                                 break;
@@ -461,7 +470,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
 
                     dimName = ContextUtil.getMessage("budget_template_amount");
                     for (Map.Entry<Integer, String> entry : head.entrySet()) {
-                        if (StringUtils.equals(dimName, entry.getValue())) {
+                        if (org.apache.commons.lang.StringUtils.equals(dimName, entry.getValue())) {
                             headVo = new TemplateHeadVo(entry.getKey(), OrderDetail.FIELD_AMOUNT, dimName);
                             templateHead.add(headVo);
                             break;
@@ -472,11 +481,17 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                     return ResultData.fail(ContextUtil.getMessage("order_detail_00014"));
                 }
             }
+            stopWatch.stop();
+            stopWatch.start("保存订单头");
             Order order = modelMapper.map(orderDto, Order.class);
             // 保存订单头
             ResultData<Order> orderResult = service.saveOrder(order, null);
+            stopWatch.stop();
             if (orderResult.successful()) {
+                stopWatch.start("调用服务的逻辑");
                 service.importOrderDetails(order, templateHead, list);
+                stopWatch.stop();
+                LOG.info("预算导入总耗时:\n{}", stopWatch.prettyPrint());
                 return ResultData.success(order.getId());
             } else {
                 return ResultData.fail(orderResult.getMessage());

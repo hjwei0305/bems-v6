@@ -246,7 +246,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
      *
      * @param isCover 出现重复行项时,是否覆盖原有记录
      */
-    // @Async
+    @Async
     public void addOrderItems(Order order, List<OrderDetail> details, boolean isCover) {
         if (Objects.isNull(order)) {
             //添加单据行项时,订单头不能为空.
@@ -319,6 +319,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     redisTemplate.opsForValue().set(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId), statistics, 10, TimeUnit.HOURS);
                 });
             }
+            System.out.println("处理完成");
         } catch (ServiceException e) {
             LOG.error("异步生成单据行项异常", e);
         } finally {
