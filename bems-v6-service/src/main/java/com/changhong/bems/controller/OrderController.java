@@ -602,21 +602,17 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         OrderStatistics statistics = (OrderStatistics) redisTemplate.opsForValue().get(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
         if (Objects.nonNull(statistics)) {
             if (statistics.getFinish()) {
-                // 获取处理中的订单行项数.等于0表示处理完订单所有行项
-                long processingCount = orderDetailService.getProcessingCount(orderId);
-                if (processingCount == 0) {
-                    // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
-                    service.setProcessStatus(orderId, Boolean.FALSE);
-                }
+                // // 获取处理中的订单行项数.等于0表示处理完订单所有行项
+                // long processingCount = orderDetailService.getProcessingCount(orderId);
+                // if (processingCount == 0) {
+                // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
+                service.setProcessStatus(orderId, Boolean.FALSE);
+                // }
             }
         } else {
             statistics = new OrderStatistics();
-            // 获取处理中的订单行项数.等于0表示处理完订单所有行项
-            long processingCount = orderDetailService.getProcessingCount(orderId);
-            if (processingCount == 0) {
-                // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
-                service.setProcessStatus(orderId, Boolean.FALSE);
-            }
+            // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
+            service.setProcessStatus(orderId, Boolean.FALSE);
         }
         return ResultData.success(statistics);
     }
