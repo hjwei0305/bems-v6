@@ -3,7 +3,6 @@ package com.changhong.bems.service;
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.OrderDetailDao;
 import com.changhong.bems.dto.OrderCategory;
-import com.changhong.bems.dto.OrderStatistics;
 import com.changhong.bems.dto.SplitDetailQuickQueryParam;
 import com.changhong.bems.entity.DimensionAttribute;
 import com.changhong.bems.entity.Order;
@@ -25,20 +24,16 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import org.springframework.util.StopWatch;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -257,24 +252,28 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             return;
         }
 
-        OrderStatistics statistics = new OrderStatistics(orderId, details.size(), LocalDateTime.now());
-        BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
-        // 设置默认过期时间:1天
-        operations.set(statistics, 10, TimeUnit.HOURS);
+        StopWatch watch = new StopWatch(order.getCode());
+        // OrderStatistics statistics = new OrderStatistics(orderId, details.size(), LocalDateTime.now());
+        // BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+        // // 设置默认过期时间:1天
+        // operations.set(statistics, 10, TimeUnit.HOURS);
 
+        watch.start("获取维度组合");
         // 通过预算类型获取预算维度组合
         ResultData<String> resultData = dimensionAttributeService.getAttribute(order.getCategoryId());
         if (resultData.failed()) {
             LOG.error(resultData.getMessage());
             return;
         }
+        watch.stop();
         // 预算维度组合
         final String attribute = resultData.getData();
 
         // 创建一个单线程执行器,保证任务按顺序执行(FIFO)
         //noinspection AlibabaThreadPoolCreation
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        // ExecutorService executorService = Executors.newSingleThreadExecutor();
         try {
+            watch.start("分组");
             ////////////// 分组处理,防止数据太多导致异常(in查询限制)  //////////////
             // 计算组数
             int limit = (details.size() + MAX_NUMBER - 1) / MAX_NUMBER;
@@ -284,6 +283,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                 groups.add(details.stream().skip(i * MAX_NUMBER).limit(MAX_NUMBER).collect(Collectors.toList()));
             });
             details.clear();
+            watch.stop();
             ////////////// end 分组处理 /////////////
 
             // 记录所有hash值,以便识别出重复的行项
@@ -293,7 +293,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             // 分组处理
             for (List<OrderDetail> detailList : groups) {
                 search.clearAll();
-
+                watch.start("获取历史数据");
                 Set<Long> hashSet = detailList.stream().map(OrderDetail::getAttributeCode).collect(Collectors.toSet());
                 search.addFilter(new SearchFilter(OrderDetail.FIELD_ORDER_ID, orderId));
                 search.addFilter(new SearchFilter(OrderDetail.FIELD_ATTRIBUTE_CODE, hashSet, SearchFilter.Operator.IN));
@@ -304,16 +304,17 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                 } else {
                     detailMap = new HashMap<>(7);
                 }
+                watch.stop();
 
                 for (OrderDetail detail : detailList) {
                     // 更新缓存
                     // operations.set(statistics);
-                    OrderStatistics finalStatistics = statistics;
-                    CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
+                    // OrderStatistics finalStatistics = statistics;
+                    // CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
 
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("正在处理行项: " + JsonUtils.toJson(detail));
-                    }
+                    // if (LOG.isDebugEnabled()) {
+                    //     LOG.debug("正在处理行项: " + JsonUtils.toJson(detail));
+                    // }
                     // 订单id
                     detail.setOrderId(orderId);
                     // 维度属性组合
@@ -324,7 +325,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                         // 对导入时数据校验结果持久化处理
                         this.save(detail);
                         // 错误数加1
-                        statistics.addFailures();
+                        // statistics.addFailures();
                         continue;
                     }
 
@@ -336,7 +337,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                         detail.setErrMsg(ContextUtil.getMessage("order_detail_00006"));
                         this.save(detail);
                         // 错误数加1
-                        statistics.addFailures();
+                        // statistics.addFailures();
                         continue;
                     } else {
                         // 记录hash值
@@ -356,16 +357,18 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                         }
                     }
 
+                    watch.start("获取预算池信息");
                     try {
                         // 设置行项数据的预算池及当前可用额度
                         result = this.createDetail(order, detail);
                     } catch (Exception e) {
                         result = ResultData.fail(ExceptionUtils.getRootCauseMessage(e));
                     }
+                    watch.stop();
                     if (result.successful()) {
-                        statistics.addSuccesses();
+                        // statistics.addSuccesses();
                     } else {
-                        statistics.addFailures();
+                        // statistics.addFailures();
                         // 有错误的
                         detail.setHasErr(Boolean.TRUE);
                         detail.setErrMsg(result.getMessage());
@@ -376,9 +379,10 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         } catch (ServiceException e) {
             LOG.error("异步生成单据行项异常", e);
         } finally {
+            LogUtil.bizLog("预算导入耗时分析:\n {}", watch.prettyPrint());
             // 清除缓存
-            redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
-            executorService.shutdown();
+            // redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+            // executorService.shutdown();
         }
     }
 
