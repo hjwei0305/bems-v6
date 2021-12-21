@@ -246,7 +246,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
      *
      * @param isCover 出现重复行项时,是否覆盖原有记录
      */
-    @Async
+    // @Async
     public void addOrderItems(Order order, List<OrderDetail> details, boolean isCover) {
         if (Objects.isNull(order)) {
             //添加单据行项时,订单头不能为空.
