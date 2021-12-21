@@ -3,12 +3,15 @@ package com.changhong.bems.service;
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.OrderDetailDao;
 import com.changhong.bems.dto.OrderCategory;
+import com.changhong.bems.dto.OrderStatistics;
 import com.changhong.bems.dto.SplitDetailQuickQueryParam;
 import com.changhong.bems.entity.DimensionAttribute;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
 import com.changhong.bems.entity.Pool;
 import com.changhong.sei.core.context.ContextUtil;
+import com.changhong.sei.core.context.SessionUser;
+import com.changhong.sei.core.context.mock.MockUser;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
@@ -18,22 +21,27 @@ import com.changhong.sei.core.log.LogUtil;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.util.JsonUtils;
 import com.changhong.sei.exception.ServiceException;
+import com.changhong.sei.util.thread.ThreadLocalHolder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
-import org.springframework.util.StopWatch;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -53,6 +61,8 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
     private PoolService poolService;
     @Autowired
     private DimensionAttributeService dimensionAttributeService;
+    @Autowired
+    private MockUser mockUser;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
@@ -237,7 +247,6 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
      * @param isCover 出现重复行项时,是否覆盖原有记录
      */
     @Async
-    @SuppressWarnings({"UnnecessaryLocalVariable"})
     public void addOrderItems(Order order, List<OrderDetail> details, boolean isCover) {
         if (Objects.isNull(order)) {
             //添加单据行项时,订单头不能为空.
@@ -252,28 +261,21 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             return;
         }
 
-        StopWatch watch = new StopWatch(order.getCode());
-        // OrderStatistics statistics = new OrderStatistics(orderId, details.size(), LocalDateTime.now());
-        // BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
-        // // 设置默认过期时间:1天
-        // operations.set(statistics, 10, TimeUnit.HOURS);
+        OrderStatistics statistics = new OrderStatistics(orderId, details.size(), LocalDateTime.now());
+        BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+        // 设置默认过期时间:1天
+        operations.set(statistics, 10, TimeUnit.HOURS);
 
-        watch.start("获取维度组合");
         // 通过预算类型获取预算维度组合
         ResultData<String> resultData = dimensionAttributeService.getAttribute(order.getCategoryId());
         if (resultData.failed()) {
             LOG.error(resultData.getMessage());
             return;
         }
-        watch.stop();
         // 预算维度组合
         final String attribute = resultData.getData();
 
-        // 创建一个单线程执行器,保证任务按顺序执行(FIFO)
-        //noinspection AlibabaThreadPoolCreation
-        // ExecutorService executorService = Executors.newSingleThreadExecutor();
         try {
-            watch.start("分组");
             ////////////// 分组处理,防止数据太多导致异常(in查询限制)  //////////////
             // 计算组数
             int limit = (details.size() + MAX_NUMBER - 1) / MAX_NUMBER;
@@ -283,106 +285,115 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                 groups.add(details.stream().skip(i * MAX_NUMBER).limit(MAX_NUMBER).collect(Collectors.toList()));
             });
             details.clear();
-            watch.stop();
             ////////////// end 分组处理 /////////////
-
+            SessionUser sessionUser = ContextUtil.getSessionUser();
+            LongAdder successes = new LongAdder();
+            LongAdder failures = new LongAdder();
+            Map<Long, OrderDetail> detailMap = new ConcurrentHashMap<>();
             // 记录所有hash值,以便识别出重复的行项
-            Set<Long> duplicateHash = new HashSet<>();
+            Set<Long> duplicateHash = new CopyOnWriteArraySet<>();
             Search search = Search.createSearch();
-            ResultData<Void> result;
             // 分组处理
             for (List<OrderDetail> detailList : groups) {
                 search.clearAll();
-                watch.start("获取历史数据");
                 Set<Long> hashSet = detailList.stream().map(OrderDetail::getAttributeCode).collect(Collectors.toSet());
                 search.addFilter(new SearchFilter(OrderDetail.FIELD_ORDER_ID, orderId));
                 search.addFilter(new SearchFilter(OrderDetail.FIELD_ATTRIBUTE_CODE, hashSet, SearchFilter.Operator.IN));
                 List<OrderDetail> orderDetails = dao.findByFilters(search);
-                Map<Long, OrderDetail> detailMap;
+
                 if (CollectionUtils.isNotEmpty(orderDetails)) {
-                    detailMap = orderDetails.stream().collect(Collectors.toMap(OrderDetail::getAttributeCode, o -> o));
-                } else {
-                    detailMap = new HashMap<>(7);
+                    detailMap.putAll(orderDetails.stream().collect(Collectors.toMap(OrderDetail::getAttributeCode, o -> o)));
                 }
-                watch.stop();
 
-                for (OrderDetail detail : detailList) {
-                    // 更新缓存
-                    // operations.set(statistics);
-                    // OrderStatistics finalStatistics = statistics;
-                    // CompletableFuture.runAsync(() -> operations.set(finalStatistics), executorService);
-
-                    // if (LOG.isDebugEnabled()) {
-                    //     LOG.debug("正在处理行项: " + JsonUtils.toJson(detail));
-                    // }
+                detailList.parallelStream().forEach(detail -> {
                     // 订单id
                     detail.setOrderId(orderId);
                     // 维度属性组合
                     detail.setAttribute(attribute);
-                    // 创建时间
-                    detail.setCreatedDate(LocalDateTime.now());
-                    if (detail.getHasErr()) {
-                        // 对导入时数据校验结果持久化处理
-                        this.save(detail);
-                        // 错误数加1
-                        // statistics.addFailures();
-                        continue;
-                    }
 
-                    // 本次提交数据中存在重复项
-                    if (duplicateHash.contains(detail.getAttributeCode())) {
-                        // 有错误的
-                        detail.setHasErr(Boolean.TRUE);
-                        // 存在重复项
-                        detail.setErrMsg(ContextUtil.getMessage("order_detail_00006"));
-                        this.save(detail);
-                        // 错误数加1
-                        // statistics.addFailures();
-                        continue;
+                    this.putOrderDetail(isCover, order, detail, detailMap, duplicateHash, successes, failures, sessionUser);
+
+                    statistics.setSuccesses(successes.intValue());
+                    statistics.setFailures(failures.intValue());
+                    // 更新缓存
+                    redisTemplate.opsForValue().set(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId), statistics, 10, TimeUnit.HOURS);
+                });
+            }
+        } catch (ServiceException e) {
+            LOG.error("异步生成单据行项异常", e);
+        } finally {
+            // 清除缓存
+            redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+        }
+    }
+
+    private void putOrderDetail(boolean isCover, Order order, OrderDetail detail, Map<Long, OrderDetail> detailMap,
+                                Set<Long> duplicateHash, LongAdder successes, LongAdder failures, SessionUser sessionUser) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("正在处理行项: " + JsonUtils.toJson(detail));
+        }
+        // 本地线程全局变量存储-开始
+        ThreadLocalHolder.begin();
+        try {
+            mockUser.mock(sessionUser);
+
+            // 创建时间
+            detail.setCreatedDate(LocalDateTime.now());
+            if (detail.getHasErr()) {
+                // 错误数加1
+                failures.increment();
+            }
+            // 本次提交数据中存在重复项
+            else if (duplicateHash.contains(detail.getAttributeCode())) {
+                // 有错误的
+                detail.setHasErr(Boolean.TRUE);
+                // 存在重复项
+                detail.setErrMsg(ContextUtil.getMessage("order_detail_00006"));
+                // 错误数加1
+                failures.increment();
+            } else {
+                // 记录hash值
+                duplicateHash.add(detail.getAttributeCode());
+                // 检查持久化数据中是否存在重复项
+                OrderDetail orderDetail = detailMap.get(detail.getAttributeCode());
+                if (Objects.nonNull(orderDetail)) {
+                    // 检查重复行项
+                    if (isCover) {
+                        // 覆盖原有行项记录(更新金额)
+                        orderDetail.setAmount(detail.getAmount());
+                        detail = orderDetail;
                     } else {
-                        // 记录hash值
-                        duplicateHash.add(detail.getAttributeCode());
+                        // 忽略,不做处理
+                        detail = null;
                     }
-                    // 检查持久化数据中是否存在重复项
-                    OrderDetail orderDetail = detailMap.get(detail.getAttributeCode());
-                    if (Objects.nonNull(orderDetail)) {
-                        // 检查重复行项
-                        if (isCover) {
-                            // 覆盖原有行项记录(更新金额)
-                            orderDetail.setAmount(detail.getAmount());
-                            detail = orderDetail;
-                        } else {
-                            // 忽略,不做处理
-                            continue;
-                        }
-                    }
+                }
 
-                    watch.start("获取预算池信息");
+                if (Objects.nonNull(detail)) {
+                    ResultData<Void> result;
                     try {
                         // 设置行项数据的预算池及当前可用额度
                         result = this.createDetail(order, detail);
                     } catch (Exception e) {
                         result = ResultData.fail(ExceptionUtils.getRootCauseMessage(e));
                     }
-                    watch.stop();
                     if (result.successful()) {
-                        // statistics.addSuccesses();
+                        successes.increment();
                     } else {
-                        // statistics.addFailures();
+                        failures.increment();
                         // 有错误的
                         detail.setHasErr(Boolean.TRUE);
                         detail.setErrMsg(result.getMessage());
                     }
-                    this.save(detail);
                 }
             }
-        } catch (ServiceException e) {
-            LOG.error("异步生成单据行项异常", e);
+            if (Objects.nonNull(detail)) {
+                this.save(detail);
+            }
+        } catch (Exception e) {
+
         } finally {
-            LogUtil.bizLog("预算导入耗时分析:\n {}", watch.prettyPrint());
-            // 清除缓存
-            // redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
-            // executorService.shutdown();
+            // 本地线程全局变量存储-释放
+            ThreadLocalHolder.end();
         }
     }
 

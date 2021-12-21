@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -366,12 +365,12 @@ public class OrderService extends BaseEntityService<Order> {
 
         String orderId = order.getId();
         // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
-        // this.setProcessStatus(orderId, Boolean.TRUE);
-        //
-        // OrderStatistics statistics = new OrderStatistics(orderId, details.size(), LocalDateTime.now());
-        // BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX + orderId);
-        // // 设置默认过期时间:1天
-        // operations.set(statistics, 10, TimeUnit.HOURS);
+        this.setProcessStatus(orderId, Boolean.TRUE);
+
+        OrderStatistics statistics = new OrderStatistics(orderId, details.size(), LocalDateTime.now());
+        BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX + orderId);
+        // 设置默认过期时间:1天
+        operations.set(statistics, 10, TimeUnit.HOURS);
 
         try {
             Map<String, String> periodMap = null, subjectItemMap = null, orgMap = null, projectMap = null, costCenterMap = null,
