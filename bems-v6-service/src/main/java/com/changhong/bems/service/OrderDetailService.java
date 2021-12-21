@@ -339,7 +339,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         // 本地线程全局变量存储-开始
         ThreadLocalHolder.begin();
         try {
-            mockUser.mock(sessionUser);
+            mockUser.mockCurrentUser(sessionUser);
 
             // 创建时间
             detail.setCreatedDate(LocalDateTime.now());

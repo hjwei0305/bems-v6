@@ -74,17 +74,8 @@ public class OrderCommonService {
         OrderStatistics statistics = new OrderStatistics(orderId, details.size());
         details.parallelStream().forEach(detail -> {
             ResultData<Void> result = this.confirmUseBudget(order, detail, sessionUser);
-            if (result.successful()) {
-                successes.increment();
-            } else {
-                failures.increment();
-            }
-            if (LOG.isInfoEnabled()) {
-                LOG.info("预算申请单生效结果: {}", result);
-            }
-            statistics.setSuccesses(successes.intValue());
-            statistics.setFailures(failures.intValue());
-            redisTemplate.opsForValue().set(Constants.HANDLE_CACHE_KEY_PREFIX + orderId, statistics, 10, TimeUnit.HOURS);
+
+            this.pushProcessState(successes, failures, statistics, result);
         });
         // 若处理完成,则更新订单状态为:已确认
         this.updateOrderStatus(orderId, OrderStatus.CONFIRMED, Boolean.FALSE);
@@ -102,17 +93,8 @@ public class OrderCommonService {
         OrderStatistics statistics = new OrderStatistics(orderId, details.size());
         details.parallelStream().forEach(detail -> {
             ResultData<Void> result = this.cancelConfirmUseBudget(order, detail, sessionUser);
-            if (result.successful()) {
-                successes.increment();
-            } else {
-                failures.increment();
-            }
-            if (LOG.isInfoEnabled()) {
-                LOG.info("预算申请单生效结果: {}", result);
-            }
-            statistics.setSuccesses(successes.intValue());
-            statistics.setFailures(failures.intValue());
-            redisTemplate.opsForValue().set(Constants.HANDLE_CACHE_KEY_PREFIX + orderId, statistics, 10, TimeUnit.HOURS);
+
+            this.pushProcessState(successes, failures, statistics, result);
         });
         // 若处理完成,则更新订单状态为:草稿
         this.updateOrderStatus(orderId, OrderStatus.DRAFT, Boolean.FALSE);
@@ -130,20 +112,24 @@ public class OrderCommonService {
         OrderStatistics statistics = new OrderStatistics(orderId, details.size());
         details.parallelStream().forEach(detail -> {
             ResultData<Void> result = this.effectiveUseBudget(order, detail, sessionUser);
-            if (result.successful()) {
-                successes.increment();
-            } else {
-                failures.increment();
-            }
-            if (LOG.isInfoEnabled()) {
-                LOG.info("预算申请单生效结果: {}", result);
-            }
-            statistics.setSuccesses(successes.intValue());
-            statistics.setFailures(failures.intValue());
-            redisTemplate.opsForValue().set(Constants.HANDLE_CACHE_KEY_PREFIX + orderId, statistics, 10, TimeUnit.HOURS);
+            this.pushProcessState(successes, failures, statistics, result);
         });
         // 若处理完成,则更新订单状态为:已生效
         this.updateOrderStatus(orderId, OrderStatus.COMPLETED, Boolean.FALSE);
+    }
+
+    private void pushProcessState(LongAdder successes, LongAdder failures, OrderStatistics statistics, ResultData<Void> result) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("异步处理结果: {}", result);
+        }
+        if (result.successful()) {
+            successes.increment();
+        } else {
+            failures.increment();
+        }
+        statistics.setSuccesses(successes.intValue());
+        statistics.setFailures(failures.intValue());
+        redisTemplate.opsForValue().set(Constants.HANDLE_CACHE_KEY_PREFIX + statistics.getOrderId(), statistics, 10, TimeUnit.HOURS);
     }
 
     /**
@@ -173,7 +159,7 @@ public class OrderCommonService {
                 // 本地线程全局变量存储-开始
                 ThreadLocalHolder.begin();
 
-                mockUser.mock(sessionUser);
+                mockUser.mockCurrentUser(sessionUser);
 
                 // 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
                 switch (order.getOrderCategory()) {
@@ -312,7 +298,7 @@ public class OrderCommonService {
             // 本地线程全局变量存储-开始
             ThreadLocalHolder.begin();
 
-            mockUser.mock(sessionUser);
+            mockUser.mockCurrentUser(sessionUser);
             if (detail.getState() < 0) {
                 orderDetailService.setProcessed(detail.getId());
                 // 未成功预占用,不用做释放
@@ -469,7 +455,7 @@ public class OrderCommonService {
                 // 本地线程全局变量存储-开始
                 ThreadLocalHolder.begin();
 
-                mockUser.mock(sessionUser);
+                mockUser.mockCurrentUser(sessionUser);
 
                 // 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
                 switch (order.getOrderCategory()) {
