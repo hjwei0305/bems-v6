@@ -10,7 +10,6 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import javax.websocket.*;
@@ -53,8 +52,7 @@ public class WebsocketServer {
         try {
             TimeUnit.SECONDS.sleep(1);
 
-            BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
-            OrderStatistics statistics = (OrderStatistics) operations.get();
+            OrderStatistics statistics = (OrderStatistics) redisTemplate.opsForValue().get(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
             while (Objects.nonNull(statistics)) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("预算申请单id[{}]当前处理状态: {}", orderId, statistics);
@@ -65,7 +63,7 @@ public class WebsocketServer {
                 // 输出最新日志
                 send(session, ResultData.success(statistics));
                 TimeUnit.SECONDS.sleep(3);
-                statistics = (OrderStatistics) operations.get();
+                statistics = (OrderStatistics) redisTemplate.opsForValue().get(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
             }
             // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
             orderService.setProcessStatus(orderId, Boolean.FALSE);
