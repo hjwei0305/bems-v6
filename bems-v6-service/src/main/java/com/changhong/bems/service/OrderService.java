@@ -402,6 +402,8 @@ public class OrderService extends BaseEntityService<Order> {
                 index.increment();
                 if (index.intValue() > 1) {
                     OrderDetail detail = new OrderDetail();
+                    // 设置导入顺序
+                    detail.setRank(index.intValue());
                     String temp;
                     for (TemplateHeadVo headVo : templateHead) {
                         temp = data.get(headVo.getIndex());
