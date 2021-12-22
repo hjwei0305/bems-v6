@@ -293,21 +293,17 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             SessionUser sessionUser = ContextUtil.getSessionUser();
             LongAdder successes = new LongAdder();
             LongAdder failures = new LongAdder();
-            Map<Long, OrderDetail> detailMap = new ConcurrentHashMap<>();
             // 记录所有hash值,以便识别出重复的行项
             Set<Long> duplicateHash = new CopyOnWriteArraySet<>();
-            Search search = Search.createSearch();
+            Map<Long, OrderDetail> detailMap = new ConcurrentHashMap<>(7);
+            List<OrderDetail> orderDetails = this.getOrderItems(orderId);
+            if (CollectionUtils.isNotEmpty(orderDetails)) {
+                detailMap.putAll(orderDetails.stream().collect(Collectors.toMap(OrderDetail::getAttributeCode, o -> o)));
+                orderDetails.clear();
+            }
+
             // 分组处理
             for (List<OrderDetail> detailList : groups) {
-                search.clearAll();
-                Set<Long> hashSet = detailList.stream().map(OrderDetail::getAttributeCode).collect(Collectors.toSet());
-                search.addFilter(new SearchFilter(OrderDetail.FIELD_ORDER_ID, orderId));
-                search.addFilter(new SearchFilter(OrderDetail.FIELD_ATTRIBUTE_CODE, hashSet, SearchFilter.Operator.IN));
-                List<OrderDetail> orderDetails = dao.findByFilters(search);
-                if (CollectionUtils.isNotEmpty(orderDetails)) {
-                    detailMap.putAll(orderDetails.stream().collect(Collectors.toMap(OrderDetail::getAttributeCode, o -> o)));
-                }
-
                 detailList.parallelStream().forEach(detail -> {
                     // 订单id
                     detail.setOrderId(orderId);
