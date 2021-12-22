@@ -395,7 +395,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                 this.save(detail);
             }
         } catch (Exception e) {
-
+            LOG.error("创建预算明细异常", e);
         } finally {
             // 本地线程全局变量存储-释放
             ThreadLocalHolder.end();

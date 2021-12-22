@@ -36,6 +36,7 @@ import org.springframework.util.StopWatch;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 
@@ -270,9 +271,9 @@ public class OrderService extends BaseEntityService<Order> {
             }
             String orderId = order.getId();
 
-            List<String> keyList = new ArrayList<>(7);
+            List<String> keyList = Collections.synchronizedList(new ArrayList<>(7));
             // 维度映射
-            Map<String, Set<OrderDimension>> dimensionMap = new HashMap<>(7);
+            Map<String, Set<OrderDimension>> dimensionMap = new ConcurrentHashMap<>(7);
             dimensions.parallelStream().forEach(dimension -> {
                 String dimensionCode = dimension.getCode();
                 keyList.add(dimensionCode);
@@ -394,7 +395,7 @@ public class OrderService extends BaseEntityService<Order> {
                 }
             }
 
-            List<OrderDetail> orderDetails = new ArrayList<>();
+            List<OrderDetail> orderDetails = Collections.synchronizedList(new ArrayList<>());
             LongAdder index = new LongAdder();
             details.parallelStream().forEach(data -> {
                 // 第一行为数据头,故跳过
