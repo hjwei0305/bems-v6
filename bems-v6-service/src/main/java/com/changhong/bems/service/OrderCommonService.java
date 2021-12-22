@@ -59,6 +59,8 @@ public class OrderCommonService {
         if (processing) {
             // 按订单id设置所有行项的处理状态为处理中
             orderDetailService.setProcessing4All(orderId);
+        } else {
+            redisTemplate.expire(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId), 3, TimeUnit.SECONDS);
         }
     }
 

@@ -327,7 +327,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         } finally {
             orderDao.setProcessStatus(orderId, Boolean.FALSE);
             // 清除缓存
-            redisTemplate.delete(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
+            redisTemplate.expire(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId), 3, TimeUnit.SECONDS);
         }
     }
 
