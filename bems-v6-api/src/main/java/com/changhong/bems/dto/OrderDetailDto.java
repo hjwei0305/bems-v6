@@ -56,6 +56,11 @@ public class OrderDetailDto extends BaseAttributeDto {
     @ApiModelProperty(value = "错误信息")
     private String errMsg;
     /**
+     * 序号
+     */
+    @ApiModelProperty(value = "序号")
+    private Integer rank = 0;
+    /**
      * 预算分解时的目标预算
      */
     private List<OrderDetailDto> children;
@@ -122,6 +127,14 @@ public class OrderDetailDto extends BaseAttributeDto {
 
     public void setErrMsg(String errMsg) {
         this.errMsg = errMsg;
+    }
+
+    public Integer getRank() {
+        return rank;
+    }
+
+    public void setRank(Integer rank) {
+        this.rank = rank;
     }
 
     public List<OrderDetailDto> getChildren() {
