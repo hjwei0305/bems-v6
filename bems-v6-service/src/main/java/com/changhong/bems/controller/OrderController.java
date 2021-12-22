@@ -8,6 +8,7 @@ import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
 import com.changhong.bems.entity.vo.TemplateHeadVo;
 import com.changhong.bems.service.CategoryService;
+import com.changhong.bems.service.OrderCommonService;
 import com.changhong.bems.service.OrderDetailService;
 import com.changhong.bems.service.OrderService;
 import com.changhong.bems.service.cust.BudgetDimensionCustManager;
@@ -62,13 +63,13 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     @Autowired
     private OrderDetailService orderDetailService;
     @Autowired
+    private OrderCommonService orderCommonService;
+    @Autowired
     private CategoryService categoryService;
     @Autowired
     private BudgetDimensionCustManager budgetDimensionCustManager;
     @Autowired
     private ModelMapper modelMapper;
-    @Autowired
-    private AsyncRunUtil asyncRunUtil;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
@@ -279,7 +280,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         if (OrderStatus.PREFAB == status || OrderStatus.DRAFT == status) {
             // 更新状态为草稿状态
             order.setStatus(OrderStatus.DRAFT);
-            ResultData<Order> resultData = service.saveOrder(order, null);
+            ResultData<Order> resultData = service.saveOrder(order);
             if (resultData.successful()) {
                 return ResultData.success(dtoModelMapper.map(resultData.getData(), OrderDto.class));
             } else {
@@ -488,12 +489,10 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面
             order.setProcessing(Boolean.TRUE);
             // 保存订单头
-            ResultData<Order> orderResult = service.saveOrder(order, null);
+            ResultData<Order> orderResult = service.saveOrder(order);
             stopWatch.stop();
             if (orderResult.successful()) {
-                stopWatch.start("调用服务的逻辑");
-                service.importOrderDetails(order, templateHead, list);
-                stopWatch.stop();
+                orderCommonService.importOrderDetails(order, templateHead, list);
                 LOG.info("预算导入总耗时:\n{}", stopWatch.prettyPrint());
                 return ResultData.success(order.getId());
             } else {

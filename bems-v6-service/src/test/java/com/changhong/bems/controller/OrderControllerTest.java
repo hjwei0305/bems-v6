@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 实现功能：
@@ -137,9 +138,9 @@ class OrderControllerTest extends BaseUnit5Test {
     @Test
     @Rollback
     void importBudge() {
-        String json = "{\"subjectId\":\"28935032-5CBD-11EC-8DA7-0242C0A84413\",\"currencyCode\":\"CNY\",\"currencyName\":\"人民币\",\"applyOrgId\":\"F3EDB465-5CAA-11EC-A743-0242C0A8440A\",\"applyOrgCode\":\"EPPEN\",\"categoryId\":\"7194738B-5D4A-11EC-8DA7-0242C0A84413\",\"orderCategory\":\"INJECTION\",\"periodType\":\"ANNUAL\",\"subjectName\":\"宁夏伊品生物科技股份有限公司\",\"applyOrgName\":\"伊品生物\",\"categoryName\":\"部门年度预算\",\"docIds\":[]}";
+        String json = "{\"id\":\"52703421-620B-11EC-B642-0242C0A84416\",\"code\":\"0000000515\",\"subjectId\":\"7F757D51-532E-11EC-ABD0-0242C0A84424\",\"subjectName\":\"虹信软件\",\"currencyCode\":\"CNY\",\"currencyName\":\"人民币\",\"categoryId\":\"C125A101-533A-11EC-8C2F-0242C0A84427\",\"categoryName\":\"部门月度预算\",\"periodType\":\"MONTHLY\",\"orderCategory\":\"INJECTION\",\"applyAmount\":1062528,\"applyOrgId\":\"877035BF-A40C-11E7-A8B9-02420B99179E\",\"applyOrgCode\":\"10607\",\"applyOrgName\":\"四川长虹电子控股集团有限公司\",\"managerOrgId\":null,\"managerOrgCode\":null,\"managerOrgName\":null,\"manuallyEffective\":false,\"processing\":false,\"remark\":null,\"status\":\"DRAFT\",\"creatorAccount\":\"admin\",\"creatorName\":\"系统管理员\",\"createdDate\":\"2021-12-21 11:08:51\",\"hasErr\":false,\"dimensions\":[{\"id\":null,\"code\":\"period\",\"name\":\"预算期间\",\"uiComponent\":\"Period\",\"strategyId\":\"periodMatchStrategy\",\"strategyName\":\"期间关系匹配\",\"required\":true,\"rank\":1,\"tenantCode\":null},{\"id\":null,\"code\":\"item\",\"name\":\"预算科目\",\"uiComponent\":\"Subject\",\"strategyId\":\"equalMatchStrategy\",\"strategyName\":\"维度值一致性匹配\",\"required\":true,\"rank\":2,\"tenantCode\":null},{\"id\":null,\"code\":\"org\",\"name\":\"组织机构\",\"uiComponent\":\"Organization\",\"strategyId\":\"orgTreeMatchStrategy\",\"strategyName\":\"组织机构树路径匹配\",\"required\":false,\"rank\":3,\"tenantCode\":null}],\"docIds\":null}";
         AddOrderDetail order = JsonUtils.fromJson(json, AddOrderDetail.class);
-        File file = new File("/Users/chaoma/Downloads/部门年度预算导入模板 (1).xlsx");
+        File file = new File("/Users/chaoma/Downloads/虹信软件-部门月度预算-注入明细.xlsx");
         MultipartFile multipartFile = null;
         try {
             multipartFile = new MockMultipartFile(file.getName(), file.getName(), null, FileUtils.readFileToByteArray(file));
@@ -148,6 +149,11 @@ class OrderControllerTest extends BaseUnit5Test {
         }
         controller.importBudge(order, multipartFile);
 
+        try {
+            TimeUnit.SECONDS.sleep(60);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
 //    @Test

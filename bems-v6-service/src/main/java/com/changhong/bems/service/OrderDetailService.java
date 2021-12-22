@@ -3,29 +3,20 @@ package com.changhong.bems.service;
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.OrderDao;
 import com.changhong.bems.dao.OrderDetailDao;
-import com.changhong.bems.dto.OrderCategory;
 import com.changhong.bems.dto.OrderStatistics;
 import com.changhong.bems.dto.SplitDetailQuickQueryParam;
-import com.changhong.bems.entity.DimensionAttribute;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
-import com.changhong.bems.entity.Pool;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.context.SessionUser;
-import com.changhong.sei.core.context.mock.MockUser;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
-import com.changhong.sei.core.dto.serach.Search;
-import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.log.LogUtil;
 import com.changhong.sei.core.service.BaseEntityService;
-import com.changhong.sei.core.util.JsonUtils;
 import com.changhong.sei.exception.ServiceException;
-import com.changhong.sei.util.thread.ThreadLocalHolder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,14 +28,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * 预算维度属性(OrderDetail)业务逻辑实现类
@@ -61,18 +52,11 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
     @Autowired
     private OrderDao orderDao;
     @Autowired
-    private PoolService poolService;
+    private OrderCommonService orderCommonService;
     @Autowired
     private DimensionAttributeService dimensionAttributeService;
     @Autowired
-    private MockUser mockUser;
-    @Autowired
     private RedisTemplate<String, Object> redisTemplate;
-
-    /**
-     * 分组大小
-     */
-    private static final int MAX_NUMBER = 500;
 
     @Override
     protected BaseEntityDao<OrderDetail> getDao() {
@@ -97,29 +81,6 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
     public long getHasErrCount(String orderId) {
         return dao.getHasErrCount(orderId);
     }
-
-    /**
-     * 按订单id设置所有行项的处理状态为处理中
-     *
-     * @param orderId 订单头id
-     * @return
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public void setProcessing4All(String orderId) {
-        dao.setProcessing4All(orderId);
-    }
-
-    /**
-     * 更新行项的处理状态为处理完成
-     *
-     * @param detailId 订单行项id
-     * @return
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public void setProcessed(String detailId) {
-        dao.setProcessed(detailId);
-    }
-
 
     /**
      * 检查行项是否有处理中的行项
@@ -173,13 +134,13 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         // 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
         switch (order.getOrderCategory()) {
             case INJECTION:
-                resultData = this.checkInjectionDetail(order, detail);
+                resultData = orderCommonService.checkInjectionDetail(order, detail);
                 break;
             case ADJUSTMENT:
-                resultData = this.checkAdjustmentDetail(order, detail);
+                resultData = orderCommonService.checkAdjustmentDetail(order, detail);
                 break;
             case SPLIT:
-                resultData = this.checkSplitDetail(order, detail);
+                resultData = orderCommonService.checkSplitDetail(order, detail);
                 break;
             default:
                 // 不支持的订单类型
@@ -201,57 +162,12 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
     }
 
     /**
-     * 更新行项金额
-     *
-     * @return 返回订单总金额
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> updateAmount(Order order, List<OrderDetail> details) {
-        if (CollectionUtils.isNotEmpty(details)) {
-            Map<String, BigDecimal> detailMap = details.stream().collect(Collectors.toMap(OrderDetail::getId, OrderDetail::getAmount));
-            Search search = Search.createSearch();
-            search.addFilter(new SearchFilter(OrderDetail.FIELD_ORDER_ID, order.getId()));
-            search.addFilter(new SearchFilter(OrderDetail.ID, detailMap.keySet(), SearchFilter.Operator.IN));
-            List<OrderDetail> detailList = dao.findByFilters(search);
-            if (CollectionUtils.isNotEmpty(detailList)) {
-                ResultData<Void> resultData;
-                for (OrderDetail detail : detailList) {
-                    detail.setAmount(detailMap.get(detail.getId()));
-
-                    // 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
-                    switch (order.getOrderCategory()) {
-                        case INJECTION:
-                            resultData = this.checkInjectionDetail(order, detail);
-                            break;
-                        case ADJUSTMENT:
-                            resultData = this.checkAdjustmentDetail(order, detail);
-                            break;
-                        case SPLIT:
-                            resultData = this.checkSplitDetail(order, detail);
-                            break;
-                        default:
-                            // 不支持的订单类型
-                            return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
-                    }
-                    if (resultData.failed()) {
-                        return resultData;
-                    }
-                }
-                this.save(detailList);
-            }
-        }
-        return ResultData.success();
-    }
-
-    /**
      * 保存订单行项
      * 被异步调用,故忽略事务一致性
-     *
-     * @param isCover 出现重复行项时,是否覆盖原有记录
      */
     @Async
     @Transactional(rollbackFor = Exception.class)
-    public void addOrderItems(Order order, List<OrderDetail> details, boolean isCover) {
+    public void addOrderItems(Order order, List<OrderDetail> details) {
         if (Objects.isNull(order)) {
             //添加单据行项时,订单头不能为空.
             LOG.error(ContextUtil.getMessage("order_detail_00001"));
@@ -280,21 +196,11 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         final String attribute = resultData.getData();
 
         try {
-            ////////////// 分组处理,防止数据太多导致异常(in查询限制)  //////////////
-            // 计算组数
-            int limit = (details.size() + MAX_NUMBER - 1) / MAX_NUMBER;
-            // 使用流遍历操作
-            List<List<OrderDetail>> groups = new ArrayList<>();
-            Stream.iterate(0, n -> n + 1).limit(limit).forEach(i -> {
-                groups.add(details.stream().skip(i * MAX_NUMBER).limit(MAX_NUMBER).collect(Collectors.toList()));
-            });
-            details.clear();
-            ////////////// end 分组处理 /////////////
             SessionUser sessionUser = ContextUtil.getSessionUser();
             LongAdder successes = new LongAdder();
             LongAdder failures = new LongAdder();
             // 记录所有hash值,以便识别出重复的行项
-            Set<Long> duplicateHash = new CopyOnWriteArraySet<>();
+            Map<Long, Integer> duplicateMap = new ConcurrentHashMap<>(7);
             Map<Long, OrderDetail> detailMap = new ConcurrentHashMap<>(7);
             List<OrderDetail> orderDetails = this.getOrderItems(orderId);
             if (CollectionUtils.isNotEmpty(orderDetails)) {
@@ -302,23 +208,24 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                 orderDetails.clear();
             }
 
-            // 分组处理
-            for (List<OrderDetail> detailList : groups) {
-                detailList.parallelStream().forEach(detail -> {
-                    // 订单id
-                    detail.setOrderId(orderId);
-                    // 维度属性组合
-                    detail.setAttribute(attribute);
+            LongAdder index = new LongAdder();
+            details.parallelStream().forEach(detail -> {
+                index.increment();
+                detail.setRank(index.intValue());
+                // 订单id
+                detail.setOrderId(orderId);
+                // 维度属性组合
+                detail.setAttribute(attribute);
 
-                    this.putOrderDetail(isCover, order, detail, detailMap, duplicateHash, successes, failures, sessionUser);
+                // 保存订单行项.若存在相同的行项则忽略跳过(除非在导入时需要对金额做覆盖处理)
+                orderCommonService.putOrderDetail(Boolean.FALSE, order, detail, detailMap, duplicateMap, successes, failures, sessionUser);
 
-                    OrderStatistics orderStatistics = new OrderStatistics(orderId, detailSize);
-                    orderStatistics.setSuccesses(successes.intValue());
-                    orderStatistics.setFailures(failures.intValue());
-                    // 更新缓存
-                    redisTemplate.opsForValue().set(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId), orderStatistics, 1, TimeUnit.HOURS);
-                });
-            }
+                OrderStatistics orderStatistics = new OrderStatistics(orderId, detailSize);
+                orderStatistics.setSuccesses(successes.intValue());
+                orderStatistics.setFailures(failures.intValue());
+                // 更新缓存
+                redisTemplate.opsForValue().set(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId), orderStatistics, 1, TimeUnit.HOURS);
+            });
         } catch (ServiceException e) {
             LOG.error("异步生成单据行项异常", e);
         } finally {
@@ -326,288 +233,6 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             // 清除缓存
             redisTemplate.expire(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId), 3, TimeUnit.SECONDS);
         }
-    }
-
-    private void putOrderDetail(boolean isCover, Order order, OrderDetail detail, Map<Long, OrderDetail> detailMap,
-                                Set<Long> duplicateHash, LongAdder successes, LongAdder failures, SessionUser sessionUser) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("正在处理行项: " + JsonUtils.toJson(detail));
-        }
-        // 本地线程全局变量存储-开始
-        ThreadLocalHolder.begin();
-        try {
-            mockUser.mockCurrentUser(sessionUser);
-
-            // 创建时间
-            detail.setCreatedDate(LocalDateTime.now());
-            if (detail.getHasErr()) {
-                // 错误数加1
-                failures.increment();
-            }
-            // 本次提交数据中存在重复项
-            else if (duplicateHash.contains(detail.getAttributeCode())) {
-                // 有错误的
-                detail.setHasErr(Boolean.TRUE);
-                // 存在重复项
-                detail.setErrMsg(ContextUtil.getMessage("order_detail_00006"));
-                // 错误数加1
-                failures.increment();
-            } else {
-                // 记录hash值
-                duplicateHash.add(detail.getAttributeCode());
-                // 检查持久化数据中是否存在重复项
-                OrderDetail orderDetail = detailMap.get(detail.getAttributeCode());
-                if (Objects.nonNull(orderDetail)) {
-                    // 检查重复行项
-                    if (isCover) {
-                        // 覆盖原有行项记录(更新金额)
-                        orderDetail.setAmount(detail.getAmount());
-                        detail = orderDetail;
-                    } else {
-                        // 忽略,不做处理
-                        detail = null;
-                    }
-                }
-
-                if (Objects.nonNull(detail)) {
-                    ResultData<Void> result;
-                    try {
-                        // 设置行项数据的预算池及当前可用额度
-                        result = this.createDetail(order, detail);
-                    } catch (Exception e) {
-                        result = ResultData.fail(ExceptionUtils.getRootCauseMessage(e));
-                    }
-                    if (result.successful()) {
-                        successes.increment();
-                    } else {
-                        failures.increment();
-                        // 有错误的
-                        detail.setHasErr(Boolean.TRUE);
-                        detail.setErrMsg(result.getMessage());
-                    }
-                }
-            }
-            if (Objects.nonNull(detail)) {
-                this.save(detail);
-            }
-        } catch (Exception e) {
-            LOG.error("创建预算明细异常", e);
-        } finally {
-            // 本地线程全局变量存储-释放
-            ThreadLocalHolder.end();
-        }
-    }
-
-    /**
-     * 设置行项数据的预算池及可用额度
-     *
-     * @param order  订单头
-     * @param detail 订单行项
-     */
-    private ResultData<Void> createDetail(Order order, OrderDetail detail) {
-        // 预算主体id
-        String subjectId = order.getSubjectId();
-        ResultData<Pool> resultData;
-        switch (order.getOrderCategory()) {
-            case INJECTION:
-                // 注入下达(对总额的增减,预算池可以不存在)
-                /*
-                    1.通过主体和维度属性hash检查是否存在预算池
-                    2.若存在,则设置预算池编码和当前余额到行项上
-                    3.若不存在,则跳过.在预算生效或申请完成时,创建预算池(创建时再检查是否存在预算池)
-                 */
-                resultData = poolService.getPool(subjectId, detail.getAttributeCode());
-                if (resultData.successful()) {
-                    Pool pool = resultData.getData();
-                    detail.setPoolCode(pool.getCode());
-                    detail.setPoolAmount(pool.getBalance());
-                }
-                break;
-            case ADJUSTMENT:
-                // 调整(跨纬度调整,总额不变,且预算池必须存在)
-                /*
-                    1.通过主体和维度属性hash检查是否存在预算池
-                    2.若存在,则设置预算池编码和当前余额到行项上
-                    3.若不存在,则返回错误:预算池未找到
-                 */
-                resultData = poolService.getPool(subjectId, detail.getAttributeCode());
-                if (resultData.successful()) {
-                    Pool pool = resultData.getData();
-                    detail.setPoolCode(pool.getCode());
-                    detail.setPoolAmount(pool.getBalance());
-                } else {
-                    return ResultData.fail(resultData.getMessage());
-                }
-                break;
-            case SPLIT:
-                // 分解(年度到月度,总额不变.目标预算池可以不存在,但源预算池必须存在)
-                /*
-                    1.通过主体和维度属性,按对应的自动溯源规则获取上级预算池;
-                    2.若找到上级预算池,则更新源预算池及源预算池余额;
-                    2-1.通过主体和维度属性hash检查是否存在预算池
-                    2-2.若存在,则设置预算池编码和当前余额到行项上
-                    2-3.若不存在,则跳过.在预算生效或申请完成时,创建预算池(创建时再检查是否存在预算池)
-                    3.若未找到,则返回错误:上级源预算池未找到
-                 */
-                Pool parentPeriodPool = poolService.getParentPeriodBudgetPool(subjectId, detail);
-                if (Objects.isNull(parentPeriodPool)) {
-                    // 添加单据行项时,上级期间预算池未找到.
-                    return ResultData.fail(ContextUtil.getMessage("order_detail_00005"));
-                }
-                // 获取上级期间源预算池
-                detail.setOriginPoolCode(parentPeriodPool.getCode());
-                detail.setOriginPoolAmount(parentPeriodPool.getBalance());
-
-                resultData = poolService.getPool(subjectId, detail.getAttributeCode());
-                if (resultData.successful()) {
-                    Pool pool = resultData.getData();
-                    detail.setPoolCode(pool.getCode());
-                    detail.setPoolAmount(pool.getBalance());
-                }
-                break;
-            default:
-                // 不支持的订单类型
-                return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
-        }
-        ResultData<DimensionAttribute> result = dimensionAttributeService.createAttribute(subjectId, detail);
-        if (result.successful()) {
-            if (!Objects.equals(detail.getAttributeCode(), result.getData().getAttributeCode())) {
-                LOG.error("预算维度策略hash计算错误: {}", JsonUtils.toJson(detail));
-                throw new ServiceException("预算维度策略hash计算错误.");
-            }
-        } else {
-            return ResultData.fail(result.getMessage());
-        }
-        return ResultData.success();
-    }
-
-    /**
-     * 按下达注入的规则检查行项明细
-     * 下达注入规则:
-     *
-     * @param order  订单头
-     * @param detail 订单行项
-     */
-    public ResultData<Void> checkInjectionDetail(Order order, OrderDetail detail) {
-        // 预算主体id
-        String subjectId = order.getSubjectId();
-        if (OrderCategory.INJECTION == order.getOrderCategory()) {
-            // 注入下达(对总额的增减,允许预算池不存在)
-            String poolCode = detail.getPoolCode();
-            if (StringUtils.isBlank(poolCode)) {
-                ResultData<Pool> result = poolService.getPool(subjectId, detail.getAttributeCode());
-                if (result.successful()) {
-                    // 预算池编码
-                    poolCode = result.getData().getCode();
-                    detail.setPoolCode(poolCode);
-                }
-            }
-            if (StringUtils.isNotBlank(poolCode)) {
-                // 当前预算池余额. 检查预算池可用余额是否满足本次发生金额(主要存在注入负数调减的金额)
-                BigDecimal balance = poolService.getPoolBalanceByCode(poolCode);
-                // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
-                if (BigDecimal.ZERO.compareTo(balance.add(detail.getAmount())) > 0) {
-                    // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
-                    return ResultData.fail(ContextUtil.getMessage("pool_00002", poolCode, balance, detail.getAmount()));
-                }
-                detail.setPoolAmount(balance);
-            } else {
-                // 当预算池不存在时,发生金额不能小于0(不能将预算池值为负数)
-                if (BigDecimal.ZERO.compareTo(detail.getAmount()) > 0) {
-                    // 预算池金额不能值为负数[{0}]
-                    return ResultData.fail(ContextUtil.getMessage("pool_00004", detail.getAmount()));
-                }
-            }
-        } else {
-            // 不支持的订单类型
-            return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
-        }
-        return ResultData.success();
-    }
-
-    /**
-     * 对行项数据做预算池及可用额度处理
-     *
-     * @param order  订单头
-     * @param detail 订单行项
-     */
-    public ResultData<Void> checkAdjustmentDetail(Order order, OrderDetail detail) {
-        if (OrderCategory.ADJUSTMENT == order.getOrderCategory()) {
-            // 调整(跨纬度调整,总额不变.不允许预算池不存在)
-            // 预算池编码
-            String poolCode = detail.getPoolCode();
-            // 当前预算池余额. 检查预算池可用余额是否满足本次发生金额(主要存在注入负数调减的金额)
-            BigDecimal balance = poolService.getPoolBalanceByCode(poolCode);
-            // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
-            if (BigDecimal.ZERO.compareTo(balance.add(detail.getAmount())) > 0) {
-                // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
-                return ResultData.fail(ContextUtil.getMessage("pool_00002", poolCode, balance, detail.getAmount()));
-            }
-            detail.setPoolAmount(balance);
-        } else {
-            // 不支持的订单类型
-            return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
-        }
-        return ResultData.success();
-    }
-
-    /**
-     * 对行项数据做预算池及可用额度处理
-     *
-     * @param order  订单头
-     * @param detail 订单行项
-     */
-    public ResultData<Void> checkSplitDetail(Order order, OrderDetail detail) {
-        // 预算主体id
-        String subjectId = order.getSubjectId();
-        if (OrderCategory.SPLIT == order.getOrderCategory()) {
-            // 分解(年度到月度,总额不变.允许目标预算池不存在,源预算池必须存在)
-            // 源预算池代码
-            String originPoolCode = detail.getOriginPoolCode();
-            if (StringUtils.isBlank(originPoolCode) || StringUtils.equals(Constants.NONE, originPoolCode)) {
-                // 分解源预算池不存在.
-                return ResultData.fail(ContextUtil.getMessage("order_detail_00010"));
-            }
-            // 当前预算池余额. 检查预算池可用余额是否满足本次发生金额(主要存在注入负数调减的金额)
-            BigDecimal originBalance = poolService.getPoolBalanceByCode(originPoolCode);
-            // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
-            if (BigDecimal.ZERO.compareTo(originBalance.subtract(detail.getAmount())) > 0) {
-                // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
-                return ResultData.fail(ContextUtil.getMessage("pool_00002", originPoolCode, originBalance, detail.getAmount()));
-            }
-            detail.setOriginPoolAmount(originBalance);
-
-            // 当前(目标)预算池代码
-            String poolCode = detail.getPoolCode();
-            if (StringUtils.isBlank(poolCode)) {
-                ResultData<Pool> result = poolService.getPool(subjectId, detail.getAttributeCode());
-                if (result.successful()) {
-                    // 预算池编码
-                    poolCode = result.getData().getCode();
-                    detail.setPoolCode(poolCode);
-                }
-            }
-            if (StringUtils.isNotBlank(poolCode)) {
-                // 当前预算池余额. 检查预算池可用余额是否满足本次发生金额(主要存在注入负数调减的金额)
-                BigDecimal balance = poolService.getPoolBalanceByCode(poolCode);
-                // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
-                if (BigDecimal.ZERO.compareTo(balance.add(detail.getAmount())) > 0) {
-                    // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
-                    return ResultData.fail(ContextUtil.getMessage("pool_00002", poolCode, balance, detail.getAmount()));
-                }
-                detail.setPoolAmount(balance);
-            } else {
-                // 当预算池不存在时,发生金额不能小于0(不能将预算池值为负数)
-                if (BigDecimal.ZERO.compareTo(detail.getAmount()) > 0) {
-                    // 预算池金额不能值为负数[{0}]
-                    return ResultData.fail(ContextUtil.getMessage("pool_00004", detail.getAmount()));
-                }
-            }
-        } else {
-            // 不支持的订单类型
-            return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
-        }
-        return ResultData.success();
     }
 
     /**
