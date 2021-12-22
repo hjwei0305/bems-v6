@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
@@ -200,7 +201,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             LongAdder successes = new LongAdder();
             LongAdder failures = new LongAdder();
             // 记录所有hash值,以便识别出重复的行项
-            Map<Long, Integer> duplicateMap = new ConcurrentHashMap<>(7);
+            Set<Long> duplicateHash = new CopyOnWriteArraySet<>();
             Map<Long, OrderDetail> detailMap = new ConcurrentHashMap<>(7);
             List<OrderDetail> orderDetails = this.getOrderItems(orderId);
             if (CollectionUtils.isNotEmpty(orderDetails)) {
@@ -208,17 +209,14 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                 orderDetails.clear();
             }
 
-            LongAdder index = new LongAdder();
             details.parallelStream().forEach(detail -> {
-                index.increment();
-                detail.setRank(index.intValue());
                 // 订单id
                 detail.setOrderId(orderId);
                 // 维度属性组合
                 detail.setAttribute(attribute);
 
                 // 保存订单行项.若存在相同的行项则忽略跳过(除非在导入时需要对金额做覆盖处理)
-                orderCommonService.putOrderDetail(Boolean.FALSE, order, detail, detailMap, duplicateMap, successes, failures, sessionUser);
+                orderCommonService.putOrderDetail(Boolean.FALSE, order, detail, detailMap, duplicateHash, successes, failures, sessionUser);
 
                 OrderStatistics orderStatistics = new OrderStatistics(orderId, detailSize);
                 orderStatistics.setSuccesses(successes.intValue());

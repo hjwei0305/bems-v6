@@ -1,7 +1,6 @@
 package com.changhong.bems.entity;
 
 import com.changhong.bems.commons.Constants;
-import com.changhong.sei.core.dto.IRank;
 import com.changhong.sei.core.entity.ITenant;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -25,7 +24,7 @@ import java.util.StringJoiner;
 @Table(name = "order_detail")
 @DynamicInsert
 @DynamicUpdate
-public class OrderDetail extends BaseAttribute implements ITenant, IRank, Serializable, Cloneable {
+public class OrderDetail extends BaseAttribute implements ITenant, Serializable, Cloneable {
     private static final long serialVersionUID = -90286046160801596L;
     public static final String FIELD_ORDER_ID = "orderId";
     public static final String FIELD_ORIGIN_POOL_CODE = "originPoolCode";
@@ -188,15 +187,6 @@ public class OrderDetail extends BaseAttribute implements ITenant, IRank, Serial
 
     public void setCreatedDate(LocalDateTime createdDate) {
         this.createdDate = createdDate;
-    }
-
-    @Override
-    public Integer getRank() {
-        return rank;
-    }
-
-    public void setRank(Integer rank) {
-        this.rank = rank;
     }
 
     @Override

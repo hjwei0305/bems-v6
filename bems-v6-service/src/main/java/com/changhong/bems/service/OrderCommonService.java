@@ -33,11 +33,9 @@ import org.springframework.util.StopWatch;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
@@ -172,7 +170,7 @@ public class OrderCommonService {
             LongAdder successes = new LongAdder();
             LongAdder failures = new LongAdder();
             // 记录所有hash值,以便识别出重复的行项
-            Map<Long, Integer> duplicateMap = new ConcurrentHashMap<>(7);
+            Set<Long> duplicateHash = new CopyOnWriteArraySet<>();
             Map<Long, OrderDetail> detailMap = new ConcurrentHashMap<>(7);
             List<OrderDetail> orderDetails = orderDetailDao.findListByProperty(OrderDetail.FIELD_ORDER_ID, orderId);
             if (CollectionUtils.isNotEmpty(orderDetails)) {
@@ -180,157 +178,150 @@ public class OrderCommonService {
                 orderDetails.clear();
             }
 
-            LongAdder index = new LongAdder();
             details.parallelStream().forEach(data -> {
-                // 第一行为数据头,故跳过
-                index.increment();
-                if (index.intValue() > 1) {
-                    OrderDetail detail = new OrderDetail();
-                    // 设置导入顺序
-                    detail.setRank(index.intValue());
-                    String temp;
-                    for (TemplateHeadVo headVo : templateHead) {
-                        temp = data.get(headVo.getIndex());
-                        if (StringUtils.isBlank(temp)) {
-                            detail.setHasErr(Boolean.TRUE);
-                            // 存在错误的导入数据
-                            detail.setErrMsg(ContextUtil.getMessage("order_detail_00023"));
-                        } else {
-                            // 期间
-                            if (Constants.DIMENSION_CODE_PERIOD.equals(headVo.getFiled())) {
-                                detail.setPeriodName(temp);
-                                String periodId = periodMap.get(temp);
-                                if (StringUtils.isNotBlank(periodId)) {
-                                    detail.setPeriod(periodId);
-                                } else {
-                                    detail.setHasErr(Boolean.TRUE);
-                                    // 错误的预算期间数据
-                                    detail.setErrMsg(ContextUtil.getMessage("order_detail_00017", ContextUtil.getMessage("default_dimension_period")));
-                                }
+                OrderDetail detail = new OrderDetail();
+                String temp;
+                for (TemplateHeadVo headVo : templateHead) {
+                    temp = data.get(headVo.getIndex());
+                    if (StringUtils.isBlank(temp)) {
+                        detail.setHasErr(Boolean.TRUE);
+                        // 存在错误的导入数据
+                        detail.setErrMsg(ContextUtil.getMessage("order_detail_00023"));
+                    } else {
+                        // 期间
+                        if (Constants.DIMENSION_CODE_PERIOD.equals(headVo.getFiled())) {
+                            detail.setPeriodName(temp);
+                            String periodId = periodMap.get(temp);
+                            if (StringUtils.isNotBlank(periodId)) {
+                                detail.setPeriod(periodId);
+                            } else {
+                                detail.setHasErr(Boolean.TRUE);
+                                // 错误的预算期间数据
+                                detail.setErrMsg(ContextUtil.getMessage("order_detail_00017", ContextUtil.getMessage("default_dimension_period")));
                             }
-                            // 科目
-                            else if (Constants.DIMENSION_CODE_ITEM.equals(headVo.getFiled())) {
-                                detail.setItemName(temp);
-                                String itemCode = subjectItemMap.get(temp);
-                                if (StringUtils.isNotBlank(itemCode)) {
-                                    detail.setItem(itemCode);
-                                } else {
-                                    detail.setHasErr(Boolean.TRUE);
-                                    // 错误的预算科目数据
-                                    detail.setErrMsg(ContextUtil.getMessage("order_detail_00017", ContextUtil.getMessage("default_dimension_item")));
-                                }
+                        }
+                        // 科目
+                        else if (Constants.DIMENSION_CODE_ITEM.equals(headVo.getFiled())) {
+                            detail.setItemName(temp);
+                            String itemCode = subjectItemMap.get(temp);
+                            if (StringUtils.isNotBlank(itemCode)) {
+                                detail.setItem(itemCode);
+                            } else {
+                                detail.setHasErr(Boolean.TRUE);
+                                // 错误的预算科目数据
+                                detail.setErrMsg(ContextUtil.getMessage("order_detail_00017", ContextUtil.getMessage("default_dimension_item")));
                             }
-                            // 组织
-                            else if (Constants.DIMENSION_CODE_ORG.equals(headVo.getFiled())) {
-                                detail.setOrgName(temp);
-                                String orgId = orgMap.get(temp);
-                                if (StringUtils.isNotBlank(orgId)) {
-                                    detail.setOrg(orgId);
-                                } else {
-                                    detail.setHasErr(Boolean.TRUE);
-                                    // 错误的组织数据
-                                    detail.setErrMsg(ContextUtil.getMessage("order_detail_00017", ContextUtil.getMessage("default_dimension_org")));
-                                }
+                        }
+                        // 组织
+                        else if (Constants.DIMENSION_CODE_ORG.equals(headVo.getFiled())) {
+                            detail.setOrgName(temp);
+                            String orgId = orgMap.get(temp);
+                            if (StringUtils.isNotBlank(orgId)) {
+                                detail.setOrg(orgId);
+                            } else {
+                                detail.setHasErr(Boolean.TRUE);
+                                // 错误的组织数据
+                                detail.setErrMsg(ContextUtil.getMessage("order_detail_00017", ContextUtil.getMessage("default_dimension_org")));
                             }
-                            // 项目
-                            else if (Constants.DIMENSION_CODE_PROJECT.equals(headVo.getFiled())) {
-                                detail.setProjectName(temp);
-                                String projectId = projectMap.get(temp);
-                                if (StringUtils.isNotBlank(projectId)) {
-                                    detail.setProject(projectId);
-                                } else {
-                                    detail.setHasErr(Boolean.TRUE);
-                                    // 错误的公司项目数据
-                                    detail.setErrMsg(ContextUtil.getMessage("order_detail_00017", ContextUtil.getMessage("default_dimension_project")));
-                                }
+                        }
+                        // 项目
+                        else if (Constants.DIMENSION_CODE_PROJECT.equals(headVo.getFiled())) {
+                            detail.setProjectName(temp);
+                            String projectId = projectMap.get(temp);
+                            if (StringUtils.isNotBlank(projectId)) {
+                                detail.setProject(projectId);
+                            } else {
+                                detail.setHasErr(Boolean.TRUE);
+                                // 错误的公司项目数据
+                                detail.setErrMsg(ContextUtil.getMessage("order_detail_00017", ContextUtil.getMessage("default_dimension_project")));
                             }
-                            // 成本中心
-                            else if (Constants.DIMENSION_CODE_COST_CENTER.equals(headVo.getFiled())) {
-                                detail.setCostCenterName(temp);
-                                String costCenter = costCenterMap.get(temp);
-                                if (StringUtils.isNotBlank(costCenter)) {
-                                    detail.setCostCenter(costCenter);
-                                } else {
-                                    detail.setHasErr(Boolean.TRUE);
-                                    // 错误的成本中心数据
-                                    detail.setErrMsg(ContextUtil.getMessage("order_detail_00017", ContextUtil.getMessage("default_dimension_cost_center")));
-                                }
+                        }
+                        // 成本中心
+                        else if (Constants.DIMENSION_CODE_COST_CENTER.equals(headVo.getFiled())) {
+                            detail.setCostCenterName(temp);
+                            String costCenter = costCenterMap.get(temp);
+                            if (StringUtils.isNotBlank(costCenter)) {
+                                detail.setCostCenter(costCenter);
+                            } else {
+                                detail.setHasErr(Boolean.TRUE);
+                                // 错误的成本中心数据
+                                detail.setErrMsg(ContextUtil.getMessage("order_detail_00017", ContextUtil.getMessage("default_dimension_cost_center")));
                             }
-                            // 扩展1
-                            else if (Constants.DIMENSION_CODE_UDF1.equals(headVo.getFiled())) {
-                                detail.setUdf1Name(temp);
-                                String udf1 = udf1Map.get(temp);
-                                if (StringUtils.isNotBlank(udf1)) {
-                                    detail.setUdf1(udf1);
-                                } else {
-                                    detail.setHasErr(Boolean.TRUE);
-                                    // 错误的扩展维度1数据
-                                    detail.setErrMsg(ContextUtil.getMessage("order_detail_00017", ContextUtil.getMessage("default_dimension_udf1")));
-                                }
-                            } else if (Constants.DIMENSION_CODE_UDF2.equals(headVo.getFiled())) {
-                                detail.setUdf2Name(temp);
-                                String udf2 = udf2Map.get(temp);
-                                if (StringUtils.isNotBlank(udf2)) {
-                                    detail.setUdf2(udf2);
-                                } else {
-                                    detail.setHasErr(Boolean.TRUE);
-                                    // 错误的扩展维度2数据
-                                    detail.setErrMsg(ContextUtil.getMessage("order_detail_00017", ContextUtil.getMessage("default_dimension_udf2")));
-                                }
-                            } else if (Constants.DIMENSION_CODE_UDF3.equals(headVo.getFiled())) {
-                                detail.setUdf3Name(temp);
-                                String udf3 = udf3Map.get(temp);
-                                if (StringUtils.isNotBlank(udf3)) {
-                                    detail.setUdf3(udf3);
-                                } else {
-                                    detail.setHasErr(Boolean.TRUE);
-                                    // 错误的扩展维度3数据
-                                    detail.setErrMsg(ContextUtil.getMessage("order_detail_00017", ContextUtil.getMessage("default_dimension_udf3")));
-                                }
-                            } else if (Constants.DIMENSION_CODE_UDF4.equals(headVo.getFiled())) {
-                                detail.setUdf4Name(temp);
-                                String udf4 = udf4Map.get(temp);
-                                if (StringUtils.isNotBlank(udf4)) {
-                                    detail.setUdf4(udf4);
-                                } else {
-                                    detail.setHasErr(Boolean.TRUE);
-                                    // 错误的扩展维度4数据
-                                    detail.setErrMsg(ContextUtil.getMessage("order_detail_00017", ContextUtil.getMessage("default_dimension_udf4")));
-                                }
-                            } else if (Constants.DIMENSION_CODE_UDF5.equals(headVo.getFiled())) {
-                                detail.setUdf5Name(temp);
-                                String udf5 = udf5Map.get(temp);
-                                if (StringUtils.isNotBlank(udf5)) {
-                                    detail.setUdf5(udf5);
-                                } else {
-                                    detail.setHasErr(Boolean.TRUE);
-                                    // 错误的扩展维度5数据
-                                    detail.setErrMsg(ContextUtil.getMessage("order_detail_00017", ContextUtil.getMessage("default_dimension_udf5")));
-                                }
-                            } else if (OrderDetail.FIELD_AMOUNT.equals(headVo.getFiled())) {
-                                if (temp.matches(NUM_REGEX)) {
-                                    detail.setAmount(new BigDecimal(temp));
-                                } else {
-                                    detail.setHasErr(Boolean.TRUE);
-                                    // 导入的金额不是数字
-                                    detail.setErrMsg(ContextUtil.getMessage("order_detail_00015"));
-                                }
+                        }
+                        // 扩展1
+                        else if (Constants.DIMENSION_CODE_UDF1.equals(headVo.getFiled())) {
+                            detail.setUdf1Name(temp);
+                            String udf1 = udf1Map.get(temp);
+                            if (StringUtils.isNotBlank(udf1)) {
+                                detail.setUdf1(udf1);
+                            } else {
+                                detail.setHasErr(Boolean.TRUE);
+                                // 错误的扩展维度1数据
+                                detail.setErrMsg(ContextUtil.getMessage("order_detail_00017", ContextUtil.getMessage("default_dimension_udf1")));
+                            }
+                        } else if (Constants.DIMENSION_CODE_UDF2.equals(headVo.getFiled())) {
+                            detail.setUdf2Name(temp);
+                            String udf2 = udf2Map.get(temp);
+                            if (StringUtils.isNotBlank(udf2)) {
+                                detail.setUdf2(udf2);
+                            } else {
+                                detail.setHasErr(Boolean.TRUE);
+                                // 错误的扩展维度2数据
+                                detail.setErrMsg(ContextUtil.getMessage("order_detail_00017", ContextUtil.getMessage("default_dimension_udf2")));
+                            }
+                        } else if (Constants.DIMENSION_CODE_UDF3.equals(headVo.getFiled())) {
+                            detail.setUdf3Name(temp);
+                            String udf3 = udf3Map.get(temp);
+                            if (StringUtils.isNotBlank(udf3)) {
+                                detail.setUdf3(udf3);
+                            } else {
+                                detail.setHasErr(Boolean.TRUE);
+                                // 错误的扩展维度3数据
+                                detail.setErrMsg(ContextUtil.getMessage("order_detail_00017", ContextUtil.getMessage("default_dimension_udf3")));
+                            }
+                        } else if (Constants.DIMENSION_CODE_UDF4.equals(headVo.getFiled())) {
+                            detail.setUdf4Name(temp);
+                            String udf4 = udf4Map.get(temp);
+                            if (StringUtils.isNotBlank(udf4)) {
+                                detail.setUdf4(udf4);
+                            } else {
+                                detail.setHasErr(Boolean.TRUE);
+                                // 错误的扩展维度4数据
+                                detail.setErrMsg(ContextUtil.getMessage("order_detail_00017", ContextUtil.getMessage("default_dimension_udf4")));
+                            }
+                        } else if (Constants.DIMENSION_CODE_UDF5.equals(headVo.getFiled())) {
+                            detail.setUdf5Name(temp);
+                            String udf5 = udf5Map.get(temp);
+                            if (StringUtils.isNotBlank(udf5)) {
+                                detail.setUdf5(udf5);
+                            } else {
+                                detail.setHasErr(Boolean.TRUE);
+                                // 错误的扩展维度5数据
+                                detail.setErrMsg(ContextUtil.getMessage("order_detail_00017", ContextUtil.getMessage("default_dimension_udf5")));
+                            }
+                        } else if (OrderDetail.FIELD_AMOUNT.equals(headVo.getFiled())) {
+                            if (temp.matches(NUM_REGEX)) {
+                                detail.setAmount(new BigDecimal(temp));
+                            } else {
+                                detail.setHasErr(Boolean.TRUE);
+                                // 导入的金额不是数字
+                                detail.setErrMsg(ContextUtil.getMessage("order_detail_00015"));
                             }
                         }
                     }
-                    // 订单id
-                    detail.setOrderId(orderId);
-                    // 维度属性组合
-                    detail.setAttribute(attribute);
-
-                    this.putOrderDetail(Boolean.TRUE, order, detail, detailMap, duplicateMap, successes, failures, sessionUser);
-
-                    OrderStatistics orderStatistics = new OrderStatistics(orderId, detailSize);
-                    orderStatistics.setSuccesses(successes.intValue());
-                    orderStatistics.setFailures(failures.intValue());
-                    // 更新缓存
-                    redisTemplate.opsForValue().set(Constants.HANDLE_CACHE_KEY_PREFIX + orderId, orderStatistics, 1, TimeUnit.HOURS);
                 }
+                // 订单id
+                detail.setOrderId(orderId);
+                // 维度属性组合
+                detail.setAttribute(attribute);
+
+                this.putOrderDetail(Boolean.TRUE, order, detail, detailMap, duplicateHash, successes, failures, sessionUser);
+
+                OrderStatistics orderStatistics = new OrderStatistics(orderId, detailSize);
+                orderStatistics.setSuccesses(successes.intValue());
+                orderStatistics.setFailures(failures.intValue());
+                // 更新缓存
+                redisTemplate.opsForValue().set(Constants.HANDLE_CACHE_KEY_PREFIX + orderId, orderStatistics, 1, TimeUnit.HOURS);
             });
         } catch (ServiceException e) {
             LOG.error("异步导入单据行项异常", e);
@@ -344,18 +335,18 @@ public class OrderCommonService {
     /**
      * 异步写入行项数据
      *
-     * @param isCover      当存在相同维度值时,是否对金额做覆盖处理
-     * @param order        订单头
-     * @param detail       订单行项
-     * @param detailMap    当前订单已存在的行项.用于与原订单数据的操作,结合isCover对金额进行控制
-     * @param duplicateMap 本次添加过的行项.用于本次重复检查
-     * @param successes    本次成功数
-     * @param failures     本次失败数
-     * @param sessionUser  当前会话用户
+     * @param isCover       当存在相同维度值时,是否对金额做覆盖处理
+     * @param order         订单头
+     * @param detail        订单行项
+     * @param detailMap     当前订单已存在的行项.用于与原订单数据的操作,结合isCover对金额进行控制
+     * @param duplicateHash 本次添加过的行项.用于本次重复检查
+     * @param successes     本次成功数
+     * @param failures      本次失败数
+     * @param sessionUser   当前会话用户
      */
     @Transactional(rollbackFor = Exception.class)
     public void putOrderDetail(boolean isCover, Order order, OrderDetail detail, Map<Long, OrderDetail> detailMap,
-                               Map<Long, Integer> duplicateMap, LongAdder successes, LongAdder failures, SessionUser sessionUser) {
+                               Set<Long> duplicateHash, LongAdder successes, LongAdder failures, SessionUser sessionUser) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("正在处理行项: " + JsonUtils.toJson(detail));
         }
@@ -371,7 +362,7 @@ public class OrderCommonService {
                 failures.increment();
             }
             // 本次提交数据中存在重复项
-            else if (duplicateMap.containsKey(detail.getAttributeCode())) {
+            else if (duplicateHash.contains(detail.getAttributeCode())) {
                 // 有错误的
                 detail.setHasErr(Boolean.TRUE);
                 // 存在重复项
@@ -380,7 +371,7 @@ public class OrderCommonService {
                 failures.increment();
             } else {
                 // 记录hash值
-                duplicateMap.put(detail.getAttributeCode(), detail.getRank());
+                duplicateHash.add(detail.getAttributeCode());
                 // 检查持久化数据中是否存在重复项
                 OrderDetail orderDetail = detailMap.get(detail.getAttributeCode());
                 if (Objects.nonNull(orderDetail)) {

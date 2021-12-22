@@ -449,11 +449,12 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             List<TemplateHeadVo> templateHead = new ArrayList<>();
             // 模版检查
             {
-                // 导入模版
-                Map<Integer, String> head = list.get(0);
+                // 取出抬头并从列表中移除
+                Map<Integer, String> head = list.remove(0);
                 if (Objects.nonNull(head)) {
                     String dimName;
                     TemplateHeadVo headVo;
+                    // 解析导入模版抬头
                     for (DimensionDto dim : dimensions) {
                         headVo = null;
                         dimName = ContextUtil.getMessage("default_dimension_".concat(dim.getCode()));
