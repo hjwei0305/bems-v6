@@ -355,6 +355,7 @@ public class OrderCommonService {
         try {
             mockUser.mockCurrentUser(sessionUser);
 
+            detail.setTenantCode(order.getTenantCode());
             // 创建时间
             detail.setCreatedDate(LocalDateTime.now());
             if (detail.getHasErr()) {

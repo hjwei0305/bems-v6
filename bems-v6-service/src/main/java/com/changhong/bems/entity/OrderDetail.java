@@ -90,11 +90,6 @@ public class OrderDetail extends BaseAttribute implements ITenant, Serializable,
     @Column(name = "created_date", updatable = false)
     protected LocalDateTime createdDate;
     /**
-     * 序号
-     */
-    @Column(name = "rank")
-    private Integer rank = 0;
-    /**
      * 租户代码
      */
     @Column(name = "tenant_code")
