@@ -308,9 +308,13 @@ public class OrderService extends BaseEntityService<Order> {
                 // 订单id
                 detail.setOrderId(orderId);
 
+                StopWatch stopWatch = new StopWatch(order.getCode());
+                stopWatch.start("笛卡尔方式生成行项");
                 // 通过笛卡尔方式生成行项
                 this.descartes(keyList, dimensionMap, detailList, 0, detail);
+                stopWatch.stop();
                 if (LOG.isDebugEnabled()) {
+                    LOG.debug(stopWatch.prettyPrint());
                     LOG.debug("生成行项数: " + detailList.size());
                 }
 

@@ -410,8 +410,6 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      */
     @Override
     public ResultData<String> importBudge(AddOrderDetail orderDto, MultipartFile file) {
-        // LogUtil.bizLog("上传订单数据 {}", JsonUtils.toJson(order));
-        // LogUtil.bizLog("上传文件名 {}", file.getOriginalFilename());
         StopWatch stopWatch = new StopWatch("导入");
         String categoryId = orderDto.getCategoryId();
         if (StringUtils.isBlank(categoryId)) {

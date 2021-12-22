@@ -73,10 +73,10 @@ public class OrderCommonService {
         LongAdder successes = new LongAdder();
         LongAdder failures = new LongAdder();
         String orderId = order.getId();
-        OrderStatistics statistics = new OrderStatistics(orderId, details.size());
+        int detailSize = details.size();
         details.parallelStream().forEach(detail -> {
             ResultData<Void> result = this.confirmUseBudget(order, detail, sessionUser);
-
+            OrderStatistics statistics = new OrderStatistics(orderId, detailSize);
             this.pushProcessState(successes, failures, statistics, result);
         });
         // 若处理完成,则更新订单状态为:已确认
@@ -92,10 +92,10 @@ public class OrderCommonService {
         LongAdder successes = new LongAdder();
         LongAdder failures = new LongAdder();
         String orderId = order.getId();
-        OrderStatistics statistics = new OrderStatistics(orderId, details.size());
+        int detailSize = details.size();
         details.parallelStream().forEach(detail -> {
             ResultData<Void> result = this.cancelConfirmUseBudget(order, detail, sessionUser);
-
+            OrderStatistics statistics = new OrderStatistics(orderId, detailSize);
             this.pushProcessState(successes, failures, statistics, result);
         });
         // 若处理完成,则更新订单状态为:草稿
@@ -111,9 +111,10 @@ public class OrderCommonService {
         LongAdder successes = new LongAdder();
         LongAdder failures = new LongAdder();
         String orderId = order.getId();
-        OrderStatistics statistics = new OrderStatistics(orderId, details.size());
+        int detailSize = details.size();
         details.parallelStream().forEach(detail -> {
             ResultData<Void> result = this.effectiveUseBudget(order, detail, sessionUser);
+            OrderStatistics statistics = new OrderStatistics(orderId, detailSize);
             this.pushProcessState(successes, failures, statistics, result);
         });
         // 若处理完成,则更新订单状态为:已生效

@@ -264,8 +264,8 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             LOG.error(ContextUtil.getMessage("order_detail_00002"));
             return;
         }
-
-        OrderStatistics statistics = new OrderStatistics(orderId, details.size());
+        int detailSize = details.size();
+        OrderStatistics statistics = new OrderStatistics(orderId, detailSize);
         BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
         // 设置默认过期时间:1天
         operations.set(statistics, 10, TimeUnit.HOURS);
@@ -316,10 +316,11 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
 
                     this.putOrderDetail(isCover, order, detail, detailMap, duplicateHash, successes, failures, sessionUser);
 
-                    statistics.setSuccesses(successes.intValue());
-                    statistics.setFailures(failures.intValue());
+                    OrderStatistics orderStatistics = new OrderStatistics(orderId, detailSize);
+                    orderStatistics.setSuccesses(successes.intValue());
+                    orderStatistics.setFailures(failures.intValue());
                     // 更新缓存
-                    redisTemplate.opsForValue().set(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId), statistics, 10, TimeUnit.HOURS);
+                    redisTemplate.opsForValue().set(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId), orderStatistics, 1, TimeUnit.HOURS);
                 });
             }
         } catch (ServiceException e) {
@@ -407,7 +408,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
      * @param order  订单头
      * @param detail 订单行项
      */
-    private ResultData<Void> createDetail(Order order, OrderDetail detail) throws Exception {
+    private ResultData<Void> createDetail(Order order, OrderDetail detail) {
         // 预算主体id
         String subjectId = order.getSubjectId();
         ResultData<Pool> resultData;
