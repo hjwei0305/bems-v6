@@ -186,32 +186,23 @@ public class OrderCommonService {
                     if (StringUtils.isBlank(temp)) {
                         if (StringUtils.isBlank(detail.getPeriodName())) {
                             detail.setPeriodName("");
-                        }
-                        if (StringUtils.isBlank(detail.getItemName())) {
+                        } else if (StringUtils.isBlank(detail.getItemName())) {
                             detail.setItemName("");
-                        }
-                        if (StringUtils.isBlank(detail.getOrgName())) {
+                        } else if (StringUtils.isBlank(detail.getOrgName())) {
                             detail.setOrgName("");
-                        }
-                        if (StringUtils.isBlank(detail.getProjectName())) {
+                        } else if (StringUtils.isBlank(detail.getProjectName())) {
                             detail.setProjectName("");
-                        }
-                        if (StringUtils.isBlank(detail.getCostCenterName())) {
+                        } else if (StringUtils.isBlank(detail.getCostCenterName())) {
                             detail.setCostCenterName("");
-                        }
-                        if (StringUtils.isBlank(detail.getUdf1Name())) {
+                        } else if (StringUtils.isBlank(detail.getUdf1Name())) {
                             detail.setUdf1Name("");
-                        }
-                        if (StringUtils.isBlank(detail.getUdf2Name())) {
+                        } else if (StringUtils.isBlank(detail.getUdf2Name())) {
                             detail.setUdf2Name("");
-                        }
-                        if (StringUtils.isBlank(detail.getUdf3Name())) {
+                        } else if (StringUtils.isBlank(detail.getUdf3Name())) {
                             detail.setUdf3Name("");
-                        }
-                        if (StringUtils.isBlank(detail.getUdf4Name())) {
+                        } else if (StringUtils.isBlank(detail.getUdf4Name())) {
                             detail.setUdf4Name("");
-                        }
-                        if (StringUtils.isBlank(detail.getUdf5Name())) {
+                        } else if (StringUtils.isBlank(detail.getUdf5Name())) {
                             detail.setUdf5Name("");
                         }
                         detail.setHasErr(Boolean.TRUE);
