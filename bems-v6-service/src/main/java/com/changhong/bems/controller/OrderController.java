@@ -22,7 +22,6 @@ import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.util.JsonUtils;
-import com.changhong.sei.util.ArithUtils;
 import com.changhong.sei.util.EnumUtils;
 import io.swagger.annotations.Api;
 import org.apache.commons.collections.CollectionUtils;
@@ -343,25 +342,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      * @return 返回调整数据
      */
     @Override
-    public ResultData<Map<String, Double>> getAdjustData(String orderId) {
-        Map<String, Double> data = new HashMap<>(7);
-        data.put("ADD", 0d);
-        data.put("SUB", 0d);
-        List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
-        if (CollectionUtils.isNotEmpty(details)) {
-            BigDecimal sumAdd = BigDecimal.ZERO;
-            BigDecimal sumSub = BigDecimal.ZERO;
-            for (OrderDetail detail : details) {
-                if (detail.getAmount().compareTo(BigDecimal.ZERO) > 0) {
-                    sumAdd = sumAdd.add(detail.getAmount());
-                } else {
-                    sumSub = sumSub.add(detail.getAmount());
-                }
-            }
-            data.put("ADD", ArithUtils.round(sumAdd.doubleValue(), 2));
-            data.put("SUB", ArithUtils.round(sumSub.doubleValue(), 2));
-        }
-        return ResultData.success(data);
+    public ResultData<Map<String, Number>> getAdjustData(String orderId) {
+        return ResultData.success(orderDetailService.getAdjustData(orderId));
     }
 
     /**

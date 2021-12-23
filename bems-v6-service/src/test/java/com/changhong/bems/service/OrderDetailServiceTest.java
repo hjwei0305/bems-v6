@@ -7,6 +7,8 @@ import com.changhong.sei.core.test.BaseUnit5Test;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Map;
+
 /**
  * 实现功能：
  *
@@ -31,5 +33,11 @@ class OrderDetailServiceTest extends BaseUnit5Test {
         param.setQuickSearchValue("办公");
         PageResult<OrderDetail> pageResult = service.querySplitGroup(param);
         System.out.println(pageResult);
+    }
+
+    @Test
+    void getAdjustData() {
+        Map<String, Number> objects = service.getAdjustData("12C7237C-62F6-11EC-8F81-0242C0A84416");
+        System.out.println(objects);
     }
 }

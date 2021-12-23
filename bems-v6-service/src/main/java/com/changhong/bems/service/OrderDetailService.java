@@ -20,20 +20,15 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.repository.query.Param;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
@@ -83,6 +78,35 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
      */
     public double getSumAmount(String orderId) {
         return dao.getSumAmount(orderId);
+    }
+
+    /**
+     * 获取申请单调整金额
+     *
+     * @param orderId 申请单号
+     * @return 返回调整金额:调增金额,调减金额
+     */
+    public Map<String, Number> getAdjustData(String orderId) {
+        Map<String, Number> data = new HashMap<>(7);
+        data.put("ADD", 0d);
+        data.put("SUB", 0d);
+        Object[] objects = dao.getAdjustData(orderId);
+        if (Objects.nonNull(objects) && objects.length == 1) {
+            Object[] objArr = (Object[]) objects[0];
+            if (Objects.nonNull(objArr)) {
+                for (Object obj : objArr) {
+                    if (Objects.nonNull(obj) && obj instanceof Number) {
+                        Number num = (Number) obj;
+                        if (num.doubleValue() > 0) {
+                            data.put("ADD", num);
+                        } else {
+                            data.put("SUB", num);
+                        }
+                    }
+                }
+            }
+        }
+        return data;
     }
 
     /**

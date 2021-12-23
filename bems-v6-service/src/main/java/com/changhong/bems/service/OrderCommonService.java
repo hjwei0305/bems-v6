@@ -184,6 +184,36 @@ public class OrderCommonService {
                 for (TemplateHeadVo headVo : templateHead) {
                     temp = data.get(headVo.getIndex());
                     if (StringUtils.isBlank(temp)) {
+                        if (StringUtils.isBlank(detail.getPeriodName())) {
+                            detail.setPeriodName("");
+                        }
+                        if (StringUtils.isBlank(detail.getItemName())) {
+                            detail.setItemName("");
+                        }
+                        if (StringUtils.isBlank(detail.getOrgName())) {
+                            detail.setOrgName("");
+                        }
+                        if (StringUtils.isBlank(detail.getProjectName())) {
+                            detail.setProjectName("");
+                        }
+                        if (StringUtils.isBlank(detail.getCostCenterName())) {
+                            detail.setCostCenterName("");
+                        }
+                        if (StringUtils.isBlank(detail.getUdf1Name())) {
+                            detail.setUdf1Name("");
+                        }
+                        if (StringUtils.isBlank(detail.getUdf2Name())) {
+                            detail.setUdf2Name("");
+                        }
+                        if (StringUtils.isBlank(detail.getUdf3Name())) {
+                            detail.setUdf3Name("");
+                        }
+                        if (StringUtils.isBlank(detail.getUdf4Name())) {
+                            detail.setUdf4Name("");
+                        }
+                        if (StringUtils.isBlank(detail.getUdf5Name())) {
+                            detail.setUdf5Name("");
+                        }
                         detail.setHasErr(Boolean.TRUE);
                         // 存在错误的导入数据
                         detail.setErrMsg(ContextUtil.getMessage("order_detail_00023"));

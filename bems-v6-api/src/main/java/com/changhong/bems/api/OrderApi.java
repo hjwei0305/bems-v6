@@ -183,7 +183,7 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
      */
     @GetMapping(path = "getAdjustData")
     @ApiOperation(value = "获取申请单调整数据", notes = "获取申请单调整数据")
-    ResultData<Map<String, Double>> getAdjustData(@RequestParam("orderId") String orderId);
+    ResultData<Map<String, Number>> getAdjustData(@RequestParam("orderId") String orderId);
 
     /**
      * 获取申请单合计金额

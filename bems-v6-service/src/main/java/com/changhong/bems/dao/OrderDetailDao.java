@@ -2,10 +2,13 @@ package com.changhong.bems.dao;
 
 import com.changhong.bems.entity.OrderDetail;
 import com.changhong.sei.core.dao.BaseEntityDao;
+import com.changhong.sei.core.dto.ResultData;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.util.Map;
 
 /**
  * 预算行项(OrderDetail)数据库访问类
@@ -34,6 +37,15 @@ public interface OrderDetailDao extends BaseEntityDao<OrderDetail>, OrderDetailE
      */
     @Query("select sum(d.amount) from OrderDetail d where d.orderId = :orderId")
     double getSumAmount(@Param("orderId") String orderId);
+
+    /**
+     * 获取申请单调整金额
+     *
+     * @param orderId 申请单号
+     * @return 返回调整金额:调增金额,调减金额
+     */
+    @Query("select (select sum(d.amount) from OrderDetail d where d.orderId = :orderId and d.amount>0) as increaseNum, (select sum(d.amount) from OrderDetail d where d.orderId = :orderId and d.amount<0) as decreaseNum from Order where id=:orderId")
+    Object[] getAdjustData(@Param("orderId") String orderId);
 
     /**
      * 检查行项是否有错误未处理
