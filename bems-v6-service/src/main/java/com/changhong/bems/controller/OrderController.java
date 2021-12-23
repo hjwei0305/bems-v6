@@ -24,7 +24,6 @@ import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.util.JsonUtils;
 import com.changhong.sei.util.ArithUtils;
 import com.changhong.sei.util.EnumUtils;
-import com.changhong.sei.utils.AsyncRunUtil;
 import io.swagger.annotations.Api;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -363,6 +362,17 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             data.put("SUB", ArithUtils.round(sumSub.doubleValue(), 2));
         }
         return ResultData.success(data);
+    }
+
+    /**
+     * 获取申请单合计金额
+     *
+     * @param orderId 订单id
+     * @return 返回调整数据
+     */
+    @Override
+    public ResultData<Double> getSumAmount(String orderId) {
+        return ResultData.success(orderDetailService.getSumAmount(orderId));
     }
 
     /**

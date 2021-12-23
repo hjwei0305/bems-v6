@@ -20,8 +20,10 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.repository.query.Param;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,6 +73,16 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
      */
     public List<OrderDetail> getOrderItems(String orderId) {
         return dao.findListByProperty(OrderDetail.FIELD_ORDER_ID, orderId);
+    }
+
+    /**
+     * 获取订单总金额
+     *
+     * @param orderId 订单头id
+     * @return 返回总金额
+     */
+    public double getSumAmount(String orderId) {
+        return dao.getSumAmount(orderId);
     }
 
     /**

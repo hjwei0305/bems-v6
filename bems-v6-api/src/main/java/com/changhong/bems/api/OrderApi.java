@@ -186,6 +186,15 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     ResultData<Map<String, Double>> getAdjustData(@RequestParam("orderId") String orderId);
 
     /**
+     * 获取申请单合计金额
+     *
+     * @return 返回调整数据
+     */
+    @GetMapping(path = "getSumAmount")
+    @ApiOperation(value = "获取申请单合计金额", notes = "获取申请单合计金额")
+    ResultData<Double> getSumAmount(@RequestParam("orderId") String orderId);
+
+    /**
      * 分页查询预算分解上级期间预算
      *
      * @param param 查询参数
