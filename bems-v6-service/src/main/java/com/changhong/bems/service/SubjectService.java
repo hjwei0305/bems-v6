@@ -2,6 +2,7 @@ package com.changhong.bems.service;
 
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.SubjectDao;
+import com.changhong.bems.dao.SubjectItemDao;
 import com.changhong.bems.dao.SubjectOrganizationDao;
 import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.*;
@@ -22,6 +23,7 @@ import com.changhong.sei.util.IdGenerator;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -40,6 +42,8 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
     @Autowired
     private SubjectDao dao;
     @Autowired
+    private SubjectItemDao subjectItemDao;
+    @Autowired
     private SubjectOrganizationDao subjectOrganizationDao;
     @Autowired
     private UserAuthorizeManager userAuthorizeManager;
@@ -54,9 +58,7 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
     @Autowired
     private PeriodService periodService;
     @Autowired
-    private SubjectItemService subjectItemService;
-    @Autowired
-    private StrategyService strategyService;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Override
     protected BaseEntityDao<Subject> getDao() {
@@ -317,7 +319,7 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
         } else {
             // 编辑后处理
             // 清除策略缓存
-            strategyService.cleanStrategyCache(entity.getId(), null);
+            this.cleanStrategyCache(entity.getId(), null);
         }
         return OperateResultWithData.operationSuccessWithData(entity);
     }
@@ -336,7 +338,7 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
             // 预算主体[{0}]不存在!
             return OperateResult.operationFailure("subject_00003", id);
         }
-        SubjectItem item = subjectItemService.findFirstByProperty(SubjectItem.FIELD_SUBJECT_ID, id);
+        SubjectItem item = subjectItemDao.findFirstByProperty(SubjectItem.FIELD_SUBJECT_ID, id);
         if (Objects.nonNull(item)) {
             // 已被预算科目[{0}]使用,禁止删除!
             return OperateResult.operationFailure("subject_00004", item.getName());
@@ -487,6 +489,24 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
         return subject;
     }
 
+    /**
+     * 清除策略缓存
+     *
+     * @param subjectId 预算主体id
+     * @param itemCode  预算科目代码
+     */
+    public void cleanStrategyCache(String subjectId, String itemCode) {
+        String pattern = Constants.STRATEGY_CACHE_KEY_PREFIX + subjectId;
+        if (StringUtils.isNotBlank(itemCode)) {
+            pattern = pattern + ":" + itemCode;
+        } else {
+            pattern = pattern + ":*";
+        }
+        Set<String> keys = redisTemplate.keys(pattern);
+        if (CollectionUtils.isNotEmpty(keys)) {
+            redisTemplate.delete(keys);
+        }
+    }
 
     /**
      * 通过节点清单构建树

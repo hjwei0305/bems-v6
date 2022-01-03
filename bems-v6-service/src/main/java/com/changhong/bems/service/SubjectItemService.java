@@ -46,8 +46,6 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
     private SubjectService subjectService;
     @Autowired
     private ItemService itemService;
-    @Autowired
-    private StrategyService strategyService;
 
     public static final String CACHE_KEY = "bems-v6:subjectitem";
 
@@ -74,7 +72,7 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
                 return OperateResult.operationFailure("subject_item_00001");
             }
             // 清除策略缓存
-            strategyService.cleanStrategyCache(entity.getSubjectId(), entity.getCode());
+            subjectService.cleanStrategyCache(entity.getSubjectId(), entity.getCode());
             getDao().delete(entity);
             return OperateResult.operationSuccess("core_service_00028");
         } else {
@@ -90,7 +88,7 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
     @Transactional(rollbackFor = Exception.class)
     public OperateResultWithData<SubjectItem> save(SubjectItem entity) {
         // 清除策略缓存
-        strategyService.cleanStrategyCache(entity.getSubjectId(), entity.getCode());
+        subjectService.cleanStrategyCache(entity.getSubjectId(), entity.getCode());
         return super.save(entity);
     }
 

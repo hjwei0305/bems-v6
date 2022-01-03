@@ -10,7 +10,6 @@ import com.changhong.bems.service.strategy.BudgetExecutionStrategy;
 import com.changhong.bems.service.strategy.DimensionMatchStrategy;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.ResultData;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.BoundValueOperations;
@@ -18,7 +17,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.xml.bind.TypeConstraintException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -138,25 +140,6 @@ public class StrategyService {
             }
         }
         return strategyList;
-    }
-
-    /**
-     * 清除策略缓存
-     *
-     * @param subjectId 预算主体id
-     * @param itemCode  预算科目代码
-     */
-    public void cleanStrategyCache(String subjectId, String itemCode) {
-        String pattern = Constants.STRATEGY_CACHE_KEY_PREFIX + subjectId;
-        if (StringUtils.isNotBlank(itemCode)) {
-            pattern = pattern + ":" + itemCode;
-        } else {
-            pattern = pattern + ":*";
-        }
-        Set<String> keys = redisTemplate.keys(pattern);
-        if (CollectionUtils.isNotEmpty(keys)) {
-            redisTemplate.delete(keys);
-        }
     }
 
     /**
