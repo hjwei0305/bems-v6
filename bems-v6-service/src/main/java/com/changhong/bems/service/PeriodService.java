@@ -431,7 +431,11 @@ public class PeriodService extends BaseEntityService<Period> {
                     period = new Period();
                     period.setSubjectId(subjectId);
                     period.setCode(EnumUtils.getEnum(PeriodCode.class, "M" + m).name());
-                    period.setName(ContextUtil.getMessage("period_name_monthly", String.valueOf(year), m));
+                    if (m < 10) {
+                        period.setName(ContextUtil.getMessage("period_name_monthly", String.valueOf(year), "0" + m));
+                    } else {
+                        period.setName(ContextUtil.getMessage("period_name_monthly", String.valueOf(year), m));
+                    }
                     period.setType(periodType);
                     period.setYear(year);
                     startDate = LocalDate.of(year, m, 1);
