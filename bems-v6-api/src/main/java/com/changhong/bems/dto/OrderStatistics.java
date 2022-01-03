@@ -16,6 +16,11 @@ import java.util.StringJoiner;
 public class OrderStatistics implements Serializable {
     private static final long serialVersionUID = -321346739138800880L;
     /**
+     * 任务名
+     */
+    @ApiModelProperty(value = "任务名")
+    private String taskName;
+    /**
      * 订单id
      */
     @ApiModelProperty(value = "订单id")
@@ -39,9 +44,14 @@ public class OrderStatistics implements Serializable {
     public OrderStatistics() {
     }
 
-    public OrderStatistics(String orderId, int total) {
+    public OrderStatistics(String taskName, String orderId, int total) {
+        this.taskName = taskName;
         this.orderId = orderId;
         this.total = total;
+    }
+
+    public String getTaskName() {
+        return taskName;
     }
 
     public String getOrderId() {

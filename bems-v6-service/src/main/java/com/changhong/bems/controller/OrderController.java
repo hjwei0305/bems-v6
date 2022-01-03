@@ -530,40 +530,6 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         return budgetDimensionCustManager.getDimensionValues(subjectId, dimCode);
     }
 
-    // /**
-    //  * 确认预算申请单
-    //  * 预算余额检查并预占用
-    //  *
-    //  * @param orderId 申请单id
-    //  * @return 返回处理结果
-    //  */
-    // @Override
-    // public ResultData<OrderDto> confirmOrder(String orderId) {
-    //     ResultData<Order> resultData = service.confirm(orderId);
-    //     if (resultData.successful()) {
-    //         return ResultData.success(modelMapper.map(resultData.getData(), OrderDto.class));
-    //     } else {
-    //         return ResultData.fail(resultData.getMessage());
-    //     }
-    // }
-    //
-    // /**
-    //  * 撤销已确认的预算申请单
-    //  * 释放预占用
-    //  *
-    //  * @param orderId 申请单id
-    //  * @return 返回处理结果
-    //  */
-    // @Override
-    // public ResultData<OrderDto> cancelConfirmOrder(String orderId) {
-    //     ResultData<Order> resultData = service.cancelConfirm(orderId);
-    //     if (resultData.successful()) {
-    //         return ResultData.success(modelMapper.map(resultData.getData(), OrderDto.class));
-    //     } else {
-    //         return ResultData.fail(resultData.getMessage());
-    //     }
-    // }
-
     /**
      * 已确认的预算申请单直接生效
      *
@@ -572,7 +538,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      */
     @Override
     public ResultData<OrderDto> effectiveOrder(String orderId) {
-        ResultData<Order> resultData = service.effective(orderId);
+        ResultData<Order> resultData = service.directlyEffective(orderId);
         if (resultData.successful()) {
             return ResultData.success(modelMapper.map(resultData.getData(), OrderDto.class));
         } else {
@@ -675,14 +641,14 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             // 订单[{0}]不存在!
             return ResultData.fail(ContextUtil.getMessage("order_00001"));
         }
-        String orderId = order.getId();
         FlowStatus flowStatus = EnumUtils.getEnum(FlowStatus.class, status);
         switch (flowStatus) {
             case INIT:
                 // 流程终止或退出
                 // 检查订单状态
                 if (OrderStatus.APPROVING == order.getStatus()) {
-                    //service.cancelConfirm(orderId);
+                    // 撤销预算预占用
+                    service.cancelConfirm(order);
                 } else {
                     // 订单状态为[{0}],不允许操作!
                     return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(EnumUtils.getEnumItemRemark(OrderStatus.class, order.getStatus()))));
@@ -691,28 +657,11 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             case INPROCESS:
                 // 流程启动或流程中
                 if (OrderStatus.DRAFT == order.getStatus()) {
-                    // 检查是否存在错误行项
-                    ResultData<Void> resultData = service.checkDetailHasErr(orderId);
+                    // 预算确认预占用预算
+                    ResultData<Void> resultData = service.confirm(order, OrderStatus.APPROVING);
                     if (resultData.failed()) {
                         return ResultData.fail(resultData.getMessage());
                     }
-                    // 调整时总额不变(调增调减之和等于0)
-                    if (OrderCategory.ADJUSTMENT.equals(order.getOrderCategory())) {
-                        List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
-                        if (CollectionUtils.isEmpty(details)) {
-                            // 订单[{0}]生效失败: 无订单行项
-                            return ResultData.fail(ContextUtil.getMessage("order_00007", order.getCode()));
-                        }
-                        // 计算调整余额
-                        double adjustBalance = details.parallelStream().mapToDouble(detail -> detail.getAmount().doubleValue()).sum();
-                        // 检查调整余额是否等于0
-                        if (0 != adjustBalance) {
-                            // 还有剩余调整余额[{0}]
-                            return ResultData.fail(ContextUtil.getMessage("order_00006", adjustBalance));
-                        }
-                    }
-                    // 状态更新为流程中
-                    service.updateStatus(orderId, OrderStatus.APPROVING);
                 } else {
                     // 订单状态为[{0}],不允许操作!
                     return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(EnumUtils.getEnumItemRemark(OrderStatus.class, order.getStatus()))));
@@ -748,7 +697,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             String endSign = otherParam.get("endSign");
             // 等于0：表示根据流程图走到了流程的结束节点
             if ("0".equals(endSign)) {
-                ResultData<Order> resultData = service.effective(orderId);
+                // 流程审核通过,执行生效预算
+                ResultData<Order> resultData = service.approvedEffective(orderId);
                 // 检查订单状态
                 if (resultData.failed()) {
                     return ResultData.fail(resultData.getMessage());

@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.util.StopWatch;
 
 import java.util.*;
@@ -390,13 +391,112 @@ public class OrderService extends BaseEntityService<Order> {
     }
 
     /**
-     * 生效预算申请单
+     * 确认预算申请单
+     * 预算余额检查并预占用
+     *
+     * @param order 申请单
+     * @return 返回处理结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ResultData<Void> confirm(final Order order, final OrderStatus orderStatus) {
+        if (Objects.isNull(order)) {
+            // 订单[{0}]不存在!
+            return ResultData.fail(ContextUtil.getMessage("order_00001"));
+        }
+        String orderId = order.getId();
+        // 检查订单状态: 状态为草稿和确认中的可进行确认操作
+        OrderStatus status = order.getStatus();
+        if (OrderStatus.DRAFT == status) {
+            // 检查是否存在错误行项
+            ResultData<Void> resultData = this.checkDetailHasErr(orderId);
+            if (resultData.successful()) {
+                List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
+                if (CollectionUtils.isEmpty(details)) {
+                    // 订单[{0}]无行项
+                    return ResultData.fail(ContextUtil.getMessage("order_00007", order.getCode()));
+                }
+                // 调整时总额不变(调增调减之和等于0)
+                if (OrderCategory.ADJUSTMENT.equals(order.getOrderCategory())) {
+                    // 计算调整余额
+                    double adjustBalance = details.parallelStream().mapToDouble(detail -> detail.getAmount().doubleValue()).sum();
+                    // 检查调整余额是否等于0
+                    if (0 != adjustBalance) {
+                        // 还有剩余调整余额[{0}]
+                        return ResultData.fail(ContextUtil.getMessage("order_00006", adjustBalance));
+                    }
+                }
+                ResultData<Void> result;
+                for (OrderDetail detail : details) {
+                    // 预算预占用
+                    result = orderCommonService.confirmUseBudget(order, detail);
+                    if (result.failed()) {
+                        // 回滚事务
+                        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                        return result;
+                    }
+                }
+                //orderDetailService.save(details);
+
+                // 更新状态为确认中
+                order.setStatus(orderStatus);
+                // 更新订单处理状态
+                order.setProcessing(Boolean.TRUE);
+                this.save(order);
+
+                return ResultData.success();
+            } else {
+                return ResultData.fail(resultData.getMessage());
+            }
+        } else {
+            // 订单状态为[{0}],不允许操作!
+            return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(EnumUtils.getEnumItemRemark(OrderStatus.class, order.getStatus()))));
+        }
+    }
+
+    /**
+     * 撤销已确认的预算申请单
+     * 释放预占用
+     *
+     * @param order 申请单
+     * @return 返回处理结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ResultData<Order> cancelConfirm(final Order order) {
+        if (Objects.isNull(order)) {
+            // 订单[{0}]不存在!
+            return ResultData.fail(ContextUtil.getMessage("order_00001"));
+        }
+
+        String orderId = order.getId();
+        OrderStatus status = order.getStatus();
+        List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
+        if (CollectionUtils.isEmpty(details)) {
+            // 订单[{0}]生效失败: 无订单行项
+            return ResultData.fail(ContextUtil.getMessage("order_00007", order.getCode()));
+        }
+
+        // 更新订单处理状态
+        order.setProcessing(Boolean.TRUE);
+        orderCommonService.updateOrderStatus(orderId, status, Boolean.TRUE);
+
+        OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_cancel"), orderId, details.size());
+        // 设置默认过期时间:1天
+        redisTemplate.opsForValue().set(Constants.HANDLE_CACHE_KEY_PREFIX + orderId, statistics, 10, TimeUnit.HOURS);
+
+        SessionUser sessionUser = ContextUtil.getSessionUser();
+        orderCommonService.asyncCancelConfirm(order, details, sessionUser);
+
+        return ResultData.success(order);
+    }
+
+    /**
+     * 直接生效预算申请单
      *
      * @param orderId 申请单id
      * @return 返回处理结果
      */
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<Order> effective(String orderId) {
+    public ResultData<Order> directlyEffective(String orderId) {
         final Order order = dao.findOne(orderId);
         if (Objects.isNull(order)) {
             // 订单[{0}]不存在!
@@ -404,8 +504,8 @@ public class OrderService extends BaseEntityService<Order> {
         }
 
         OrderStatus status = order.getStatus();
-        // 检查订单状态: 已确认的,审批中的,生效中的可进行生效操作
-        if (OrderStatus.DRAFT == status || OrderStatus.APPROVING == status || OrderStatus.EFFECTING == status) {
+        // 检查订单状态: 已确认的,生效中的可进行生效操作
+        if (OrderStatus.DRAFT == status || OrderStatus.EFFECTING == status) {
             List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
             if (CollectionUtils.isEmpty(details)) {
                 // 订单[{0}]生效失败: 无订单行项
@@ -437,12 +537,78 @@ public class OrderService extends BaseEntityService<Order> {
 
                 orderCommonService.updateOrderStatus(orderId, OrderStatus.EFFECTING, Boolean.TRUE);
 
-                OrderStatistics statistics = new OrderStatistics(orderId, details.size());
+                OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_effective"), orderId, details.size());
                 // 设置默认过期时间:1天
                 redisTemplate.opsForValue().set(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId), statistics, 10, TimeUnit.HOURS);
 
                 SessionUser sessionUser = ContextUtil.getSessionUser();
-                orderCommonService.asyncEffective(order, details, sessionUser);
+
+                orderCommonService.asyncDirectlyEffective(order, details, sessionUser);
+
+                return ResultData.success(order);
+            } else {
+                return ResultData.fail(resultData.getMessage());
+            }
+        } else {
+            // 订单状态为[{0}],不允许操作!
+            return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(EnumUtils.getEnumItemRemark(OrderStatus.class, order.getStatus()))));
+        }
+    }
+
+    /**
+     * 流程审批通过,生效预算申请单
+     *
+     * @param orderId 申请单id
+     * @return 返回处理结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ResultData<Order> approvedEffective(String orderId) {
+        final Order order = dao.findOne(orderId);
+        if (Objects.isNull(order)) {
+            // 订单[{0}]不存在!
+            return ResultData.fail(ContextUtil.getMessage("order_00001"));
+        }
+
+        OrderStatus status = order.getStatus();
+        // 检查订单状态: 审批中的可进行生效操作
+        if (OrderStatus.APPROVING == status) {
+            List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
+            if (CollectionUtils.isEmpty(details)) {
+                // 订单[{0}]生效失败: 无订单行项
+                return ResultData.fail(ContextUtil.getMessage("order_00007", order.getCode()));
+            }
+
+            // 检查是否存在错误行项
+            ResultData<Void> resultData = this.checkDetailHasErr(orderId);
+            if (resultData.successful()) {
+                // 调整时总额不变(调增调减之和等于0)
+                if (OrderCategory.ADJUSTMENT.equals(order.getOrderCategory())) {
+                    // 计算调整余额
+                    double adjustBalance = details.parallelStream().mapToDouble(detail -> detail.getAmount().doubleValue()).sum();
+                    // 检查调整余额是否等于0
+                    if (0 != adjustBalance) {
+                        // 还有剩余调整余额[{0}]
+                        return ResultData.fail(ContextUtil.getMessage("order_00006", adjustBalance));
+                    }
+                }
+
+                // 更新状态为生效中
+                order.setStatus(OrderStatus.EFFECTING);
+                // 更新订单为手动生效标示
+                order.setManuallyEffective(Boolean.TRUE);
+                // 更新订单处理状态
+                order.setProcessing(Boolean.TRUE);
+                // 更新订单总金额
+                dao.updateAmount(orderId);
+
+                orderCommonService.updateOrderStatus(orderId, OrderStatus.EFFECTING, Boolean.TRUE);
+
+                OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_effective"), orderId, details.size());
+                // 设置默认过期时间:1天
+                redisTemplate.opsForValue().set(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId), statistics, 10, TimeUnit.HOURS);
+
+                SessionUser sessionUser = ContextUtil.getSessionUser();
+                orderCommonService.asyncApprovedEffective(order, details, sessionUser);
 
                 return ResultData.success(order);
             } else {

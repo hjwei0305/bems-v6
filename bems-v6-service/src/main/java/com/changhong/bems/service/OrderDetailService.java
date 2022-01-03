@@ -164,31 +164,26 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
     public ResultData<OrderDetail> updateDetailAmount(Order order, OrderDetail detail, BigDecimal amount) {
         // 原行项金额
         BigDecimal oldAmount = detail.getAmount();
+        // 设置当前修改金额
+        detail.setAmount(amount);
 
-        ResultData<Void> resultData = orderCommonService.cancelConfirmUseBudget(order, detail);
-        if (resultData.successful()) {
-            // 设置当前修改金额
-            detail.setAmount(amount);
-
-            // 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
-            switch (order.getOrderCategory()) {
-                case INJECTION:
-                    resultData = orderCommonService.checkInjectionDetail(order, detail);
-                    break;
-                case ADJUSTMENT:
-                    resultData = orderCommonService.checkAdjustmentDetail(order, detail);
-                    break;
-                case SPLIT:
-                    resultData = orderCommonService.checkSplitDetail(order, detail);
-                    break;
-                default:
-                    // 不支持的订单类型
-                    return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
-            }
-            if (resultData.successful()) {
-                resultData = orderCommonService.confirmUseBudget(order, detail);
-            }
+        ResultData<Void> resultData;
+        // 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
+        switch (order.getOrderCategory()) {
+            case INJECTION:
+                resultData = orderCommonService.checkInjectionDetail(order, detail);
+                break;
+            case ADJUSTMENT:
+                resultData = orderCommonService.checkAdjustmentDetail(order, detail);
+                break;
+            case SPLIT:
+                resultData = orderCommonService.checkSplitDetail(order, detail);
+                break;
+            default:
+                // 不支持的订单类型
+                return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
         }
+
         if (resultData.successful()) {
             detail.setHasErr(Boolean.FALSE);
             detail.setErrMsg("");
@@ -224,7 +219,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
             return;
         }
         int detailSize = details.size();
-        OrderStatistics statistics = new OrderStatistics(orderId, detailSize);
+        OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_detail"), orderId, detailSize);
         BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId));
         // 设置默认过期时间:1天
         operations.set(statistics, 10, TimeUnit.HOURS);
@@ -260,7 +255,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                 // 保存订单行项.若存在相同的行项则忽略跳过(除非在导入时需要对金额做覆盖处理)
                 orderCommonService.putOrderDetail(Boolean.FALSE, order, detail, detailMap, duplicateHash, successes, failures, sessionUser);
 
-                OrderStatistics orderStatistics = new OrderStatistics(orderId, detailSize);
+                OrderStatistics orderStatistics = new OrderStatistics(ContextUtil.getMessage("task_name_detail"), orderId, detailSize);
                 orderStatistics.setSuccesses(successes.intValue());
                 orderStatistics.setFailures(failures.intValue());
                 // 更新缓存

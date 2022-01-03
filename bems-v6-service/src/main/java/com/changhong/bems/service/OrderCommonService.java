@@ -101,7 +101,7 @@ public class OrderCommonService {
         // 订单id
         final String orderId = order.getId();
         int detailSize = details.size();
-        OrderStatistics statistics = new OrderStatistics(orderId, detailSize);
+        OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_import"), orderId, detailSize);
         BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.HANDLE_CACHE_KEY_PREFIX + orderId);
         // 设置默认过期时间:1天
         operations.set(statistics, 1, TimeUnit.HOURS);
@@ -338,7 +338,7 @@ public class OrderCommonService {
 
                 this.putOrderDetail(Boolean.TRUE, order, detail, detailMap, duplicateHash, successes, failures, sessionUser);
 
-                OrderStatistics orderStatistics = new OrderStatistics(orderId, detailSize);
+                OrderStatistics orderStatistics = new OrderStatistics(ContextUtil.getMessage("task_name_import"), orderId, detailSize);
                 orderStatistics.setSuccesses(successes.intValue());
                 orderStatistics.setFailures(failures.intValue());
                 // 更新缓存
@@ -428,15 +428,6 @@ public class OrderCommonService {
                 }
             }
             if (Objects.nonNull(detail)) {
-                if (!detail.getHasErr()) {
-                    // 未成功预占用,不用做释放
-                    if (detail.getState() >= 0) {
-                        this.cancelConfirmUseBudget(order, detail);
-                    }
-                    if (!detail.getHasErr()) {
-                        this.confirmUseBudget(order, detail);
-                    }
-                }
                 orderDetailDao.save(detail);
             }
         } catch (Exception e) {
@@ -448,18 +439,94 @@ public class OrderCommonService {
     }
 
     /**
+     * 异步撤销确认
+     */
+    @Async
+    @Transactional(rollbackFor = Exception.class)
+    public void asyncCancelConfirm(Order order, List<OrderDetail> details, SessionUser sessionUser) {
+        LongAdder successes = new LongAdder();
+        LongAdder failures = new LongAdder();
+        String orderId = order.getId();
+        int detailSize = details.size();
+        details.parallelStream().forEach(detail -> {
+            OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_cancel"), orderId, detailSize);
+            ResultData<Void> result = ResultData.fail("Unknown error");
+            try {
+                // 本地线程全局变量存储-开始
+                ThreadLocalHolder.begin();
+                mockUser.mockCurrentUser(sessionUser);
+
+                result = this.cancelConfirmUseBudget(order, detail);
+            } catch (Exception e) {
+                result = ResultData.fail(e.getMessage());
+            } finally {
+                // 本地线程全局变量存储-释放
+                ThreadLocalHolder.end();
+                this.pushProcessState(successes, failures, statistics, result);
+            }
+        });
+        // 若处理完成,则更新订单状态为:草稿
+        this.updateOrderStatus(orderId, OrderStatus.DRAFT, Boolean.FALSE);
+    }
+
+    /**
      * 异步生效预算
      */
     @Async
     @Transactional(rollbackFor = Exception.class)
-    public void asyncEffective(Order order, List<OrderDetail> details, SessionUser sessionUser) {
+    public void asyncDirectlyEffective(Order order, List<OrderDetail> details, SessionUser sessionUser) {
+        LongAdder successes = new LongAdder();
+        LongAdder failures = new LongAdder();
+        String orderId = order.getId();
+        int detailSize = details.size();
+
+        details.parallelStream().forEach(detail -> {
+            OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_confirm"), orderId, detailSize);
+            ResultData<Void> result = ResultData.fail("Unknown error");
+            try {
+                // 本地线程全局变量存储-开始
+                ThreadLocalHolder.begin();
+                mockUser.mockCurrentUser(sessionUser);
+
+                result = this.confirmUseBudget(order, detail);
+            } catch (Exception e) {
+                result = ResultData.fail(e.getMessage());
+            } finally {
+                // 本地线程全局变量存储-释放
+                ThreadLocalHolder.end();
+                this.pushProcessState(successes, failures, statistics, result);
+            }
+        });
+
+        if (failures.intValue() > 0) {
+            // 若处理完成,则更新订单状态为:已生效
+            this.updateOrderStatus(orderId, OrderStatus.DRAFT, Boolean.FALSE);
+        } else {
+            successes.reset();
+            failures.reset();
+            details.parallelStream().forEach(detail -> {
+                ResultData<Void> result = this.effectiveUseBudget(order, detail, sessionUser);
+                OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_effective"), orderId, detailSize);
+                this.pushProcessState(successes, failures, statistics, result);
+            });
+            // 若处理完成,则更新订单状态为:已生效
+            this.updateOrderStatus(orderId, OrderStatus.COMPLETED, Boolean.FALSE);
+        }
+    }
+
+    /**
+     * 异步生效预算
+     */
+    @Async
+    @Transactional(rollbackFor = Exception.class)
+    public void asyncApprovedEffective(Order order, List<OrderDetail> details, SessionUser sessionUser) {
         LongAdder successes = new LongAdder();
         LongAdder failures = new LongAdder();
         String orderId = order.getId();
         int detailSize = details.size();
         details.parallelStream().forEach(detail -> {
             ResultData<Void> result = this.effectiveUseBudget(order, detail, sessionUser);
-            OrderStatistics statistics = new OrderStatistics(orderId, detailSize);
+            OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_effective"), orderId, detailSize);
             this.pushProcessState(successes, failures, statistics, result);
         });
         // 若处理完成,则更新订单状态为:已生效

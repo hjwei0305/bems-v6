@@ -87,13 +87,13 @@ class OrderServiceTest extends BaseUnit5Test {
     }
 
     @Test
-    void effectiveOrder() {
+    void approvedEffective() {
         StopWatch stopWatch = StopWatch.createStarted();
         String orderId = "346F7891-C445-11EB-B3C8-0242C0A8442C";
 //        Order order = service.findOne(orderId);
 //        List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
 
-        ResultData<Order> resultData = service.effective(orderId);
+        ResultData<Order> resultData = service.approvedEffective(orderId);
         stopWatch.stop();
         System.out.println("耗时: " + stopWatch.getTime());
         System.out.println(resultData);
@@ -111,11 +111,11 @@ class OrderServiceTest extends BaseUnit5Test {
     }
 
     @Test
-    void effectiveUseBudget() {
+    void directlyEffective() {
         StopWatch stopWatch = StopWatch.createStarted();
 
         String orderId = "16837168-CD9B-11EB-A68D-0242C0A84429";
-        ResultData<Order> resultData = service.effective(orderId);
+        ResultData<Order> resultData = service.directlyEffective(orderId);
         stopWatch.stop();
         System.out.println("耗时: " + stopWatch.getTime());
         System.out.println(resultData);
