@@ -243,27 +243,27 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     @ApiOperation(value = "获取预算维度主数据", notes = "获取预算维度主数据(导入用)")
     ResultData<Map<String, Object>> getDimensionValues(@RequestParam("subjectId") String subjectId, @RequestParam("dimCode") String dimCode);
 
-    /**
-     * 确认预算申请单
-     * 预算余额检查并预占用
-     *
-     * @param orderId 申请单id
-     * @return 返回处理结果
-     */
-    @PostMapping(path = "confirmOrder")
-    @ApiOperation(value = "确认预算申请单", notes = "确认预算申请单.预算余额检查并预占用")
-    ResultData<OrderDto> confirmOrder(@RequestParam("orderId") String orderId);
-
-    /**
-     * 撤销已确认的预算申请单
-     * 释放预占用
-     *
-     * @param orderId 申请单id
-     * @return 返回处理结果
-     */
-    @PostMapping(path = "cancelConfirm")
-    @ApiOperation(value = "撤销已确认的预算申请单", notes = "撤销已确认的预算申请单.释放预占用")
-    ResultData<OrderDto> cancelConfirmOrder(@RequestParam("orderId") String orderId);
+    // /**
+    //  * 确认预算申请单
+    //  * 预算余额检查并预占用
+    //  *
+    //  * @param orderId 申请单id
+    //  * @return 返回处理结果
+    //  */
+    // @PostMapping(path = "confirmOrder")
+    // @ApiOperation(value = "确认预算申请单", notes = "确认预算申请单.预算余额检查并预占用")
+    // ResultData<OrderDto> confirmOrder(@RequestParam("orderId") String orderId);
+    //
+    // /**
+    //  * 撤销已确认的预算申请单
+    //  * 释放预占用
+    //  *
+    //  * @param orderId 申请单id
+    //  * @return 返回处理结果
+    //  */
+    // @PostMapping(path = "cancelConfirm")
+    // @ApiOperation(value = "撤销已确认的预算申请单", notes = "撤销已确认的预算申请单.释放预占用")
+    // ResultData<OrderDto> cancelConfirmOrder(@RequestParam("orderId") String orderId);
 
     /**
      * 已确认的预算申请单直接生效
@@ -277,12 +277,13 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
 
     /**
      * 获取订单处理状态
+     * 前端轮询调用,以获取实时处理进度
      *
      * @param orderId 订单id
      * @return 处理状态
      */
     @GetMapping(path = "getProcessingStatus")
-    @ApiOperation(value = "获取订单处理状态", notes = "获取订单处理状态")
+    @ApiOperation(value = "获取订单处理状态", notes = "获取订单处理状态.前端轮询调用,以获取实时处理进度")
     ResultData<OrderStatistics> getProcessingStatus(@RequestParam("orderId") String orderId);
 
     ///////////////////////流程集成 start//////////////////////////////

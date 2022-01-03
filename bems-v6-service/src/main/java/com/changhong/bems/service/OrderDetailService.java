@@ -164,24 +164,30 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
     public ResultData<OrderDetail> updateDetailAmount(Order order, OrderDetail detail, BigDecimal amount) {
         // 原行项金额
         BigDecimal oldAmount = detail.getAmount();
-        // 设置当前修改金额
-        detail.setAmount(amount);
 
-        ResultData<Void> resultData;
-        // 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
-        switch (order.getOrderCategory()) {
-            case INJECTION:
-                resultData = orderCommonService.checkInjectionDetail(order, detail);
-                break;
-            case ADJUSTMENT:
-                resultData = orderCommonService.checkAdjustmentDetail(order, detail);
-                break;
-            case SPLIT:
-                resultData = orderCommonService.checkSplitDetail(order, detail);
-                break;
-            default:
-                // 不支持的订单类型
-                return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
+        ResultData<Void> resultData = orderCommonService.cancelConfirmUseBudget(order, detail);
+        if (resultData.successful()) {
+            // 设置当前修改金额
+            detail.setAmount(amount);
+
+            // 按订单类型,检查预算池额度(为保证性能仅对调减的预算池做额度检查)
+            switch (order.getOrderCategory()) {
+                case INJECTION:
+                    resultData = orderCommonService.checkInjectionDetail(order, detail);
+                    break;
+                case ADJUSTMENT:
+                    resultData = orderCommonService.checkAdjustmentDetail(order, detail);
+                    break;
+                case SPLIT:
+                    resultData = orderCommonService.checkSplitDetail(order, detail);
+                    break;
+                default:
+                    // 不支持的订单类型
+                    return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
+            }
+            if (resultData.successful()) {
+                resultData = orderCommonService.confirmUseBudget(order, detail);
+            }
         }
         if (resultData.successful()) {
             detail.setHasErr(Boolean.FALSE);

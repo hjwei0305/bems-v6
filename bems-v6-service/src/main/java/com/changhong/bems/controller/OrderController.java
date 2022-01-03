@@ -530,39 +530,39 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         return budgetDimensionCustManager.getDimensionValues(subjectId, dimCode);
     }
 
-    /**
-     * 确认预算申请单
-     * 预算余额检查并预占用
-     *
-     * @param orderId 申请单id
-     * @return 返回处理结果
-     */
-    @Override
-    public ResultData<OrderDto> confirmOrder(String orderId) {
-        ResultData<Order> resultData = service.confirm(orderId);
-        if (resultData.successful()) {
-            return ResultData.success(modelMapper.map(resultData.getData(), OrderDto.class));
-        } else {
-            return ResultData.fail(resultData.getMessage());
-        }
-    }
-
-    /**
-     * 撤销已确认的预算申请单
-     * 释放预占用
-     *
-     * @param orderId 申请单id
-     * @return 返回处理结果
-     */
-    @Override
-    public ResultData<OrderDto> cancelConfirmOrder(String orderId) {
-        ResultData<Order> resultData = service.cancelConfirm(orderId);
-        if (resultData.successful()) {
-            return ResultData.success(modelMapper.map(resultData.getData(), OrderDto.class));
-        } else {
-            return ResultData.fail(resultData.getMessage());
-        }
-    }
+    // /**
+    //  * 确认预算申请单
+    //  * 预算余额检查并预占用
+    //  *
+    //  * @param orderId 申请单id
+    //  * @return 返回处理结果
+    //  */
+    // @Override
+    // public ResultData<OrderDto> confirmOrder(String orderId) {
+    //     ResultData<Order> resultData = service.confirm(orderId);
+    //     if (resultData.successful()) {
+    //         return ResultData.success(modelMapper.map(resultData.getData(), OrderDto.class));
+    //     } else {
+    //         return ResultData.fail(resultData.getMessage());
+    //     }
+    // }
+    //
+    // /**
+    //  * 撤销已确认的预算申请单
+    //  * 释放预占用
+    //  *
+    //  * @param orderId 申请单id
+    //  * @return 返回处理结果
+    //  */
+    // @Override
+    // public ResultData<OrderDto> cancelConfirmOrder(String orderId) {
+    //     ResultData<Order> resultData = service.cancelConfirm(orderId);
+    //     if (resultData.successful()) {
+    //         return ResultData.success(modelMapper.map(resultData.getData(), OrderDto.class));
+    //     } else {
+    //         return ResultData.fail(resultData.getMessage());
+    //     }
+    // }
 
     /**
      * 已确认的预算申请单直接生效
@@ -682,7 +682,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                 // 流程终止或退出
                 // 检查订单状态
                 if (OrderStatus.APPROVING == order.getStatus()) {
-                    service.cancelConfirm(orderId);
+                    //service.cancelConfirm(orderId);
                 } else {
                     // 订单状态为[{0}],不允许操作!
                     return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(EnumUtils.getEnumItemRemark(OrderStatus.class, order.getStatus()))));
@@ -690,7 +690,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                 break;
             case INPROCESS:
                 // 流程启动或流程中
-                if (OrderStatus.CONFIRMED == order.getStatus()) {
+                if (OrderStatus.DRAFT == order.getStatus()) {
                     // 检查是否存在错误行项
                     ResultData<Void> resultData = service.checkDetailHasErr(orderId);
                     if (resultData.failed()) {
@@ -754,8 +754,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                     return ResultData.fail(resultData.getMessage());
                 }
             } else {
-                // 状态更新为提交流程前的已确认状态
-                service.updateStatus(orderId, OrderStatus.CONFIRMED);
+                // 状态更新为提交流程前的草稿状态
+                service.updateStatus(orderId, OrderStatus.DRAFT);
             }
             return ResultData.success(Boolean.TRUE);
         } else {

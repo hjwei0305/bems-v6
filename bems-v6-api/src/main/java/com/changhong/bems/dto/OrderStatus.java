@@ -19,21 +19,21 @@ public enum OrderStatus {
      */
     @Remark(value = "OrderStatus_DRAFT", comments = "草稿")
     DRAFT,
-    /**
-     * 确认中
-     */
-    @Remark(value = "OrderStatus_CONFIRMING", comments = "确认中")
-    CONFIRMING,
-    /**
-     * 撤销中
-     */
-    @Remark(value = "OrderStatus_CANCELING", comments = "撤销中")
-    CANCELING,
-    /**
-     * 已确认
-     */
-    @Remark(value = "OrderStatus_CONFIRMED", comments = "已确认")
-    CONFIRMED,
+    // /**
+    //  * 确认中
+    //  */
+    // @Remark(value = "OrderStatus_CONFIRMING", comments = "确认中")
+    // CONFIRMING,
+    // /**
+    //  * 撤销中
+    //  */
+    // @Remark(value = "OrderStatus_CANCELING", comments = "撤销中")
+    // CANCELING,
+    // /**
+    //  * 已确认
+    //  */
+    // @Remark(value = "OrderStatus_CONFIRMED", comments = "已确认")
+    // CONFIRMED,
     /**
      * 审批中
      */

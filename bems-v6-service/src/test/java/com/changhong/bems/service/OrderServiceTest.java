@@ -104,10 +104,10 @@ class OrderServiceTest extends BaseUnit5Test {
         StopWatch stopWatch = StopWatch.createStarted();
 
         String orderId = "F5B05C90-CE7A-11EB-997A-0242C0A8442C";
-        ResultData<Order> resultData = service.confirm(orderId);
+        // ResultData<Order> resultData = service.confirm(orderId);
         stopWatch.stop();
         System.out.println("耗时: " + stopWatch.getTime());
-        System.out.println(resultData);
+        // System.out.println(resultData);
     }
 
     @Test

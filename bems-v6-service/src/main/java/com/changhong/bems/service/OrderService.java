@@ -390,110 +390,6 @@ public class OrderService extends BaseEntityService<Order> {
     }
 
     /**
-     * 确认预算申请单
-     * 预算余额检查并预占用
-     *
-     * @param orderId 申请单id
-     * @return 返回处理结果
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public ResultData<Order> confirm(String orderId) {
-        final Order order = dao.findOne(orderId);
-        if (Objects.isNull(order)) {
-            // 订单[{0}]不存在!
-            return ResultData.fail(ContextUtil.getMessage("order_00001"));
-        }
-
-        // 检查订单状态: 状态为草稿和确认中的可进行确认操作
-        OrderStatus status = order.getStatus();
-        if (OrderStatus.DRAFT == status || OrderStatus.CONFIRMING == status) {
-            // 检查是否存在错误行项
-            ResultData<Void> resultData = this.checkDetailHasErr(orderId);
-            if (resultData.successful()) {
-                List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
-                if (CollectionUtils.isEmpty(details)) {
-                    // 订单[{0}]无行项
-                    return ResultData.fail(ContextUtil.getMessage("order_00007", order.getCode()));
-                }
-                // 调整时总额不变(调增调减之和等于0)
-                if (OrderCategory.ADJUSTMENT.equals(order.getOrderCategory())) {
-                    // 计算调整余额
-                    double adjustBalance = details.parallelStream().mapToDouble(detail -> detail.getAmount().doubleValue()).sum();
-                    // 检查调整余额是否等于0
-                    if (0 != adjustBalance) {
-                        // 还有剩余调整余额[{0}]
-                        return ResultData.fail(ContextUtil.getMessage("order_00006", adjustBalance));
-                    }
-                }
-
-                // 更新状态为确认中
-                order.setStatus(OrderStatus.CONFIRMING);
-                // 更新订单处理状态
-                order.setProcessing(Boolean.TRUE);
-                orderCommonService.updateOrderStatus(orderId, OrderStatus.CONFIRMING, Boolean.TRUE);
-
-                OrderStatistics statistics = new OrderStatistics(orderId, details.size());
-                // 设置默认过期时间:1天
-                redisTemplate.opsForValue().set(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId), statistics, 10, TimeUnit.HOURS);
-
-                SessionUser sessionUser = ContextUtil.getSessionUser();
-                orderCommonService.asyncConfirm(order, details, sessionUser);
-
-                return ResultData.success(order);
-            } else {
-                return ResultData.fail(resultData.getMessage());
-            }
-        } else {
-            // 订单状态为[{0}],不允许操作!
-            return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(EnumUtils.getEnumItemRemark(OrderStatus.class, order.getStatus()))));
-        }
-    }
-
-    /**
-     * 撤销已确认的预算申请单
-     * 释放预占用
-     *
-     * @param orderId 申请单id
-     * @return 返回处理结果
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public ResultData<Order> cancelConfirm(String orderId) {
-        final Order order = dao.findOne(orderId);
-        if (Objects.isNull(order)) {
-            // 订单[{0}]不存在!
-            return ResultData.fail(ContextUtil.getMessage("order_00001"));
-        }
-
-        OrderStatus status = order.getStatus();
-        // 检查订单状态:撤销中的,确认中的,已确认的可进行撤销操作
-        if (OrderStatus.CANCELING == status || OrderStatus.CONFIRMING == status || OrderStatus.CONFIRMED == status) {
-            List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
-            if (CollectionUtils.isEmpty(details)) {
-                // 订单[{0}]生效失败: 无订单行项
-                return ResultData.fail(ContextUtil.getMessage("order_00007", order.getCode()));
-            }
-
-            // 更新状态为确认中
-            order.setStatus(OrderStatus.CANCELING);
-            // 更新订单处理状态
-            order.setProcessing(Boolean.TRUE);
-            orderCommonService.updateOrderStatus(orderId, OrderStatus.CANCELING, Boolean.TRUE);
-
-            OrderStatistics statistics = new OrderStatistics(orderId, details.size());
-            // 设置默认过期时间:1天
-            redisTemplate.opsForValue().set(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId), statistics, 10, TimeUnit.HOURS);
-
-            SessionUser sessionUser = ContextUtil.getSessionUser();
-            orderCommonService.asyncCancelConfirm(order, details, sessionUser);
-
-            return ResultData.success(order);
-        } else {
-            // 订单状态为[{0}],不允许操作!
-            return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(EnumUtils.getEnumItemRemark(OrderStatus.class, order.getStatus()))));
-        }
-    }
-
-    /**
      * 生效预算申请单
      *
      * @param orderId 申请单id
@@ -509,7 +405,7 @@ public class OrderService extends BaseEntityService<Order> {
 
         OrderStatus status = order.getStatus();
         // 检查订单状态: 已确认的,审批中的,生效中的可进行生效操作
-        if (OrderStatus.CONFIRMED == status || OrderStatus.APPROVING == status || OrderStatus.EFFECTING == status) {
+        if (OrderStatus.DRAFT == status || OrderStatus.APPROVING == status || OrderStatus.EFFECTING == status) {
             List<OrderDetail> details = orderDetailService.getOrderItems(order.getId());
             if (CollectionUtils.isEmpty(details)) {
                 // 订单[{0}]生效失败: 无订单行项

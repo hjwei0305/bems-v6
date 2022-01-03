@@ -53,11 +53,13 @@ class PoolServiceTest extends BaseUnit5Test {
 
     @Test
     void findPoolByPage() {
-        PoolQuickQueryParam queryParam = new PoolQuickQueryParam();
-        queryParam.setSubjectId("C81A4E58-BBD4-11EB-A896-0242C0A84429");
-        queryParam.setYear(2021);
-        // queryParam.setQuickSearchValue("差旅费");
-        queryParam.setPeriodIds(Sets.newHashSet("9862C318-1C60-11EC-A571-0242C0A84429"));
+        // PoolQuickQueryParam queryParam = new PoolQuickQueryParam();
+        // queryParam.setSubjectId("C81A4E58-BBD4-11EB-A896-0242C0A84429");
+        // queryParam.setYear(2021);
+        // // queryParam.setQuickSearchValue("差旅费");
+        // queryParam.setPeriodIds(Sets.newHashSet("9862C318-1C60-11EC-A571-0242C0A84429"));
+        String json = "{\"quickSearchValue\":\"\",\"quickSearchProperties\":[\"code\",\"name\"],\"pageInfo\":{\"page\":1,\"rows\":50},\"year\":2021,\"subjectId\":\"7F757D51-532E-11EC-ABD0-0242C0A84424\",\"orgIds\":[{\"text\":\"四川虹信软件股份有限公司\",\"value\":\"435B09B6-D0E1-11EA-93C3-0242C0A8460D\"}]}";
+        PoolQuickQueryParam queryParam = JsonUtils.fromJson(json, PoolQuickQueryParam.class);
         PageResult<PoolAttributeDto> pageResult = service.findPoolByPage(queryParam);
         System.out.println(pageResult);
     }
