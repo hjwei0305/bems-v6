@@ -383,12 +383,17 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             }
             OrderDetailDto dto;
             List<OrderDetailDto> dtoList = new ArrayList<>(details.size());
+            List<OrderDetailDto> childrenList;
             for (OrderDetail detail : details) {
                 dto = modelMapper.map(detail, OrderDetailDto.class);
                 if (StringUtils.isBlank(detail.getOriginPoolCode()) || StringUtils.equals(Constants.NONE, detail.getOriginPoolCode())) {
                     dto.setOriginPoolCode(null);
                 } else {
-                    dto.setChildren(group.get(detail.getOriginPoolCode()));
+                    childrenList = group.get(detail.getOriginPoolCode());
+                    if (CollectionUtils.isNotEmpty(childrenList)) {
+                        childrenList.sort(Comparator.comparing(BaseAttributeDto::getPeriodName));;
+                    }
+                    dto.setChildren(childrenList);
                 }
                 dtoList.add(dto);
             }
