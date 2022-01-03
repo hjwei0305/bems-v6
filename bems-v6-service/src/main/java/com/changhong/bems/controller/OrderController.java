@@ -369,15 +369,15 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         PageResult<OrderDetailDto> pageResult = new PageResult<>(result);
         List<OrderDetail> details = result.getRows();
         if (CollectionUtils.isNotEmpty(details)) {
-            Set<String> code = details.stream().map(OrderDetail::getOriginPoolCode).filter(StringUtils::isNotBlank).collect(Collectors.toSet());
+            Set<String> poolCodes = details.stream().map(OrderDetail::getOriginPoolCode).filter(StringUtils::isNotBlank).collect(Collectors.toSet());
             Search search = Search.createSearch();
             search.addFilter(new SearchFilter(OrderDetail.FIELD_ORDER_ID, param.getOrderId()));
-            search.addFilter(new SearchFilter(OrderDetail.FIELD_ORIGIN_POOL_CODE, code, SearchFilter.Operator.IN));
+            search.addFilter(new SearchFilter(OrderDetail.FIELD_ORIGIN_POOL_CODE, poolCodes, SearchFilter.Operator.IN));
             List<OrderDetail> allChildren = orderDetailService.findByFilters(search);
             Map<String, List<OrderDetailDto>> group;
             if (CollectionUtils.isNotEmpty(allChildren)) {
                 group = allChildren.stream().map(d -> modelMapper.map(d, OrderDetailDto.class))
-                        .collect(Collectors.groupingBy(OrderDetailDto::getId));
+                        .collect(Collectors.groupingBy(OrderDetailDto::getOriginPoolCode));
             } else {
                 group = new HashMap<>();
             }
@@ -385,9 +385,10 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             List<OrderDetailDto> dtoList = new ArrayList<>(details.size());
             for (OrderDetail detail : details) {
                 dto = modelMapper.map(detail, OrderDetailDto.class);
-                dto.setChildren(group.get(detail.getId()));
-                if (StringUtils.equals(Constants.NONE, detail.getOriginPoolCode())) {
+                if (StringUtils.isBlank(detail.getOriginPoolCode()) || StringUtils.equals(Constants.NONE, detail.getOriginPoolCode())) {
                     dto.setOriginPoolCode(null);
+                } else {
+                    dto.setChildren(group.get(detail.getOriginPoolCode()));
                 }
                 dtoList.add(dto);
             }

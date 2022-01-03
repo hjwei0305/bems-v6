@@ -480,6 +480,8 @@ public class OrderCommonService {
         String orderId = order.getId();
         int detailSize = details.size();
 
+        StopWatch stopWatch = new StopWatch(order.getCode());
+        stopWatch.start("预算确认");
         details.parallelStream().forEach(detail -> {
             OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_confirm"), orderId, detailSize);
             ResultData<Void> result = ResultData.fail("Unknown error");
@@ -497,11 +499,13 @@ public class OrderCommonService {
                 this.pushProcessState(successes, failures, statistics, result);
             }
         });
+        stopWatch.stop();
 
         if (failures.intValue() > 0) {
             // 若处理完成,则更新订单状态为:已生效
             this.updateOrderStatus(orderId, OrderStatus.DRAFT, Boolean.FALSE);
         } else {
+            stopWatch.start("生效预算");
             successes.reset();
             failures.reset();
             details.parallelStream().forEach(detail -> {
@@ -511,6 +515,10 @@ public class OrderCommonService {
             });
             // 若处理完成,则更新订单状态为:已生效
             this.updateOrderStatus(orderId, OrderStatus.COMPLETED, Boolean.FALSE);
+            stopWatch.stop();
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("生效预算总记录数:{},总耗时: {}", detailSize, stopWatch.prettyPrint());
         }
     }
 
