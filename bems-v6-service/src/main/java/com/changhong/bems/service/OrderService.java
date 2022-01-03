@@ -9,6 +9,7 @@ import com.changhong.bems.entity.vo.TemplateHeadVo;
 import com.changhong.bems.service.client.OrganizationManager;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.context.SessionUser;
+import com.changhong.sei.core.context.mock.MockUser;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
@@ -20,6 +21,7 @@ import com.changhong.sei.edm.sdk.DocumentManager;
 import com.changhong.sei.exception.ServiceException;
 import com.changhong.sei.serial.sdk.SerialService;
 import com.changhong.sei.util.EnumUtils;
+import com.changhong.sei.util.thread.ThreadLocalHolder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.modelmapper.ModelMapper;
@@ -29,12 +31,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.util.StopWatch;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.LongAdder;
 
 /**
  * 预算申请单(Order)业务逻辑实现类
@@ -63,6 +65,8 @@ public class OrderService extends BaseEntityService<Order> {
     private RedisTemplate<String, Object> redisTemplate;
     @Autowired
     private DocumentManager documentManager;
+    @Autowired
+    private MockUser mockUser;
 
     @Override
     protected BaseEntityDao<Order> getDao() {
@@ -425,25 +429,38 @@ public class OrderService extends BaseEntityService<Order> {
                         return ResultData.fail(ContextUtil.getMessage("order_00006", adjustBalance));
                     }
                 }
-                ResultData<Void> result;
-                for (OrderDetail detail : details) {
-                    // 预算预占用
-                    result = orderCommonService.confirmUseBudget(order, detail);
-                    if (result.failed()) {
-                        // 回滚事务
-                        TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                        return result;
+
+                SessionUser sessionUser = ContextUtil.getSessionUser();
+                LongAdder failures = new LongAdder();
+                details.parallelStream().forEach(detail -> {
+                    try {
+                        // 本地线程全局变量存储-开始
+                        ThreadLocalHolder.begin();
+                        mockUser.mockCurrentUser(sessionUser);
+
+                        ResultData<Void> result = orderCommonService.confirmUseBudget(order, detail);
+                        if (result.failed()) {
+                            failures.increment();
+                        }
+                        orderDetailService.save(detail);
+                    } catch (Exception e) {
+                        LOG.error(e.getMessage(), e);
+                        failures.increment();
+                    } finally {
+                        // 本地线程全局变量存储-释放
+                        ThreadLocalHolder.end();
                     }
+                });
+                if (failures.intValue() > 0) {
+                    return ResultData.fail(ContextUtil.getMessage("order_detail_00008"));
+                } else {
+                    // 更新状态为确认中
+                    order.setStatus(orderStatus);
+                    // 更新订单处理状态
+                    order.setProcessing(Boolean.FALSE);
+                    this.save(order);
+                    return ResultData.success();
                 }
-                //orderDetailService.save(details);
-
-                // 更新状态为确认中
-                order.setStatus(orderStatus);
-                // 更新订单处理状态
-                order.setProcessing(Boolean.TRUE);
-                this.save(order);
-
-                return ResultData.success();
             } else {
                 return ResultData.fail(resultData.getMessage());
             }
