@@ -430,27 +430,32 @@ public class OrderService extends BaseEntityService<Order> {
                     }
                 }
 
-                SessionUser sessionUser = ContextUtil.getSessionUser();
+                LongAdder successes = new LongAdder();
                 LongAdder failures = new LongAdder();
-                details.parallelStream().forEach(detail -> {
-                    try {
-                        // 本地线程全局变量存储-开始
-                        ThreadLocalHolder.begin();
-                        mockUser.mockCurrentUser(sessionUser);
+                SessionUser sessionUser = ContextUtil.getSessionUser();
+                if (OrderCategory.SPLIT.equals(order.getOrderCategory())) {
+                    orderCommonService.confirmSplitUseBudget(order, details, sessionUser, successes, failures);
+                } else {
+                    details.parallelStream().forEach(detail -> {
+                        try {
+                            // 本地线程全局变量存储-开始
+                            ThreadLocalHolder.begin();
+                            mockUser.mockCurrentUser(sessionUser);
 
-                        ResultData<Void> result = orderCommonService.confirmUseBudget(order, detail);
-                        if (result.failed()) {
+                            ResultData<Void> result = orderCommonService.confirmUseBudget(order, detail);
+                            if (result.failed()) {
+                                failures.increment();
+                            }
+                        } catch (Exception e) {
+                            LOG.error(e.getMessage(), e);
                             failures.increment();
+                        } finally {
+                            // 本地线程全局变量存储-释放
+                            ThreadLocalHolder.end();
                         }
-                        orderDetailService.save(detail);
-                    } catch (Exception e) {
-                        LOG.error(e.getMessage(), e);
-                        failures.increment();
-                    } finally {
-                        // 本地线程全局变量存储-释放
-                        ThreadLocalHolder.end();
-                    }
-                });
+                    });
+                }
+
                 if (failures.intValue() > 0) {
                     return ResultData.fail(ContextUtil.getMessage("order_detail_00008"));
                 } else {

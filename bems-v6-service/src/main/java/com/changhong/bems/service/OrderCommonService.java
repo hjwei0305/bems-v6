@@ -28,6 +28,7 @@ import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StopWatch;
 
@@ -448,23 +449,27 @@ public class OrderCommonService {
         LongAdder failures = new LongAdder();
         String orderId = order.getId();
         int detailSize = details.size();
-        details.parallelStream().forEach(detail -> {
-            OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_cancel"), orderId, detailSize);
-            ResultData<Void> result = ResultData.fail("Unknown error");
-            try {
-                // 本地线程全局变量存储-开始
-                ThreadLocalHolder.begin();
-                mockUser.mockCurrentUser(sessionUser);
+        if (OrderCategory.SPLIT == order.getOrderCategory()) {
+            this.cancelSplitConfirmUseBudget(order, details, sessionUser, successes, failures);
+        } else {
+            details.parallelStream().forEach(detail -> {
+                OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_cancel"), orderId, detailSize);
+                ResultData<Void> result = ResultData.fail("Unknown error");
+                try {
+                    // 本地线程全局变量存储-开始
+                    ThreadLocalHolder.begin();
+                    mockUser.mockCurrentUser(sessionUser);
 
-                result = this.cancelConfirmUseBudget(order, detail);
-            } catch (Exception e) {
-                result = ResultData.fail(e.getMessage());
-            } finally {
-                // 本地线程全局变量存储-释放
-                ThreadLocalHolder.end();
-                this.pushProcessState(successes, failures, statistics, result);
-            }
-        });
+                    result = this.cancelConfirmUseBudget(order, detail);
+                } catch (Exception e) {
+                    result = ResultData.fail(e.getMessage());
+                } finally {
+                    // 本地线程全局变量存储-释放
+                    ThreadLocalHolder.end();
+                    this.pushProcessState(successes, failures, statistics, result);
+                }
+            });
+        }
         // 若处理完成,则更新订单状态为:草稿
         this.updateOrderStatus(orderId, OrderStatus.DRAFT, Boolean.FALSE);
     }
@@ -473,49 +478,70 @@ public class OrderCommonService {
      * 异步生效预算
      */
     @Async
-    @Transactional(rollbackFor = Exception.class)
+    // @Transactional(rollbackFor = Exception.class)
     public void asyncDirectlyEffective(Order order, List<OrderDetail> details, SessionUser sessionUser) {
         LongAdder successes = new LongAdder();
         LongAdder failures = new LongAdder();
         String orderId = order.getId();
         int detailSize = details.size();
 
+        OrderCommonService service = ContextUtil.getBean(OrderCommonService.class);
+
         StopWatch stopWatch = new StopWatch(order.getCode());
         stopWatch.start("预算确认");
-        details.parallelStream().forEach(detail -> {
-            OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_confirm"), orderId, detailSize);
-            ResultData<Void> result = ResultData.fail("Unknown error");
-            try {
-                // 本地线程全局变量存储-开始
-                ThreadLocalHolder.begin();
-                mockUser.mockCurrentUser(sessionUser);
-
-                result = this.confirmUseBudget(order, detail);
-            } catch (Exception e) {
-                result = ResultData.fail(e.getMessage());
-            } finally {
-                // 本地线程全局变量存储-释放
-                ThreadLocalHolder.end();
-                this.pushProcessState(successes, failures, statistics, result);
-            }
-        });
-        stopWatch.stop();
-
-        if (failures.intValue() > 0) {
-            // 若处理完成,则更新订单状态为:已生效
-            this.updateOrderStatus(orderId, OrderStatus.DRAFT, Boolean.FALSE);
-        } else {
-            stopWatch.start("生效预算");
-            successes.reset();
-            failures.reset();
-            details.parallelStream().forEach(detail -> {
-                ResultData<Void> result = this.effectiveUseBudget(order, detail, sessionUser);
-                OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_effective"), orderId, detailSize);
-                this.pushProcessState(successes, failures, statistics, result);
-            });
-            // 若处理完成,则更新订单状态为:已生效
-            this.updateOrderStatus(orderId, OrderStatus.COMPLETED, Boolean.FALSE);
+        if (OrderCategory.SPLIT == order.getOrderCategory()) {
+            // 分解确认
+            service.confirmSplitUseBudget(order, details, sessionUser, successes, failures);
             stopWatch.stop();
+
+            if (failures.intValue() > 0) {
+                // 若处理完成,则更新订单状态为:已生效
+                service.updateOrderStatus(orderId, OrderStatus.DRAFT, Boolean.FALSE);
+            } else {
+                stopWatch.start("生效预算");
+                successes.reset();
+                failures.reset();
+                service.effectiveSplitUseBudget(order, details, sessionUser, successes, failures);
+                // 若处理完成,则更新订单状态为:已生效
+                service.updateOrderStatus(orderId, OrderStatus.COMPLETED, Boolean.FALSE);
+                stopWatch.stop();
+            }
+        } else {
+            details.parallelStream().forEach(detail -> {
+                OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_confirm"), orderId, detailSize);
+                ResultData<Void> result = ResultData.fail("Unknown error");
+                try {
+                    // 本地线程全局变量存储-开始
+                    ThreadLocalHolder.begin();
+                    mockUser.mockCurrentUser(sessionUser);
+
+                    result = service.confirmUseBudget(order, detail);
+                } catch (Exception e) {
+                    result = ResultData.fail(e.getMessage());
+                } finally {
+                    // 本地线程全局变量存储-释放
+                    ThreadLocalHolder.end();
+                    this.pushProcessState(successes, failures, statistics, result);
+                }
+            });
+            stopWatch.stop();
+
+            if (failures.intValue() > 0) {
+                // 若处理完成,则更新订单状态为:已生效
+                service.updateOrderStatus(orderId, OrderStatus.DRAFT, Boolean.FALSE);
+            } else {
+                stopWatch.start("生效预算");
+                successes.reset();
+                failures.reset();
+                details.parallelStream().forEach(detail -> {
+                    ResultData<Void> result = service.effectiveUseBudget(order, detail, sessionUser);
+                    OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_effective"), orderId, detailSize);
+                    this.pushProcessState(successes, failures, statistics, result);
+                });
+                // 若处理完成,则更新订单状态为:已生效
+                service.updateOrderStatus(orderId, OrderStatus.COMPLETED, Boolean.FALSE);
+                stopWatch.stop();
+            }
         }
         if (LOG.isDebugEnabled()) {
             LOG.debug("生效预算总记录数:{},总耗时: {}", detailSize, stopWatch.prettyPrint());
@@ -562,6 +588,7 @@ public class OrderCommonService {
      * @param order  预算申请单
      * @param detail 预算申请单行项
      */
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
     public ResultData<Void> confirmUseBudget(Order order, OrderDetail detail) {
         String poolCode;
         Pool pool = null;
@@ -677,6 +704,7 @@ public class OrderCommonService {
                 // 预占用成功
                 detail.setState((short) 0);
             }
+            orderDetailDao.save(detail);
         } catch (Exception e) {
             LOG.error("预算确认异常", e);
             detail.setHasErr(Boolean.TRUE);
@@ -687,11 +715,52 @@ public class OrderCommonService {
     }
 
     /**
+     * 确认预算申请单
+     * 规则:预算池进行预占用
+     *
+     * @param order   预算申请单
+     * @param details 预算申请单行项
+     */
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
+    public void confirmSplitUseBudget(Order order, List<OrderDetail> details, SessionUser sessionUser,
+                                      LongAdder successes, LongAdder failures) {
+        if (OrderCategory.SPLIT == order.getOrderCategory()) {
+            String orderId = order.getId();
+            int detailSize = details.size();
+            OrderCommonService service = ContextUtil.getBean(OrderCommonService.class);
+
+            Map<String, List<OrderDetail>> groupMap = details.stream().collect(Collectors.groupingBy(OrderDetail::getOriginPoolCode));
+            Collection<List<OrderDetail>> groupList = groupMap.values();
+            groupList.parallelStream().forEach(detailList -> {
+                OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_confirm"), orderId, detailSize);
+                ResultData<Void> result = ResultData.fail("Unknown error");
+                try {
+                    // 本地线程全局变量存储-开始
+                    ThreadLocalHolder.begin();
+                    mockUser.mockCurrentUser(sessionUser);
+
+                    for (OrderDetail detail : detailList) {
+                        result = service.confirmUseBudget(order, detail);
+                        this.pushProcessState(successes, failures, statistics, result);
+                    }
+                } catch (Exception e) {
+                    result = ResultData.fail(e.getMessage());
+                } finally {
+                    // 本地线程全局变量存储-释放
+                    ThreadLocalHolder.end();
+                    this.pushProcessState(successes, failures, statistics, result);
+                }
+            });
+        }
+    }
+
+    /**
      * 取消已确认的预算申请单
      * 规则:释放预占用
      *
      * @param detail 预算申请单行项
      */
+    @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> cancelConfirmUseBudget(Order order, OrderDetail detail) {
         if (detail.getState() < 0) {
             // 未成功预占用,不用做释放
@@ -806,6 +875,39 @@ public class OrderCommonService {
         return resultData;
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public void cancelSplitConfirmUseBudget(Order order, List<OrderDetail> details, SessionUser sessionUser, LongAdder successes, LongAdder failures) {
+        if (OrderCategory.SPLIT == order.getOrderCategory()) {
+            String orderId = order.getId();
+            int detailSize = details.size();
+            OrderCommonService service = ContextUtil.getBean(OrderCommonService.class);
+
+            Map<String, List<OrderDetail>> groupMap = details.stream().collect(Collectors.groupingBy(OrderDetail::getOriginPoolCode));
+            Collection<List<OrderDetail>> groupList = groupMap.values();
+            groupList.parallelStream().forEach(detailList -> {
+                OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_cancel"), orderId, detailSize);
+                ResultData<Void> result = ResultData.fail("Unknown error");
+                try {
+                    // 本地线程全局变量存储-开始
+                    ThreadLocalHolder.begin();
+                    mockUser.mockCurrentUser(sessionUser);
+
+                    for (OrderDetail detail : detailList) {
+                        result = service.cancelConfirmUseBudget(order, detail);
+
+                        this.pushProcessState(successes, failures, statistics, result);
+                    }
+                } catch (Exception e) {
+                    result = ResultData.fail(e.getMessage());
+                } finally {
+                    // 本地线程全局变量存储-释放
+                    ThreadLocalHolder.end();
+                    this.pushProcessState(successes, failures, statistics, result);
+                }
+            });
+        }
+    }
+
     /**
      * 流程审批完成生效预算处理
      * 规则:释放预占用,更新正式占用或创建预算池
@@ -813,7 +915,8 @@ public class OrderCommonService {
      * @param detail 预算申请单行项
      * @return 返回处理结果
      */
-    private ResultData<Void> effectiveUseBudget(Order order, OrderDetail detail, SessionUser sessionUser) {
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
+    public ResultData<Void> effectiveUseBudget(Order order, OrderDetail detail, SessionUser sessionUser) {
         if (detail.getState() < 0) {
             // 订单行项未被确认,不能生效
             return ResultData.fail(ContextUtil.getMessage("order_detail_00016"));
@@ -980,6 +1083,26 @@ public class OrderCommonService {
         return resultData;
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public void effectiveSplitUseBudget(Order order, List<OrderDetail> details, SessionUser sessionUser, LongAdder successes, LongAdder failures) {
+        if (OrderCategory.SPLIT == order.getOrderCategory()) {
+            String orderId = order.getId();
+            int detailSize = details.size();
+            OrderCommonService service = ContextUtil.getBean(OrderCommonService.class);
+
+            Map<String, List<OrderDetail>> groupMap = details.stream().collect(Collectors.groupingBy(OrderDetail::getOriginPoolCode));
+            Collection<List<OrderDetail>> groupList = groupMap.values();
+            groupList.parallelStream().forEach(detailList -> {
+                OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_effective"), orderId, detailSize);
+                ResultData<Void> result;
+                for (OrderDetail detail : detailList) {
+                    result = service.effectiveUseBudget(order, detail, sessionUser);
+                    this.pushProcessState(successes, failures, statistics, result);
+                }
+            });
+        }
+    }
+
     /**
      * 设置行项数据的预算池及可用额度
      *
@@ -1039,12 +1162,28 @@ public class OrderCommonService {
                 // 获取上级期间源预算池
                 detail.setOriginPoolCode(parentPeriodPool.getCode());
                 detail.setOriginPoolAmount(parentPeriodPool.getBalance());
+                // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
+                if (BigDecimal.ZERO.compareTo(detail.getOriginPoolAmount().subtract(detail.getAmount())) > 0) {
+                    // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
+                    return ResultData.fail(ContextUtil.getMessage("pool_00002", detail.getOriginPoolCode(), detail.getOriginPoolAmount(), detail.getAmount()));
+                }
 
                 resultData = poolService.getPool(subjectId, detail.getAttributeCode());
                 if (resultData.successful()) {
                     Pool pool = resultData.getData();
                     detail.setPoolCode(pool.getCode());
                     detail.setPoolAmount(pool.getBalance());
+                    // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
+                    if (BigDecimal.ZERO.compareTo(detail.getPoolAmount().add(detail.getAmount())) > 0) {
+                        // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
+                        return ResultData.fail(ContextUtil.getMessage("pool_00002", detail.getPoolCode(), detail.getPoolAmount(), detail.getAmount()));
+                    }
+                } else {
+                    // 当预算池不存在时,发生金额不能小于0(不能将预算池值为负数)
+                    if (BigDecimal.ZERO.compareTo(detail.getAmount()) > 0) {
+                        // 预算池金额不能值为负数[{0}]
+                        return ResultData.fail(ContextUtil.getMessage("pool_00004", detail.getAmount()));
+                    }
                 }
                 break;
             default:
