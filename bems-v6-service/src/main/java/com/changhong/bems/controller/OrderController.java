@@ -23,6 +23,7 @@ import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.util.JsonUtils;
 import com.changhong.sei.util.EnumUtils;
+import com.google.common.collect.Sets;
 import io.swagger.annotations.Api;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -373,6 +374,15 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             Search search = Search.createSearch();
             search.addFilter(new SearchFilter(OrderDetail.FIELD_ORDER_ID, param.getOrderId()));
             search.addFilter(new SearchFilter(OrderDetail.FIELD_ORIGIN_POOL_CODE, poolCodes, SearchFilter.Operator.IN));
+            if (CollectionUtils.isNotEmpty(param.getFilters())) {
+                for (SearchFilter filter : param.getFilters()) {
+                    search.addFilter(filter);
+                }
+            }
+            if (StringUtils.isNotBlank(param.getQuickSearchValue())) {
+                search.setQuickSearchValue(param.getQuickSearchValue());
+                search.setQuickSearchProperties(Sets.newHashSet("item", "itemName", "periodName", "projectName", "orgName", "costCenterName", "udf1Name", "udf2Name", "udf3Name", "udf4Name", "udf5Name"));
+            }
             List<OrderDetail> allChildren = orderDetailService.findByFilters(search);
             Map<String, List<OrderDetailDto>> group;
             if (CollectionUtils.isNotEmpty(allChildren)) {

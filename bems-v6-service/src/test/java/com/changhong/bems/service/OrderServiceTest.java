@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 实现功能：
@@ -113,12 +114,16 @@ class OrderServiceTest extends BaseUnit5Test {
     @Test
     void directlyEffective() {
         StopWatch stopWatch = StopWatch.createStarted();
-
-        String orderId = "16837168-CD9B-11EB-A68D-0242C0A84429";
+        String orderId = "20DD708D-6D10-11EC-8A1D-0242C0A84429";
         ResultData<Order> resultData = service.directlyEffective(orderId);
         stopWatch.stop();
-        System.out.println("耗时: " + stopWatch.getTime());
+        System.out.println("生效耗时: " + stopWatch.getTime());
         System.out.println(resultData);
+        try {
+            TimeUnit.MINUTES.sleep(20);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test

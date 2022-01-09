@@ -53,7 +53,7 @@ public class OrderDetailDaoImpl extends BaseEntityDaoImpl<OrderDetail> implement
         String quickSearchValue = param.getQuickSearchValue();
         if (StringUtils.isNotBlank(quickSearchValue)) {
             fromAndWhere.append("and (d.item like :value or d.itemName like :value or d.periodName like :value ")
-                    .append(" or d.projectName like :value or d.orgName like :value ")
+                    .append(" or d.projectName like :value or d.orgName like :value or d.costCenterName like :value ")
                     .append(" or d.udf1Name like :value or d.udf2Name like :value or d.udf3Name like :value or d.udf4Name like :value or d.udf5Name like :value) ");
             sqlParams.put("value", "%" + quickSearchValue + "%");
         }
