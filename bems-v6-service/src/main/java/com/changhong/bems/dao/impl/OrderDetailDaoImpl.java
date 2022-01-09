@@ -43,9 +43,8 @@ public class OrderDetailDaoImpl extends BaseEntityDaoImpl<OrderDetail> implement
         // 订单id
         String orderId = param.getOrderId();
         if (StringUtils.isNotEmpty(orderId)) {
-            fromAndWhere.append(" od.orderId = :orderId1 and od.id in (select max(d.id) from OrderDetail d where d.orderId = :orderId2 ");
-            sqlParams.put("orderId1", orderId);
-            sqlParams.put("orderId2", orderId);
+            fromAndWhere.append(" od.orderId = :orderId and od.id in (select max(d.id) from OrderDetail d where d.orderId = :orderId ");
+            sqlParams.put("orderId", orderId);
         } else {
             return new PageResult<>();
         }
@@ -57,24 +56,34 @@ public class OrderDetailDaoImpl extends BaseEntityDaoImpl<OrderDetail> implement
                     .append(" or d.udf1Name like :value or d.udf2Name like :value or d.udf3Name like :value or d.udf4Name like :value or d.udf5Name like :value) ");
             sqlParams.put("value", "%" + quickSearchValue + "%");
         }
-        // fromAndWhere.append(" and d.originPoolCode is not null ");
-        fromAndWhere.append(" group by d.originPoolCode) ");
         List<SearchFilter> filters = param.getFilters();
         if (CollectionUtils.isNotEmpty(filters)) {
             for (SearchFilter filter : filters) {
                 // 默认只支持错误状态查询
                 if ("hasErr".equals(filter.getFieldName())) {
+                    fromAndWhere.append(" and d.hasErr = ").append(filter.getValue()).append(" ");
+                    break;
+                }
+            }
+        }
+        // fromAndWhere.append(" and d.originPoolCode is not null ");
+        fromAndWhere.append(" group by d.originPoolCode) ");
+        if (CollectionUtils.isNotEmpty(filters)) {
+            for (SearchFilter filter : filters) {
+                // 默认只支持错误状态查询
+                if ("hasErr".equals(filter.getFieldName())) {
                     fromAndWhere.append(" and od.hasErr = ").append(filter.getValue()).append(" ");
+                    break;
                 }
             }
         }
         // 默认排序
         fromAndWhere.append(" order by od.originPoolCode");
         if (CollectionUtils.isNotEmpty(param.getSortOrders())) {
-            List<SearchOrder> searchOrders = param.getSortOrders();
-            for (SearchOrder searchOrder : searchOrders) {
-                fromAndWhere.append(",").append(searchOrder.getProperty()).append(" ").append(searchOrder.getDirection());
-            }
+            // List<SearchOrder> searchOrders = param.getSortOrders();
+            // for (SearchOrder searchOrder : searchOrders) {
+            //     fromAndWhere.append(",").append(searchOrder.getProperty()).append(" ").append(searchOrder.getDirection());
+            // }
             param.setSortOrders(null);
         }
         QuerySql querySql = new QuerySql(select, fromAndWhere.toString());
