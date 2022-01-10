@@ -4,6 +4,7 @@ import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.OrderDao;
 import com.changhong.bems.dao.OrderDetailDao;
 import com.changhong.bems.dto.OrderStatistics;
+import com.changhong.bems.dto.OrderStatus;
 import com.changhong.bems.dto.SplitDetailQuickQueryParam;
 import com.changhong.bems.entity.Order;
 import com.changhong.bems.entity.OrderDetail;
@@ -187,8 +188,19 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         if (resultData.successful()) {
             detail.setHasErr(Boolean.FALSE);
             detail.setErrMsg("");
-            // 只对正常数据做保存
-            this.save(detail);
+            if (OrderStatus.APPROVING == order.getStatus()) {
+                resultData = orderCommonService.confirmUseBudget(order, detail);
+                if (resultData.failed()) {
+                    detail.setAmount(oldAmount);
+                    detail.setHasErr(Boolean.TRUE);
+                    detail.setErrMsg(resultData.getMessage());
+                    // 回滚事务
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                }
+            } else {
+                // 只对正常数据做保存
+                this.save(detail);
+            }
         } else {
             detail.setAmount(oldAmount);
             detail.setHasErr(Boolean.TRUE);

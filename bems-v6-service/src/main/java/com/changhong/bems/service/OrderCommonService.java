@@ -14,6 +14,7 @@ import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.context.SessionUser;
 import com.changhong.sei.core.context.mock.MockUser;
 import com.changhong.sei.core.dto.ResultData;
+import com.changhong.sei.core.log.LogUtil;
 import com.changhong.sei.core.util.JsonUtils;
 import com.changhong.sei.exception.ServiceException;
 import com.changhong.sei.util.EnumUtils;
@@ -475,7 +476,7 @@ public class OrderCommonService {
     }
 
     /**
-     * 异步生效预算
+     * 异步直接生效预算
      */
     @Async
     // @Transactional(rollbackFor = Exception.class)
@@ -703,6 +704,8 @@ public class OrderCommonService {
             } else {
                 // 预占用成功
                 detail.setState((short) 0);
+                detail.setHasErr(Boolean.FALSE);
+                detail.setErrMsg("");
             }
             orderDetailDao.save(detail);
         } catch (Exception e) {
@@ -717,6 +720,7 @@ public class OrderCommonService {
     /**
      * 确认预算申请单
      * 规则:预算池进行预占用
+     * 为解决分解性能和并行事务问题:按源预算池分组,并发分组处理,组内串行执行
      *
      * @param order   预算申请单
      * @param details 预算申请单行项
@@ -729,7 +733,11 @@ public class OrderCommonService {
             int detailSize = details.size();
             OrderCommonService service = ContextUtil.getBean(OrderCommonService.class);
 
-            Map<String, List<OrderDetail>> groupMap = details.stream().collect(Collectors.groupingBy(OrderDetail::getOriginPoolCode));
+            // 按分解源预算池分组
+            Map<String, List<OrderDetail>> groupMap = details.stream()
+                    // 过滤无效的源预算池
+                    .filter(od -> StringUtils.isBlank(od.getOriginPoolCode()) || StringUtils.equals(Constants.NONE, od.getOriginPoolCode()))
+                    .collect(Collectors.groupingBy(OrderDetail::getOriginPoolCode));
             Collection<List<OrderDetail>> groupList = groupMap.values();
             groupList.parallelStream().forEach(detailList -> {
                 OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_confirm"), orderId, detailSize);
@@ -739,9 +747,70 @@ public class OrderCommonService {
                     ThreadLocalHolder.begin();
                     mockUser.mockCurrentUser(sessionUser);
 
-                    for (OrderDetail detail : detailList) {
-                        result = service.confirmUseBudget(order, detail);
-                        this.pushProcessState(successes, failures, statistics, result);
+                    // 预算分解
+                    ResultData<Void> resultData = ResultData.success();
+                    // 分解(年度到月度,总额不变.允许目标预算池不存在,源预算池必须存在)
+                    // 源预算池代码
+                    String originPoolCode = null;
+                    BigDecimal sumAmount = BigDecimal.ZERO;
+                    for (OrderDetail orderDetail : detailList) {
+                        originPoolCode = orderDetail.getOriginPoolCode();
+                        sumAmount = sumAmount.add(orderDetail.getAmount());
+                    }
+                    // 当前预算池余额. 检查预算池可用余额是否满足本次发生金额(主要存在注入负数调减的金额)
+                    BigDecimal originBalance = poolService.getPoolBalanceByCode(originPoolCode);
+                    // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
+                    if (BigDecimal.ZERO.compareTo(originBalance.subtract(sumAmount)) > 0) {
+                        for (OrderDetail orderDetail : detailList) {
+                            // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
+                            orderDetail.setErrMsg(ContextUtil.getMessage("pool_00002", originPoolCode, originBalance, orderDetail.getAmount()));
+                            orderDetail.setState((short) -1);
+                            orderDetail.setHasErr(Boolean.TRUE);
+                        }
+                        orderDetailDao.save(detailList);
+                    } else {
+                        // 订单状态为流程中,且金额大于等于0的金额,不影响预算池余额;而小于0的金额需要进行预占用处理
+                        if (BigDecimal.ZERO.compareTo(sumAmount) < 0) {
+                            // 源预算池
+                            Pool pool = poolService.getPool(originPoolCode);
+                            if (Objects.isNull(pool)) {
+                                LogUtil.error("源预算池不存在: {}", originPoolCode);
+                                // 预算池不存在
+                                resultData = ResultData.fail(ContextUtil.getMessage("pool_00005"));
+                            } else {
+                                String remark = order.getRemark();
+                                if (StringUtils.isBlank(remark)) {
+                                    remark = eventService.getEventName(Constants.EVENT_BUDGET_SPLIT);
+                                }
+                                // 记录预算池执行日志
+                                poolService.poolAmountLog(pool, order.getCode(), order.getCode(), remark,
+                                        sumAmount, Constants.EVENT_BUDGET_SPLIT, Boolean.TRUE, OperationType.USE);
+                            }
+
+                            if (resultData.successful()) {
+                                for (OrderDetail orderDetail : detailList) {
+                                    // 标记处理完成
+                                    orderDetail.setProcessing(Boolean.FALSE);
+                                    if (resultData.failed()) {
+                                        orderDetail.setState((short) -1);
+                                        orderDetail.setHasErr(Boolean.TRUE);
+                                        orderDetail.setErrMsg(resultData.getMessage());
+                                    } else {
+                                        // 预占用成功
+                                        orderDetail.setState((short) 0);
+                                        orderDetail.setHasErr(Boolean.FALSE);
+                                        orderDetail.setErrMsg("");
+                                    }
+                                }
+                                orderDetailDao.save(detailList);
+                            }
+                        } else {
+                            // 同一个源预算池的分解,串行执行,避免并发事务问题
+                            for (OrderDetail detail : detailList) {
+                                result = service.confirmUseBudget(order, detail);
+                                this.pushProcessState(successes, failures, statistics, result);
+                            }
+                        }
                     }
                 } catch (Exception e) {
                     result = ResultData.fail(e.getMessage());
@@ -1213,28 +1282,28 @@ public class OrderCommonService {
         // 预算主体id
         String subjectId = order.getSubjectId();
         if (OrderCategory.INJECTION == order.getOrderCategory()) {
-            // 注入下达(对总额的增减,允许预算池不存在)
-            String poolCode = detail.getPoolCode();
-            if (StringUtils.isBlank(poolCode)) {
-                ResultData<Pool> result = poolService.getPool(subjectId, detail.getAttributeCode());
-                if (result.successful()) {
-                    // 预算池编码
-                    poolCode = result.getData().getCode();
-                    detail.setPoolCode(poolCode);
+            // 发生金额小于0,需检查控制预算池不能为负数
+            if (BigDecimal.ZERO.compareTo(detail.getAmount()) > 0) {
+                // 注入下达(对总额的增减,允许预算池不存在)
+                String poolCode = detail.getPoolCode();
+                if (StringUtils.isBlank(poolCode)) {
+                    ResultData<Pool> result = poolService.getPool(subjectId, detail.getAttributeCode());
+                    if (result.successful()) {
+                        // 预算池编码
+                        poolCode = result.getData().getCode();
+                        detail.setPoolCode(poolCode);
+                    }
                 }
-            }
-            if (StringUtils.isNotBlank(poolCode)) {
-                // 当前预算池余额. 检查预算池可用余额是否满足本次发生金额(主要存在注入负数调减的金额)
-                BigDecimal balance = poolService.getPoolBalanceByCode(poolCode);
-                // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
-                if (BigDecimal.ZERO.compareTo(balance.add(detail.getAmount())) > 0) {
-                    // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
-                    return ResultData.fail(ContextUtil.getMessage("pool_00002", poolCode, balance, detail.getAmount()));
-                }
-                detail.setPoolAmount(balance);
-            } else {
-                // 当预算池不存在时,发生金额不能小于0(不能将预算池值为负数)
-                if (BigDecimal.ZERO.compareTo(detail.getAmount()) > 0) {
+                if (StringUtils.isNotBlank(poolCode)) {
+                    // 当前预算池余额. 检查预算池可用余额是否满足本次发生金额(主要存在注入负数调减的金额)
+                    BigDecimal balance = poolService.getPoolBalanceByCode(poolCode);
+                    // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
+                    if (BigDecimal.ZERO.compareTo(balance.add(detail.getAmount())) > 0) {
+                        // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
+                        return ResultData.fail(ContextUtil.getMessage("pool_00002", poolCode, balance, detail.getAmount()));
+                    }
+                    detail.setPoolAmount(balance);
+                } else {
                     // 预算池金额不能值为负数[{0}]
                     return ResultData.fail(ContextUtil.getMessage("pool_00004", detail.getAmount()));
                 }

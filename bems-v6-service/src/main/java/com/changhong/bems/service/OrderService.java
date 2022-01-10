@@ -478,6 +478,7 @@ public class OrderService extends BaseEntityService<Order> {
     /**
      * 撤销已确认的预算申请单
      * 释放预占用
+     * 异步处理
      *
      * @param order 申请单
      * @return 返回处理结果
@@ -565,6 +566,7 @@ public class OrderService extends BaseEntityService<Order> {
 
                 SessionUser sessionUser = ContextUtil.getSessionUser();
 
+                // 异步直接生效
                 orderCommonService.asyncDirectlyEffective(order, details, sessionUser);
 
                 return ResultData.success(order);
