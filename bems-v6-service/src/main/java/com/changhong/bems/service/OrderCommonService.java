@@ -525,6 +525,7 @@ public class OrderCommonService {
                     this.pushProcessState(successes, failures, statistics, result);
                 }
             });
+            orderDetailDao.save(details);
             stopWatch.stop();
 
             if (failures.intValue() > 0) {
@@ -707,7 +708,6 @@ public class OrderCommonService {
                 detail.setHasErr(Boolean.FALSE);
                 detail.setErrMsg("");
             }
-            orderDetailDao.save(detail);
         } catch (Exception e) {
             LOG.error("预算确认异常", e);
             detail.setHasErr(Boolean.TRUE);
@@ -810,6 +810,7 @@ public class OrderCommonService {
                                 result = service.confirmUseBudget(order, detail);
                                 this.pushProcessState(successes, failures, statistics, result);
                             }
+                            orderDetailDao.save(detailList);
                         }
                     }
                 } catch (Exception e) {

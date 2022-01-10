@@ -454,6 +454,7 @@ public class OrderService extends BaseEntityService<Order> {
                             ThreadLocalHolder.end();
                         }
                     });
+                    orderDetailService.save(details);
                 }
 
                 if (failures.intValue() > 0) {

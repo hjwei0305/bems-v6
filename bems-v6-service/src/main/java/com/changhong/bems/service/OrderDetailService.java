@@ -196,6 +196,8 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                     detail.setErrMsg(resultData.getMessage());
                     // 回滚事务
                     TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                } else {
+                    this.save(detail);
                 }
             } else {
                 // 只对正常数据做保存
