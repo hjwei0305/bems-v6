@@ -736,19 +736,18 @@ public class OrderCommonService {
             // 按分解源预算池分组
             Map<String, List<OrderDetail>> groupMap = details.stream()
                     // 过滤无效的源预算池
-                    .filter(od -> StringUtils.isBlank(od.getOriginPoolCode()) || StringUtils.equals(Constants.NONE, od.getOriginPoolCode()))
+                    .filter(od -> StringUtils.isNotBlank(od.getOriginPoolCode()) && !StringUtils.equals(Constants.NONE, od.getOriginPoolCode()))
                     .collect(Collectors.groupingBy(OrderDetail::getOriginPoolCode));
             Collection<List<OrderDetail>> groupList = groupMap.values();
             groupList.parallelStream().forEach(detailList -> {
                 OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_confirm"), orderId, detailSize);
-                ResultData<Void> result = ResultData.fail("Unknown error");
+                // 预算分解
+                ResultData<Void> resultData = ResultData.success();
                 try {
                     // 本地线程全局变量存储-开始
                     ThreadLocalHolder.begin();
                     mockUser.mockCurrentUser(sessionUser);
 
-                    // 预算分解
-                    ResultData<Void> resultData = ResultData.success();
                     // 分解(年度到月度,总额不变.允许目标预算池不存在,源预算池必须存在)
                     // 源预算池代码
                     String originPoolCode = null;
@@ -807,18 +806,18 @@ public class OrderCommonService {
                         } else {
                             // 同一个源预算池的分解,串行执行,避免并发事务问题
                             for (OrderDetail detail : detailList) {
-                                result = service.confirmUseBudget(order, detail);
-                                this.pushProcessState(successes, failures, statistics, result);
+                                resultData = service.confirmUseBudget(order, detail);
+                                this.pushProcessState(successes, failures, statistics, resultData);
                             }
                             orderDetailDao.save(detailList);
                         }
                     }
                 } catch (Exception e) {
-                    result = ResultData.fail(e.getMessage());
+                    resultData = ResultData.fail(e.getMessage());
                 } finally {
                     // 本地线程全局变量存储-释放
                     ThreadLocalHolder.end();
-                    this.pushProcessState(successes, failures, statistics, result);
+                    this.pushProcessState(successes, failures, statistics, resultData);
                 }
             });
         }
