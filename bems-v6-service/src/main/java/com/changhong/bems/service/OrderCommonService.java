@@ -38,6 +38,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
@@ -508,8 +509,9 @@ public class OrderCommonService {
                 stopWatch.stop();
             }
         } else {
-            for (OrderDetail detail : details) {
-                // details.parallelStream().forEach(detail -> {
+            int cupNum = Runtime.getRuntime().availableProcessors();
+            LogUtil.bizLog("CPU num:{}", cupNum);
+            details.parallelStream().forEach(detail -> {
                 // OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_confirm"), orderId, detailSize);
                 // ResultData<Void> result = ResultData.fail("Unknown error");
                 try {
@@ -526,8 +528,7 @@ public class OrderCommonService {
                     ThreadLocalHolder.end();
                     // this.pushProcessState(successes, failures, statistics, result);
                 }
-                // });
-            }
+            });
             stopWatch.stop();
 
             if (failures.intValue() > 0) {
@@ -538,12 +539,18 @@ public class OrderCommonService {
                 stopWatch.start("生效预算");
                 successes.reset();
                 failures.reset();
-                for (OrderDetail detail : details) {
-                    // details.parallelStream().forEach(detail -> {
-                    ResultData<Void> result = service.effectiveUseBudget(order, detail, sessionUser);
-                    OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_effective"), orderId, detailSize);
-                    this.pushProcessState(successes, failures, statistics, result);
-                    // });
+                ForkJoinPool customThreadPool = new ForkJoinPool(cupNum - 2);
+                try {
+                    customThreadPool.submit(
+                            () -> details.parallelStream().forEach(detail -> {
+                                ResultData<Void> result = service.effectiveUseBudget(order, detail, sessionUser);
+                                OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_effective"), orderId, detailSize);
+                                this.pushProcessState(successes, failures, statistics, result);
+                            })).get();
+                } catch (Exception e) {
+                    LOG.error("并发异常", e);
+                } finally {
+                    customThreadPool.shutdown();
                 }
                 // 若处理完成,则更新订单状态为:已生效
                 service.updateOrderStatus(orderId, OrderStatus.COMPLETED, Boolean.FALSE);
