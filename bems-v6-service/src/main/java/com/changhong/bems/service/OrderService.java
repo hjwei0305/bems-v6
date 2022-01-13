@@ -35,6 +35,7 @@ import org.springframework.util.StopWatch;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 
@@ -434,26 +435,33 @@ public class OrderService extends BaseEntityService<Order> {
                 LongAdder failures = new LongAdder();
                 SessionUser sessionUser = ContextUtil.getSessionUser();
                 if (OrderCategory.SPLIT.equals(order.getOrderCategory())) {
-                    orderCommonService.confirmSplitUseBudget(order, details, sessionUser, successes, failures);
+                    orderCommonService.confirmSplitUseBudget(order, details, sessionUser, failures);
                 } else {
-                    details.parallelStream().forEach(detail -> {
-                        try {
-                            // 本地线程全局变量存储-开始
-                            ThreadLocalHolder.begin();
-                            mockUser.mockCurrentUser(sessionUser);
+                    ForkJoinPool customThreadPool = new ForkJoinPool(Constants.THREAD_POOL_COUNT);
+                    try {
+                        customThreadPool.submit(() -> details.parallelStream().forEach(detail -> {
+                            try {
+                                // 本地线程全局变量存储-开始
+                                ThreadLocalHolder.begin();
+                                mockUser.mockCurrentUser(sessionUser);
 
-                            ResultData<Void> result = orderCommonService.confirmUseBudget(order, detail);
-                            if (result.failed()) {
+                                ResultData<Void> result = orderCommonService.confirmUseBudget(order, detail);
+                                if (result.failed()) {
+                                    failures.increment();
+                                }
+                            } catch (Exception e) {
+                                LOG.error(e.getMessage(), e);
                                 failures.increment();
+                            } finally {
+                                // 本地线程全局变量存储-释放
+                                ThreadLocalHolder.end();
                             }
-                        } catch (Exception e) {
-                            LOG.error(e.getMessage(), e);
-                            failures.increment();
-                        } finally {
-                            // 本地线程全局变量存储-释放
-                            ThreadLocalHolder.end();
-                        }
-                    });
+                        })).get();
+                    } catch (Exception e) {
+                        LOG.error("并发处理异常", e);
+                    } finally {
+                        customThreadPool.shutdown();
+                    }
                     orderDetailService.save(details);
                 }
 

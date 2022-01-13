@@ -15,6 +15,7 @@ import java.util.Set;
 public final class Constants {
     private static final Set<KeyValueDto> DEFAULT_DIMENSION_CODES;
 
+    public static final int THREAD_POOL_COUNT = 8;
     public static final String NONE = "none";
 
     public static final String DIMENSION_CODE_PERIOD = "period";

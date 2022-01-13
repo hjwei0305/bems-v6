@@ -131,7 +131,7 @@ public class OrderCommonService {
         StopWatch stopWatch = new StopWatch("导入处理");
         stopWatch.start("导入数据预处理");
         SessionUser sessionUser = ContextUtil.getSessionUser();
-        ForkJoinPool customThreadPool = new ForkJoinPool(20);
+        ForkJoinPool customThreadPool = new ForkJoinPool(Constants.THREAD_POOL_COUNT);
         try {
             Map<String, String> periodMap = new HashMap<>(), subjectItemMap = new HashMap<>(), orgMap = new HashMap<>(),
                     projectMap = new HashMap<>(), costCenterMap = new HashMap<>(),
@@ -456,7 +456,7 @@ public class OrderCommonService {
         if (OrderCategory.SPLIT == order.getOrderCategory()) {
             this.cancelSplitConfirmUseBudget(order, details, sessionUser, successes, failures);
         } else {
-            ForkJoinPool customThreadPool = new ForkJoinPool(20);
+            ForkJoinPool customThreadPool = new ForkJoinPool(Constants.THREAD_POOL_COUNT);
             try {
                 customThreadPool.submit(() -> details.parallelStream().forEach(detail -> {
                     OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_cancel"), orderId, detailSize);
@@ -502,7 +502,7 @@ public class OrderCommonService {
         stopWatch.start("预算确认");
         if (OrderCategory.SPLIT == order.getOrderCategory()) {
             // 分解确认
-            service.confirmSplitUseBudget(order, details, sessionUser, successes, failures);
+            service.confirmSplitUseBudget(order, details, sessionUser, failures);
             stopWatch.stop();
 
             if (failures.intValue() > 0) {
@@ -548,7 +548,7 @@ public class OrderCommonService {
                 stopWatch.start("生效预算");
                 successes.reset();
                 failures.reset();
-                ForkJoinPool customThreadPool = new ForkJoinPool(20);
+                ForkJoinPool customThreadPool = new ForkJoinPool(Constants.THREAD_POOL_COUNT);
                 try {
                     customThreadPool.submit(() ->
                             details.parallelStream().forEach(detail -> {
@@ -581,7 +581,7 @@ public class OrderCommonService {
         LongAdder failures = new LongAdder();
         String orderId = order.getId();
         int detailSize = details.size();
-        ForkJoinPool customThreadPool = new ForkJoinPool(20);
+        ForkJoinPool customThreadPool = new ForkJoinPool(Constants.THREAD_POOL_COUNT);
         try {
             customThreadPool.submit(() -> details.parallelStream().forEach(detail -> {
                 ResultData<Void> result = this.effectiveUseBudget(order, detail, sessionUser);
@@ -754,11 +754,8 @@ public class OrderCommonService {
      * @param details 预算申请单行项
      */
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
-    public void confirmSplitUseBudget(Order order, List<OrderDetail> details, SessionUser sessionUser,
-                                      LongAdder successes, LongAdder failures) {
+    public void confirmSplitUseBudget(Order order, List<OrderDetail> details, SessionUser sessionUser, LongAdder failures) {
         if (OrderCategory.SPLIT == order.getOrderCategory()) {
-            String orderId = order.getId();
-            int detailSize = details.size();
             OrderCommonService service = ContextUtil.getBean(OrderCommonService.class);
 
             // 按分解源预算池分组
@@ -768,7 +765,6 @@ public class OrderCommonService {
                     .collect(Collectors.groupingBy(OrderDetail::getOriginPoolCode));
             Collection<List<OrderDetail>> groupList = groupMap.values();
             groupList.parallelStream().forEach(detailList -> {
-                OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_confirm"), orderId, detailSize);
                 // 预算分解
                 ResultData<Void> resultData = ResultData.success();
                 try {
@@ -788,6 +784,7 @@ public class OrderCommonService {
                     BigDecimal originBalance = poolService.getPoolBalanceByCode(originPoolCode);
                     // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
                     if (BigDecimal.ZERO.compareTo(originBalance.subtract(sumAmount)) > 0) {
+                        failures.increment();
                         for (OrderDetail orderDetail : detailList) {
                             // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
                             orderDetail.setErrMsg(ContextUtil.getMessage("pool_00002", originPoolCode, originBalance, orderDetail.getAmount()));
@@ -819,6 +816,7 @@ public class OrderCommonService {
                                     // 标记处理完成
                                     orderDetail.setProcessing(Boolean.FALSE);
                                     if (resultData.failed()) {
+                                        failures.increment();
                                         orderDetail.setState((short) -1);
                                         orderDetail.setHasErr(Boolean.TRUE);
                                         orderDetail.setErrMsg(resultData.getMessage());
@@ -830,22 +828,26 @@ public class OrderCommonService {
                                     }
                                 }
                                 orderDetailDao.save(detailList);
+                            } else {
+                                failures.increment();
                             }
                         } else {
                             // 同一个源预算池的分解,串行执行,避免并发事务问题
                             for (OrderDetail detail : detailList) {
                                 resultData = service.confirmUseBudget(order, detail);
-                                this.pushProcessState(successes, failures, statistics, resultData);
+                                if (resultData.failed()) {
+                                    failures.increment();
+                                }
                             }
                             orderDetailDao.save(detailList);
                         }
                     }
                 } catch (Exception e) {
-                    resultData = ResultData.fail(e.getMessage());
+                    failures.increment();
+                    LOG.error(e.getMessage());
                 } finally {
                     // 本地线程全局变量存储-释放
                     ThreadLocalHolder.end();
-                    this.pushProcessState(successes, failures, statistics, resultData);
                 }
             });
         }
@@ -1189,7 +1191,7 @@ public class OrderCommonService {
 
             Map<String, List<OrderDetail>> groupMap = details.stream().collect(Collectors.groupingBy(OrderDetail::getOriginPoolCode));
             Collection<List<OrderDetail>> groupList = groupMap.values();
-            ForkJoinPool customThreadPool = new ForkJoinPool(20);
+            ForkJoinPool customThreadPool = new ForkJoinPool(Constants.THREAD_POOL_COUNT);
             try {
                 customThreadPool.submit(() -> groupList.parallelStream().forEach(detailList -> {
                     OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_effective"), orderId, detailSize);

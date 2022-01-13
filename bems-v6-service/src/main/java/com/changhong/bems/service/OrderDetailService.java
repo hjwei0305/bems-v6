@@ -247,7 +247,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         // 预算维度组合
         final String attribute = resultData.getData();
 
-        ForkJoinPool customThreadPool = new ForkJoinPool(20);
+        ForkJoinPool customThreadPool = new ForkJoinPool(Constants.THREAD_POOL_COUNT);
         try {
             SessionUser sessionUser = ContextUtil.getSessionUser();
             LongAdder successes = new LongAdder();
