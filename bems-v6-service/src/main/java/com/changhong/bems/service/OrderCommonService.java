@@ -508,7 +508,8 @@ public class OrderCommonService {
                 stopWatch.stop();
             }
         } else {
-            details.parallelStream().forEach(detail -> {
+            for (OrderDetail detail : details) {
+                // details.parallelStream().forEach(detail -> {
                 // OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_confirm"), orderId, detailSize);
                 // ResultData<Void> result = ResultData.fail("Unknown error");
                 try {
@@ -525,7 +526,8 @@ public class OrderCommonService {
                     ThreadLocalHolder.end();
                     // this.pushProcessState(successes, failures, statistics, result);
                 }
-            });
+                // });
+            }
             stopWatch.stop();
 
             if (failures.intValue() > 0) {
@@ -536,11 +538,13 @@ public class OrderCommonService {
                 stopWatch.start("生效预算");
                 successes.reset();
                 failures.reset();
-                details.parallelStream().forEach(detail -> {
+                for (OrderDetail detail : details) {
+                    // details.parallelStream().forEach(detail -> {
                     ResultData<Void> result = service.effectiveUseBudget(order, detail, sessionUser);
                     OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_effective"), orderId, detailSize);
                     this.pushProcessState(successes, failures, statistics, result);
-                });
+                    // });
+                }
                 // 若处理完成,则更新订单状态为:已生效
                 service.updateOrderStatus(orderId, OrderStatus.COMPLETED, Boolean.FALSE);
                 stopWatch.stop();
