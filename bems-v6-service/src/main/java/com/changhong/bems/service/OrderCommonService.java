@@ -16,9 +16,9 @@ import com.changhong.sei.core.context.mock.MockUser;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.log.LogUtil;
 import com.changhong.sei.core.util.JsonUtils;
-import com.changhong.sei.exception.ServiceException;
 import com.changhong.sei.util.EnumUtils;
 import com.changhong.sei.util.thread.ThreadLocalHolder;
+import com.changhong.sei.utils.AsyncRunUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -73,6 +73,8 @@ public class OrderCommonService {
     private BudgetDimensionCustManager budgetDimensionCustManager;
     @Autowired
     private MockUser mockUser;
+    @Autowired
+    private AsyncRunUtil asyncRunUtil;
 
     @Transactional(rollbackFor = Exception.class)
     public void updateOrderStatus(String orderId, OrderStatus status, boolean processing) {
@@ -1218,16 +1220,15 @@ public class OrderCommonService {
     private ResultData<Void> createDetail(Order order, OrderDetail detail) {
         // 预算主体id
         String subjectId = order.getSubjectId();
-        ResultData<Pool> resultData;
+        /*
+            1.通过主体和维度属性hash检查是否存在预算池
+            2.若存在,则设置预算池编码和当前余额到行项上
+            3.若不存在,则跳过.在预算生效或申请完成时,创建预算池(创建时再检查是否存在预算池)
+         */
+        ResultData<Pool> resultData = poolService.getPool(subjectId, detail.getAttributeCode());
         switch (order.getOrderCategory()) {
             case INJECTION:
                 // 注入下达(对总额的增减,预算池可以不存在)
-                /*
-                    1.通过主体和维度属性hash检查是否存在预算池
-                    2.若存在,则设置预算池编码和当前余额到行项上
-                    3.若不存在,则跳过.在预算生效或申请完成时,创建预算池(创建时再检查是否存在预算池)
-                 */
-                resultData = poolService.getPool(subjectId, detail.getAttributeCode());
                 if (resultData.successful()) {
                     Pool pool = resultData.getData();
                     detail.setPoolCode(pool.getCode());
@@ -1236,12 +1237,6 @@ public class OrderCommonService {
                 break;
             case ADJUSTMENT:
                 // 调整(跨纬度调整,总额不变,且预算池必须存在)
-                /*
-                    1.通过主体和维度属性hash检查是否存在预算池
-                    2.若存在,则设置预算池编码和当前余额到行项上
-                    3.若不存在,则返回错误:预算池未找到
-                 */
-                resultData = poolService.getPool(subjectId, detail.getAttributeCode());
                 if (resultData.successful()) {
                     Pool pool = resultData.getData();
                     detail.setPoolCode(pool.getCode());
@@ -1252,6 +1247,22 @@ public class OrderCommonService {
                 break;
             case SPLIT:
                 // 分解(年度到月度,总额不变.目标预算池可以不存在,但源预算池必须存在)
+                if (resultData.successful()) {
+                    Pool pool = resultData.getData();
+                    detail.setPoolCode(pool.getCode());
+                    detail.setPoolAmount(pool.getBalance());
+                    // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
+                    if (BigDecimal.ZERO.compareTo(detail.getPoolAmount().add(detail.getAmount())) > 0) {
+                        // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
+                        return ResultData.fail(ContextUtil.getMessage("pool_00002", detail.getPoolCode(), detail.getPoolAmount(), detail.getAmount()));
+                    }
+                } else {
+                    // 当预算池不存在时,发生金额不能小于0(不能将预算池值为负数)
+                    if (BigDecimal.ZERO.compareTo(detail.getAmount()) > 0) {
+                        // 预算池金额不能值为负数[{0}]
+                        return ResultData.fail(ContextUtil.getMessage("pool_00004", detail.getAmount()));
+                    }
+                }
                 /*
                     1.通过主体和维度属性,按对应的自动溯源规则获取上级预算池;
                     2.若找到上级预算池,则更新源预算池及源预算池余额;
@@ -1273,38 +1284,22 @@ public class OrderCommonService {
                     // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
                     return ResultData.fail(ContextUtil.getMessage("pool_00002", detail.getOriginPoolCode(), detail.getOriginPoolAmount(), detail.getAmount()));
                 }
-
-                resultData = poolService.getPool(subjectId, detail.getAttributeCode());
-                if (resultData.successful()) {
-                    Pool pool = resultData.getData();
-                    detail.setPoolCode(pool.getCode());
-                    detail.setPoolAmount(pool.getBalance());
-                    // 当前预算池余额 + 发生金额 >= 0  不能小于0,使预算池变为负数
-                    if (BigDecimal.ZERO.compareTo(detail.getPoolAmount().add(detail.getAmount())) > 0) {
-                        // 当前预算池[{0}]余额[{1}]不满足本次发生金额[{2}].
-                        return ResultData.fail(ContextUtil.getMessage("pool_00002", detail.getPoolCode(), detail.getPoolAmount(), detail.getAmount()));
-                    }
-                } else {
-                    // 当预算池不存在时,发生金额不能小于0(不能将预算池值为负数)
-                    if (BigDecimal.ZERO.compareTo(detail.getAmount()) > 0) {
-                        // 预算池金额不能值为负数[{0}]
-                        return ResultData.fail(ContextUtil.getMessage("pool_00004", detail.getAmount()));
-                    }
-                }
                 break;
             default:
                 // 不支持的订单类型
                 return ResultData.fail(ContextUtil.getMessage("order_detail_00007"));
         }
-        ResultData<DimensionAttribute> result = dimensionAttributeService.createAttribute(subjectId, detail);
-        if (result.successful()) {
-            if (!Objects.equals(detail.getAttributeCode(), result.getData().getAttributeCode())) {
-                LOG.error("预算维度策略hash计算错误: {}", JsonUtils.toJson(detail));
-                throw new ServiceException("预算维度策略hash计算错误.");
+        // 异步添加维度信息
+        asyncRunUtil.runAsync(() -> {
+            ResultData<DimensionAttribute> result = dimensionAttributeService.createAttribute(subjectId, detail);
+            if (result.successful()) {
+                if (!Objects.equals(detail.getAttributeCode(), result.getData().getAttributeCode())) {
+                    LOG.error("预算维度策略hash计算错误: {}", JsonUtils.toJson(detail));
+                }
+            } else {
+                LOG.error(result.getMessage());
             }
-        } else {
-            return ResultData.fail(result.getMessage());
-        }
+        });
         return ResultData.success();
     }
 
