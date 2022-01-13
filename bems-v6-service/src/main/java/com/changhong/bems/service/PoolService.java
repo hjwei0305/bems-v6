@@ -188,7 +188,7 @@ public class PoolService {
         String tenantCode = ContextUtil.getTenantCode();
         // 预算池编码
         // String code = serialService.getNumber(Pool.class, tenantCode);
-        String now = LocalDate.now().toString();
+        String now = DateUtils.formatDate(new Date(), "yyMMdd");
         String key = Constants.POOL_CODE_CACHE_KEY_PREFIX.concat(now);
         String code = now + String.format("%06d", redisTemplate.opsForValue().increment(key, 1));
         // if (dao.isCodeExists(tenantCode, code, IdGenerator.uuid())) {
