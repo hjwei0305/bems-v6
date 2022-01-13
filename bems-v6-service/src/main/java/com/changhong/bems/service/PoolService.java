@@ -28,6 +28,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -190,7 +191,11 @@ public class PoolService {
         // String code = serialService.getNumber(Pool.class, tenantCode);
         String now = DateUtils.formatDate(new Date(), "yyMMdd");
         String key = Constants.POOL_CODE_CACHE_KEY_PREFIX.concat(now);
-        String code = now + String.format("%06d", redisTemplate.opsForValue().increment(key, 1));
+        String code;
+        if (Boolean.FALSE.equals(redisTemplate.hasKey(key))) {
+            redisTemplate.expire(key, 2, TimeUnit.DAYS);
+        }
+        code = now + String.format("%06d", redisTemplate.opsForValue().increment(key, 1));
         // if (dao.isCodeExists(tenantCode, code, IdGenerator.uuid())) {
         //     code = now + String.format("%06d", redisTemplate.opsForValue().increment(key, 1));
         // }
