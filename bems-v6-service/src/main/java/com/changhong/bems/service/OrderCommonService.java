@@ -509,20 +509,21 @@ public class OrderCommonService {
             }
         } else {
             details.parallelStream().forEach(detail -> {
-                OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_confirm"), orderId, detailSize);
-                ResultData<Void> result = ResultData.fail("Unknown error");
+                // OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_confirm"), orderId, detailSize);
+                // ResultData<Void> result = ResultData.fail("Unknown error");
                 try {
                     // 本地线程全局变量存储-开始
                     ThreadLocalHolder.begin();
                     mockUser.mockCurrentUser(sessionUser);
 
-                    result = service.confirmUseBudget(order, detail);
+                    service.confirmUseBudget(order, detail);
                 } catch (Exception e) {
-                    result = ResultData.fail(e.getMessage());
+                    LogUtil.error("订单[" + order.getCode() + "]行项[" + JsonUtils.toJson(detail) + "]直接生效异常", e);
+                    // result = ResultData.fail(e.getMessage());
                 } finally {
                     // 本地线程全局变量存储-释放
                     ThreadLocalHolder.end();
-                    this.pushProcessState(successes, failures, statistics, result);
+                    // this.pushProcessState(successes, failures, statistics, result);
                 }
             });
             orderDetailDao.save(details);
