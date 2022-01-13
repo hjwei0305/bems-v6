@@ -526,10 +526,10 @@ public class OrderCommonService {
                     // this.pushProcessState(successes, failures, statistics, result);
                 }
             });
-            orderDetailDao.save(details);
             stopWatch.stop();
 
             if (failures.intValue() > 0) {
+                orderDetailDao.save(details);
                 // 若处理完成,则更新订单状态为:已生效
                 service.updateOrderStatus(orderId, OrderStatus.DRAFT, Boolean.FALSE);
             } else {
