@@ -539,10 +539,10 @@ public class OrderCommonService {
                 stopWatch.start("生效预算");
                 successes.reset();
                 failures.reset();
-                ForkJoinPool customThreadPool = new ForkJoinPool(cupNum - 2);
+                ForkJoinPool customThreadPool = new ForkJoinPool(8);
                 try {
-                    customThreadPool.submit(
-                            () -> details.parallelStream().forEach(detail -> {
+                    customThreadPool.submit(() ->
+                            details.parallelStream().forEach(detail -> {
                                 ResultData<Void> result = service.effectiveUseBudget(order, detail, sessionUser);
                                 OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_effective"), orderId, detailSize);
                                 this.pushProcessState(successes, failures, statistics, result);
