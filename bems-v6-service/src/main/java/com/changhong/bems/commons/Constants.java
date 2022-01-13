@@ -119,4 +119,9 @@ public final class Constants {
      */
     public static final String DIMENSION_MAP_CACHE_KEY_PREFIX = "bems-v6:dimension:map:";
 
+    /**
+     * redis key 维度name与value映射缓存key
+     */
+    public static final String POOL_CODE_CACHE_KEY_PREFIX = "bems-v6:pool:code:";
+
 }

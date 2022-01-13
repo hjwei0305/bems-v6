@@ -12,7 +12,6 @@ import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.dto.serach.SearchOrder;
 import com.changhong.sei.core.limiter.support.lock.SeiLock;
-import com.changhong.sei.serial.sdk.SerialService;
 import com.changhong.sei.util.DateUtils;
 import com.changhong.sei.util.IdGenerator;
 import org.apache.commons.collections.CollectionUtils;
@@ -21,6 +20,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,8 +53,10 @@ public class PoolService {
     private PoolAmountService poolAmountService;
     @Autowired
     private PoolLogService poolLogService;
-    @Autowired(required = false)
-    private SerialService serialService;
+    // @Autowired(required = false)
+    // private SerialService serialService;
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     /**
      * 按预算池编码获取预算池
@@ -185,11 +187,13 @@ public class PoolService {
         // 租户代码
         String tenantCode = ContextUtil.getTenantCode();
         // 预算池编码
-        String code = serialService.getNumber(Pool.class, tenantCode);
-        if (dao.isCodeExists(tenantCode, code, IdGenerator.uuid())) {
-            //代码[{0}]在租户[{1}]已存在，请重新输入！
-            return ResultData.fail(ContextUtil.getMessage("core_service_00038", code, tenantCode));
-        }
+        // String code = serialService.getNumber(Pool.class, tenantCode);
+        String now = LocalDate.now().toString();
+        String key = Constants.POOL_CODE_CACHE_KEY_PREFIX.concat(now);
+        String code = now + String.format("%06d", redisTemplate.opsForValue().increment(key, 1));
+        // if (dao.isCodeExists(tenantCode, code, IdGenerator.uuid())) {
+        //     code = now + String.format("%06d", redisTemplate.opsForValue().increment(key, 1));
+        // }
         pool.setTenantCode(tenantCode);
         pool.setCode(code);
         dao.save(pool);
