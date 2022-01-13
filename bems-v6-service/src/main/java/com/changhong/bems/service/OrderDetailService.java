@@ -15,7 +15,6 @@ import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.log.LogUtil;
 import com.changhong.sei.core.service.BaseEntityService;
-import com.changhong.sei.exception.ServiceException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -32,6 +31,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
@@ -247,6 +247,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
         // 预算维度组合
         final String attribute = resultData.getData();
 
+        ForkJoinPool customThreadPool = new ForkJoinPool(20);
         try {
             SessionUser sessionUser = ContextUtil.getSessionUser();
             LongAdder successes = new LongAdder();
@@ -260,7 +261,7 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                 orderDetails.clear();
             }
 
-            details.parallelStream().forEach(detail -> {
+            customThreadPool.submit(() -> details.parallelStream().forEach(detail -> {
                 // 订单id
                 detail.setOrderId(orderId);
                 // 维度属性组合
@@ -274,13 +275,14 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
                 orderStatistics.setFailures(failures.intValue());
                 // 更新缓存
                 redisTemplate.opsForValue().set(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId), orderStatistics, 1, TimeUnit.HOURS);
-            });
-        } catch (ServiceException e) {
+            })).get();
+        } catch (Exception e) {
             LOG.error("异步生成单据行项异常", e);
         } finally {
             orderDao.setProcessStatus(orderId, Boolean.FALSE);
             // 清除缓存
             redisTemplate.expire(Constants.HANDLE_CACHE_KEY_PREFIX.concat(orderId), 3, TimeUnit.SECONDS);
+            customThreadPool.shutdown();
         }
     }
 

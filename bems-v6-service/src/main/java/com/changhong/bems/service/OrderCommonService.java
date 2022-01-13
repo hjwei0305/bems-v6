@@ -89,12 +89,12 @@ public class OrderCommonService {
     /**
      * 添加预算申请单行项明细(导入使用)
      *
-     * @param order        业务实体
-     * @param templateHead 模版
+     * @param order         业务实体
+     * @param templateHeads 模版
      */
     @Async
     @Transactional(rollbackFor = Exception.class)
-    public void importOrderDetails(Order order, List<TemplateHeadVo> templateHead, List<Map<Integer, String>> details) {
+    public void importOrderDetails(Order order, List<TemplateHeadVo> templateHeads, List<Map<Integer, String>> details) {
         if (Objects.isNull(order)) {
             //导入的订单头数据不能为空
             LOG.error(ContextUtil.getMessage("order_detail_00011"));
@@ -131,11 +131,12 @@ public class OrderCommonService {
         StopWatch stopWatch = new StopWatch("导入处理");
         stopWatch.start("导入数据预处理");
         SessionUser sessionUser = ContextUtil.getSessionUser();
+        ForkJoinPool customThreadPool = new ForkJoinPool(20);
         try {
             Map<String, String> periodMap = new HashMap<>(), subjectItemMap = new HashMap<>(), orgMap = new HashMap<>(),
                     projectMap = new HashMap<>(), costCenterMap = new HashMap<>(),
                     udf1Map = new HashMap<>(), udf2Map = new HashMap<>(), udf3Map = new HashMap<>(), udf4Map = new HashMap<>(), udf5Map = new HashMap<>();
-            for (TemplateHeadVo headVo : templateHead) {
+            for (TemplateHeadVo headVo : templateHeads) {
                 // 期间
                 if (Constants.DIMENSION_CODE_PERIOD.equals(headVo.getFiled())) {
                     periodMap.putAll(budgetDimensionCustManager.getDimensionNameValueMap(subject, Constants.DIMENSION_CODE_PERIOD));
@@ -181,10 +182,10 @@ public class OrderCommonService {
                 orderDetails.clear();
             }
 
-            details.parallelStream().forEach(data -> {
+            customThreadPool.submit(() -> details.parallelStream().forEach(data -> {
                 OrderDetail detail = new OrderDetail();
                 String temp;
-                for (TemplateHeadVo headVo : templateHead) {
+                for (TemplateHeadVo headVo : templateHeads) {
                     temp = data.get(headVo.getIndex());
                     if (StringUtils.isBlank(temp)) {
                         if (StringUtils.isBlank(detail.getPeriodName())) {
@@ -346,13 +347,14 @@ public class OrderCommonService {
                 orderStatistics.setFailures(failures.intValue());
                 // 更新缓存
                 redisTemplate.opsForValue().set(Constants.HANDLE_CACHE_KEY_PREFIX + orderId, orderStatistics, 1, TimeUnit.HOURS);
-            });
-        } catch (ServiceException e) {
+            })).get();
+        } catch (Exception e) {
             LOG.error("异步导入单据行项异常", e);
         } finally {
             dao.setProcessStatus(orderId, Boolean.FALSE);
             // 清除缓存
             redisTemplate.expire(Constants.HANDLE_CACHE_KEY_PREFIX + orderId, 3, TimeUnit.SECONDS);
+            customThreadPool.shutdown();
         }
     }
 
@@ -454,23 +456,30 @@ public class OrderCommonService {
         if (OrderCategory.SPLIT == order.getOrderCategory()) {
             this.cancelSplitConfirmUseBudget(order, details, sessionUser, successes, failures);
         } else {
-            details.parallelStream().forEach(detail -> {
-                OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_cancel"), orderId, detailSize);
-                ResultData<Void> result = ResultData.fail("Unknown error");
-                try {
-                    // 本地线程全局变量存储-开始
-                    ThreadLocalHolder.begin();
-                    mockUser.mockCurrentUser(sessionUser);
+            ForkJoinPool customThreadPool = new ForkJoinPool(20);
+            try {
+                customThreadPool.submit(() -> details.parallelStream().forEach(detail -> {
+                    OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_cancel"), orderId, detailSize);
+                    ResultData<Void> result = ResultData.fail("Unknown error");
+                    try {
+                        // 本地线程全局变量存储-开始
+                        ThreadLocalHolder.begin();
+                        mockUser.mockCurrentUser(sessionUser);
 
-                    result = this.cancelConfirmUseBudget(order, detail);
-                } catch (Exception e) {
-                    result = ResultData.fail(e.getMessage());
-                } finally {
-                    // 本地线程全局变量存储-释放
-                    ThreadLocalHolder.end();
-                    this.pushProcessState(successes, failures, statistics, result);
-                }
-            });
+                        result = this.cancelConfirmUseBudget(order, detail);
+                    } catch (Exception e) {
+                        result = ResultData.fail(e.getMessage());
+                    } finally {
+                        // 本地线程全局变量存储-释放
+                        ThreadLocalHolder.end();
+                        this.pushProcessState(successes, failures, statistics, result);
+                    }
+                })).get();
+            } catch (Exception e) {
+                LOG.error("并发处理异常", e);
+            } finally {
+                customThreadPool.shutdown();
+            }
         }
         // 若处理完成,则更新订单状态为:草稿
         this.updateOrderStatus(orderId, OrderStatus.DRAFT, Boolean.FALSE);
@@ -539,7 +548,7 @@ public class OrderCommonService {
                 stopWatch.start("生效预算");
                 successes.reset();
                 failures.reset();
-                ForkJoinPool customThreadPool = new ForkJoinPool(8);
+                ForkJoinPool customThreadPool = new ForkJoinPool(20);
                 try {
                     customThreadPool.submit(() ->
                             details.parallelStream().forEach(detail -> {
@@ -572,11 +581,18 @@ public class OrderCommonService {
         LongAdder failures = new LongAdder();
         String orderId = order.getId();
         int detailSize = details.size();
-        details.parallelStream().forEach(detail -> {
-            ResultData<Void> result = this.effectiveUseBudget(order, detail, sessionUser);
-            OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_effective"), orderId, detailSize);
-            this.pushProcessState(successes, failures, statistics, result);
-        });
+        ForkJoinPool customThreadPool = new ForkJoinPool(20);
+        try {
+            customThreadPool.submit(() -> details.parallelStream().forEach(detail -> {
+                ResultData<Void> result = this.effectiveUseBudget(order, detail, sessionUser);
+                OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_effective"), orderId, detailSize);
+                this.pushProcessState(successes, failures, statistics, result);
+            })).get();
+        } catch (Exception e) {
+            LOG.error("并发处理异常", e);
+        } finally {
+            customThreadPool.shutdown();
+        }
         // 若处理完成,则更新订单状态为:已生效
         this.updateOrderStatus(orderId, OrderStatus.COMPLETED, Boolean.FALSE);
     }
@@ -1173,14 +1189,21 @@ public class OrderCommonService {
 
             Map<String, List<OrderDetail>> groupMap = details.stream().collect(Collectors.groupingBy(OrderDetail::getOriginPoolCode));
             Collection<List<OrderDetail>> groupList = groupMap.values();
-            groupList.parallelStream().forEach(detailList -> {
-                OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_effective"), orderId, detailSize);
-                ResultData<Void> result;
-                for (OrderDetail detail : detailList) {
-                    result = service.effectiveUseBudget(order, detail, sessionUser);
-                    this.pushProcessState(successes, failures, statistics, result);
-                }
-            });
+            ForkJoinPool customThreadPool = new ForkJoinPool(20);
+            try {
+                customThreadPool.submit(() -> groupList.parallelStream().forEach(detailList -> {
+                    OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_effective"), orderId, detailSize);
+                    ResultData<Void> result;
+                    for (OrderDetail detail : detailList) {
+                        result = service.effectiveUseBudget(order, detail, sessionUser);
+                        this.pushProcessState(successes, failures, statistics, result);
+                    }
+                })).get();
+            } catch (Exception e) {
+                LOG.error("并发处理异常", e);
+            } finally {
+                customThreadPool.shutdown();
+            }
         }
     }
 
