@@ -123,6 +123,7 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
      * @param ids 预算主体科目id
      * @return 操作结果
      */
+    @CacheEvict(allEntries = true)
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> frozen(List<String> ids, boolean frozen) {
         List<SubjectItem> items = dao.findAllById(ids);
@@ -181,6 +182,7 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
      * @param itemCodes 科目代码
      * @return 分配结果
      */
+    @CacheEvict(allEntries = true)
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> assigne(String subjectId, Set<String> itemCodes) {
         Subject subject = subjectService.getSubject(subjectId);
@@ -227,6 +229,7 @@ public class SubjectItemService extends BaseEntityService<SubjectItem> {
      * @param referenceId 参考预算主体id
      * @return 检查结果
      */
+    @CacheEvict(allEntries = true)
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> reference(String currentId, String referenceId) {
         ResultData<Void> resultData = checkReference(currentId);

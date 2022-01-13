@@ -496,15 +496,14 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
      * @param itemCode  预算科目代码
      */
     public void cleanStrategyCache(String subjectId, String itemCode) {
-        String pattern = Constants.STRATEGY_CACHE_KEY_PREFIX + subjectId;
+        String prefix = Constants.STRATEGY_CACHE_KEY_PREFIX + subjectId;
         if (StringUtils.isNotBlank(itemCode)) {
-            pattern = pattern + ":" + itemCode;
+            redisTemplate.delete(prefix.concat(":").concat(itemCode));
         } else {
-            pattern = pattern + ":*";
-        }
-        Set<String> keys = redisTemplate.keys(pattern);
-        if (CollectionUtils.isNotEmpty(keys)) {
-            redisTemplate.delete(keys);
+            Set<String> keys = redisTemplate.keys(prefix.concat(":*"));
+            if (CollectionUtils.isNotEmpty(keys)) {
+                redisTemplate.delete(keys);
+            }
         }
     }
 
