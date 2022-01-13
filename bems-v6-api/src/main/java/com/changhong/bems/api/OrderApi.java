@@ -177,6 +177,16 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     ResultData<List<OrderDto>> checkSplitPrefab();
 
     /**
+     * 检查行项是否存储未处理或有错误的
+     * 主要用于流程中编辑时的下一步控制
+     *
+     * @return 返回检查结果
+     */
+    @GetMapping(path = "checkProcessed")
+    @ApiOperation(value = "检查行项是否存储未处理或有错误的", notes = "检查行项是否存储未处理或有错误的.主要用于流程中编辑时的下一步控制")
+    ResultData<Void> checkProcessed(@RequestParam("orderId") String orderId);
+
+    /**
      * 获取申请单调整数据
      *
      * @return 返回调整数据
@@ -243,28 +253,6 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     @ApiOperation(value = "获取预算维度主数据", notes = "获取预算维度主数据(导入用)")
     ResultData<Map<String, Object>> getDimensionValues(@RequestParam("subjectId") String subjectId, @RequestParam("dimCode") String dimCode);
 
-    // /**
-    //  * 确认预算申请单
-    //  * 预算余额检查并预占用
-    //  *
-    //  * @param orderId 申请单id
-    //  * @return 返回处理结果
-    //  */
-    // @PostMapping(path = "confirmOrder")
-    // @ApiOperation(value = "确认预算申请单", notes = "确认预算申请单.预算余额检查并预占用")
-    // ResultData<OrderDto> confirmOrder(@RequestParam("orderId") String orderId);
-    //
-    // /**
-    //  * 撤销已确认的预算申请单
-    //  * 释放预占用
-    //  *
-    //  * @param orderId 申请单id
-    //  * @return 返回处理结果
-    //  */
-    // @PostMapping(path = "cancelConfirm")
-    // @ApiOperation(value = "撤销已确认的预算申请单", notes = "撤销已确认的预算申请单.释放预占用")
-    // ResultData<OrderDto> cancelConfirmOrder(@RequestParam("orderId") String orderId);
-
     /**
      * 已确认的预算申请单直接生效
      *
@@ -285,6 +273,16 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     @GetMapping(path = "getProcessingStatus")
     @ApiOperation(value = "获取订单处理状态", notes = "获取订单处理状态.前端轮询调用,以获取实时处理进度")
     ResultData<OrderStatistics> getProcessingStatus(@RequestParam("orderId") String orderId);
+
+    /**
+     * 预算调整时按行项创建预算池
+     *
+     * @param detailId 申请行项id
+     * @return 返回处理结果
+     */
+    @PostMapping(path = "createPool")
+    @ApiOperation(value = "预算调整时创建预算池", notes = "预算调整时按行项创建预算池")
+    ResultData<OrderDetailDto> createPool(@RequestParam("detailId") String detailId);
 
     ///////////////////////流程集成 start//////////////////////////////
 

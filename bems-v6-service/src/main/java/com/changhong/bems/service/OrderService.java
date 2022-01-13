@@ -670,6 +670,22 @@ public class OrderService extends BaseEntityService<Order> {
     }
 
     /**
+     * 检查行项是否有处理中的行项
+     *
+     * @param orderId 订单头id
+     * @return 处理中的行项数
+     */
+    public ResultData<Void> getProcessingCount(String orderId) {
+        long processingCount = orderDetailService.getProcessingCount(orderId);
+        if (processingCount == 0) {
+            return ResultData.success();
+        } else {
+            // 订单正在处理中,请稍后再试.
+            return ResultData.fail(ContextUtil.getMessage("order_detail_00020"));
+        }
+    }
+
+    /**
      * 笛卡尔方式生成行项
      */
     private void descartes(List<String> keyList, Map<String, Set<OrderDimension>> dimensionMap,

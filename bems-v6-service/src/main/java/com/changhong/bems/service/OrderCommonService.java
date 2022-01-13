@@ -76,6 +76,44 @@ public class OrderCommonService {
     @Autowired
     private AsyncRunUtil asyncRunUtil;
 
+    /**
+     * 预算调整时按行项创建预算池
+     *
+     * @param detailId 申请行项id
+     * @return 返回处理结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ResultData<OrderDetail> createPool(String detailId) {
+        OrderDetail detail = orderDetailDao.findOne(detailId);
+        if (Objects.isNull(detail)) {
+            // 行项不存在
+            return ResultData.fail(ContextUtil.getMessage("order_detail_00009"));
+        }
+        Order order = dao.findOne(detail.getOrderId());
+        if (Objects.isNull(order)) {
+            // 订单不存在
+            return ResultData.fail(ContextUtil.getMessage("order_00001"));
+        }
+        if (OrderCategory.ADJUSTMENT == order.getOrderCategory()) {
+            ResultData<Pool> resultData = poolService.createPool(order.getSubjectId(), order.getCategoryId(),
+                    order.getCurrencyCode(), order.getCurrencyName(), order.getManagerOrgCode(), order.getManagerOrgName(),
+                    order.getPeriodType(), detail, BigDecimal.ZERO, BigDecimal.ZERO);
+            if (resultData.successful()) {
+                Pool pool = resultData.getData();
+                if (Objects.nonNull(pool)) {
+                    detail.setPoolCode(pool.getCode());
+                    detail.setPoolAmount(pool.getBalance());
+                }
+                orderDetailDao.save(detail);
+                return ResultData.success(detail);
+            } else {
+                return ResultData.fail(resultData.getMessage());
+            }
+        } else {
+            return ResultData.fail(ContextUtil.getMessage("order_detail_00021"));
+        }
+    }
+
     @Transactional(rollbackFor = Exception.class)
     public void updateOrderStatus(String orderId, OrderStatus status, boolean processing) {
         // 更新订单是否正在异步处理行项数据.如果是,在编辑时进入socket状态显示页面

@@ -337,6 +337,21 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     }
 
     /**
+     * 检查行项是否存储未处理或有错误的
+     * 主要用于流程中编辑时的下一步控制
+     *
+     * @return 返回检查结果
+     */
+    @Override
+    public ResultData<Void> checkProcessed(String orderId) {
+        ResultData<Void> resultData = service.checkDetailHasErr(orderId);
+        if (resultData.successful()) {
+            resultData = service.getProcessingCount(orderId);
+        }
+        return resultData;
+    }
+
+    /**
      * 获取申请单调整数据
      *
      * @param orderId 申请单号
@@ -401,7 +416,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                 } else {
                     childrenList = group.get(detail.getOriginPoolCode());
                     if (CollectionUtils.isNotEmpty(childrenList)) {
-                        childrenList.sort(Comparator.comparing(BaseAttributeDto::getPeriodName));;
+                        childrenList.sort(Comparator.comparing(BaseAttributeDto::getPeriodName));
+                        ;
                     }
                     dto.setChildren(childrenList);
                 }
@@ -587,6 +603,22 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             service.setProcessStatus(orderId, Boolean.FALSE);
         }
         return ResultData.success(statistics);
+    }
+
+    /**
+     * 预算调整时按行项创建预算池
+     *
+     * @param detailId 申请行项id
+     * @return 返回处理结果
+     */
+    @Override
+    public ResultData<OrderDetailDto> createPool(String detailId) {
+        ResultData<OrderDetail> resultData = orderCommonService.createPool(detailId);
+        if (resultData.successful()) {
+            return ResultData.success(modelMapper.map(resultData.getData(), OrderDetailDto.class));
+        } else {
+            return ResultData.fail(resultData.getMessage());
+        }
     }
 
     ///////////////////////流程集成 start//////////////////////////////
