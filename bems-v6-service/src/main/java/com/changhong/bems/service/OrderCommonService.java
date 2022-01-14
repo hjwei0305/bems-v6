@@ -103,6 +103,8 @@ public class OrderCommonService {
                 if (Objects.nonNull(pool)) {
                     detail.setPoolCode(pool.getCode());
                     detail.setPoolAmount(pool.getBalance());
+                    detail.setHasErr(Boolean.FALSE);
+                    detail.setErrMsg("");
                 }
                 orderDetailDao.save(detail);
                 return ResultData.success(detail);
