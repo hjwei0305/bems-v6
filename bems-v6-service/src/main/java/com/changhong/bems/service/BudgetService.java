@@ -102,6 +102,15 @@ public class BudgetService {
 
                 boolean success = true;
                 for (BudgetUse budgetUse : useList) {
+                    // 如果等于0,则不做占用处理
+                    if (BigDecimal.ZERO.compareTo(budgetUse.getAmount()) == 0) {
+                        budgetResponse = new BudgetResponse();
+                        budgetResponse.setBizId(budgetUse.getBizId());
+                        budgetResponse.setSuccess(Boolean.TRUE);
+                        budgetResponse.setMessage("ok");
+                        responses.add(budgetResponse);
+                        continue;
+                    }
                     resultData = this.useBudget(budgetUse.getClassification(), budgetUse);
                     if (resultData.successful()) {
                         budgetResponse = resultData.getData();
@@ -130,7 +139,9 @@ public class BudgetService {
                         if (Objects.isNull(list)) {
                             list = new ArrayList<>();
                         }
-                        list.addAll(response.getUseResults());
+                        if (CollectionUtils.isNotEmpty(response.getUseResults())) {
+                            list.addAll(response.getUseResults());
+                        }
                         map.put(response.getBizId(), list);
                     }
                     responses.clear();
