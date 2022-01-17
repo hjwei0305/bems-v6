@@ -48,11 +48,6 @@ public abstract class BaseExecutionStrategy {
         // 占用记录
         poolService.recordLog(record);
 
-        if (BigDecimal.ZERO.compareTo(useAmount) == 0) {
-            // 如果占用金额等于0,则不返回占用结果
-            return;
-        }
-
         BudgetUseResult result = new BudgetUseResult(record.getPoolCode(), pool.getTotalAmount(), pool.getUsedAmount(),
                 pool.getBalance(), record.getAmount());
         StringJoiner display = new StringJoiner("|")
