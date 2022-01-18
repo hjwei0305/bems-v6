@@ -1,5 +1,6 @@
 package com.changhong.bems.dao;
 
+import com.changhong.bems.dto.OrderCategory;
 import com.changhong.bems.dto.OrderStatus;
 import com.changhong.bems.entity.Order;
 import com.changhong.sei.core.dao.BaseEntityDao;
@@ -7,6 +8,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 /**
  * 预算申请单(Order)数据库访问类
@@ -16,6 +19,16 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface OrderDao extends BaseEntityDao<Order> {
+
+    /**
+     * 检查是否存在指定类型的预制单
+     *
+     * @param creatorId 创建人
+     * @param category  分类
+     * @param status    预制状态
+     * @return 返回检查结果
+     */
+    List<Order> findTop10ByCreatorIdAndOrderCategoryAndStatus(String creatorId, OrderCategory category, OrderStatus status);
 
     /**
      * 更新订单申请金额

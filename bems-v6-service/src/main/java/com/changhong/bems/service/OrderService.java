@@ -162,15 +162,7 @@ public class OrderService extends BaseEntityService<Order> {
      * @return 返回检查结果
      */
     public List<Order> getPrefabExist(OrderCategory category) {
-        Search search = Search.createSearch();
-        // 创建人
-        search.addFilter(new SearchFilter(Order.FIELD_CREATOR_ID, ContextUtil.getUserId()));
-        // 类型
-        search.addFilter(new SearchFilter(Order.FIELD_ORDER_CATEGORY, category));
-        // 预制状态
-        search.addFilter(new SearchFilter(Order.FIELD_STATUS, OrderStatus.PREFAB));
-        PageResult<Order> pageResult = dao.findByPage(search);
-        return pageResult.getRows();
+        return dao.findTop10ByCreatorIdAndOrderCategoryAndStatus(ContextUtil.getUserId(), category, OrderStatus.PREFAB);
     }
 
     /**
