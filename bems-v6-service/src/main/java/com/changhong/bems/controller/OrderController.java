@@ -186,6 +186,18 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     }
 
     /**
+     * 预算分解分组行项id删除
+     *
+     * @param groupId 分解分组行项Id
+     * @return 业务实体
+     */
+    @Override
+    public ResultData<Void> removeSplitOrderItems(String groupId) {
+        orderDetailService.removeSplitOrderItems(groupId);
+        return ResultData.success();
+    }
+
+    /**
      * 通过单据Id检查预算主体和类型是否被修改
      *
      * @param orderId    单据Id
@@ -413,15 +425,20 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             List<OrderDetailDto> childrenList;
             for (OrderDetail detail : details) {
                 dto = modelMapper.map(detail, OrderDetailDto.class);
+                dtoList.add(dto);
+                // 分解目标清单
+                childrenList = group.get(detail.getOriginPoolCode());
                 if (StringUtils.isBlank(detail.getOriginPoolCode()) || StringUtils.equals(Constants.NONE, detail.getOriginPoolCode())) {
                     dto.setOriginPoolCode(null);
+                    // [{0}]个行项未找到源预算池
+                    dto.setErrMsg(ContextUtil.getMessage("order_detail_00022", CollectionUtils.isNotEmpty(childrenList) ? childrenList.size() : 0));
+                    continue;
                 }
-                childrenList = group.get(detail.getOriginPoolCode());
+                // 按期间名称排序
                 if (CollectionUtils.isNotEmpty(childrenList)) {
                     childrenList.sort(Comparator.comparing(BaseAttributeDto::getPeriodName));
                 }
                 dto.setChildren(childrenList);
-                dtoList.add(dto);
             }
             pageResult.setRows(dtoList);
         }

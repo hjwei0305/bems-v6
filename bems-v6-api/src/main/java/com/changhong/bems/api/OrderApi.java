@@ -97,6 +97,16 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
     ResultData<Void> removeOrderItems(@RequestBody String[] detailIds);
 
     /**
+     * 预算分解分组行项id删除
+     *
+     * @param groupId 分解分组行项Id
+     * @return 业务实体
+     */
+    @DeleteMapping(path = "removeSplitOrderItems", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "预算分解分组行项id删除", notes = "预算分解分组行项id删除")
+    ResultData<Void> removeSplitOrderItems(@RequestParam("groupId") String groupId);
+
+    /**
      * 通过单据Id检查预算主体和类型是否被修改
      *
      * @param orderId 单据Id

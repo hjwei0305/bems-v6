@@ -154,6 +154,19 @@ public class OrderDetailService extends BaseEntityService<OrderDetail> {
     }
 
     /**
+     * 预算分解分组行项id删除
+     *
+     * @param id 分解分组行项Id
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void removeSplitOrderItems(String id) {
+        OrderDetail detail = dao.findOne(id);
+        if (Objects.nonNull(detail)) {
+            dao.removeSplitOrderItems(detail.getOrderId(), detail.getOriginPoolCode());
+        }
+    }
+
+    /**
      * 更新预算申请单行项金额
      *
      * @param order  申请单

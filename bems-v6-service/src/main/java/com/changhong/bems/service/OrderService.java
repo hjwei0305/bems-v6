@@ -337,11 +337,10 @@ public class OrderService extends BaseEntityService<Order> {
                 order.setCreatedDate(entity.getCreatedDate());
                 order.setApplyAmount(entity.getApplyAmount());
             }
-        } else {
-            // 生成订单号
-            if (StringUtils.isBlank(order.getCode())) {
-                order.setCode(serialService.getNumber(Order.class, ContextUtil.getTenantCode()));
-            }
+        }
+        // 生成订单号
+        if (StringUtils.isBlank(order.getCode())) {
+            order.setCode(serialService.getNumber(Order.class, ContextUtil.getTenantCode()));
         }
         OperateResultWithData<Order> result = this.save(order);
         if (result.successful()) {

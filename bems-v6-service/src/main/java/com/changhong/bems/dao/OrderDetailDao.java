@@ -30,6 +30,15 @@ public interface OrderDetailDao extends BaseEntityDao<OrderDetail>, OrderDetailE
     int clearOrderItems(@Param("orderId") String orderId);
 
     /**
+     * 预算分解按源预算池代码删除
+     *
+     * @param orderId 分解分组行项Id
+     */
+    @Modifying
+    @Query("delete from OrderDetail d where d.orderId = :orderId and d.originPoolCode = :originPoolCode")
+    int removeSplitOrderItems(@Param("orderId") String orderId, @Param("originPoolCode") String originPoolCode);
+
+    /**
      * 获取订单总金额
      *
      * @param orderId 订单头id
