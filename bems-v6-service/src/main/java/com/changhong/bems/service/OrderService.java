@@ -12,6 +12,7 @@ import com.changhong.sei.core.context.SessionUser;
 import com.changhong.sei.core.context.mock.MockUser;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
+import com.changhong.sei.core.dto.serach.PageInfo;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
@@ -169,6 +170,7 @@ public class OrderService extends BaseEntityService<Order> {
         search.addFilter(new SearchFilter(Order.FIELD_ORDER_CATEGORY, category));
         // 预制状态
         search.addFilter(new SearchFilter(Order.FIELD_STATUS, OrderStatus.PREFAB));
+        search.setPageInfo(new PageInfo());
         return dao.findByFilters(search);
     }
 
