@@ -102,7 +102,7 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
      * @param groupId 分解分组行项Id
      * @return 业务实体
      */
-    @DeleteMapping(path = "removeSplitOrderItems", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping(path = "removeSplitOrderItems")
     @ApiOperation(value = "预算分解分组行项id删除", notes = "预算分解分组行项id删除")
     ResultData<Void> removeSplitOrderItems(@RequestParam("groupId") String groupId);
 
