@@ -563,21 +563,22 @@ public class OrderCommonService {
             int cupNum = Runtime.getRuntime().availableProcessors();
             LogUtil.bizLog("CPU num:{}", cupNum);
             details.parallelStream().forEach(detail -> {
-                // OrderStatistics statistics = new OrderStatistics(ContextUtil.getMessage("task_name_confirm"), orderId, detailSize);
-                // ResultData<Void> result = ResultData.fail("Unknown error");
                 try {
                     // 本地线程全局变量存储-开始
                     ThreadLocalHolder.begin();
                     mockUser.mockCurrentUser(sessionUser);
 
-                    service.confirmUseBudget(order, detail);
+                    ResultData<Void> resultData = service.confirmUseBudget(order, detail);
+                    if (resultData.failed()) {
+                        failures.increment();
+                        LogUtil.error("订单[{}]行项[{}]直接生效异常", order.getCode(), JsonUtils.toJson(detail));
+                    }
                 } catch (Exception e) {
+                    failures.increment();
                     LogUtil.error("订单[" + order.getCode() + "]行项[" + JsonUtils.toJson(detail) + "]直接生效异常", e);
-                    // result = ResultData.fail(e.getMessage());
                 } finally {
                     // 本地线程全局变量存储-释放
                     ThreadLocalHolder.end();
-                    // this.pushProcessState(successes, failures, statistics, result);
                 }
             });
             stopWatch.stop();
