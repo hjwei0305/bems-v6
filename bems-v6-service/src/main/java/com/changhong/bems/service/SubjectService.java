@@ -235,6 +235,12 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
     public OperateResultWithData<Subject> save(Subject entity) {
         boolean isNew = entity.isNew();
 
+        Subject existed = dao.findByProperty(Subject.FIELD_NAME, entity.getName());
+        if (Objects.nonNull(existed) && !StringUtils.equals(entity.getId(), existed.getId())) {
+            // 已存在预算主体
+            return OperateResultWithData.operationFailure("subject_00005", existed.getName());
+        }
+
         if (StringUtils.isBlank(entity.getCode())) {
             entity.setCode(String.valueOf(IdGenerator.nextId()));
         }
@@ -243,7 +249,7 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
             Search search = Search.createSearch();
             search.addFilter(new SearchFilter(Subject.FIELD_CORP_CODE, entity.getCorporationCode()));
             search.addFilter(new SearchFilter(Subject.FIELD_CLASSIFICATION, Classification.PROJECT));
-            Subject existed = dao.findFirstByFilters(search);
+            existed = dao.findFirstByFilters(search);
             if (Objects.nonNull(existed) && !StringUtils.equals(entity.getId(), existed.getId())) {
                 // 公司[{0}]下已存在一个项目级主体[{1}].
                 return OperateResultWithData.operationFailure("subject_00011", entity.getCorporationCode(), existed.getName());
@@ -253,21 +259,36 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
             Search search = Search.createSearch();
             search.addFilter(new SearchFilter(Subject.FIELD_CORP_CODE, entity.getCorporationCode()));
             search.addFilter(new SearchFilter(Subject.FIELD_CLASSIFICATION, Classification.COST_CENTER));
-            Subject existed = dao.findFirstByFilters(search);
+            existed = dao.findFirstByFilters(search);
             if (Objects.nonNull(existed) && !StringUtils.equals(entity.getId(), existed.getId())) {
                 // 公司[{0}]下已存在一个成本中心级主体[{1}].
                 return OperateResultWithData.operationFailure("subject_00014", entity.getCorporationCode(), existed.getName());
             }
         } else if (Objects.equals(Classification.DEPARTMENT, entity.getClassification())) {
-            if (CollectionUtils.isEmpty(entity.getOrgList())) {
-                // 组织级预算主体需维护适用组织范围
-                return OperateResultWithData.operationFailure("subject_00006");
+            // 若是组织级预算的部门级预算,则需要检查是否维护组织机构
+            if (entity.getDepartment()) {
+                if (CollectionUtils.isEmpty(entity.getOrgList())) {
+                    // 组织级预算主体需维护适用组织范围
+                    return OperateResultWithData.operationFailure("subject_00006");
+                }
+            } else {
+                ResultData<CorporationDto> resultData = corporationManager.findByCode(entity.getCorporationCode());
+                if (resultData.failed()) {
+                    return OperateResultWithData.operationFailure(resultData.getMessage());
+                } else {
+                    CorporationDto corporationDto = resultData.getData();
+                    if (StringUtils.isNotBlank(corporationDto.getOrganizationId())) {
+                        Set<OrganizationDto> orgs = new HashSet<>();
+                        OrganizationDto org = new OrganizationDto();
+                        org.setId(corporationDto.getOrganizationId());
+                        orgs.add(org);
+                        entity.setOrgList(orgs);
+                    } else {
+                        // 公司[{0}]未关联组织机构[{1}].
+                        return OperateResultWithData.operationFailure("subject_00016");
+                    }
+                }
             }
-        }
-        Subject existed = dao.findByProperty(Subject.FIELD_NAME, entity.getName());
-        if (Objects.nonNull(existed) && !StringUtils.equals(entity.getId(), existed.getId())) {
-            // 已存在预算主体
-            return OperateResultWithData.operationFailure("subject_00005", existed.getName());
         }
         // 持久化
         dao.save(entity);

@@ -55,6 +55,11 @@ public class Subject extends BaseAuditableEntity implements ITenant, IFrozen, ID
     @Enumerated(EnumType.STRING)
     private Classification classification;
     /**
+     * 是组织级预算中的部门级预算
+     */
+    @Column(name = "is_department")
+    private Boolean isDepartment = Boolean.FALSE;
+    /**
      * 币种代码
      */
     @Column(name = "currency_code", updatable = false)
@@ -137,6 +142,14 @@ public class Subject extends BaseAuditableEntity implements ITenant, IFrozen, ID
 
     public void setClassification(Classification classification) {
         this.classification = classification;
+    }
+
+    public Boolean getDepartment() {
+        return isDepartment;
+    }
+
+    public void setDepartment(Boolean department) {
+        isDepartment = department;
     }
 
     public String getCurrencyCode() {

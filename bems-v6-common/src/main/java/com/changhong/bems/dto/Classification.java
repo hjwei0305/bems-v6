@@ -10,7 +10,7 @@ import com.changhong.sei.annotation.Remark;
  */
 public enum Classification {
     /**
-     * 组织级预算
+     * 组织级预算: 分公司级和部门级
      */
     @Remark(value = "classification_department", comments = "组织级预算")
     DEPARTMENT,

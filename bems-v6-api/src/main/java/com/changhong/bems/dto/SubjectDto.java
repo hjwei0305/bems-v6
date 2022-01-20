@@ -45,6 +45,11 @@ public class SubjectDto extends BaseEntityDto {
     @ApiModelProperty(value = "预算分类", required = true)
     private Classification classification;
     /**
+     * 是组织级预算中的部门级预算
+     */
+    @ApiModelProperty(value = "是组织级预算中的部门级预算")
+    private Boolean isDepartment = Boolean.FALSE;
+    /**
      * 币种代码
      */
     @Size(max = 30)
