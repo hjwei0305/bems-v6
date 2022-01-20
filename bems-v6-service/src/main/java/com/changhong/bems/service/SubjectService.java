@@ -284,8 +284,8 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
                         orgs.add(org);
                         entity.setOrgList(orgs);
                     } else {
-                        // 公司[{0}]未关联组织机构[{1}].
-                        return OperateResultWithData.operationFailure("subject_00016");
+                        // 公司[{0}]未关联组织机构.
+                        return OperateResultWithData.operationFailure("subject_00016", corporationDto.getName());
                     }
                 }
             }
