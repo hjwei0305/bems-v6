@@ -111,6 +111,14 @@ public class SubjectDto extends BaseEntityDto {
         this.classification = classification;
     }
 
+    public Boolean getDepartment() {
+        return isDepartment;
+    }
+
+    public void setDepartment(Boolean department) {
+        isDepartment = department;
+    }
+
     public String getCorporationCode() {
         return corporationCode;
     }
