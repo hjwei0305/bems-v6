@@ -49,4 +49,15 @@ public class StrategyController implements StrategyApi {
     public ResultData<List<StrategyDto>> findByCategory(StrategyCategory category) {
         return ResultData.success(service.findByCategory(category));
     }
+
+    /**
+     * 按预算维度查询维度策略
+     *
+     * @param dimensionCode 预算维度
+     * @return 策略清单
+     */
+    @Override
+    public ResultData<List<StrategyDto>> findByDimensionCode(String dimensionCode) {
+        return ResultData.success(service.findByDimensionCode(dimensionCode));
+    }
 }

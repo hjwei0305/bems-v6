@@ -6,8 +6,8 @@ import com.changhong.bems.entity.DimensionAttribute;
 import com.changhong.bems.entity.PoolLog;
 import com.changhong.bems.entity.Subject;
 import com.changhong.bems.service.client.OrganizationManager;
-import com.changhong.bems.service.strategy.BudgetExecutionStrategy;
-import com.changhong.bems.service.strategy.DimensionMatchStrategy;
+import com.changhong.bems.service.strategy.BaseBudgetExecutionStrategy;
+import com.changhong.bems.service.strategy.BaseDimensionMatchStrategy;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.SearchFilter;
@@ -261,7 +261,7 @@ public class BudgetService {
         PoolAttributeDto pool = resultData.getData();
         try {
             // 策略实例
-            BudgetExecutionStrategy executionStrategy = strategyService.getExecutionStrategy(pool.getStrategyId());
+            BaseBudgetExecutionStrategy executionStrategy = strategyService.getExecutionStrategy(pool.getStrategyId());
             return executionStrategy.execution(pool, useBudget, otherDimFilters);
         } catch (Exception e) {
             // 预算执行策略执行异常
@@ -440,7 +440,7 @@ public class BudgetService {
         ServiceException exception;
         try {
             // 策略实例
-            DimensionMatchStrategy matchStrategy = strategyService.getMatchStrategy(dimension.getStrategyId());
+            BaseDimensionMatchStrategy matchStrategy = strategyService.getMatchStrategy(dimension.getStrategyId());
             // 策略结果
             ResultData<Object> resultData = matchStrategy.getMatchValue(budgetUse, dimValue);
             if (resultData.successful()) {

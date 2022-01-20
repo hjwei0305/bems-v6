@@ -9,7 +9,7 @@ import com.changhong.sei.core.context.ContextUtil;
  * @author 马超(Vision.Mac)
  * @version 1.0.00  2021-05-23 15:17
  */
-public interface PeriodMatchStrategy extends DimensionMatchStrategy{
+public interface PeriodMatchStrategy extends BaseDimensionMatchStrategy {
     /**
      * 策略类别
      *
@@ -33,7 +33,7 @@ public interface PeriodMatchStrategy extends DimensionMatchStrategy{
     /**
      * 策略描述
      *
-     * @return 标准期间(年,季,月)的客观包含关系
+     * @return 标准期间(年, 季, 月)的客观包含关系
      */
     @Override
     default String remark() {

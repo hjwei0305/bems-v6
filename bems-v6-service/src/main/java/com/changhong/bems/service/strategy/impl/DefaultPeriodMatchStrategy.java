@@ -1,5 +1,6 @@
 package com.changhong.bems.service.strategy.impl;
 
+import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.BudgetUse;
 import com.changhong.bems.service.strategy.PeriodMatchStrategy;
 import com.changhong.sei.core.dto.ResultData;
@@ -21,5 +22,14 @@ public class DefaultPeriodMatchStrategy extends BaseMatchStrategy implements Per
     public ResultData<Object> getMatchValue(BudgetUse budgetUse, String dimValue) {
         // TODO 期间关系策略
         return null;
+    }
+
+    /**
+     * @param dimensionCode 维度代码
+     * @return 检查是否满足维度适用范围
+     */
+    @Override
+    public boolean checkScope(String dimensionCode) {
+        return Constants.DIMENSION_CODE_PERIOD.equals(dimensionCode);
     }
 }

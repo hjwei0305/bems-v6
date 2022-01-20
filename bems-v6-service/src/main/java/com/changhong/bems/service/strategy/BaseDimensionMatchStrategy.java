@@ -9,7 +9,7 @@ import com.changhong.sei.core.dto.ResultData;
  * @author 马超(Vision.Mac)
  * @version 1.0.00  2021-05-15 09:32
  */
-public interface DimensionMatchStrategy extends BaseStrategy {
+public interface BaseDimensionMatchStrategy extends AbstractStrategy {
 
     /**
      * 获取维度匹配值
@@ -18,4 +18,10 @@ public interface DimensionMatchStrategy extends BaseStrategy {
      * @return 返回匹配值
      */
     ResultData<Object> getMatchValue(BudgetUse budgetUse, String dimValue);
+
+    /**
+     * @param dimensionCode 维度代码
+     * @return 检查是否满足维度适用范围
+     */
+    boolean checkScope(String dimensionCode);
 }

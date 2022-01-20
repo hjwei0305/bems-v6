@@ -9,7 +9,7 @@ import com.changhong.sei.core.context.ContextUtil;
  * @author 马超(Vision.Mac)
  * @version 1.0.00  2021-05-23 15:18
  */
-public interface LimitExecutionStrategy extends BudgetExecutionStrategy {
+public interface LimitExecutionStrategy extends BaseBudgetExecutionStrategy {
     /**
      * 策略类别
      *

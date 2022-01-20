@@ -9,7 +9,7 @@ import com.changhong.sei.core.context.ContextUtil;
  * @author 马超(Vision.Mac)
  * @version 1.0.00  2021-05-23 15:16
  */
-public interface EqualMatchStrategy extends DimensionMatchStrategy {
+public interface EqualMatchStrategy extends BaseDimensionMatchStrategy {
     /**
      * 策略类别
      *

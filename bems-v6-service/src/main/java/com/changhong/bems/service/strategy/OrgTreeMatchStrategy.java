@@ -9,7 +9,7 @@ import com.changhong.sei.core.context.ContextUtil;
  * @author 马超(Vision.Mac)
  * @version 1.0.00  2021-05-23 15:17
  */
-public interface OrgTreeMatchStrategy extends DimensionMatchStrategy{
+public interface OrgTreeMatchStrategy extends BaseDimensionMatchStrategy {
     /**
      * 策略类别
      *

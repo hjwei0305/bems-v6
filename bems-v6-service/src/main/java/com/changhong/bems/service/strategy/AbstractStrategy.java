@@ -8,7 +8,7 @@ import com.changhong.bems.dto.StrategyCategory;
  * @author 马超(Vision.Mac)
  * @version 1.0.00  2021-10-22 19:31
  */
-public interface BaseStrategy {
+public interface AbstractStrategy {
     /**
      * 策略类别
      *

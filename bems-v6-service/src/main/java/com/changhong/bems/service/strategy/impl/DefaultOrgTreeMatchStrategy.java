@@ -1,7 +1,8 @@
 package com.changhong.bems.service.strategy.impl;
 
-import com.changhong.bems.dto.OrganizationDto;
+import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.BudgetUse;
+import com.changhong.bems.dto.OrganizationDto;
 import com.changhong.bems.service.client.OrganizationManager;
 import com.changhong.bems.service.strategy.OrgTreeMatchStrategy;
 import com.changhong.sei.core.context.ContextUtil;
@@ -9,6 +10,7 @@ import com.changhong.sei.core.dto.ResultData;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -45,5 +47,14 @@ public class DefaultOrgTreeMatchStrategy extends BaseMatchStrategy implements Or
         } else {
             return ResultData.fail(resultData.getMessage());
         }
+    }
+
+    /**
+     * @param dimensionCode 维度代码
+     * @return 检查是否满足维度适用范围
+     */
+    @Override
+    public boolean checkScope(String dimensionCode) {
+        return Constants.DIMENSION_CODE_ORG.equals(dimensionCode);
     }
 }

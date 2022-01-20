@@ -21,4 +21,13 @@ public class DefaultEqualMatchStrategy extends BaseMatchStrategy implements Equa
     public ResultData<Object> getMatchValue(BudgetUse budgetUse, String dimValue) {
         return ResultData.success(dimValue);
     }
+
+    /**
+     * @param dimensionCode 维度代码
+     * @return 检查是否满足维度适用范围
+     */
+    @Override
+    public boolean checkScope(String dimensionCode) {
+        return true;
+    }
 }

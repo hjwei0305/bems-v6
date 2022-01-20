@@ -39,4 +39,13 @@ public interface StrategyApi {
     @GetMapping(path = "findByCategory")
     @ApiOperation(value = "按分类查询策略", notes = "按分类查询策略")
     ResultData<List<StrategyDto>> findByCategory(@RequestParam("category") StrategyCategory category);
+
+    /**
+     * 按预算维度查询维度策略
+     *
+     * @return 策略清单
+     */
+    @GetMapping(path = "findByDimensionCode")
+    @ApiOperation(value = "按预算维度查询维度策略", notes = "按预算维度查询维度策略")
+    ResultData<List<StrategyDto>> findByDimensionCode(@RequestParam("dimensionCode") String dimensionCode);
 }
