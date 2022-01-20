@@ -144,12 +144,12 @@ public class Subject extends BaseAuditableEntity implements ITenant, IFrozen, ID
         this.classification = classification;
     }
 
-    public Boolean getDepartment() {
+    public Boolean getIsDepartment() {
         return isDepartment;
     }
 
-    public void setDepartment(Boolean department) {
-        isDepartment = department;
+    public void setIsDepartment(Boolean isDepartment) {
+        this.isDepartment = isDepartment;
     }
 
     public String getCurrencyCode() {

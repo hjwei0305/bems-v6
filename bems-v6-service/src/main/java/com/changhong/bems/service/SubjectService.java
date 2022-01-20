@@ -266,7 +266,7 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
             }
         } else if (Objects.equals(Classification.DEPARTMENT, entity.getClassification())) {
             // 若是组织级预算的部门级预算,则需要检查是否维护组织机构
-            if (entity.getDepartment()) {
+            if (entity.getIsDepartment()) {
                 if (CollectionUtils.isEmpty(entity.getOrgList())) {
                     // 组织级预算主体需维护适用组织范围
                     return OperateResultWithData.operationFailure("subject_00006");
