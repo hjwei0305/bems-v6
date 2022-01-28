@@ -545,8 +545,8 @@ public class BudgetService {
             // 预算占用时,未找到满足条件的预算池!
             return ResultData.fail(ContextUtil.getMessage("pool_00009", subject.getName()));
         }
-        // 按期间类型下标进行排序: 下标值越大优先级越高
-        pools = pools.stream().sorted(Comparator.comparingInt(p -> p.getPeriodType().ordinal())).collect(Collectors.toList());
+        // 按期间截止时间排序,期间截止时间越近越优先使用
+        pools = pools.stream().sorted(Comparator.comparing(PoolAttributeDto::getEndDate)).collect(Collectors.toList());
         return ResultData.success(pools.get(0));
     }
 }
