@@ -1,5 +1,7 @@
 package com.changhong.bems.dto;
 
+import com.changhong.sei.core.dto.serializer.EnumJsonSerializer;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -36,6 +38,7 @@ public class StrategyDto implements Serializable {
     /**
      * 策略类别
      */
+    @JsonSerialize(using = EnumJsonSerializer.class)
     @ApiModelProperty(value = "策略类别")
     private StrategyCategory category;
     /**

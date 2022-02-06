@@ -1,6 +1,5 @@
 package com.changhong.bems.service.strategy;
 
-import com.changhong.bems.dto.StrategyCategory;
 import com.changhong.sei.core.context.ContextUtil;
 
 /**
@@ -10,15 +9,6 @@ import com.changhong.sei.core.context.ContextUtil;
  * @version 1.0.00  2021-05-23 15:17
  */
 public interface PeriodMatchStrategy extends BaseDimensionMatchStrategy {
-    /**
-     * 策略类别
-     *
-     * @return 策略类别
-     */
-    @Override
-    default StrategyCategory category() {
-        return StrategyCategory.DIMENSION;
-    }
 
     /**
      * 策略名称

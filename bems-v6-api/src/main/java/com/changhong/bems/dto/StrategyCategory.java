@@ -12,11 +12,11 @@ public enum StrategyCategory {
     /**
      * 维度策略
      */
-    @Remark("维度策略")
+    @Remark("匹配策略")
     DIMENSION,
     /**
      * 执行策略
      */
-    @Remark("执行策略")
+    @Remark("管控策略")
     EXECUTION
 }

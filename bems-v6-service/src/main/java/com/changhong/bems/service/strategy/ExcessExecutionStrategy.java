@@ -1,6 +1,5 @@
 package com.changhong.bems.service.strategy;
 
-import com.changhong.bems.dto.StrategyCategory;
 import com.changhong.sei.core.context.ContextUtil;
 
 /**
@@ -10,15 +9,6 @@ import com.changhong.sei.core.context.ContextUtil;
  * @version 1.0.00  2021-05-23 15:18
  */
 public interface ExcessExecutionStrategy extends BaseBudgetExecutionStrategy {
-    /**
-     * 策略类别
-     *
-     * @return 策略类别
-     */
-    @Override
-    default StrategyCategory category() {
-        return StrategyCategory.EXECUTION;
-    }
 
     /**
      * 策略名称
@@ -33,7 +23,7 @@ public interface ExcessExecutionStrategy extends BaseBudgetExecutionStrategy {
     /**
      * 策略描述
      *
-     * @return 可超额使用预算,即预算池余额不够时可超额使用
+     * @return 可超额使用预算, 即预算池余额不够时可超额使用
      */
     @Override
     default String remark() {

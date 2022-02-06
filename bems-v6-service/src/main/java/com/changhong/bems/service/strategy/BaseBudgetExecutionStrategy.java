@@ -3,6 +3,7 @@ package com.changhong.bems.service.strategy;
 import com.changhong.bems.dto.PoolAttributeDto;
 import com.changhong.bems.dto.BudgetResponse;
 import com.changhong.bems.dto.BudgetUse;
+import com.changhong.bems.dto.StrategyCategory;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 
@@ -15,6 +16,16 @@ import java.util.Collection;
  * @version 1.0.00  2021-05-15 09:32
  */
 public interface BaseBudgetExecutionStrategy extends AbstractStrategy {
+
+    /**
+     * 策略类别
+     *
+     * @return 策略类别
+     */
+    @Override
+    default StrategyCategory category() {
+        return StrategyCategory.EXECUTION;
+    }
 
     /**
      * 执行预算执行策略
