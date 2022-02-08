@@ -127,6 +127,11 @@ class OrderServiceTest extends BaseUnit5Test {
     }
 
     @Test
+    void getPrefabExist() {
+        service.getPrefabExist(OrderCategory.INJECTION);
+    }
+
+    @Test
     void testValid() {
         OrderDto order = new OrderDto();
         order.setCode("12345678901");

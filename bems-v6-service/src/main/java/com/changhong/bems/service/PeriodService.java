@@ -1,10 +1,12 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.dao.PeriodDao;
+import com.changhong.bems.dao.SubjectDao;
 import com.changhong.bems.dto.PeriodCode;
 import com.changhong.bems.dto.PeriodType;
 import com.changhong.bems.entity.DimensionAttribute;
 import com.changhong.bems.entity.Period;
+import com.changhong.bems.entity.Subject;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
@@ -37,6 +39,8 @@ public class PeriodService extends BaseEntityService<Period> {
     private static final Logger LOG = LoggerFactory.getLogger(PeriodService.class);
     @Autowired
     private PeriodDao dao;
+    @Autowired
+    private SubjectDao subjectDao;
     @Autowired
     private DimensionAttributeService dimensionAttributeService;
 
@@ -160,21 +164,41 @@ public class PeriodService extends BaseEntityService<Period> {
      */
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> createNormalPeriod(String subjectId, int year, PeriodType[] periodTypes) {
+        Set<String> subjectIds = new HashSet<>();
         List<Period> periods = new ArrayList<>();
-        for (PeriodType periodType : periodTypes) {
-            periods.addAll(generateNormalPeriod(subjectId, year, periodType));
-        }
-        Set<String> existSet;
-        List<Period> periodList = dao.findListByProperty(Period.FIELD_SUBJECT_ID, subjectId);
-        if (CollectionUtils.isNotEmpty(periodList)) {
-            existSet = periodList.stream().map(p -> p.getCode() + p.getYear()).collect(Collectors.toSet());
-        } else {
-            existSet = new HashSet<>();
-        }
-        for (Period period : periods) {
-            if (!existSet.contains(period.getCode() + period.getYear())) {
-                this.save(period);
+        if (StringUtils.isNotBlank(subjectId)) {
+            for (PeriodType periodType : periodTypes) {
+                periods.addAll(generateNormalPeriod(subjectId, year, periodType));
             }
+            subjectIds.add(subjectId);
+        } else {
+            List<Subject> subjectList = subjectDao.findAllUnfrozen();
+            if (CollectionUtils.isNotEmpty(subjectList)) {
+                for (Subject subject : subjectList) {
+                    subjectId = subject.getId();
+                    for (PeriodType periodType : periodTypes) {
+                        periods.addAll(generateNormalPeriod(subjectId, year, periodType));
+                    }
+                    subjectIds.add(subjectId);
+                }
+            }
+        }
+
+        Search search = Search.createSearch();
+        search.addFilter(new SearchFilter(Period.FIELD_YEAR, year));
+        search.addFilter(new SearchFilter(Period.FIELD_SUBJECT_ID, subjectIds, SearchFilter.Operator.IN));
+        search.addFilter(new SearchFilter(Period.FIELD_TYPE, periodTypes, SearchFilter.Operator.IN));
+        List<Period> periodList = dao.findByFilters(search);
+        if (CollectionUtils.isNotEmpty(periodList)) {
+            periods = periods.parallelStream().filter(period -> periodList.stream().noneMatch(old ->
+                            period.getSubjectId().equals(old.getSubjectId())
+                                    && period.getYear().equals(old.getYear())
+                                    && period.getCode().equals(old.getCode())))
+                    .collect(Collectors.toList());
+        }
+
+        if (CollectionUtils.isNotEmpty(periods)) {
+            this.save(periods);
         }
         return ResultData.success();
     }

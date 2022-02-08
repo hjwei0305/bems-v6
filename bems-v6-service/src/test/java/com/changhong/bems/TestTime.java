@@ -22,6 +22,11 @@ public class TestTime {
     }
 
     @Test
+    public void test1() {
+        System.out.println(Runtime.getRuntime().availableProcessors());
+    }
+
+    @Test
     public void test() {
         int year = 2021;
         LocalDate localDate = LocalDate.of(year, 1, 1);

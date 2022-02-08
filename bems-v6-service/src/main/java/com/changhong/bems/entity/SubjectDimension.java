@@ -11,7 +11,7 @@ import javax.persistence.Table;
 import java.io.Serializable;
 
 /**
- * 实现功能：预算主体维度
+ * 实现功能：预算主体维度(维度策略/匹配策略)
  * 主要管理预算主体维度自定义的维度策略
  *
  * @author 马超(Vision.Mac)

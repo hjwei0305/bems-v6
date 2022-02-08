@@ -28,9 +28,7 @@ public class Pool extends BaseEntity implements ITenant, ICodeUnique, Serializab
     public static final String FIELD_SUBJECT_ID = "subjectId";
     public static final String FIELD_ATTRIBUTE_CODE = "attributeCode";
     public static final String FIELD_PERIOD_TYPE = "periodType";
-    public static final String FIELD_ROLL = "roll";
     public static final String FIELD_ACTIVED = "actived";
-    public static final String FIELD_CREATED_DATE = "createdDate";
     public static final String FIELD_CODE = "code";
     public static final String FIELD_START_DATE = "startDate";
     public static final String FIELD_END_DATE = "endDate";
@@ -97,16 +95,6 @@ public class Pool extends BaseEntity implements ITenant, ICodeUnique, Serializab
      */
     @Column(name = "is_actived")
     private Boolean actived = Boolean.TRUE;
-    /**
-     * 允许使用(业务可用)
-     */
-    @Column(name = "is_use")
-    private Boolean use = Boolean.FALSE;
-    /**
-     * 允许结转
-     */
-    @Column(name = "is_roll")
-    private Boolean roll = Boolean.FALSE;
     /**
      * 是否可延期
      */
@@ -234,22 +222,6 @@ public class Pool extends BaseEntity implements ITenant, ICodeUnique, Serializab
 
     public void setActived(Boolean actived) {
         this.actived = actived;
-    }
-
-    public Boolean getUse() {
-        return use;
-    }
-
-    public void setUse(Boolean use) {
-        this.use = use;
-    }
-
-    public Boolean getRoll() {
-        return roll;
-    }
-
-    public void setRoll(Boolean roll) {
-        this.roll = roll;
     }
 
     public Boolean getDelay() {

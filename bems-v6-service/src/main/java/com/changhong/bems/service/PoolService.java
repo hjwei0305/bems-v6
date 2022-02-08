@@ -1,7 +1,6 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.commons.Constants;
-import com.changhong.bems.commons.PoolHelper;
 import com.changhong.bems.dao.PoolDao;
 import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.*;
@@ -136,8 +135,6 @@ public class PoolService {
                 // 预算类型不存在
                 return ResultData.fail(ContextUtil.getMessage("category_00004", categoryId));
             }
-            pool.setUse(category.getUse());
-            pool.setRoll(category.getRoll());
 
             return this.createPool(pool, baseAttribute, injectAmount, reviseInAmount);
         }
@@ -375,10 +372,11 @@ public class PoolService {
             // 未找到预算池
             return ResultData.fail(ContextUtil.getMessage("pool_00001"));
         }
-        if (!pool.getRoll()) {
-            // 预算池不允许滚动结转
-            return ResultData.fail(ContextUtil.getMessage("pool_00015", pool.getCode()));
-        }
+        // todo
+        // if (!pool.getRoll()) {
+        //     // 预算池不允许滚动结转
+        //     return ResultData.fail(ContextUtil.getMessage("pool_00015", pool.getCode()));
+        // }
         if (BigDecimal.ZERO.compareTo(pool.getBalance()) == 0) {
             if (LOG.isInfoEnabled()) {
                 LOG.info("预算池[{}]可用余额为0,无需结转.", pool.getCode());
@@ -473,11 +471,11 @@ public class PoolService {
         List<PoolAttributeDto> list = new ArrayList<>();
         List<Pool> poolList = dao.findByFilter(new SearchFilter(Pool.CODE_FIELD, codes, SearchFilter.Operator.IN));
         for (Pool pool : poolList) {
-            PoolAttributeDto dto = PoolHelper.constructPoolAttribute(pool);
+            PoolAttributeDto dto = this.constructPoolAttribute(pool);
 
             DimensionAttribute attribute = dimensionAttributeService.getAttribute(pool.getSubjectId(), pool.getAttributeCode());
             if (Objects.nonNull(attribute)) {
-                PoolHelper.putAttribute(dto, attribute);
+                this.putAttribute(dto, attribute);
             } else {
                 LOG.error("预算池[{}]未获取到维度属性", pool.getCode());
             }
@@ -562,7 +560,7 @@ public class PoolService {
             ResultData<StrategyDto> resultData;
             DimensionAttribute dimensionAttribute;
             for (Pool pool : poolList) {
-                dto = PoolHelper.constructPoolAttribute(pool);
+                dto = this.constructPoolAttribute(pool);
 
                 dimensionAttribute = attributeMap.get(pool.getSubjectId() + pool.getAttributeCode());
                 if (Objects.nonNull(dimensionAttribute)) {
@@ -572,7 +570,7 @@ public class PoolService {
                         dto.setStrategyId(strategy.getCode());
                         dto.setStrategyName(strategy.getName());
                         // 预算维度属性赋值
-                        PoolHelper.putAttribute(dto, dimensionAttribute);
+                        this.putAttribute(dto, dimensionAttribute);
                         resultList.add(dto);
                     }
                 }
@@ -640,7 +638,7 @@ public class PoolService {
             PoolAttributeDto dto;
             DimensionAttribute dimensionAttribute;
             for (Pool pool : poolList) {
-                dto = PoolHelper.constructPoolAttribute(pool);
+                dto = this.constructPoolAttribute(pool);
                 dimensionAttribute = attributeMap.get(pool.getSubjectId() + pool.getAttributeCode());
                 if (Objects.nonNull(dimensionAttribute)) {
                     resultData = strategyService.getStrategy(pool.getSubjectId(), dimensionAttribute.getItem());
@@ -649,7 +647,7 @@ public class PoolService {
                         dto.setStrategyId(strategy.getCode());
                         dto.setStrategyName(strategy.getName());
                         // 预算维度属性赋值
-                        PoolHelper.putAttribute(dto, dimensionAttribute);
+                        this.putAttribute(dto, dimensionAttribute);
                         resultList.add(dto);
                     }
                 }
@@ -729,8 +727,6 @@ public class PoolService {
             nextPeriodPool.setManageOrgName(pool.getManageOrgName());
             // 期间类型
             nextPeriodPool.setPeriodType(pool.getPeriodType());
-            nextPeriodPool.setUse(pool.getUse());
-            nextPeriodPool.setRoll(pool.getRoll());
             // 创建预算池
             return this.createPool(nextPeriodPool, attribute, BigDecimal.ZERO, balance);
         } else {
@@ -832,11 +828,11 @@ public class PoolService {
             // 未找到预算池
             return ResultData.fail(ContextUtil.getMessage("pool_00001"));
         }
-        PoolAttributeDto dto = PoolHelper.constructPoolAttribute(pool);
+        PoolAttributeDto dto = this.constructPoolAttribute(pool);
 
         DimensionAttribute attribute = dimensionAttributeService.getAttribute(pool.getSubjectId(), pool.getAttributeCode());
         if (Objects.nonNull(attribute)) {
-            PoolHelper.putAttribute(dto, attribute);
+            this.putAttribute(dto, attribute);
         } else {
             // 预算池[{0}]维度属性错误!
             return ResultData.fail(ContextUtil.getMessage("pool_00007", pool.getCode()));
@@ -852,5 +848,52 @@ public class PoolService {
             return ResultData.fail(resultData.getMessage());
         }
         return ResultData.success(dto);
+    }
+
+    private PoolAttributeDto constructPoolAttribute(Pool pool) {
+        PoolAttributeDto dto = new PoolAttributeDto();
+        dto.setId(pool.getId());
+        dto.setCode(pool.getCode());
+        dto.setSubjectId(pool.getSubjectId());
+        dto.setCurrencyCode(pool.getCurrencyCode());
+        dto.setCurrencyName(pool.getCurrencyName());
+        dto.setManageOrg(pool.getManageOrg());
+        dto.setManageOrgName(pool.getManageOrgName());
+        dto.setPeriodType(pool.getPeriodType());
+        dto.setYear(pool.getYear());
+        dto.setStartDate(pool.getStartDate());
+        dto.setEndDate(pool.getEndDate());
+        dto.setActived(pool.getActived());
+        // todo
+        // dto.setUse(pool.getUse());
+        // dto.setRoll(pool.getRoll());
+        dto.setDelay(pool.getDelay());
+        dto.setTotalAmount(pool.getTotalAmount());
+        dto.setUsedAmount(pool.getUsedAmount());
+        dto.setBalance(pool.getBalance());
+        return dto;
+    }
+
+    private void putAttribute(BaseAttributeDto dto, DimensionAttribute attribute) {
+        dto.setAttribute(attribute.getAttribute());
+        dto.setAttributeCode(attribute.getAttributeCode());
+        dto.setPeriod(attribute.getPeriod());
+        dto.setPeriodName(attribute.getPeriodName());
+        dto.setItem(attribute.getItem());
+        dto.setItemName(attribute.getItemName());
+        dto.setOrg(attribute.getOrg());
+        dto.setOrgName(attribute.getOrgName());
+        dto.setProject(attribute.getProject());
+        dto.setProjectName(attribute.getProjectName());
+        dto.setUdf1(attribute.getUdf1());
+        dto.setUdf1Name(attribute.getUdf1Name());
+        dto.setUdf2(attribute.getUdf2());
+        dto.setUdf2Name(attribute.getUdf2Name());
+        dto.setUdf3(attribute.getUdf3());
+        dto.setUdf3Name(attribute.getUdf3Name());
+        dto.setUdf4(attribute.getUdf4());
+        dto.setUdf4Name(attribute.getUdf4Name());
+        dto.setUdf5(attribute.getUdf5());
+        dto.setUdf5Name(attribute.getUdf5Name());
     }
 }
