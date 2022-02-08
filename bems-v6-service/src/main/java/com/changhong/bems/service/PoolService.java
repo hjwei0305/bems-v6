@@ -316,6 +316,7 @@ public class PoolService {
         int success = 0;
         int fail = 0;
         LocalDate localDate = LocalDate.now();
+        // TODO 检查预算期间类型控制策略,是否可结转
         PeriodType[] periodTypes = new PeriodType[]{PeriodType.SEMIANNUAL, PeriodType.QUARTER, PeriodType.MONTHLY};
         List<Pool> poolList = dao.findExpirePools(localDate.getYear(), localDate, periodTypes);
         if (CollectionUtils.isNotEmpty(poolList)) {

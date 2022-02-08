@@ -59,17 +59,6 @@ public class CategoryDto extends BaseEntityDto {
     @NotNull
     @ApiModelProperty(value = "支持的订单类型清单", required = true)
     private OrderCategory[] orderCategories;
-
-    /**
-     * 允许使用(业务可用)
-     */
-    @ApiModelProperty(value = "允许使用(业务可用)")
-    private Boolean use = Boolean.FALSE;
-    /**
-     * 允许结转
-     */
-    @ApiModelProperty(value = "允许结转")
-    private Boolean roll = Boolean.FALSE;
     /**
      * 是否冻结
      */
@@ -140,22 +129,6 @@ public class CategoryDto extends BaseEntityDto {
 
     public void setOrderCategories(OrderCategory[] orderCategories) {
         this.orderCategories = orderCategories;
-    }
-
-    public Boolean getUse() {
-        return use;
-    }
-
-    public void setUse(Boolean use) {
-        this.use = use;
-    }
-
-    public Boolean getRoll() {
-        return roll;
-    }
-
-    public void setRoll(Boolean roll) {
-        this.roll = roll;
     }
 
     public Boolean getFrozen() {

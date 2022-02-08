@@ -50,6 +50,6 @@ public interface PoolDao extends BaseEntityDao<Pool>, PoolExtDao {
      * @param types 期间类型
      * @return 返回满足条件的预算池
      */
-    @Query("select p from Pool p where p.year = :year and p.endDate <= :date and p.periodType in :types and p.roll = true and p.actived = true and p.balance <> 0")
+    @Query("select p from Pool p where p.year = :year and p.endDate <= :date and p.periodType in :types and p.balance <> 0")
     List<Pool> findExpirePools(@Param("year") int year, @Param("date") LocalDate date, @Param("types") PeriodType[] types);
 }

@@ -28,7 +28,6 @@ public class Category extends BaseAuditableEntity implements ITenant, IFrozen, S
     public static final String FIELD_CLASSIFICATION = "classification";
     public static final String FIELD_TYPE = "type";
     public static final String FIELD_NAME = "name";
-    public static final String FIELD_PERIOD_TYPE = "periodType";
     /**
      * 名称
      */
@@ -62,16 +61,6 @@ public class Category extends BaseAuditableEntity implements ITenant, IFrozen, S
     @Column(name = "period_type")
     @Enumerated(EnumType.STRING)
     private PeriodType periodType;
-    /**
-     * 允许使用(业务可用)
-     */
-    @Column(name = "is_use")
-    private Boolean use;
-    /**
-     * 允许结转
-     */
-    @Column(name = "is_roll")
-    private Boolean roll;
     /**
      * 是否冻结
      */
@@ -134,22 +123,6 @@ public class Category extends BaseAuditableEntity implements ITenant, IFrozen, S
 
     public void setPeriodType(PeriodType periodType) {
         this.periodType = periodType;
-    }
-
-    public Boolean getUse() {
-        return use;
-    }
-
-    public void setUse(Boolean use) {
-        this.use = use;
-    }
-
-    public Boolean getRoll() {
-        return roll;
-    }
-
-    public void setRoll(Boolean roll) {
-        this.roll = roll;
     }
 
     @Override
