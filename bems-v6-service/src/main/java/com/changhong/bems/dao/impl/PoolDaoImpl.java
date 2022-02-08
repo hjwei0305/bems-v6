@@ -41,8 +41,6 @@ select `p`.`id`                                                                 
        `p`.`start_date`                                                                                AS `start_date`,
        `p`.`end_date`                                                                                  AS `end_date`,
        `p`.`is_actived`                                                                                AS `is_actived`,
-       `p`.`is_use`                                                                                    AS `is_use`,
-       `p`.`is_roll`                                                                                   AS `is_roll`,
        `p`.`is_delay`                                                                                  AS `is_delay`,
        `p`.`total_amount`                                                                              AS `total_amount`,
        `p`.`used_amount`                                                                               AS `used_amount`,
@@ -166,7 +164,7 @@ order by p.code
         StringBuilder selectData = new StringBuilder(32);
         selectData.append("select new com.changhong.bems.dto.PoolAttributeDto(")
                 .append("p.id, p.code, p.subjectId, p.currencyCode, p.currencyName, p.manageOrg, p.manageOrgName, ")
-                .append("p.periodType, p.year, p.startDate, p.endDate, p.actived, p.use, p.roll, p.delay, ")
+                .append("p.periodType, p.year, p.startDate, p.endDate, p.actived, p.delay, ")
                 .append("p.totalAmount, p.usedAmount, p.balance, a.attribute, a.attributeCode, a.period, a.periodName, ")
                 .append("a.item, a.itemName, a.org, a.orgName, a.project, a.projectName, a.udf1, a.udf1Name, ")
                 .append("a.udf2, a.udf2Name, a.udf3, a.udf3Name, a.udf4, a.udf4Name, a.udf5, a.udf5Name ")

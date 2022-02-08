@@ -120,7 +120,7 @@ public class PoolAttributeDto extends BaseAttributeDto {
     public PoolAttributeDto(String id, String code, String subjectId, String currencyCode, String currencyName,
                             String manageOrg, String manageOrgName, PeriodType periodType, Integer year,
                             LocalDate startDate, LocalDate endDate,
-                            Boolean actived, Boolean use, Boolean roll, Boolean delay, BigDecimal totalAmount,
+                            Boolean actived, Boolean delay, BigDecimal totalAmount,
                             BigDecimal usedAmount, BigDecimal balance,
                             String attribute, Long attributeCode, String period, String periodName, String item,
                             String itemName, String org, String orgName, String project, String projectName,
@@ -138,8 +138,6 @@ public class PoolAttributeDto extends BaseAttributeDto {
         this.startDate = startDate;
         this.endDate = endDate;
         this.actived = actived;
-        this.use = use;
-        this.roll = roll;
         this.delay = delay;
         this.totalAmount = totalAmount;
         this.usedAmount = usedAmount;
