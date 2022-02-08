@@ -23,6 +23,7 @@ import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.util.JsonUtils;
 import com.changhong.sei.util.EnumUtils;
+import com.changhong.sei.utils.AsyncRunUtil;
 import com.google.common.collect.Sets;
 import io.swagger.annotations.Api;
 import org.apache.commons.collections.CollectionUtils;
@@ -69,6 +70,8 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
     private BudgetDimensionCustManager budgetDimensionCustManager;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private AsyncRunUtil asyncRunUtil;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
@@ -713,7 +716,12 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
                 // 检查订单状态
                 if (OrderStatus.APPROVING == order.getStatus()) {
                     // 撤销预算预占用
-                    service.cancelConfirm(order);
+                    asyncRunUtil.runAsync(() -> {
+                        ResultData<Order> resultData = service.cancelConfirm(order);
+                        if (resultData.failed()) {
+                            LOG.error("预算申请单[{}]退出流程出现错误:{}", order.getCode(), resultData.getMessage());
+                        }
+                    });
                 } else {
                     // 订单状态为[{0}],不允许操作!
                     return ResultData.fail(ContextUtil.getMessage("order_00004", ContextUtil.getMessage(EnumUtils.getEnumItemRemark(OrderStatus.class, order.getStatus()))));

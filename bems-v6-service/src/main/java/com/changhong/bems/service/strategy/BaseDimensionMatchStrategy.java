@@ -28,7 +28,7 @@ public interface BaseDimensionMatchStrategy extends AbstractStrategy {
      * @param dimValue 维度值
      * @return 返回匹配值
      */
-    ResultData<Object> getMatchValue(BudgetUse budgetUse, String dimValue);
+    ResultData<Object> getMatchValue(BudgetUse budgetUse, String subjectId, String dimCode, String dimValue);
 
     /**
      * @param dimensionCode 维度代码

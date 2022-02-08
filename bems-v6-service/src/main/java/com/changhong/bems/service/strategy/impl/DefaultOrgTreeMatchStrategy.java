@@ -33,7 +33,7 @@ public class DefaultOrgTreeMatchStrategy extends BaseMatchStrategy implements Or
      * @return 返回匹配值
      */
     @Override
-    public ResultData<Object> getMatchValue(BudgetUse budgetUse, String dimValue) {
+    public ResultData<Object> getMatchValue(BudgetUse budgetUse, String subjectId, String dimCode, String dimValue) {
         ResultData<List<OrganizationDto>> resultData = organizationManager.getParentNodes(dimValue, Boolean.TRUE);
         if (resultData.successful()) {
             List<OrganizationDto> orgList = resultData.getData();

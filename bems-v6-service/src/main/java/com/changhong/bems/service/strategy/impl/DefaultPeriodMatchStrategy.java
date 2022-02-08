@@ -19,7 +19,7 @@ public class DefaultPeriodMatchStrategy extends BaseMatchStrategy implements Per
      * @return 返回匹配值
      */
     @Override
-    public ResultData<Object> getMatchValue(BudgetUse budgetUse, String dimValue) {
+    public ResultData<Object> getMatchValue(BudgetUse budgetUse, String subjectId, String dimCode, String dimValue) {
         // TODO 期间关系策略
         return null;
     }

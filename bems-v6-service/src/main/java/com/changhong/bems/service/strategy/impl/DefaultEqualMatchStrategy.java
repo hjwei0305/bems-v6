@@ -18,7 +18,7 @@ public class DefaultEqualMatchStrategy extends BaseMatchStrategy implements Equa
      * @return 返回匹配值
      */
     @Override
-    public ResultData<Object> getMatchValue(BudgetUse budgetUse, String dimValue) {
+    public ResultData<Object> getMatchValue(BudgetUse budgetUse, String subjectId, String dimCode, String dimValue) {
         return ResultData.success(dimValue);
     }
 

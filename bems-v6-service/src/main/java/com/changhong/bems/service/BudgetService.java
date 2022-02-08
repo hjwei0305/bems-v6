@@ -184,11 +184,10 @@ public class BudgetService {
      * @return 返回占用结果
      */
     private ResultData<BudgetResponse> useBudget(Classification classification, BudgetUse useBudget) {
-        // 事件代码
-        String eventCode = useBudget.getEventCode();
-        // 业务id
-        String bizId = useBudget.getBizId();
-
+        // // 事件代码
+        // String eventCode = useBudget.getEventCode();
+        // // 业务id
+        // String bizId = useBudget.getBizId();
         switch (classification) {
             case DEPARTMENT:
                 // 组织级预算,检查组织机构是否为空
@@ -442,7 +441,7 @@ public class BudgetService {
             // 策略实例
             BaseDimensionMatchStrategy matchStrategy = strategyService.getMatchStrategy(dimension.getStrategyId());
             // 策略结果
-            ResultData<Object> resultData = matchStrategy.getMatchValue(budgetUse, dimValue);
+            ResultData<Object> resultData = matchStrategy.getMatchValue(budgetUse, subjectId, dimCode, dimValue);
             if (resultData.successful()) {
                 SearchFilter filter;
                 Object obj = resultData.getData();
