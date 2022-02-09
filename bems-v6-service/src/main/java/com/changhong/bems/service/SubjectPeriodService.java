@@ -65,23 +65,6 @@ public class SubjectPeriodService extends BaseEntityService<SubjectPeriod> {
     }
 
     /**
-     * 冻结/解冻预算类型
-     *
-     * @param ids 预算主体科目id
-     * @return 操作结果
-     */
-    @CacheEvict(allEntries = true)
-    @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> frozen(List<String> ids, boolean frozen) {
-        List<SubjectPeriod> items = dao.findAllById(ids);
-        for (SubjectPeriod item : items) {
-            item.setFrozen(frozen);
-        }
-        this.save(items);
-        return ResultData.success();
-    }
-
-    /**
      * 根据预算主体查询私有预算主体科目
      *
      * @param subjectId 预算主体id

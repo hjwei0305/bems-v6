@@ -6,10 +6,7 @@ import com.changhong.sei.core.dto.ResultData;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -22,35 +19,35 @@ import java.util.List;
  */
 @Valid
 @FeignClient(name = "bems-v6", path = SubjectPeriodApi.PATH)
-public interface SubjectPeriodApi extends BaseEntityApi<SubjectPeriodDto> {
+public interface SubjectPeriodApi {
     String PATH = "subjectPeriod";
 
     /**
-     * 冻结预算期间策略
+     * 维护业务是否可使用
      *
-     * @param ids 预算期间策略id
+     * @param id 预算期间策略id
      * @return 操作结果
      */
-    @PostMapping(path = "frozen", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "冻结预算期间策略", notes = "冻结预算期间策略")
-    ResultData<Void> frozen(@RequestBody List<String> ids);
+    @PostMapping(path = "use/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "维护业务是否可使用", notes = "维护业务是否可使用")
+    ResultData<Void> use(@PathVariable("id") String id, @RequestBody Boolean use);
 
     /**
-     * 解冻预算期间策略
+     * 维护是否可结转
      *
-     * @param ids 预算期间策略id
+     * @param id 预算期间策略id
      * @return 操作结果
      */
-    @PostMapping(path = "unfrozen", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "解冻预算期间策略", notes = "解冻预算期间策略")
-    ResultData<Void> unfrozen(@RequestBody List<String> ids);
+    @PostMapping(path = "roll/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "维护是否可结转", notes = "维护是否可结转")
+    ResultData<Void> roll(@PathVariable("id") String id, @RequestBody Boolean roll);
 
     /**
      * 获取指定主体的预算期间策略
      *
      * @return 子实体清单
      */
-    @GetMapping(path = "getSubjectPeriods/{subjectId}")
+    @GetMapping(path = "getSubjectPeriods")
     @ApiOperation(value = "获取指定主体的预算期间策略", notes = "获取指定主体的预算期间策略")
-    ResultData<List<SubjectPeriodDto>> getSubjectPeriods(@PathVariable("subjectId") String subjectId);
+    ResultData<List<SubjectPeriodDto>> getSubjectPeriods(@RequestParam("subjectId") String subjectId);
 }
