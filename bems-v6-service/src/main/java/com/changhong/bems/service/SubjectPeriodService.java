@@ -5,7 +5,6 @@ import com.changhong.bems.dto.PeriodType;
 import com.changhong.bems.entity.SubjectItem;
 import com.changhong.bems.entity.SubjectPeriod;
 import com.changhong.sei.core.dao.BaseEntityDao;
-import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.dto.serach.SearchOrder;
@@ -22,7 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 预算期间类型策略(SubjectPeriod)业务逻辑实现类
@@ -110,7 +111,7 @@ public class SubjectPeriodService extends BaseEntityService<SubjectPeriod> {
                 TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             }
         }
-        return list;
+        return list.stream().sorted(Comparator.comparingInt(o -> o.getPeriodType().ordinal())).collect(Collectors.toList());
     }
 
     /**

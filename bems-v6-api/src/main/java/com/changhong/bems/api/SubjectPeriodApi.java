@@ -1,11 +1,9 @@
 package com.changhong.bems.api;
 
 import com.changhong.bems.dto.SubjectPeriodDto;
-import com.changhong.sei.core.api.BaseEntityApi;
 import com.changhong.sei.core.dto.ResultData;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -28,7 +26,7 @@ public interface SubjectPeriodApi {
      * @param id 预算期间策略id
      * @return 操作结果
      */
-    @PostMapping(path = "use/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "use/{id}")
     @ApiOperation(value = "维护业务是否可使用", notes = "维护业务是否可使用")
     ResultData<Void> use(@PathVariable("id") String id, @RequestBody Boolean use);
 
@@ -38,7 +36,7 @@ public interface SubjectPeriodApi {
      * @param id 预算期间策略id
      * @return 操作结果
      */
-    @PostMapping(path = "roll/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "roll/{id}")
     @ApiOperation(value = "维护是否可结转", notes = "维护是否可结转")
     ResultData<Void> roll(@PathVariable("id") String id, @RequestBody Boolean roll);
 
