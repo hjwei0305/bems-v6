@@ -597,13 +597,13 @@ public class PoolService {
             search.addFilter(new SearchFilter(Pool.FIELD_ATTRIBUTE_CODE, attributeCodes.get(0)));
         }
         if (periodType.isPresent()) {
-            //有效期
-            search.addFilter(new SearchFilter(Pool.FIELD_START_DATE, useDate, SearchFilter.Operator.LE));
+            // 预算期间类型
+            search.addFilter(new SearchFilter(Pool.FIELD_PERIOD_TYPE, periodType.get()));
+            // 占用日期之后的(含自己但不含占用日期之前的预算池)
             search.addFilter(new SearchFilter(Pool.FIELD_END_DATE, useDate, SearchFilter.Operator.GE));
         } else {
-            // 预算期间类型
-            search.addFilter(new SearchFilter(Pool.FIELD_PERIOD_TYPE, periodType));
-            // 占用日期之后的(含自己但不含占用日期之前的预算池)
+            //有效期
+            search.addFilter(new SearchFilter(Pool.FIELD_START_DATE, useDate, SearchFilter.Operator.LE));
             search.addFilter(new SearchFilter(Pool.FIELD_END_DATE, useDate, SearchFilter.Operator.GE));
         }
 
