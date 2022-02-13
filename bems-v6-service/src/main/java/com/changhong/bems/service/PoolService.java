@@ -316,37 +316,45 @@ public class PoolService {
      * @return 滚动结果
      */
     public ResultData<String> trundlePool() {
-        int sum = 0;
-        int success = 0;
-        int fail = 0;
-        LocalDate localDate = LocalDate.now();
-        // 获取超过指定日期的非自定义期间类型预算池
-        List<Pool> poolList = dao.findNoCustomizeExpirePools(localDate.getYear(), localDate);
-        if (CollectionUtils.isNotEmpty(poolList)) {
-            sum = poolList.size();
-            String bizId = IdGenerator.uuid2();
-            String bizCode = DateUtils.formatDate(new Date(), DateUtils.FULL_SEQ_FORMAT);
-            SessionUser sessionUser = ContextUtil.getSessionUser();
-            // 为了启用事务,特以此获取bean再调用
-            PoolService service = ContextUtil.getBean(PoolService.class);
-            poolList.parallelStream().forEach(pool -> {
-                ThreadLocalHolder.begin();
-                try {
-                    mockUser.mock(sessionUser);
+        String key = "bemsv6:trundle:pool:batch";
+        try {
+            if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
+                // 正在结转处理中
+                return ResultData.fail(ContextUtil.getMessage("pool_00036"));
+            }
+            redisTemplate.opsForValue().set(key, "true", 10, TimeUnit.MINUTES);
+            int sum = 0;
+            LocalDate localDate = LocalDate.now();
+            // 获取超过指定日期的非自定义期间类型预算池
+            List<Pool> poolList = dao.findNoCustomizeExpirePools(localDate.getYear(), localDate);
+            if (CollectionUtils.isNotEmpty(poolList)) {
+                sum = poolList.size();
+                String bizId = IdGenerator.uuid2();
+                String bizCode = DateUtils.formatDate(new Date(), DateUtils.FULL_SEQ_FORMAT);
+                SessionUser sessionUser = ContextUtil.getSessionUser();
+                // 为了启用事务,特以此获取bean再调用
+                PoolService service = ContextUtil.getBean(PoolService.class);
+                poolList.parallelStream().forEach(pool -> {
+                    ThreadLocalHolder.begin();
+                    try {
+                        mockUser.mock(sessionUser);
 
-                    ResultData<Void> resultData = service.trundlePool(pool, bizId, bizCode);
-                    if (LOG.isInfoEnabled()) {
-                        LOG.info("{} 预算滚动结转结果: {}", pool.getCode(), resultData);
+                        ResultData<Void> resultData = service.trundlePool(pool, bizId, bizCode);
+                        if (LOG.isInfoEnabled()) {
+                            LOG.info("{} 预算滚动结转结果: {}", pool.getCode(), resultData);
+                        }
+                    } catch (Exception e) {
+                        LOG.error(pool.getCode() + " 预算滚动结转异常", e);
+                    } finally {
+                        ThreadLocalHolder.end();
                     }
-                } catch (Exception e) {
-                    LOG.error(pool.getCode() + " 预算滚动结转异常", e);
-                } finally {
-                    ThreadLocalHolder.end();
-                }
-            });
+                });
+            }
+            // 本次共有[{0}]个预算需要做滚动结转.
+            return ResultData.success(ContextUtil.getMessage("pool_00035", sum));
+        } finally {
+            redisTemplate.delete(key);
         }
-        // 本次滚动结转预算池: 共%d个, 成功%d个, 失败%d个
-        return ResultData.success(ContextUtil.getMessage("pool_00035", sum, success, fail));
     }
 
     /**
@@ -384,7 +392,7 @@ public class PoolService {
         if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
             return ResultData.fail(ContextUtil.getMessage("pool_00037", pool.getCode()));
         }
-        redisTemplate.opsForValue().set(key, "true", 1, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(key, "true", 10, TimeUnit.MINUTES);
         try {
             // 检查预算期间类型控制策略,是否可结转
             SubjectPeriod subjectPeriod = subjectPeriodService.getSubjectPeriod(pool.getSubjectId(), pool.getPeriodType());
