@@ -62,7 +62,6 @@ public class BudgetController implements BudgetApi {
      * @return 使用预算结果
      */
     @Override
-    @Log(value = "使用预算", level = Level.INFO)
     public ResultData<List<BudgetResponse>> use(BudgetRequest request) {
         return service.use(request);
     }

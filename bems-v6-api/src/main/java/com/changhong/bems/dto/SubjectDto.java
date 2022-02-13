@@ -1,6 +1,8 @@
 package com.changhong.bems.dto;
 
 import com.changhong.sei.core.dto.BaseEntityDto;
+import com.changhong.sei.core.dto.serializer.EnumJsonSerializer;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -42,6 +44,7 @@ public class SubjectDto extends BaseEntityDto {
      * 预算分类
      */
     @NotNull
+    @JsonSerialize(using = EnumJsonSerializer.class)
     @ApiModelProperty(value = "预算分类", required = true)
     private Classification classification;
     /**

@@ -42,3 +42,10 @@ spring:
 #        healthCheckInterval: 15s
 #        health-check-url: http://${spring.cloud.client.ip-address}:${server.port}/actuator/health
 #        hostname: ${spring.application.name}.industry
+
+logging:
+  level:
+    com:
+      changhong:
+        bems:
+          service: INFO
