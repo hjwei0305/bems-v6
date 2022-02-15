@@ -216,13 +216,17 @@ public class PeriodService extends BaseEntityService<Period> {
 
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(Period.FIELD_SUBJECT_ID, period.getSubjectId()));
-        search.addFilter(new SearchFilter(Period.FIELD_NAME, period.getName()));
+        search.addFilter(new SearchFilter(Period.FIELD_TYPE, PeriodType.CUSTOMIZE));
+        search.addFilter(new SearchFilter(Period.FIELD_CLOSED, Boolean.FALSE));
+        search.addFilter(new SearchFilter(Period.FIELD_START_DATE, period.getStartDate()));
+        search.addFilter(new SearchFilter(Period.FIELD_END_DATE, period.getEndDate()));
         Period existed = dao.findFirstByFilters(search);
+        if (Objects.nonNull(existed)) {
+            // 已存在预算期间
+            return ResultData.success(existed);
+        }
+
         if (StringUtils.isNotBlank(id)) {
-            if (Objects.nonNull(existed) && !StringUtils.equals(period.getId(), existed.getId())) {
-                // 已存在预算期间
-                return ResultData.fail(ContextUtil.getMessage("period_00007", existed.getName()));
-            }
             if (this.checkCustomizePeriod(id)) {
                 // 预算期间已被使用,禁止修改!
                 return ResultData.fail(ContextUtil.getMessage("period_00004"));
@@ -235,10 +239,6 @@ public class PeriodService extends BaseEntityService<Period> {
             period.setId(id);
             period.setCode(existed.getCode());
         } else {
-            if (Objects.nonNull(existed)) {
-                // 已存在预算期间
-                return ResultData.fail(ContextUtil.getMessage("period_00007", existed.getName()));
-            }
             period.setCode(String.valueOf(IdGenerator.nextId()));
         }
 
