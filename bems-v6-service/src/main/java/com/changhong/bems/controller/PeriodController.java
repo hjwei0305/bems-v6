@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -124,11 +125,12 @@ public class PeriodController extends BaseEntityController<Period, PeriodDto> im
      */
     @Override
     public ResultData<PeriodDto> saveCustomizePeriod(CreateCustomizePeriodRequest request) {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd");
         Period period = new Period();
         period.setId(request.getId());
         period.setType(PeriodType.CUSTOMIZE);
         period.setSubjectId(request.getSubjectId());
-        period.setName(request.getName());
+        period.setName(request.getStartDate().format(dtf) + "-" + request.getEndDate().format(dtf));
         period.setYear(request.getStartDate().getYear());
         period.setStartDate(request.getStartDate());
         period.setEndDate(request.getEndDate());
