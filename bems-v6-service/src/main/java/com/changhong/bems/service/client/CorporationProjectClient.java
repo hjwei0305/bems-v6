@@ -7,6 +7,8 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -27,7 +29,7 @@ public interface CorporationProjectClient {
      * @return 未冻结币种清单
      */
     @PostMapping(path = "findByPage", consumes = MediaType.APPLICATION_JSON_VALUE)
-    ResultData<PageResult<CorporationProjectDto>> findByPage(Search search);
+    ResultData<PageResult<CorporationProjectDto>> findByPage(@RequestBody Search search);
 
     /**
      * 按ERP公司代码查询项目
@@ -36,5 +38,5 @@ public interface CorporationProjectClient {
      * @return 项目清单
      */
     @GetMapping(path = "findByErpCode")
-    ResultData<List<CorporationProjectDto>> findByErpCode(String erpCorpCode);
+    ResultData<List<CorporationProjectDto>> findByErpCode(@RequestParam("erpCorpCode") String erpCorpCode);
 }

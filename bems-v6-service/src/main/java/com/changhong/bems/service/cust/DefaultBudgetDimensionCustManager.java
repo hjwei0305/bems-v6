@@ -19,11 +19,9 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -225,7 +223,7 @@ public class DefaultBudgetDimensionCustManager implements BudgetDimensionCustMan
                 ResultData<List<ProjectDto>> listResultData = projectManager.findByErpCode(subject.getCorporationCode());
                 if (listResultData.successful()) {
                     List<ProjectDto> projectList = listResultData.getData();
-                    data = projectList.stream().collect(Collectors.toMap(ProjectDto::getName, ProjectDto::getId));
+                    data = projectList.stream().collect(Collectors.toMap(proj -> proj.getName() + "(" + proj.getCode() + ")", ProjectDto::getId));
                 }
                 break;
             case Constants.DIMENSION_CODE_COST_CENTER:
