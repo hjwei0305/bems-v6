@@ -25,9 +25,9 @@ public class CreateCustomizePeriodRequest extends BaseEntityDto implements Seria
     @Size(max = 36)
     @ApiModelProperty(value = "预算主体id", required = true)
     private String subjectId;
-    @NotBlank
-    @Size(max = 50)
-    @ApiModelProperty(value = "期间名称")
+    // @NotBlank
+    // @Size(max = 50)
+    // @ApiModelProperty(value = "期间名称")
     private String name;
     /**
      * 起始日期
