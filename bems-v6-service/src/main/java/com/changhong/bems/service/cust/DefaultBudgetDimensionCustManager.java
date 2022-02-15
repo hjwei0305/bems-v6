@@ -194,13 +194,13 @@ public class DefaultBudgetDimensionCustManager implements BudgetDimensionCustMan
     @SuppressWarnings({"unchecked", "ConstantConditions"})
     public Map<String, String> getDimensionNameValueMap(Subject subject, String dimCode) {
         String subjectId = subject.getId();
-        BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.DIMENSION_MAP_CACHE_KEY_PREFIX.concat(dimCode).concat(":").concat(subjectId));
-        Map<String, String> data = (Map<String, String>) operations.get();
-        if (Objects.nonNull(data) && !data.isEmpty()) {
-            return data;
-        }
+        // BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.DIMENSION_MAP_CACHE_KEY_PREFIX.concat(dimCode).concat(":").concat(subjectId));
+        // Map<String, String> data = (Map<String, String>) operations.get();
+        // if (Objects.nonNull(data) && !data.isEmpty()) {
+        //     return data;
+        // }
 
-        data = new HashMap<>();
+        Map<String, String> data = new HashMap<>();
         switch (dimCode) {
             case Constants.DIMENSION_CODE_PERIOD:
                 List<Period> periods = periodService.findBySubjectUnclosed(subjectId);
@@ -244,9 +244,9 @@ public class DefaultBudgetDimensionCustManager implements BudgetDimensionCustMan
                 // 不支持的预算维度
                 LOG.error(ContextUtil.getMessage("dimension_00005", dimCode));
         }
-        if (!data.isEmpty()) {
-            operations.set(data, 10, TimeUnit.HOURS);
-        }
+        // if (!data.isEmpty()) {
+        //     operations.set(data, 10, TimeUnit.HOURS);
+        // }
         return data;
     }
 }
