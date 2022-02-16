@@ -160,6 +160,26 @@ public class EventService extends BaseEntityService<Event> {
             event.setRequired(Boolean.TRUE);
             super.save(event);
             eventList.add(event);
+
+            event = new Event();
+            event.setCode("APPLICATION_USE");
+            // 费用-申请占用
+            event.setName(ContextUtil.getMessage("event_application_use"));
+            event.setBizFrom(appCode);
+            event.setRank(10);
+            event.setRequired(Boolean.TRUE);
+            super.save(event);
+            eventList.add(event);
+
+            event = new Event();
+            event.setCode("REIMBURSEMENT_USE");
+            // 费用-报销占用
+            event.setName(ContextUtil.getMessage("event_reimbursement_use"));
+            event.setBizFrom(appCode);
+            event.setRank(11);
+            event.setRequired(Boolean.TRUE);
+            super.save(event);
+            eventList.add(event);
         }
         return ResultData.success(eventList);
     }

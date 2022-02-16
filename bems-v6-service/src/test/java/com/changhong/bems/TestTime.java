@@ -97,7 +97,7 @@ public class TestTime {
         format.setCaseType(HanyuPinyinCaseType.UPPERCASE);
         format.setToneType(HanyuPinyinToneType.WITHOUT_TONE);
         StringBuilder firstPinyin = new StringBuilder();
-        char[] hanyuArr = "虹信软件".trim().toCharArray();
+        char[] hanyuArr = "虹信软件-基础平台部".trim().toCharArray();
         try {
             for (char c : hanyuArr) {
                 if (Character.toString(c).matches("[\\u4E00-\\u9FA5]+")) {
