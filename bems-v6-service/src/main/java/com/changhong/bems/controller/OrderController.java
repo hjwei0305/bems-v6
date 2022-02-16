@@ -714,7 +714,7 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
             case INIT:
                 // 流程终止或退出
                 // 检查订单状态
-                if (OrderStatus.APPROVING == order.getStatus()) {
+                if (OrderStatus.APPROVING == order.getStatus() || OrderStatus.DRAFT == order.getStatus()) {
                     // 撤销预算预占用
                     asyncRunUtil.runAsync(() -> {
                         ResultData<Order> resultData = service.cancelConfirm(order);

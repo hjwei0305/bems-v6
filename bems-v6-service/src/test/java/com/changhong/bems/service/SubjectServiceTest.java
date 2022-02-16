@@ -1,11 +1,15 @@
 package com.changhong.bems.service;
 
+import com.changhong.bems.dto.CorporationDto;
 import com.changhong.bems.entity.Subject;
+import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.service.bo.OperateResultWithData;
 import com.changhong.sei.core.test.BaseUnit5Test;
 import com.changhong.sei.core.util.JsonUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -26,6 +30,8 @@ class SubjectServiceTest extends BaseUnit5Test {
 
     @Test
     void findUserAuthorizedCorporations() {
+        ResultData<List<CorporationDto>> resultData = service.findUserAuthorizedCorporations();
+        System.out.println(resultData);
     }
 
     @Test

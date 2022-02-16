@@ -25,6 +25,10 @@ import com.changhong.sei.core.service.DataAuthEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
 import com.changhong.sei.core.service.bo.OperateResultWithData;
 import com.changhong.sei.util.IdGenerator;
+import net.sourceforge.pinyin4j.PinyinHelper;
+import net.sourceforge.pinyin4j.format.HanyuPinyinCaseType;
+import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat;
+import net.sourceforge.pinyin4j.format.HanyuPinyinToneType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -246,7 +250,25 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
         }
 
         if (StringUtils.isBlank(entity.getCode())) {
-            entity.setCode(String.valueOf(IdGenerator.nextId()));
+            HanyuPinyinOutputFormat format = new HanyuPinyinOutputFormat();
+            format.setCaseType(HanyuPinyinCaseType.UPPERCASE);
+            format.setToneType(HanyuPinyinToneType.WITHOUT_TONE);
+            StringBuilder firstPinyin = new StringBuilder();
+            char[] hanyuArr = entity.getName().trim().toCharArray();
+            try {
+                for (char c : hanyuArr) {
+                    if (Character.toString(c).matches("[\\u4E00-\\u9FA5]+")) {
+                        String[] pys = PinyinHelper.toHanyuPinyinStringArray(c, format);
+                        firstPinyin.append(pys[0].charAt(0));
+                    } else {
+                        firstPinyin.append(c);
+                    }
+                }
+            } catch (Exception e) {
+                LogUtil.error("拼音转换异常", e);
+                firstPinyin = new StringBuilder("" + IdGenerator.nextId());
+            }
+            entity.setCode(firstPinyin.toString());
         }
         if (Objects.equals(Classification.PROJECT, entity.getClassification())) {
             // 检查同一公司下有且只有一个项目级主体
@@ -549,8 +571,7 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
         //获取清单中的顶级节点
         for (OrganizationDto node : sordedNodes) {
             String parentId = node.getParentId();
-            OrganizationDto parent = sordedNodes.stream().filter((n) -> StringUtils.equals(n.getId(), parentId)
-                    && !StringUtils.equals(n.getId(), node.getId())).findAny().orElse(null);
+            OrganizationDto parent = sordedNodes.stream().filter((n) -> StringUtils.equals(n.getId(), parentId) && !StringUtils.equals(n.getId(), node.getId())).findAny().orElse(null);
             if (parent == null) {
                 //递归构造子节点
                 findChildren(node, sordedNodes);

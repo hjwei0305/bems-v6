@@ -1,5 +1,9 @@
 package com.changhong.bems;
 
+import net.sourceforge.pinyin4j.PinyinHelper;
+import net.sourceforge.pinyin4j.format.HanyuPinyinCaseType;
+import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat;
+import net.sourceforge.pinyin4j.format.HanyuPinyinToneType;
 import org.apache.commons.lang.StringUtils;
 import org.junit.jupiter.api.Test;
 
@@ -67,7 +71,7 @@ public class TestTime {
 
     private static boolean isNumeric(String str) {
         Boolean strResult = str.matches("-?[0-9]+.?[0-9]*");
-        if(strResult) {
+        if (strResult) {
             System.out.println("Is Number!");
         } else {
             System.out.println("Is not Number!");
@@ -85,5 +89,27 @@ public class TestTime {
         System.out.println("耗时(ms): " + duration.toMillis());
         System.out.println("耗时(s)" + duration.toMillis() / 1000);
         System.out.println("耗时(s)" + duration.toMinutes());
+    }
+
+    @Test
+    public void pinYin() {
+        HanyuPinyinOutputFormat format = new HanyuPinyinOutputFormat();
+        format.setCaseType(HanyuPinyinCaseType.UPPERCASE);
+        format.setToneType(HanyuPinyinToneType.WITHOUT_TONE);
+        StringBuilder firstPinyin = new StringBuilder();
+        char[] hanyuArr = "虹信软件".trim().toCharArray();
+        try {
+            for (char c : hanyuArr) {
+                if (Character.toString(c).matches("[\\u4E00-\\u9FA5]+")) {
+                    String[] pys = PinyinHelper.toHanyuPinyinStringArray(c, format);
+                    firstPinyin.append(pys[0].charAt(0));
+                } else {
+                    firstPinyin.append(c);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println(firstPinyin.toString());
     }
 }
