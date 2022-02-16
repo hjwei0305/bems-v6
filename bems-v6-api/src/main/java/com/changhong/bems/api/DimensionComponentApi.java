@@ -33,7 +33,7 @@ public interface DimensionComponentApi {
     @GetMapping(path = "getBudgetItems")
     @ApiImplicitParam(name = "subjectId", value = "预算主体id", dataTypeClass = String.class, required = true)
     @ApiOperation(value = "获取预算科目", notes = "获取指定预算主体的科目(维度组件专用)")
-    ResultData<List<StrategyItemDto>> getBudgetItems(@RequestParam("subjectId") String subjectId);
+    ResultData<List<BudgetItemDto>> getBudgetItems(@RequestParam("subjectId") String subjectId);
 
     /**
      * 按预算主体和期间类型获取期间

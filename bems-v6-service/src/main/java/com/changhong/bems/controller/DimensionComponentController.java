@@ -2,8 +2,8 @@ package com.changhong.bems.controller;
 
 import com.changhong.bems.api.DimensionComponentApi;
 import com.changhong.bems.dto.*;
+import com.changhong.bems.entity.Item;
 import com.changhong.bems.entity.Period;
-import com.changhong.bems.entity.StrategyItem;
 import com.changhong.bems.service.cust.BudgetDimensionCustManager;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.util.EnumUtils;
@@ -45,9 +45,9 @@ public class DimensionComponentController implements DimensionComponentApi {
      * @return 子实体清单
      */
     @Override
-    public ResultData<List<StrategyItemDto>> getBudgetItems(String subjectId) {
-        List<StrategyItem> subjectItems = budgetDimensionCustManager.getBudgetItems(subjectId);
-        return ResultData.success(subjectItems.stream().map(s -> modelMapper.map(s, StrategyItemDto.class)).collect(Collectors.toList()));
+    public ResultData<List<BudgetItemDto>> getBudgetItems(String subjectId) {
+        List<Item> items = budgetDimensionCustManager.getBudgetItems(subjectId);
+        return ResultData.success(items.stream().map(s -> modelMapper.map(s, BudgetItemDto.class)).collect(Collectors.toList()));
     }
 
     /**

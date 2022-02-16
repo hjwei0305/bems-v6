@@ -5,10 +5,12 @@ import com.changhong.bems.dto.SubjectItemSearch;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
 
@@ -32,4 +34,26 @@ public interface SubjectItemApi {
     @PostMapping(path = "findPageBySubject", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "按主体获取预算科目执行策略", notes = "按主体获取预算科目执行策略")
     ResultData<PageResult<StrategyItemDto>> findPageBySubject(@RequestBody SubjectItemSearch search);
+
+    /**
+     * 设置预算科目为主体私有
+     *
+     * @return 设置结果
+     */
+    @PostMapping(path = "turnPrivate")
+    @ApiOperation(value = "设置预算科目为主体私有", notes = "设置预算科目为主体私有")
+    ResultData<Void> turnPrivate(@ApiParam("预算主体id") @RequestParam("subjectId") String subjectId,
+                                 @ApiParam("预算科目代码") @RequestParam("itemCode") String itemCode,
+                                 @ApiParam("设为主体私有") @RequestParam("isPrivate") boolean isPrivate);
+
+    /**
+     * 配置预算科目执行策略
+     *
+     * @return 配置结果
+     */
+    @PostMapping(path = "setStrategy")
+    @ApiOperation(value = "配置预算科目执行策略", notes = "配置预算科目执行策略")
+    ResultData<Void> setStrategy(@ApiParam("预算主体id") @RequestParam("subjectId") String subjectId,
+                                 @ApiParam("预算科目代码") @RequestParam("itemCode") String itemCode,
+                                 @ApiParam("维度策略") @RequestParam("strategyId") String strategyId);
 }

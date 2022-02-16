@@ -3,8 +3,8 @@ package com.changhong.bems.service;
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.StrategyCategory;
 import com.changhong.bems.dto.StrategyDto;
-import com.changhong.bems.entity.Subject;
 import com.changhong.bems.entity.StrategyItem;
+import com.changhong.bems.entity.Subject;
 import com.changhong.bems.service.strategy.AbstractStrategy;
 import com.changhong.bems.service.strategy.BaseBudgetExecutionStrategy;
 import com.changhong.bems.service.strategy.BaseDimensionMatchStrategy;
@@ -31,13 +31,6 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 public class StrategyService {
-
-    @Autowired
-    private SubjectService subjectService;
-    @Autowired
-    private StrategyItemService subjectItemService;
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
 
     private final Map<String, AbstractStrategy> strategyMap;
 
@@ -87,6 +80,12 @@ public class StrategyService {
         return dto;
     }
 
+    /**
+     * 通过策略id获取策略名称
+     *
+     * @param code 策略id
+     * @return 策略名称
+     */
     public String getNameByCode(String code) {
         AbstractStrategy strategy = strategyMap.get(code);
         if (Objects.nonNull(strategy)) {
@@ -171,45 +170,5 @@ public class StrategyService {
             }
         }
         return strategyList;
-    }
-
-    /**
-     * 获取预算执行控制策略
-     *
-     * @param subjectId 预算主体id
-     * @param itemCode  预算科目代码
-     * @return 预算执行控制策略
-     */
-    public ResultData<StrategyDto> getStrategy(String subjectId, String itemCode) {
-        BoundValueOperations<String, Object> operations =
-                redisTemplate.boundValueOps(Constants.STRATEGY_CACHE_KEY_PREFIX + subjectId + ":" + itemCode);
-        // 预算主体策略
-        StrategyDto strategy = (StrategyDto) operations.get();
-        if (Objects.isNull(strategy)) {
-            // 预算主体科目
-            StrategyItem subjectItem = subjectItemService.getSubjectItem(subjectId, itemCode);
-            if (Objects.nonNull(subjectItem)) {
-                if (StringUtils.isNotBlank(subjectItem.getStrategyId())) {
-                    // 预算主体科目策略
-                    strategy = this.getByCode(subjectItem.getStrategyId());
-                }
-            }
-            if (Objects.isNull(strategy)) {
-                Subject subject = subjectService.getSubject(subjectId);
-                if (Objects.nonNull(subject)) {
-                    strategy = this.getByCode(subject.getStrategyId());
-                    if (Objects.isNull(strategy)) {
-                        // 预算占用时,未找到预算主体[{0}]的预算科目[{1}]
-                        return ResultData.fail(ContextUtil.getMessage("pool_00010", subjectId, itemCode));
-                    }
-                } else {
-                    // 预算主体[{0}]不存在!
-                    return ResultData.fail(ContextUtil.getMessage("subject_00003", subjectId));
-                }
-            }
-            // 写入缓存
-            operations.set(strategy, 3, TimeUnit.DAYS);
-        }
-        return ResultData.success(strategy);
     }
 }

@@ -53,4 +53,24 @@ public class SubjectItemController implements SubjectItemApi {
         }
         return ResultData.success(result);
     }
+
+    /**
+     * 设置预算科目为主体私有
+     *
+     * @return 设置结果
+     */
+    @Override
+    public ResultData<Void> turnPrivate(String subjectId, String itemCode, boolean isPrivate) {
+        return service.turnPrivate(subjectId, itemCode, isPrivate);
+    }
+
+    /**
+     * 配置预算科目执行策略
+     *
+     * @return 配置结果
+     */
+    @Override
+    public ResultData<Void> setStrategy(String subjectId, String itemCode, String strategyId) {
+        return service.setStrategy(subjectId, itemCode, strategyId);
+    }
 }

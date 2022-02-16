@@ -1,6 +1,8 @@
 package com.changhong.bems.service;
 
+import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.StrategyItemDao;
+import com.changhong.bems.dto.StrategyDto;
 import com.changhong.bems.entity.Item;
 import com.changhong.bems.entity.StrategyItem;
 import com.changhong.bems.entity.Subject;
@@ -9,13 +11,12 @@ import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
-import com.changhong.sei.core.dto.serach.SearchOrder;
 import com.changhong.sei.core.log.LogUtil;
-import com.changhong.sei.core.service.bo.OperateResult;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.BoundValueOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -39,37 +41,60 @@ public class StrategyItemService {
     private SubjectService subjectService;
     @Autowired
     private ItemService itemService;
+    @Autowired
+    private StrategyService strategyService;
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     /**
-     * 主键删除
+     * 设置预算科目为主体私有
      *
-     * @param id 主键
-     * @return 返回操作结果对象
+     * @return 设置结果
      */
-    @CacheEvict(allEntries = true)
     @Transactional(rollbackFor = Exception.class)
-    public OperateResult delete(String id) {
-        StrategyItem entity = dao.findOne(id);
-        if (Objects.nonNull(entity)) {
-            // 清除策略缓存
-            subjectService.cleanStrategyCache(entity.getSubjectId(), entity.getCode());
-            dao.delete(entity);
-            return OperateResult.operationSuccess("core_service_00028");
+    public ResultData<Void> turnPrivate(String subjectId, String itemCode, boolean isPrivate) {
+        StrategyItem strategyItem = this.getSubjectItem(subjectId, itemCode);
+        if (isPrivate) {
+            // 如果存在直接返回
+            if (Objects.isNull(strategyItem)) {
+                Item item = itemService.findByCode(itemCode);
+                if (Objects.isNull(item)) {
+                    // 科目[{0}]不存在!
+                    return ResultData.fail(ContextUtil.getMessage("item_00003", itemCode));
+                }
+                strategyItem = new StrategyItem();
+                strategyItem.setTenantCode(ContextUtil.getTenantCode());
+                strategyItem.setSubjectId(subjectId);
+                strategyItem.setCode(itemCode);
+                strategyItem.setName(item.getName());
+                dao.save(strategyItem);
+            }
         } else {
-            return OperateResult.operationWarning("core_service_00029");
+            // 如果存在则删除
+            if (Objects.nonNull(strategyItem)) {
+                dao.delete(strategyItem);
+            }
         }
+        return ResultData.success();
     }
 
     /**
-     * 数据保存操作
+     * 配置预算科目执行策略
+     *
+     * @return 配置结果
      */
-    @CacheEvict(allEntries = true)
     @Transactional(rollbackFor = Exception.class)
-    public ResultData<StrategyItem> save(StrategyItem entity) {
+    public ResultData<Void> setStrategy(String subjectId, String itemCode, String strategyId) {
+        StrategyItem strategyItem = this.getSubjectItem(subjectId, itemCode);
+        if (Objects.isNull(strategyItem)) {
+            // 请先转为主体私有再设置执行策略
+            return ResultData.fail(ContextUtil.getMessage("item_00004"));
+        }
+        strategyItem.setStrategyId(strategyId);
+        strategyItem.setStrategyName(strategyService.getNameByCode(strategyId));
+        dao.save(strategyItem);
         // 清除策略缓存
-        subjectService.cleanStrategyCache(entity.getSubjectId(), entity.getCode());
-        entity.setTenantCode(ContextUtil.getTenantCode());
-        dao.save(entity);
+        subjectService.cleanStrategyCache(subjectId, itemCode);
         return ResultData.success();
     }
 
@@ -117,18 +142,43 @@ public class StrategyItemService {
     }
 
     /**
-     * 根据预算主体查询私有预算主体科目(不包含冻结状态的)
+     * 获取预算执行控制策略
      *
      * @param subjectId 预算主体id
-     * @return 分页查询结果
+     * @param itemCode  预算科目代码
+     * @return 预算执行控制策略
      */
-    @Cacheable(key = "#subjectId")
-    public List<StrategyItem> findBySubjectUnfrozen(String subjectId) {
-        Search search = Search.createSearch();
-        search.addFilter(new SearchFilter(StrategyItem.FIELD_SUBJECT_ID, subjectId));
-        search.addSortOrder(SearchOrder.asc(StrategyItem.FIELD_CODE));
-        // return findByFilters(search);
-        return null;
+    public ResultData<StrategyDto> getStrategy(String subjectId, String itemCode) {
+        BoundValueOperations<String, Object> operations =
+                redisTemplate.boundValueOps(Constants.STRATEGY_CACHE_KEY_PREFIX + subjectId + ":" + itemCode);
+        // 预算主体策略
+        StrategyDto strategy = (StrategyDto) operations.get();
+        if (Objects.isNull(strategy)) {
+            // 预算主体科目
+            StrategyItem subjectItem = this.getSubjectItem(subjectId, itemCode);
+            if (Objects.nonNull(subjectItem)) {
+                if (StringUtils.isNotBlank(subjectItem.getStrategyId())) {
+                    // 预算主体科目策略
+                    strategy = strategyService.getByCode(subjectItem.getStrategyId());
+                }
+            }
+            if (Objects.isNull(strategy)) {
+                Subject subject = subjectService.getSubject(subjectId);
+                if (Objects.nonNull(subject)) {
+                    strategy = strategyService.getByCode(subject.getStrategyId());
+                    if (Objects.isNull(strategy)) {
+                        // 预算占用时,未找到预算主体[{0}]的预算科目[{1}]
+                        return ResultData.fail(ContextUtil.getMessage("pool_00010", subjectId, itemCode));
+                    }
+                } else {
+                    // 预算主体[{0}]不存在!
+                    return ResultData.fail(ContextUtil.getMessage("subject_00003", subjectId));
+                }
+            }
+            // 写入缓存
+            operations.set(strategy, 3, TimeUnit.DAYS);
+        }
+        return ResultData.success(strategy);
     }
 
     /**
@@ -138,8 +188,7 @@ public class StrategyItemService {
      * @param itemCode  科目代码
      * @return 返回科目
      */
-    @Cacheable(key = "#subjectId + ':' + #itemCode")
-    public StrategyItem getSubjectItem(String subjectId, String itemCode) {
+    private StrategyItem getSubjectItem(String subjectId, String itemCode) {
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(StrategyItem.FIELD_SUBJECT_ID, subjectId));
         search.addFilter(new SearchFilter(StrategyItem.FIELD_CODE, itemCode));

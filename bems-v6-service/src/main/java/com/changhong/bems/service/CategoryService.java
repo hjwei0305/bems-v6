@@ -2,6 +2,7 @@ package com.changhong.bems.service;
 
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.CategoryDao;
+import com.changhong.bems.dao.OrderDao;
 import com.changhong.bems.dto.CategoryType;
 import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.dto.OrderCategory;
@@ -42,9 +43,9 @@ public class CategoryService extends BaseEntityService<Category> {
     @Autowired
     private CategoryDao dao;
     @Autowired
-    private SubjectService subjectService;
+    private OrderDao orderDao;
     @Autowired
-    private OrderService orderService;
+    private SubjectService subjectService;
     @Autowired
     private CategoryDimensionService categoryDimensionService;
     @Autowired
@@ -72,7 +73,7 @@ public class CategoryService extends BaseEntityService<Category> {
         if (Objects.isNull(category)) {
             return OperateResult.operationFailure("category_00004", id);
         }
-        Order order = orderService.findFirstByProperty(Order.FIELD_CATEGORY_ID, id);
+        Order order = orderDao.findFirstByProperty(Order.FIELD_CATEGORY_ID, id);
         if (Objects.nonNull(order)) {
             // 已被使用,禁止删除!
             return OperateResult.operationFailure("category_00001");

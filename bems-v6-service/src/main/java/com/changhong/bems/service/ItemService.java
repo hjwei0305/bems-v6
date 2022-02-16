@@ -1,25 +1,32 @@
 package com.changhong.bems.service;
 
+import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.ItemCorporationDao;
 import com.changhong.bems.dao.ItemDao;
 import com.changhong.bems.dto.CategoryType;
 import com.changhong.bems.entity.DimensionAttribute;
 import com.changhong.bems.entity.Item;
 import com.changhong.bems.entity.ItemCorporation;
+import com.changhong.bems.entity.Subject;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
+import com.changhong.sei.core.log.LogUtil;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
+import com.changhong.sei.core.service.bo.OperateResultWithData;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -36,6 +43,8 @@ public class ItemService extends BaseEntityService<Item> {
     private ItemCorporationDao itemCorporationDao;
     @Autowired
     private DimensionAttributeService dimensionAttributeService;
+    @Autowired
+    private SubjectService subjectService;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
@@ -64,11 +73,41 @@ public class ItemService extends BaseEntityService<Item> {
             itemCorporationDao.deleteByItemId(id);
             // 删除科目数据
             dao.delete(id);
+            // 清空缓存
+            this.cleanItemCache();
             return OperateResult.operationSuccess("core_service_00028");
         } else {
             // 预算科目不存在!
             return OperateResult.operationFailure("item_00002");
         }
+    }
+
+    /**
+     * 数据保存操作
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public OperateResultWithData<Item> save(Item entity) {
+        OperateResultWithData<Item> result = super.save(entity);
+        if (result.successful()) {
+            // 清空缓存
+            this.cleanItemCache();
+        }
+        return result;
+    }
+
+    /**
+     * 导入预算科目
+     *
+     * @param items 预算科目清单
+     * @return 操作结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ResultData<Void> importItem(List<Item> items) {
+        this.save(items);
+        // 清空缓存
+        this.cleanItemCache();
+        return ResultData.success();
     }
 
     /**
@@ -104,6 +143,9 @@ public class ItemService extends BaseEntityService<Item> {
             // 通用科目禁用启用操作
             dao.disabledGeneral(ids, disabled);
         }
+
+        // 清空缓存
+        this.cleanItemCache();
         return ResultData.success();
     }
 
@@ -141,20 +183,64 @@ public class ItemService extends BaseEntityService<Item> {
     /**
      * 根据code获取预算科目
      */
-    public List<Item> getItems(String corpCode) {
-        List<Item> itemList = dao.findAllUnfrozen();
-        // 公司科目
-        List<ItemCorporation> itemCorporations = itemCorporationDao.findListByProperty(ItemCorporation.FIELD_CORP_CODE, corpCode);
-        if (CollectionUtils.isNotEmpty(itemCorporations)) {
-            ItemCorporation itemCorp;
-            Map<String, ItemCorporation> itemMap = itemCorporations.stream().collect(Collectors.toMap(ItemCorporation::getItemId, item -> item));
-            for (Item item : itemList) {
-                itemCorp = itemMap.get(item.getId());
-                if (Objects.nonNull(itemCorp)) {
-                    item.setFrozen(itemCorp.getFrozen());
+    public Item findByCode(String itemCode) {
+        return dao.findFirstByProperty(Item.CODE_FIELD, itemCode);
+    }
+
+    /**
+     * 根据预算主体查询私有预算主体科目(不包含冻结状态的)
+     *
+     * @param subjectId 预算主体id
+     * @return 分页查询结果
+     */
+    @SuppressWarnings("unchecked")
+    public List<Item> findItemsBySubject(String subjectId) {
+        // 优先读取缓存
+        BoundValueOperations<String, Object> operations = redisTemplate.boundValueOps(Constants.ITEM_CACHE_KEY_PREFIX + subjectId);
+        List<Item> itemList = (List<Item>) operations.get();
+        if (CollectionUtils.isEmpty(itemList)) {
+            Subject subject = subjectService.getSubject(subjectId);
+            if (Objects.nonNull(subject)) {
+                // 按公司代码获取科目
+
+                // 获取所有可用科目
+                itemList = dao.findAllUnfrozen();
+                // 公司科目
+                List<ItemCorporation> itemCorporations = itemCorporationDao.findListByProperty(ItemCorporation.FIELD_CORP_CODE, subject.getCorporationCode());
+                if (CollectionUtils.isNotEmpty(itemCorporations)) {
+                    ItemCorporation itemCorp;
+                    Map<String, ItemCorporation> itemMap = itemCorporations.stream().collect(Collectors.toMap(ItemCorporation::getItemId, item -> item));
+                    for (Item item : itemList) {
+                        itemCorp = itemMap.get(item.getId());
+                        if (Objects.nonNull(itemCorp)) {
+                            item.setFrozen(itemCorp.getFrozen());
+                        }
+                    }
                 }
+                itemList = itemList.stream().filter(item -> Boolean.FALSE.equals(item.getFrozen())).collect(Collectors.toList());
+
+                // 写入缓存
+                operations.set(itemList, 3, TimeUnit.DAYS);
+            } else {
+                itemList = new ArrayList<>();
             }
         }
         return itemList;
+    }
+
+    /**
+     * 清除策略缓存
+     */
+    private void cleanItemCache() {
+        CompletableFuture.runAsync(() -> {
+            try {
+                Set<String> keys = redisTemplate.keys(Constants.STRATEGY_CACHE_KEY_PREFIX.concat(":*"));
+                if (CollectionUtils.isNotEmpty(keys)) {
+                    redisTemplate.delete(keys);
+                }
+            } catch (Exception e) {
+                LogUtil.error("清空预算科目缓存异常.", e);
+            }
+        });
     }
 }

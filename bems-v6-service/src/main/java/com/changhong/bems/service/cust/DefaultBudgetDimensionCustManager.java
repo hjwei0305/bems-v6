@@ -5,11 +5,11 @@ import com.changhong.bems.dto.KeyValueDto;
 import com.changhong.bems.dto.OrganizationDto;
 import com.changhong.bems.dto.PeriodType;
 import com.changhong.bems.dto.ProjectDto;
+import com.changhong.bems.entity.Item;
 import com.changhong.bems.entity.Period;
 import com.changhong.bems.entity.Subject;
-import com.changhong.bems.entity.StrategyItem;
+import com.changhong.bems.service.ItemService;
 import com.changhong.bems.service.PeriodService;
-import com.changhong.bems.service.StrategyItemService;
 import com.changhong.bems.service.SubjectService;
 import com.changhong.bems.service.client.CorporationProjectManager;
 import com.changhong.sei.core.context.ContextUtil;
@@ -47,7 +47,7 @@ public class DefaultBudgetDimensionCustManager implements BudgetDimensionCustMan
      * 预算主体科目服务对象
      */
     @Autowired
-    private StrategyItemService subjectItemService;
+    private ItemService itemService;
     /**
      * 公司项目服务对象
      */
@@ -67,8 +67,8 @@ public class DefaultBudgetDimensionCustManager implements BudgetDimensionCustMan
      * @return 子实体清单
      */
     @Override
-    public List<StrategyItem> getBudgetItems(String subjectId) {
-        return subjectItemService.findBySubjectUnfrozen(subjectId);
+    public List<Item> getBudgetItems(String subjectId) {
+        return itemService.findItemsBySubject(subjectId);
     }
 
     /**
@@ -132,7 +132,7 @@ public class DefaultBudgetDimensionCustManager implements BudgetDimensionCustMan
                 break;
             case Constants.DIMENSION_CODE_ITEM:
                 data.put("head", Lists.newArrayList("预算科目"));
-                List<StrategyItem> subjectItems = subjectItemService.findBySubjectUnfrozen(subjectId);
+                List<Item> subjectItems = itemService.findItemsBySubject(subjectId);
                 list = subjectItems.stream().map(p -> new KeyValueDto(p.getName(), "")).collect(Collectors.toList());
                 break;
             case Constants.DIMENSION_CODE_ORG:
@@ -207,9 +207,9 @@ public class DefaultBudgetDimensionCustManager implements BudgetDimensionCustMan
                 }
                 break;
             case Constants.DIMENSION_CODE_ITEM:
-                List<StrategyItem> subjectItems = subjectItemService.findBySubjectUnfrozen(subjectId);
+                List<Item> subjectItems = itemService.findItemsBySubject(subjectId);
                 if (CollectionUtils.isNotEmpty(subjectItems)) {
-                    data = subjectItems.parallelStream().collect(Collectors.toMap(StrategyItem::getName, StrategyItem::getCode));
+                    data = subjectItems.parallelStream().collect(Collectors.toMap(Item::getName, Item::getCode));
                 }
                 break;
             case Constants.DIMENSION_CODE_ORG:

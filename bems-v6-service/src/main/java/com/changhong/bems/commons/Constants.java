@@ -112,7 +112,7 @@ public final class Constants {
     /**
      * redis key 预算科目缓存key
      */
-    public static final String ITEM_CACHE_KEY_PREFIX = "bems-v6:item";
+    public static final String ITEM_CACHE_KEY_PREFIX = "bems-v6:item:";
 
     /**
      * redis key 维度策略缓存key

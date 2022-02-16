@@ -1,11 +1,15 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.commons.Constants;
+import com.changhong.bems.dao.CategoryDao;
+import com.changhong.bems.dao.PeriodDao;
 import com.changhong.bems.dao.SubjectDao;
-import com.changhong.bems.dao.StrategyItemDao;
 import com.changhong.bems.dao.SubjectOrganizationDao;
 import com.changhong.bems.dto.*;
-import com.changhong.bems.entity.*;
+import com.changhong.bems.entity.Category;
+import com.changhong.bems.entity.Period;
+import com.changhong.bems.entity.Subject;
+import com.changhong.bems.entity.SubjectOrganization;
 import com.changhong.bems.service.client.CorporationManager;
 import com.changhong.bems.service.client.CurrencyManager;
 import com.changhong.bems.service.client.OrganizationManager;
@@ -15,6 +19,7 @@ import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
+import com.changhong.sei.core.log.LogUtil;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.DataAuthEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
@@ -29,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -42,7 +48,9 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
     @Autowired
     private SubjectDao dao;
     @Autowired
-    private StrategyItemDao subjectItemDao;
+    private CategoryDao categoryDao;
+    @Autowired
+    private PeriodDao periodDao;
     @Autowired
     private SubjectOrganizationDao subjectOrganizationDao;
     @Autowired
@@ -53,10 +61,6 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
     private CorporationManager corporationManager;
     @Autowired(required = false)
     private OrganizationManager organizationManager;
-    @Autowired
-    private CategoryService categoryService;
-    @Autowired
-    private PeriodService periodService;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
@@ -359,17 +363,12 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
             // 预算主体[{0}]不存在!
             return OperateResult.operationFailure("subject_00003", id);
         }
-        StrategyItem item = subjectItemDao.findFirstByProperty(StrategyItem.FIELD_SUBJECT_ID, id);
-        if (Objects.nonNull(item)) {
-            // 已被预算科目[{0}]使用,禁止删除!
-            return OperateResult.operationFailure("subject_00004", item.getName());
-        }
-        Period period = periodService.findFirstByProperty(Period.FIELD_SUBJECT_ID, id);
+        Period period = periodDao.findFirstByProperty(Period.FIELD_SUBJECT_ID, id);
         if (Objects.nonNull(period)) {
             // 已被预算期间[{0}]使用,禁止删除!
             return OperateResult.operationFailure("subject_00002", period.getName());
         }
-        Category category = categoryService.findFirstByProperty(Category.FIELD_SUBJECT_ID, id);
+        Category category = categoryDao.findFirstByProperty(Category.FIELD_SUBJECT_ID, id);
         if (Objects.nonNull(category)) {
             // 已被预算类型[{0}]使用,禁止删除!
             return OperateResult.operationFailure("subject_00001", category.getName());
@@ -517,15 +516,21 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
      * @param itemCode  预算科目代码
      */
     public void cleanStrategyCache(String subjectId, String itemCode) {
-        String prefix = Constants.STRATEGY_CACHE_KEY_PREFIX + subjectId;
-        if (StringUtils.isNotBlank(itemCode)) {
-            redisTemplate.delete(prefix.concat(":").concat(itemCode));
-        } else {
-            Set<String> keys = redisTemplate.keys(prefix.concat(":*"));
-            if (CollectionUtils.isNotEmpty(keys)) {
-                redisTemplate.delete(keys);
+        CompletableFuture.runAsync(() -> {
+            try {
+                String prefix = Constants.STRATEGY_CACHE_KEY_PREFIX + subjectId;
+                if (StringUtils.isNotBlank(itemCode)) {
+                    redisTemplate.delete(prefix.concat(":").concat(itemCode));
+                } else {
+                    Set<String> keys = redisTemplate.keys(prefix.concat(":*"));
+                    if (CollectionUtils.isNotEmpty(keys)) {
+                        redisTemplate.delete(keys);
+                    }
+                }
+            } catch (Exception e) {
+                LogUtil.error("清空预算执行策略缓存异常.", e);
             }
-        }
+        });
     }
 
     /**

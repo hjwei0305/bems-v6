@@ -3,6 +3,7 @@ package com.changhong.bems.service.cust;
 import com.changhong.bems.dto.OrganizationDto;
 import com.changhong.bems.dto.PeriodType;
 import com.changhong.bems.dto.ProjectDto;
+import com.changhong.bems.entity.Item;
 import com.changhong.bems.entity.Period;
 import com.changhong.bems.entity.Subject;
 import com.changhong.bems.entity.StrategyItem;
@@ -26,7 +27,7 @@ public interface BudgetDimensionCustManager {
      * @param subjectId 预算主体id
      * @return 子实体清单
      */
-    List<StrategyItem> getBudgetItems(String subjectId);
+    List<Item> getBudgetItems(String subjectId);
 
     /**
      * 按预算主体和期间类型获取期间

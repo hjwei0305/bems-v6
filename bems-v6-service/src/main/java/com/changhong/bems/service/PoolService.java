@@ -50,7 +50,7 @@ public class PoolService {
     @Autowired
     private CategoryService categoryService;
     @Autowired
-    private StrategyService strategyService;
+    private StrategyItemService strategyItemService;
     @Autowired
     private PoolAmountService poolAmountService;
     @Autowired
@@ -465,7 +465,7 @@ public class PoolService {
             for (PoolAttributeDto pool : list) {
                 strategy = strategyMap.get(pool.getSubjectId() + pool.getItem());
                 if (Objects.isNull(strategy)) {
-                    resultData = strategyService.getStrategy(pool.getSubjectId(), pool.getItem());
+                    resultData = strategyItemService.getStrategy(pool.getSubjectId(), pool.getItem());
                     if (resultData.successful()) {
                         strategy = resultData.getData();
                         strategyMap.put(pool.getSubjectId() + pool.getItem(), strategy);
@@ -510,7 +510,7 @@ public class PoolService {
                 LOG.error("预算池[{}]未获取到维度属性", pool.getCode());
             }
 
-            ResultData<StrategyDto> resultData = strategyService.getStrategy(dto.getSubjectId(), dto.getItem());
+            ResultData<StrategyDto> resultData = strategyItemService.getStrategy(dto.getSubjectId(), dto.getItem());
             if (resultData.successful()) {
                 StrategyDto strategy = resultData.getData();
                 // 策略
@@ -643,7 +643,7 @@ public class PoolService {
 
                 dimensionAttribute = attributeMap.get(pool.getSubjectId() + pool.getAttributeCode());
                 if (Objects.nonNull(dimensionAttribute)) {
-                    resultData = strategyService.getStrategy(pool.getSubjectId(), dimensionAttribute.getItem());
+                    resultData = strategyItemService.getStrategy(pool.getSubjectId(), dimensionAttribute.getItem());
                     if (resultData.successful()) {
                         strategy = resultData.getData();
                         dto.setStrategyId(strategy.getCode());
@@ -841,7 +841,7 @@ public class PoolService {
             return ResultData.fail(ContextUtil.getMessage("pool_00007", pool.getCode()));
         }
 
-        ResultData<StrategyDto> resultData = strategyService.getStrategy(dto.getSubjectId(), dto.getItem());
+        ResultData<StrategyDto> resultData = strategyItemService.getStrategy(dto.getSubjectId(), dto.getItem());
         if (resultData.successful()) {
             StrategyDto strategy = resultData.getData();
             // 策略
