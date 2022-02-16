@@ -10,6 +10,7 @@ import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.dto.serach.SearchOrder;
+import com.changhong.sei.core.log.LogUtil;
 import com.changhong.sei.core.service.bo.OperateResult;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,6 +110,7 @@ public class StrategyItemService {
                 pageResult.setRows(strategyItemList);
             }
         } else {
+            LogUtil.error("预算主体[{}]不存在.", subjectId);
             pageResult = new PageResult<>();
         }
         return pageResult;

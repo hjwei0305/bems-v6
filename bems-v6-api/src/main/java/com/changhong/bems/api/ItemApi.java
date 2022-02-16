@@ -82,7 +82,7 @@ public interface ItemApi extends BaseEntityApi<BudgetItemDto> {
      *
      * @return 操作结果
      */
-    @PostMapping(path = "export", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "export")
     @ApiOperation(value = "导出预算科目", notes = "导出预算科目")
     ResultData<List<BudgetItemExport>> exportItem();
 
