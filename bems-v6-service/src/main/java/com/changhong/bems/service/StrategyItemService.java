@@ -1,33 +1,27 @@
 package com.changhong.bems.service;
 
-import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.StrategyItemDao;
-import com.changhong.bems.entity.DimensionAttribute;
 import com.changhong.bems.entity.Item;
 import com.changhong.bems.entity.StrategyItem;
 import com.changhong.bems.entity.Subject;
 import com.changhong.sei.core.context.ContextUtil;
-import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.dto.serach.SearchOrder;
-import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
-import com.changhong.sei.core.service.bo.OperateResultWithData;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -37,21 +31,13 @@ import java.util.stream.Collectors;
  * @since 2021-04-22 12:54:30
  */
 @Service
-@CacheConfig(cacheNames = Constants.STRATEGY_ITEM_CACHE_KEY_PREFIX)
-public class StrategyItemService extends BaseEntityService<StrategyItem> {
+public class StrategyItemService {
     @Autowired
     private StrategyItemDao dao;
-    @Autowired
-    private DimensionAttributeService dimensionAttributeService;
     @Autowired
     private SubjectService subjectService;
     @Autowired
     private ItemService itemService;
-
-    @Override
-    protected BaseEntityDao<StrategyItem> getDao() {
-        return dao;
-    }
 
     /**
      * 主键删除
@@ -59,20 +45,14 @@ public class StrategyItemService extends BaseEntityService<StrategyItem> {
      * @param id 主键
      * @return 返回操作结果对象
      */
-    @Override
     @CacheEvict(allEntries = true)
     @Transactional(rollbackFor = Exception.class)
     public OperateResult delete(String id) {
-        StrategyItem entity = findOne(id);
+        StrategyItem entity = dao.findOne(id);
         if (Objects.nonNull(entity)) {
-            DimensionAttribute attribute = dimensionAttributeService.getFirstByProperty(DimensionAttribute.FIELD_ITEM, entity.getCode());
-            if (Objects.nonNull(attribute)) {
-                // 当前科目已被使用,禁止删除!
-                return OperateResult.operationFailure("subject_item_00001");
-            }
             // 清除策略缓存
             subjectService.cleanStrategyCache(entity.getSubjectId(), entity.getCode());
-            getDao().delete(entity);
+            dao.delete(entity);
             return OperateResult.operationSuccess("core_service_00028");
         } else {
             return OperateResult.operationWarning("core_service_00029");
@@ -82,23 +62,56 @@ public class StrategyItemService extends BaseEntityService<StrategyItem> {
     /**
      * 数据保存操作
      */
-    @Override
     @CacheEvict(allEntries = true)
     @Transactional(rollbackFor = Exception.class)
-    public OperateResultWithData<StrategyItem> save(StrategyItem entity) {
+    public ResultData<StrategyItem> save(StrategyItem entity) {
         // 清除策略缓存
         subjectService.cleanStrategyCache(entity.getSubjectId(), entity.getCode());
-        return super.save(entity);
+        entity.setTenantCode(ContextUtil.getTenantCode());
+        dao.save(entity);
+        return ResultData.success();
     }
 
     /**
-     * 根据预算主体查询私有预算主体科目
+     * 按主体获取预算科目执行策略(预算策略菜单功能使用)
      *
      * @param subjectId 预算主体id
      * @return 分页查询结果
      */
-    public List<StrategyItem> findBySubject(String subjectId) {
-        return dao.findListByProperty(StrategyItem.FIELD_SUBJECT_ID, subjectId);
+    public PageResult<StrategyItem> findPageByCorp(String subjectId, Search search) {
+        PageResult<StrategyItem> pageResult;
+        Subject subject = subjectService.getSubject(subjectId);
+        if (Objects.nonNull(subject)) {
+            PageResult<Item> itemPageResult = itemService.findPageByCorp(search, subject.getCorporationCode());
+            pageResult = new PageResult<>(itemPageResult);
+            if (itemPageResult.getRecords() > 0) {
+                Map<String, StrategyItem> strategyItemMap;
+                List<StrategyItem> strategyItems = dao.findListByProperty(StrategyItem.FIELD_SUBJECT_ID, subjectId);
+                if (CollectionUtils.isNotEmpty(strategyItems)) {
+                    strategyItemMap = strategyItems.stream().collect(Collectors.toMap(StrategyItem::getCode, item -> item));
+                } else {
+                    strategyItemMap = new HashMap<>();
+                }
+                List<Item> itemList = itemPageResult.getRows();
+                List<StrategyItem> strategyItemList = itemList.stream().map(item -> {
+                    StrategyItem strategyItem = new StrategyItem();
+                    strategyItem.setSubjectId(subjectId);
+                    strategyItem.setCode(item.getCode());
+                    strategyItem.setName(item.getName());
+                    StrategyItem si = strategyItemMap.get(item.getCode());
+                    if (Objects.nonNull(si)) {
+                        strategyItem.setStrategyId(si.getStrategyId());
+                        strategyItem.setStrategyName(si.getStrategyName());
+                    }
+                    return strategyItem;
+                }).collect(Collectors.toList());
+
+                pageResult.setRows(strategyItemList);
+            }
+        } else {
+            pageResult = new PageResult<>();
+        }
+        return pageResult;
     }
 
     /**
@@ -111,157 +124,9 @@ public class StrategyItemService extends BaseEntityService<StrategyItem> {
     public List<StrategyItem> findBySubjectUnfrozen(String subjectId) {
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(StrategyItem.FIELD_SUBJECT_ID, subjectId));
-        search.addFilter(new SearchFilter(StrategyItem.FROZEN, Boolean.FALSE));
         search.addSortOrder(SearchOrder.asc(StrategyItem.FIELD_CODE));
-        return findByFilters(search);
-    }
-
-    /**
-     * 冻结/解冻预算类型
-     *
-     * @param ids 预算主体科目id
-     * @return 操作结果
-     */
-    @CacheEvict(allEntries = true)
-    @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> frozen(List<String> ids, boolean frozen) {
-        List<StrategyItem> items = dao.findAllById(ids);
-        for (StrategyItem item : items) {
-            item.setFrozen(frozen);
-        }
-        this.save(items);
-        return ResultData.success();
-    }
-
-    /**
-     * 获取未分配的预算科目
-     *
-     * @param subjectId 预算主体id
-     * @return 子实体清单
-     */
-    public PageResult<StrategyItem> getUnassigned(String subjectId, Search search) {
-        if (Objects.isNull(search)) {
-            search = Search.createSearch();
-        }
-        List<StrategyItem> subjectItems = findBySubject(subjectId);
-        if (CollectionUtils.isNotEmpty(subjectItems)) {
-            search.addFilter(new SearchFilter(Item.CODE_FIELD, subjectItems.stream().map(StrategyItem::getCode).collect(Collectors.toSet()), SearchFilter.Operator.NOTIN));
-        }
-
-        PageResult<Item> itemPageResult = itemService.findByPage(search);
-        PageResult<StrategyItem> pageResult = new PageResult<>(itemPageResult);
-        List<Item> itemList = itemPageResult.getRows();
-        List<StrategyItem> subjectItemList = itemList.stream().map(i -> {
-            StrategyItem item1 = new StrategyItem();
-            item1.setCode(i.getCode());
-            item1.setName(i.getName());
-            return item1;
-        }).collect(Collectors.toList());
-        pageResult.setRows(subjectItemList);
-        return pageResult;
-    }
-
-    /**
-     * 获取已分配的预算科目
-     *
-     * @return 子实体清单
-     */
-    public PageResult<StrategyItem> getAssigned(Search search) {
-        if (Objects.isNull(search)) {
-            search = Search.createSearch();
-        }
-        search.addSortOrder(SearchOrder.asc(StrategyItem.FIELD_CODE));
-        return findByPage(search);
-    }
-
-    /**
-     * 为指定预算主体分配预算科目
-     *
-     * @param subjectId 预算主体id
-     * @param itemCodes 科目代码
-     * @return 分配结果
-     */
-    @CacheEvict(allEntries = true)
-    @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> assigne(String subjectId, Set<String> itemCodes) {
-        Subject subject = subjectService.getSubject(subjectId);
-        if (Objects.isNull(subject)) {
-            // 预算类型已被使用,不允许修改
-            return ResultData.fail(ContextUtil.getMessage("subject_00003", subjectId));
-        }
-        List<Item> itemList = itemService.getItems(itemCodes);
-        List<StrategyItem> subjectItems = new ArrayList<>();
-        StrategyItem subjectItem;
-        for (Item item : itemList) {
-            subjectItem = new StrategyItem();
-            subjectItem.setSubjectId(subjectId);
-            subjectItem.setCode(item.getCode());
-            subjectItem.setName(item.getName());
-            subjectItems.add(subjectItem);
-        }
-        this.save(subjectItems);
-        return ResultData.success();
-    }
-
-    /**
-     * 检查是否可以参考引用
-     * 当主体不存在科目时才允许参考引用
-     *
-     * @param subjectId 预算主体id
-     * @return 检查结果
-     */
-    public ResultData<Void> checkReference(String subjectId) {
-        StrategyItem subjectItem = dao.findFirstByProperty(StrategyItem.FIELD_SUBJECT_ID, subjectId);
-        if (Objects.isNull(subjectItem)) {
-            return ResultData.success();
-        } else {
-            // 预算主体[{0}]已存在科目,不允许再参考引用!
-            return ResultData.fail(ContextUtil.getMessage("subject_item_00002"));
-        }
-    }
-
-    /**
-     * 参考引用
-     * 当主体不存在科目时才允许参考引用
-     *
-     * @param currentId   当前预算主体id
-     * @param referenceId 参考预算主体id
-     * @return 检查结果
-     */
-    @CacheEvict(allEntries = true)
-    @Transactional(rollbackFor = Exception.class)
-    public ResultData<Void> reference(String currentId, String referenceId) {
-        ResultData<Void> resultData = checkReference(currentId);
-        if (resultData.failed()) {
-            return resultData;
-        }
-
-        Subject subject = subjectService.getSubject(referenceId);
-        if (Objects.isNull(subject)) {
-            // 未找到引用的预算主体
-            return ResultData.fail(ContextUtil.getMessage("subject_item_00004", referenceId));
-        }
-        List<StrategyItem> subjectItems = this.findBySubject(referenceId);
-        if (CollectionUtils.isEmpty(subjectItems)) {
-            // 预算主体[{0}]还未维护科目!
-            return ResultData.fail(ContextUtil.getMessage("subject_item_00003", subject.getName()));
-        }
-        StrategyItem subjectItem;
-        List<StrategyItem> itemList = new ArrayList<>();
-        for (StrategyItem item : subjectItems) {
-            if (item.getFrozen()) {
-                continue;
-            }
-            subjectItem = new StrategyItem();
-            subjectItem.setSubjectId(currentId);
-            subjectItem.setCode(item.getCode());
-            subjectItem.setName(item.getName());
-            subjectItem.setStrategyId(item.getStrategyId());
-            subjectItem.setStrategyName(item.getStrategyName());
-            itemList.add(subjectItem);
-        }
-        this.save(itemList);
-        return ResultData.success();
+        // return findByFilters(search);
+        return null;
     }
 
     /**

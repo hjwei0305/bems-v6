@@ -1,7 +1,7 @@
 package com.changhong.bems.controller;
 
 import com.changhong.bems.api.SubjectPeriodApi;
-import com.changhong.bems.dto.SubjectPeriodDto;
+import com.changhong.bems.dto.StrategyPeriodDto;
 import com.changhong.bems.entity.StrategyPeriod;
 import com.changhong.bems.service.StrategyPeriodService;
 import com.changhong.sei.core.context.ContextUtil;
@@ -80,11 +80,11 @@ public class SubjectPeriodController implements SubjectPeriodApi {
      * @return 子实体清单
      */
     @Override
-    public ResultData<List<SubjectPeriodDto>> getSubjectPeriods(String subjectId) {
-        List<SubjectPeriodDto> result;
+    public ResultData<List<StrategyPeriodDto>> getSubjectPeriods(String subjectId) {
+        List<StrategyPeriodDto> result;
         List<StrategyPeriod> subjectPeriods = service.findBySubject(subjectId);
         if (CollectionUtils.isNotEmpty(subjectPeriods)) {
-            result = subjectPeriods.stream().map(p -> modelMapper.map(p, SubjectPeriodDto.class)).collect(Collectors.toList());
+            result = subjectPeriods.stream().map(p -> modelMapper.map(p, StrategyPeriodDto.class)).collect(Collectors.toList());
         } else {
             result = new ArrayList<>();
         }

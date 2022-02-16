@@ -1,6 +1,6 @@
 package com.changhong.bems.api;
 
-import com.changhong.bems.dto.SubjectPeriodDto;
+import com.changhong.bems.dto.StrategyPeriodDto;
 import com.changhong.sei.core.dto.ResultData;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -47,5 +47,5 @@ public interface SubjectPeriodApi {
      */
     @GetMapping(path = "getSubjectPeriods")
     @ApiOperation(value = "获取指定主体的预算期间策略", notes = "获取指定主体的预算期间策略")
-    ResultData<List<SubjectPeriodDto>> getSubjectPeriods(@RequestParam("subjectId") String subjectId);
+    ResultData<List<StrategyPeriodDto>> getSubjectPeriods(@RequestParam("subjectId") String subjectId);
 }

@@ -109,15 +109,15 @@ public final class Constants {
      * redis key 预算维度缓存key
      */
     public static final String DIMENSION_CACHE_KEY_PREFIX = "bems-v6:dimension";
+    /**
+     * redis key 预算科目缓存key
+     */
+    public static final String ITEM_CACHE_KEY_PREFIX = "bems-v6:item";
 
     /**
      * redis key 维度策略缓存key
      */
     public static final String STRATEGY_DIMENSION_CACHE_KEY_PREFIX = "bems-v6:strategy:dimension";
-    /**
-     * redis key 执行策略缓存key
-     */
-    public static final String STRATEGY_ITEM_CACHE_KEY_PREFIX = "bems-v6:strategy:item";
     /**
      * redis key 期间策略缓存key
      */

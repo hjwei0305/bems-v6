@@ -7,13 +7,13 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
 /**
- * 预算科目(Item)DTO类
+ * 执行策略(StrategyItem)DTO类
  *
  * @author sei
  * @since 2021-04-22 12:54:30
  */
-@ApiModel(description = "预算主体科目DTO")
-public class SubjectItemDto extends BudgetItemDto {
+@ApiModel(description = "科目执行策略DTO")
+public class StrategyItemDto extends BudgetItemDto {
     private static final long serialVersionUID = -85112390830826629L;
 
     /**
@@ -34,11 +34,6 @@ public class SubjectItemDto extends BudgetItemDto {
      */
     @ApiModelProperty(value = "执行策略名称")
     private String strategyName;
-    /**
-     * 冻结
-     */
-    @ApiModelProperty(value = "是否冻结")
-    private Boolean frozen = Boolean.FALSE;
 
     public String getSubjectId() {
         return subjectId;
@@ -62,14 +57,6 @@ public class SubjectItemDto extends BudgetItemDto {
 
     public void setStrategyName(String strategyName) {
         this.strategyName = strategyName;
-    }
-
-    public Boolean getFrozen() {
-        return frozen;
-    }
-
-    public void setFrozen(Boolean frozen) {
-        this.frozen = frozen;
     }
 
 }

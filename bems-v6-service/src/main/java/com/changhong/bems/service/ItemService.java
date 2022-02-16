@@ -2,22 +2,20 @@ package com.changhong.bems.service;
 
 import com.changhong.bems.dao.ItemCorporationDao;
 import com.changhong.bems.dao.ItemDao;
-import com.changhong.bems.dao.StrategyItemDao;
-import com.changhong.bems.dto.BudgetItemDto;
 import com.changhong.bems.dto.CategoryType;
+import com.changhong.bems.entity.DimensionAttribute;
 import com.changhong.bems.entity.Item;
 import com.changhong.bems.entity.ItemCorporation;
-import com.changhong.bems.entity.StrategyItem;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
-import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,7 +35,9 @@ public class ItemService extends BaseEntityService<Item> {
     @Autowired
     private ItemCorporationDao itemCorporationDao;
     @Autowired
-    private StrategyItemDao strategyItemDao;
+    private DimensionAttributeService dimensionAttributeService;
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Override
     protected BaseEntityDao<Item> getDao() {
@@ -55,8 +55,8 @@ public class ItemService extends BaseEntityService<Item> {
     public OperateResult delete(String id) {
         Item item = dao.findOne(id);
         if (Objects.nonNull(item)) {
-            StrategyItem subjectItem = strategyItemDao.findFirstByProperty(StrategyItem.FIELD_CODE, item.getCode());
-            if (Objects.nonNull(subjectItem)) {
+            DimensionAttribute attribute = dimensionAttributeService.getFirstByProperty(DimensionAttribute.FIELD_ITEM, item.getCode());
+            if (Objects.nonNull(attribute)) {
                 // 当前科目已被使用,禁止删除!
                 return OperateResult.operationFailure("item_00001");
             }
@@ -118,10 +118,15 @@ public class ItemService extends BaseEntityService<Item> {
         }
         PageResult<Item> pageResult = this.findByPage(search);
         if (pageResult.getRecords() > 0) {
+            Map<String, ItemCorporation> itemMap;
             List<Item> itemList = pageResult.getRows();
             // 公司科目
             List<ItemCorporation> itemCorporations = itemCorporationDao.findListByProperty(ItemCorporation.FIELD_CORP_CODE, corpCode);
-            Map<String, ItemCorporation> itemMap = itemCorporations.stream().collect(Collectors.toMap(ItemCorporation::getItemId, item -> item));
+            if (CollectionUtils.isNotEmpty(itemCorporations)) {
+                itemMap = itemCorporations.stream().collect(Collectors.toMap(ItemCorporation::getItemId, item -> item));
+            } else {
+                itemMap = new HashMap<>();
+            }
             ItemCorporation itemCorp;
             for (Item item : itemList) {
                 itemCorp = itemMap.get(item.getId());
@@ -136,10 +141,20 @@ public class ItemService extends BaseEntityService<Item> {
     /**
      * 根据code获取预算科目
      */
-    public List<Item> getItems(Collection<String> codes) {
-        if (CollectionUtils.isEmpty(codes)) {
-            return new ArrayList<>();
+    public List<Item> getItems(String corpCode) {
+        List<Item> itemList = dao.findAllUnfrozen();
+        // 公司科目
+        List<ItemCorporation> itemCorporations = itemCorporationDao.findListByProperty(ItemCorporation.FIELD_CORP_CODE, corpCode);
+        if (CollectionUtils.isNotEmpty(itemCorporations)) {
+            ItemCorporation itemCorp;
+            Map<String, ItemCorporation> itemMap = itemCorporations.stream().collect(Collectors.toMap(ItemCorporation::getItemId, item -> item));
+            for (Item item : itemList) {
+                itemCorp = itemMap.get(item.getId());
+                if (Objects.nonNull(itemCorp)) {
+                    item.setFrozen(itemCorp.getFrozen());
+                }
+            }
         }
-        return dao.findByFilter(new SearchFilter(Item.CODE_FIELD, codes, SearchFilter.Operator.IN));
+        return itemList;
     }
 }

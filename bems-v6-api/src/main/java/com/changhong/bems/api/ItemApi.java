@@ -2,6 +2,7 @@ package com.changhong.bems.api;
 
 import com.changhong.bems.dto.BudgetItemDisableRequest;
 import com.changhong.bems.dto.BudgetItemDto;
+import com.changhong.bems.dto.BudgetItemExport;
 import com.changhong.bems.dto.BudgetItemSearch;
 import com.changhong.sei.core.api.BaseEntityApi;
 import com.changhong.sei.core.dto.ResultData;
@@ -10,6 +11,7 @@ import com.changhong.sei.core.dto.serach.Search;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -61,7 +63,7 @@ public interface ItemApi extends BaseEntityApi<BudgetItemDto> {
      * @param request 预算科目操作
      * @return 操作结果
      */
-    @PostMapping(path = "disabled")
+    @PostMapping(path = "disabled", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "禁用预算科目", notes = "禁用预算科目")
     ResultData<Void> disabled(@RequestBody BudgetItemDisableRequest request);
 
@@ -71,7 +73,7 @@ public interface ItemApi extends BaseEntityApi<BudgetItemDto> {
      * @param request 预算科目操作
      * @return 操作结果
      */
-    @PostMapping(path = "import")
+    @PostMapping(path = "import", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "导入预算科目", notes = "导入预算科目")
     ResultData<Void> importItem(@RequestBody List<BudgetItemDto> request);
 
@@ -80,9 +82,9 @@ public interface ItemApi extends BaseEntityApi<BudgetItemDto> {
      *
      * @return 操作结果
      */
-    @PostMapping(path = "export")
+    @GetMapping(path = "export")
     @ApiOperation(value = "导出预算科目", notes = "导出预算科目")
-    ResultData<List<BudgetItemDto>> exportItem();
+    ResultData<List<BudgetItemExport>> exportItem();
 
 
 }

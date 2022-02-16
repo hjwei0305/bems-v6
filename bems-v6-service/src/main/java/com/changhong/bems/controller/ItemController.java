@@ -3,6 +3,7 @@ package com.changhong.bems.controller;
 import com.changhong.bems.api.ItemApi;
 import com.changhong.bems.dto.BudgetItemDisableRequest;
 import com.changhong.bems.dto.BudgetItemDto;
+import com.changhong.bems.dto.BudgetItemExport;
 import com.changhong.bems.dto.BudgetItemSearch;
 import com.changhong.bems.entity.Item;
 import com.changhong.bems.service.ItemService;
@@ -12,12 +13,16 @@ import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.service.BaseEntityService;
 import io.swagger.annotations.Api;
+import org.apache.commons.collections.CollectionUtils;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 预算科目(Item)控制类
@@ -34,6 +39,8 @@ public class ItemController extends BaseEntityController<Item, BudgetItemDto> im
      */
     @Autowired
     private ItemService service;
+    @Autowired
+    private ModelMapper modelMapper;
 
     @Override
     public BaseEntityService<Item> getService() {
@@ -101,7 +108,14 @@ public class ItemController extends BaseEntityController<Item, BudgetItemDto> im
      * @return 操作结果
      */
     @Override
-    public ResultData<List<BudgetItemDto>> exportItem() {
-        return ResultData.success(convertToDtos(service.findAll()));
+    public ResultData<List<BudgetItemExport>> exportItem() {
+        List<BudgetItemExport> list;
+        List<Item> itemList = service.findAll();
+        if (CollectionUtils.isNotEmpty(itemList)) {
+            list = itemList.stream().map(item -> modelMapper.map(item, BudgetItemExport.class)).collect(Collectors.toList());
+        } else {
+            list = new ArrayList<>();
+        }
+        return ResultData.success(list);
     }
 }

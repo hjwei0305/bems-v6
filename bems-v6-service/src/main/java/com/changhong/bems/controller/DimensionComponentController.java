@@ -45,9 +45,9 @@ public class DimensionComponentController implements DimensionComponentApi {
      * @return 子实体清单
      */
     @Override
-    public ResultData<List<SubjectItemDto>> getBudgetItems(String subjectId) {
+    public ResultData<List<StrategyItemDto>> getBudgetItems(String subjectId) {
         List<StrategyItem> subjectItems = budgetDimensionCustManager.getBudgetItems(subjectId);
-        return ResultData.success(subjectItems.stream().map(s -> modelMapper.map(s, SubjectItemDto.class)).collect(Collectors.toList()));
+        return ResultData.success(subjectItems.stream().map(s -> modelMapper.map(s, StrategyItemDto.class)).collect(Collectors.toList()));
     }
 
     /**

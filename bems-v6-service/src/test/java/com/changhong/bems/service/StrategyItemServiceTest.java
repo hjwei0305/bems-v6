@@ -43,14 +43,6 @@ class StrategyItemServiceTest extends BaseUnit5Test {
     }
 
     @Test
-    void getAssigned() {
-        String json = "{\"quickSearchValue\":\"\",\"quickSearchProperties\":[\"code\",\"name\"],\"pageInfo\":{\"page\":1,\"rows\":30},\"filters\":[{\"fieldName\":\"subjectId\",\"operator\":\"EQ\",\"value\":\"C81A4E58-BBD4-11EB-A896-0242C0A84429\"},{\"fieldName\":\"id\",\"operator\":\"NOTIN\",\"value\":[\"0364279D-C8F5-11EB-B646-0242C0A8442C\"]}]}";
-        Search search = JsonUtils.fromJson(json, Search.class);
-        PageResult<StrategyItem> pageResult = service.getAssigned(search);
-        System.out.println(pageResult);
-    }
-
-    @Test
     void assigne() {
     }
 

@@ -22,7 +22,7 @@ import java.io.Serializable;
 @Table(name = "strategy_item")
 @DynamicInsert
 @DynamicUpdate
-public class StrategyItem extends BaseAuditableEntity implements ITenant, IFrozen, Serializable {
+public class StrategyItem extends BaseAuditableEntity implements ITenant, Serializable {
     private static final long serialVersionUID = -57036484686343107L;
     public static final String FIELD_SUBJECT_ID = "subjectId";
     public static final String FIELD_CODE = "code";
@@ -52,11 +52,6 @@ public class StrategyItem extends BaseAuditableEntity implements ITenant, IFroze
      */
     @Column(name = "strategy_name")
     private String strategyName;
-    /**
-     * 冻结
-     */
-    @Column(name = "frozen")
-    private Boolean frozen = Boolean.FALSE;
     /**
      * 租户代码
      */
@@ -101,16 +96,6 @@ public class StrategyItem extends BaseAuditableEntity implements ITenant, IFroze
 
     public void setStrategyName(String strategyName) {
         this.strategyName = strategyName;
-    }
-
-    @Override
-    public Boolean getFrozen() {
-        return frozen;
-    }
-
-    @Override
-    public void setFrozen(Boolean frozen) {
-        this.frozen = frozen;
     }
 
     @Override
