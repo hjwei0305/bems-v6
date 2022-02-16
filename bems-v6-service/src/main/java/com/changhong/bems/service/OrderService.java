@@ -38,6 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.stream.Collectors;
 
 /**
  * 预算申请单(Order)业务逻辑实现类
@@ -126,6 +127,12 @@ public class OrderService extends BaseEntityService<Order> {
             Map<String, Object> data = new HashMap<>(7);
             data.put("head", head);
             List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
+            details = details.stream().sorted(
+                    Comparator.comparing(OrderDetail::getPeriodName)
+                            .thenComparing(OrderDetail::getOrg)
+                            .thenComparing(OrderDetail::getProject)
+                            .thenComparing(OrderDetail::getCostCenter)
+                            .thenComparing(OrderDetail::getItem)).collect(Collectors.toList());
             data.put("data", details);
             return ResultData.success(data);
         } else {

@@ -294,8 +294,10 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
         if (OrderStatus.PREFAB == status || OrderStatus.DRAFT == status
                 // 允许审批中修改订单
                 || OrderStatus.APPROVING == status) {
-            // 更新状态为草稿状态
-            order.setStatus(OrderStatus.DRAFT);
+            if (OrderStatus.PREFAB == status) {
+                // 更新状态为草稿状态
+                order.setStatus(OrderStatus.DRAFT);
+            }
             ResultData<Order> resultData = service.saveOrder(order);
             if (resultData.successful()) {
                 return ResultData.success(dtoModelMapper.map(resultData.getData(), OrderDto.class));
