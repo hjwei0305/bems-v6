@@ -1,5 +1,6 @@
 package com.changhong.bems.entity;
 
+import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.CategoryType;
 import com.changhong.bems.dto.Classification;
 import com.changhong.bems.dto.PeriodType;
@@ -70,7 +71,7 @@ public class Category extends BaseAuditableEntity implements ITenant, IFrozen, S
      * 参考id
      */
     @Column(name = "reference_id")
-    private String referenceId = "none";
+    private String referenceId = Constants.NONE;
     /**
      * 租户代码
      */

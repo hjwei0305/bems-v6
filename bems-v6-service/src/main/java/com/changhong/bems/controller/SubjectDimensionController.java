@@ -2,7 +2,7 @@ package com.changhong.bems.controller;
 
 import com.changhong.bems.api.SubjectDimensionApi;
 import com.changhong.bems.dto.DimensionDto;
-import com.changhong.bems.service.SubjectDimensionService;
+import com.changhong.bems.service.StrategyDimensionService;
 import com.changhong.sei.core.dto.ResultData;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ import java.util.List;
 @RequestMapping(path = SubjectDimensionApi.PATH, produces = MediaType.APPLICATION_JSON_VALUE)
 public class SubjectDimensionController implements SubjectDimensionApi {
     @Autowired
-    private SubjectDimensionService service;
+    private StrategyDimensionService service;
 
     /**
      * 按预算主体获取维度清单

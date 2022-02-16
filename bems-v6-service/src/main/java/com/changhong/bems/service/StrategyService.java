@@ -4,7 +4,7 @@ import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dto.StrategyCategory;
 import com.changhong.bems.dto.StrategyDto;
 import com.changhong.bems.entity.Subject;
-import com.changhong.bems.entity.SubjectItem;
+import com.changhong.bems.entity.StrategyItem;
 import com.changhong.bems.service.strategy.AbstractStrategy;
 import com.changhong.bems.service.strategy.BaseBudgetExecutionStrategy;
 import com.changhong.bems.service.strategy.BaseDimensionMatchStrategy;
@@ -35,7 +35,7 @@ public class StrategyService {
     @Autowired
     private SubjectService subjectService;
     @Autowired
-    private SubjectItemService subjectItemService;
+    private StrategyItemService subjectItemService;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
@@ -187,7 +187,7 @@ public class StrategyService {
         StrategyDto strategy = (StrategyDto) operations.get();
         if (Objects.isNull(strategy)) {
             // 预算主体科目
-            SubjectItem subjectItem = subjectItemService.getSubjectItem(subjectId, itemCode);
+            StrategyItem subjectItem = subjectItemService.getSubjectItem(subjectId, itemCode);
             if (Objects.nonNull(subjectItem)) {
                 if (StringUtils.isNotBlank(subjectItem.getStrategyId())) {
                     // 预算主体科目策略

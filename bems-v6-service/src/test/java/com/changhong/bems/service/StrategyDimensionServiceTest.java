@@ -7,17 +7,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 /**
  * 实现功能：
  *
  * @author 马超(Vision.Mac)
  * @version 1.0.00  2021-12-02 13:17
  */
-class SubjectDimensionServiceTest extends BaseUnit5Test {
+class StrategyDimensionServiceTest extends BaseUnit5Test {
     @Autowired
-    private SubjectDimensionService service;
+    private StrategyDimensionService service;
 
     @Test
     void getDimensionsByClassification() {

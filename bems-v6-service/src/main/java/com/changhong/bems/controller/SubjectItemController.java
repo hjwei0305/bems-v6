@@ -3,8 +3,8 @@ package com.changhong.bems.controller;
 import com.changhong.bems.api.SubjectItemApi;
 import com.changhong.bems.dto.AssigneItemRequest;
 import com.changhong.bems.dto.SubjectItemDto;
-import com.changhong.bems.entity.SubjectItem;
-import com.changhong.bems.service.SubjectItemService;
+import com.changhong.bems.entity.StrategyItem;
+import com.changhong.bems.service.StrategyItemService;
 import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
@@ -29,15 +29,15 @@ import java.util.Objects;
 @RestController
 @Api(value = "SubjectItemApi", tags = "预算主体科目服务")
 @RequestMapping(path = SubjectItemApi.PATH, produces = MediaType.APPLICATION_JSON_VALUE)
-public class SubjectItemController extends BaseEntityController<SubjectItem, SubjectItemDto> implements SubjectItemApi {
+public class SubjectItemController extends BaseEntityController<StrategyItem, SubjectItemDto> implements SubjectItemApi {
     /**
      * 预算科目服务对象
      */
     @Autowired
-    private SubjectItemService service;
+    private StrategyItemService service;
 
     @Override
-    public BaseEntityService<SubjectItem> getService() {
+    public BaseEntityService<StrategyItem> getService() {
         return service;
     }
 
@@ -131,9 +131,9 @@ public class SubjectItemController extends BaseEntityController<SubjectItem, Sub
             search = Search.createSearch();
         }
         // 指定预算主体
-        search.addFilter(new SearchFilter(SubjectItem.FIELD_SUBJECT_ID, subjectId));
+        search.addFilter(new SearchFilter(StrategyItem.FIELD_SUBJECT_ID, subjectId));
         // 未冻结
-        search.addFilter(new SearchFilter(SubjectItem.FROZEN, Boolean.FALSE));
+        search.addFilter(new SearchFilter(StrategyItem.FROZEN, Boolean.FALSE));
         return convertToDtoPageResult(service.findByPage(search));
     }
 }

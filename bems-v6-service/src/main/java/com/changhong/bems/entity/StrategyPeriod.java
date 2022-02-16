@@ -18,10 +18,10 @@ import java.io.Serializable;
  * @version 1.0.00  2022-02-08 16:04
  */
 @Entity
-@Table(name = "subject_period")
+@Table(name = "strategy_period")
 @DynamicInsert
 @DynamicUpdate
-public class SubjectPeriod extends BaseAuditableEntity implements ITenant, IFrozen, Serializable {
+public class StrategyPeriod extends BaseAuditableEntity implements ITenant, IFrozen, Serializable {
     private static final long serialVersionUID = -802675961919146775L;
     public static final String FIELD_SUBJECT_ID = "subjectId";
     public static final String FIELD_PERIOD_TYPE = "periodType";

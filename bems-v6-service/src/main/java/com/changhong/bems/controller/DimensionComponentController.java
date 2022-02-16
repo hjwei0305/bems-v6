@@ -3,7 +3,7 @@ package com.changhong.bems.controller;
 import com.changhong.bems.api.DimensionComponentApi;
 import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.Period;
-import com.changhong.bems.entity.SubjectItem;
+import com.changhong.bems.entity.StrategyItem;
 import com.changhong.bems.service.cust.BudgetDimensionCustManager;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.util.EnumUtils;
@@ -46,7 +46,7 @@ public class DimensionComponentController implements DimensionComponentApi {
      */
     @Override
     public ResultData<List<SubjectItemDto>> getBudgetItems(String subjectId) {
-        List<SubjectItem> subjectItems = budgetDimensionCustManager.getBudgetItems(subjectId);
+        List<StrategyItem> subjectItems = budgetDimensionCustManager.getBudgetItems(subjectId);
         return ResultData.success(subjectItems.stream().map(s -> modelMapper.map(s, SubjectItemDto.class)).collect(Collectors.toList()));
     }
 

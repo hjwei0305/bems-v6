@@ -1,9 +1,10 @@
 package com.changhong.bems.service;
 
-import com.changhong.bems.dao.SubjectPeriodDao;
+import com.changhong.bems.commons.Constants;
+import com.changhong.bems.dao.StrategyPeriodDao;
 import com.changhong.bems.dto.PeriodType;
-import com.changhong.bems.entity.SubjectItem;
-import com.changhong.bems.entity.SubjectPeriod;
+import com.changhong.bems.entity.StrategyItem;
+import com.changhong.bems.entity.StrategyPeriod;
 import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.serach.Search;
 import com.changhong.sei.core.dto.serach.SearchFilter;
@@ -26,21 +27,19 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 预算期间类型策略(SubjectPeriod)业务逻辑实现类
+ * 预算期间类型策略(StrategyPeriod)业务逻辑实现类
  *
  * @author sei
  * @since 2021-04-22 12:54:30
  */
 @Service
-@CacheConfig(cacheNames = SubjectPeriodService.CACHE_KEY)
-public class SubjectPeriodService extends BaseEntityService<SubjectPeriod> {
+@CacheConfig(cacheNames = Constants.STRATEGY_PERIOD_CACHE_KEY_PREFIX)
+public class StrategyPeriodService extends BaseEntityService<StrategyPeriod> {
     @Autowired
-    private SubjectPeriodDao dao;
-
-    public static final String CACHE_KEY = "bems-v6:subjectPeriod";
+    private StrategyPeriodDao dao;
 
     @Override
-    protected BaseEntityDao<SubjectPeriod> getDao() {
+    protected BaseEntityDao<StrategyPeriod> getDao() {
         return dao;
     }
 
@@ -50,7 +49,7 @@ public class SubjectPeriodService extends BaseEntityService<SubjectPeriod> {
     @Override
     @CacheEvict(key = "#entity.subjectId")
     @Transactional(rollbackFor = Exception.class)
-    public OperateResultWithData<SubjectPeriod> save(SubjectPeriod entity) {
+    public OperateResultWithData<StrategyPeriod> save(StrategyPeriod entity) {
         return super.save(entity);
     }
 
@@ -72,14 +71,14 @@ public class SubjectPeriodService extends BaseEntityService<SubjectPeriod> {
      * @return 分页查询结果
      */
     @Transactional(rollbackFor = Exception.class)
-    public List<SubjectPeriod> findBySubject(String subjectId) {
-        List<SubjectPeriod> list = dao.findListByProperty(SubjectItem.FIELD_SUBJECT_ID, subjectId);
+    public List<StrategyPeriod> findBySubject(String subjectId) {
+        List<StrategyPeriod> list = dao.findListByProperty(StrategyItem.FIELD_SUBJECT_ID, subjectId);
         if (CollectionUtils.isEmpty(list)) {
             PeriodType[] periodTypes = PeriodType.values();
             list = new ArrayList<>(periodTypes.length);
-            SubjectPeriod subjectPeriod;
+            StrategyPeriod subjectPeriod;
             for (PeriodType periodType : periodTypes) {
-                subjectPeriod = new SubjectPeriod();
+                subjectPeriod = new StrategyPeriod();
                 subjectPeriod.setSubjectId(subjectId);
                 subjectPeriod.setPeriodType(periodType);
                 boolean use;
@@ -121,11 +120,11 @@ public class SubjectPeriodService extends BaseEntityService<SubjectPeriod> {
      * @return 分页查询结果
      */
     @Cacheable(key = "#subjectId")
-    public List<SubjectPeriod> findBySubjectUnfrozen(String subjectId) {
+    public List<StrategyPeriod> findBySubjectUnfrozen(String subjectId) {
         Search search = Search.createSearch();
-        search.addFilter(new SearchFilter(SubjectPeriod.FIELD_SUBJECT_ID, subjectId));
-        search.addFilter(new SearchFilter(SubjectPeriod.FROZEN, Boolean.FALSE));
-        search.addSortOrder(SearchOrder.asc(SubjectPeriod.FIELD_PERIOD_TYPE));
+        search.addFilter(new SearchFilter(StrategyPeriod.FIELD_SUBJECT_ID, subjectId));
+        search.addFilter(new SearchFilter(StrategyPeriod.FROZEN, Boolean.FALSE));
+        search.addSortOrder(SearchOrder.asc(StrategyPeriod.FIELD_PERIOD_TYPE));
         return findByFilters(search);
     }
 
@@ -137,10 +136,10 @@ public class SubjectPeriodService extends BaseEntityService<SubjectPeriod> {
      * @return 返回科目
      */
     @Cacheable(key = "#subjectId + ':' + #periodType.name")
-    public SubjectPeriod getSubjectPeriod(String subjectId, PeriodType periodType) {
+    public StrategyPeriod getSubjectPeriod(String subjectId, PeriodType periodType) {
         Search search = Search.createSearch();
-        search.addFilter(new SearchFilter(SubjectPeriod.FIELD_SUBJECT_ID, subjectId));
-        search.addFilter(new SearchFilter(SubjectPeriod.FIELD_PERIOD_TYPE, periodType));
+        search.addFilter(new SearchFilter(StrategyPeriod.FIELD_SUBJECT_ID, subjectId));
+        search.addFilter(new SearchFilter(StrategyPeriod.FIELD_PERIOD_TYPE, periodType));
         return dao.findFirstByFilters(search);
     }
 }

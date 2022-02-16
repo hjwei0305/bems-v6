@@ -2,7 +2,7 @@ package com.changhong.bems.service;
 
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.SubjectDao;
-import com.changhong.bems.dao.SubjectItemDao;
+import com.changhong.bems.dao.StrategyItemDao;
 import com.changhong.bems.dao.SubjectOrganizationDao;
 import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.*;
@@ -42,7 +42,7 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
     @Autowired
     private SubjectDao dao;
     @Autowired
-    private SubjectItemDao subjectItemDao;
+    private StrategyItemDao subjectItemDao;
     @Autowired
     private SubjectOrganizationDao subjectOrganizationDao;
     @Autowired
@@ -359,7 +359,7 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
             // 预算主体[{0}]不存在!
             return OperateResult.operationFailure("subject_00003", id);
         }
-        SubjectItem item = subjectItemDao.findFirstByProperty(SubjectItem.FIELD_SUBJECT_ID, id);
+        StrategyItem item = subjectItemDao.findFirstByProperty(StrategyItem.FIELD_SUBJECT_ID, id);
         if (Objects.nonNull(item)) {
             // 已被预算科目[{0}]使用,禁止删除!
             return OperateResult.operationFailure("subject_00004", item.getName());

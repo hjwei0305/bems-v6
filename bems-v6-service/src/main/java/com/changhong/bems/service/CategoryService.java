@@ -1,5 +1,6 @@
 package com.changhong.bems.service;
 
+import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.CategoryDao;
 import com.changhong.bems.dto.CategoryType;
 import com.changhong.bems.dto.DimensionDto;
@@ -47,7 +48,7 @@ public class CategoryService extends BaseEntityService<Category> {
     @Autowired
     private CategoryDimensionService categoryDimensionService;
     @Autowired
-    private SubjectDimensionService subjectDimensionService;
+    private StrategyDimensionService strategyDimensionService;
     @Autowired
     private CategoryConfigService categoryConfigService;
 
@@ -120,7 +121,7 @@ public class CategoryService extends BaseEntityService<Category> {
         Category saveEntity = dao.save(entity);
         if (isNew) {
             if (CategoryType.PRIVATE == entity.getType()
-                    && StringUtils.isNotBlank(entity.getReferenceId()) && !"none".equals(entity.getReferenceId())) {
+                    && StringUtils.isNotBlank(entity.getReferenceId()) && !Constants.NONE.equals(entity.getReferenceId())) {
                 // 引用的
                 categoryDimensionService.addReferenceDimension(entity.getId(), entity.getReferenceId());
             } else {
@@ -170,7 +171,9 @@ public class CategoryService extends BaseEntityService<Category> {
         } else {
             if (CollectionUtils.isNotEmpty(generalList)) {
                 // 过滤引用通用的类型
-                Set<String> ids = privateList.stream().map(Category::getReferenceId).filter(StringUtils::isNotBlank).collect(Collectors.toSet());
+                Set<String> ids = privateList.stream().map(Category::getReferenceId)
+                        .filter(id -> StringUtils.isNotBlank(id) && !StringUtils.equals(Constants.NONE, id))
+                        .collect(Collectors.toSet());
                 if (CollectionUtils.isNotEmpty(ids)) {
                     categoryList.addAll(generalList.stream().filter(c -> !ids.contains(c.getId())).collect(Collectors.toList()));
                 } else {
@@ -197,7 +200,7 @@ public class CategoryService extends BaseEntityService<Category> {
             // 按预算类型获取使用的维度代码
             Set<String> dimensionCodeSet = categoryDimensionService.getDimensionCodeByCategory(categoryIds);
             // 按主体获取预算维度及维度策略
-            List<DimensionDto> dimensions = subjectDimensionService.getDimensions(subjectId);
+            List<DimensionDto> dimensions = strategyDimensionService.getDimensions(subjectId);
             // 按使用的维度过滤
             return dimensions.stream().filter(d -> dimensionCodeSet.contains(d.getCode())).collect(Collectors.toList());
         } else {
@@ -285,9 +288,9 @@ public class CategoryService extends BaseEntityService<Category> {
         List<DimensionDto> dimensionList;
         // 获取预算主体可用的维度(策略)
         if (CategoryType.GENERAL == category.getType()) {
-            dimensionList = subjectDimensionService.getDimensionsByClassification(category.getClassification());
+            dimensionList = strategyDimensionService.getDimensionsByClassification(category.getClassification());
         } else {
-            dimensionList = subjectDimensionService.getDimensions(category.getSubjectId());
+            dimensionList = strategyDimensionService.getDimensions(category.getSubjectId());
         }
         List<CategoryDimension> categoryDimensions = categoryDimensionService.getByCategoryId(categoryId);
         if (CollectionUtils.isNotEmpty(categoryDimensions)) {
@@ -317,9 +320,9 @@ public class CategoryService extends BaseEntityService<Category> {
         if (CollectionUtils.isNotEmpty(categoryDimensions)) {
             // 获取预算主体可用的维度(策略)
             if (CategoryType.GENERAL == category.getType()) {
-                list = subjectDimensionService.getDimensionsByClassification(category.getClassification());
+                list = strategyDimensionService.getDimensionsByClassification(category.getClassification());
             } else {
-                list = subjectDimensionService.getDimensions(category.getSubjectId());
+                list = strategyDimensionService.getDimensions(category.getSubjectId());
             }
             Set<String> codeSet = categoryDimensions.stream().map(CategoryDimension::getDimensionCode).collect(Collectors.toSet());
             // 按可用的维度过滤

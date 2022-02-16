@@ -1,7 +1,6 @@
 package com.changhong.bems.entity;
 
 import com.changhong.sei.core.entity.BaseAuditableEntity;
-import com.changhong.sei.core.entity.ICodeUnique;
 import com.changhong.sei.core.entity.IFrozen;
 import com.changhong.sei.core.entity.ITenant;
 import org.hibernate.annotations.DynamicInsert;
@@ -13,28 +12,29 @@ import javax.persistence.Table;
 import java.io.Serializable;
 
 /**
- * 预算科目(Item)实体类
+ * 公司预算科目(ItemCorporation)实体类
  *
  * @author sei
  * @since 2021-04-22 12:54:29
  */
 @Entity
-@Table(name = "item")
+@Table(name = "item_corporation")
 @DynamicInsert
 @DynamicUpdate
-public class Item extends BaseAuditableEntity implements ITenant, IFrozen, ICodeUnique, Serializable {
+public class ItemCorporation extends BaseAuditableEntity implements ITenant, IFrozen, Serializable {
     private static final long serialVersionUID = -57036484686343107L;
+    public static final String FIELD_CORP_CODE = "corpCode";
 
     /**
-     * 代码
+     * 参考id
      */
-    @Column(name = "code")
-    private String code;
+    @Column(name = "item_id", updatable = false)
+    private String itemId;
     /**
-     * 名称
+     * 公司代码
      */
-    @Column(name = "name")
-    private String name;
+    @Column(name = "corporation_code", updatable = false)
+    private String corpCode;
     /**
      * 是否冻结
      */
@@ -47,22 +47,20 @@ public class Item extends BaseAuditableEntity implements ITenant, IFrozen, ICode
     @Column(name = "tenant_code")
     private String tenantCode;
 
-    @Override
-    public String getCode() {
-        return code;
+    public String getItemId() {
+        return itemId;
     }
 
-    @Override
-    public void setCode(String code) {
-        this.code = code;
+    public void setItemId(String itemId) {
+        this.itemId = itemId;
     }
 
-    public String getName() {
-        return name;
+    public String getCorpCode() {
+        return corpCode;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setCorpCode(String corpCode) {
+        this.corpCode = corpCode;
     }
 
     @Override

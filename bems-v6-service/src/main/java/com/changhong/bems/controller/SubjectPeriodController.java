@@ -2,8 +2,8 @@ package com.changhong.bems.controller;
 
 import com.changhong.bems.api.SubjectPeriodApi;
 import com.changhong.bems.dto.SubjectPeriodDto;
-import com.changhong.bems.entity.SubjectPeriod;
-import com.changhong.bems.service.SubjectPeriodService;
+import com.changhong.bems.entity.StrategyPeriod;
+import com.changhong.bems.service.StrategyPeriodService;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.ResultData;
 import io.swagger.annotations.Api;
@@ -33,7 +33,7 @@ public class SubjectPeriodController implements SubjectPeriodApi {
      * 预算期间策略服务对象
      */
     @Autowired
-    private SubjectPeriodService service;
+    private StrategyPeriodService service;
     @Autowired
     private ModelMapper modelMapper;
 
@@ -46,7 +46,7 @@ public class SubjectPeriodController implements SubjectPeriodApi {
      */
     @Override
     public ResultData<Void> use(String id, Boolean use) {
-        SubjectPeriod subjectPeriod = service.findOne(id);
+        StrategyPeriod subjectPeriod = service.findOne(id);
         if (Objects.isNull(subjectPeriod)) {
             return ResultData.fail(ContextUtil.getMessage("pool_00028"));
         }
@@ -64,7 +64,7 @@ public class SubjectPeriodController implements SubjectPeriodApi {
      */
     @Override
     public ResultData<Void> roll(String id, Boolean roll) {
-        SubjectPeriod subjectPeriod = service.findOne(id);
+        StrategyPeriod subjectPeriod = service.findOne(id);
         if (Objects.isNull(subjectPeriod)) {
             return ResultData.fail(ContextUtil.getMessage("pool_00028"));
         }
@@ -82,7 +82,7 @@ public class SubjectPeriodController implements SubjectPeriodApi {
     @Override
     public ResultData<List<SubjectPeriodDto>> getSubjectPeriods(String subjectId) {
         List<SubjectPeriodDto> result;
-        List<SubjectPeriod> subjectPeriods = service.findBySubject(subjectId);
+        List<StrategyPeriod> subjectPeriods = service.findBySubject(subjectId);
         if (CollectionUtils.isNotEmpty(subjectPeriods)) {
             result = subjectPeriods.stream().map(p -> modelMapper.map(p, SubjectPeriodDto.class)).collect(Collectors.toList());
         } else {

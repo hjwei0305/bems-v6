@@ -111,14 +111,17 @@ public final class Constants {
     public static final String DIMENSION_CACHE_KEY_PREFIX = "bems-v6:dimension";
 
     /**
-     * redis key 维度主体缓存key
+     * redis key 维度策略缓存key
      */
-    public static final String DIMENSION_SUBJECT_CACHE_KEY_PREFIX = "bems-v6:dimension:subject";
-
+    public static final String STRATEGY_DIMENSION_CACHE_KEY_PREFIX = "bems-v6:strategy:dimension";
     /**
-     * redis key 维度name与value映射缓存key
+     * redis key 执行策略缓存key
      */
-    public static final String DIMENSION_MAP_CACHE_KEY_PREFIX = "bems-v6:dimension:map:";
+    public static final String STRATEGY_ITEM_CACHE_KEY_PREFIX = "bems-v6:strategy:item";
+    /**
+     * redis key 期间策略缓存key
+     */
+    public static final String STRATEGY_PERIOD_CACHE_KEY_PREFIX = "bems-v6:strategy:period";
 
     /**
      * redis key 维度name与value映射缓存key

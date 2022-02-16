@@ -48,7 +48,7 @@ public class BudgetService {
     @Autowired
     private PoolLogService poolLogService;
     @Autowired
-    private SubjectDimensionService subjectDimensionService;
+    private StrategyDimensionService subjectDimensionService;
     @Autowired
     private StrategyService strategyService;
     @Autowired(required = false)

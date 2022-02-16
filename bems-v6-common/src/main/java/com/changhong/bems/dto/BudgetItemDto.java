@@ -31,6 +31,11 @@ public class BudgetItemDto extends BaseEntityDto {
     @ApiModelProperty(value = "名称", required = true)
     private String name;
     /**
+     * 是否禁用
+     */
+    @ApiModelProperty(value = "是否禁用.为true时禁用,反之启用")
+    private Boolean frozen = Boolean.FALSE;
+    /**
      * 租户代码
      */
     @ApiModelProperty(value = "租户代码")
@@ -50,6 +55,14 @@ public class BudgetItemDto extends BaseEntityDto {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Boolean getFrozen() {
+        return frozen;
+    }
+
+    public void setFrozen(Boolean frozen) {
+        this.frozen = frozen;
     }
 
     public String getTenantCode() {

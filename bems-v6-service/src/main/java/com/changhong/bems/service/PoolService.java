@@ -56,7 +56,7 @@ public class PoolService {
     @Autowired
     private PoolLogService poolLogService;
     @Autowired
-    private SubjectPeriodService subjectPeriodService;
+    private StrategyPeriodService strategyPeriodService;
     @Autowired
     private MockUser mockUser;
     @Autowired
@@ -395,7 +395,7 @@ public class PoolService {
         redisTemplate.opsForValue().set(key, "true", 10, TimeUnit.MINUTES);
         try {
             // 检查预算期间类型控制策略,是否可结转
-            SubjectPeriod subjectPeriod = subjectPeriodService.getSubjectPeriod(pool.getSubjectId(), pool.getPeriodType());
+            StrategyPeriod subjectPeriod = strategyPeriodService.getSubjectPeriod(pool.getSubjectId(), pool.getPeriodType());
             if (Objects.isNull(subjectPeriod)) {
                 // 预算池[{0}]对应的预算主体未配置期间类型[{1}]的控制策略!
                 return ResultData.fail(ContextUtil.getMessage("pool_00019", pool.getCode(), pool.getPeriodType()));
@@ -408,7 +408,7 @@ public class PoolService {
             boolean isAcrossYear = false;
             if (12 == pool.getEndDate().getMonthValue()) {
                 // 检查年度期间配置是否允许跨年
-                subjectPeriod = subjectPeriodService.getSubjectPeriod(pool.getSubjectId(), PeriodType.ANNUAL);
+                subjectPeriod = strategyPeriodService.getSubjectPeriod(pool.getSubjectId(), PeriodType.ANNUAL);
                 if (Objects.nonNull(subjectPeriod) && subjectPeriod.getRoll()) {
                     isAcrossYear = true;
                 }
@@ -620,11 +620,11 @@ public class PoolService {
         // 按条件查询满足的预算池
         List<Pool> poolList = dao.findByFilters(search);
         if (CollectionUtils.isNotEmpty(poolList)) {
-            Map<PeriodType, SubjectPeriod> periodMap;
+            Map<PeriodType, StrategyPeriod> periodMap;
             // 按预算主体获取预算期间类型控制策略
-            List<SubjectPeriod> subjectPeriods = subjectPeriodService.findBySubject(subjectId);
+            List<StrategyPeriod> subjectPeriods = strategyPeriodService.findBySubject(subjectId);
             if (CollectionUtils.isNotEmpty(subjectPeriods)) {
-                periodMap = subjectPeriods.stream().collect(Collectors.toMap(SubjectPeriod::getPeriodType, p -> p));
+                periodMap = subjectPeriods.stream().collect(Collectors.toMap(StrategyPeriod::getPeriodType, p -> p));
             } else {
                 periodMap = new HashMap<>();
             }
@@ -632,7 +632,7 @@ public class PoolService {
             StrategyDto strategy;
             ResultData<StrategyDto> resultData;
             DimensionAttribute dimensionAttribute;
-            SubjectPeriod subjectPeriod;
+            StrategyPeriod subjectPeriod;
             for (Pool pool : poolList) {
                 subjectPeriod = periodMap.get(pool.getPeriodType());
                 // 检查期间类型控制策略,是否允许使用
@@ -830,7 +830,7 @@ public class PoolService {
             // 未找到预算池
             return ResultData.fail(ContextUtil.getMessage("pool_00001"));
         }
-        SubjectPeriod subjectPeriod = subjectPeriodService.getSubjectPeriod(pool.getSubjectId(), pool.getPeriodType());
+        StrategyPeriod subjectPeriod = strategyPeriodService.getSubjectPeriod(pool.getSubjectId(), pool.getPeriodType());
         PoolAttributeDto dto = this.constructPoolAttribute(pool, Optional.ofNullable(subjectPeriod));
 
         DimensionAttribute attribute = dimensionAttributeService.getAttribute(pool.getSubjectId(), pool.getAttributeCode());
@@ -853,7 +853,7 @@ public class PoolService {
         return ResultData.success(dto);
     }
 
-    private PoolAttributeDto constructPoolAttribute(Pool pool, Optional<SubjectPeriod> periodOptional) {
+    private PoolAttributeDto constructPoolAttribute(Pool pool, Optional<StrategyPeriod> periodOptional) {
         PoolAttributeDto dto = new PoolAttributeDto();
         dto.setId(pool.getId());
         dto.setCode(pool.getCode());
@@ -869,7 +869,7 @@ public class PoolService {
         dto.setActived(pool.getActived());
         // 检查预算期间类型控制策略,是否可结转
         if (periodOptional.isPresent()) {
-            SubjectPeriod subjectPeriod = periodOptional.get();
+            StrategyPeriod subjectPeriod = periodOptional.get();
             dto.setUse(subjectPeriod.getUse());
             dto.setRoll(subjectPeriod.getRoll());
         }

@@ -5,7 +5,7 @@ import com.changhong.bems.dto.PeriodType;
 import com.changhong.bems.dto.ProjectDto;
 import com.changhong.bems.entity.Period;
 import com.changhong.bems.entity.Subject;
-import com.changhong.bems.entity.SubjectItem;
+import com.changhong.bems.entity.StrategyItem;
 import com.changhong.sei.core.dto.ResultData;
 
 import java.util.List;
@@ -26,7 +26,7 @@ public interface BudgetDimensionCustManager {
      * @param subjectId 预算主体id
      * @return 子实体清单
      */
-    List<SubjectItem> getBudgetItems(String subjectId);
+    List<StrategyItem> getBudgetItems(String subjectId);
 
     /**
      * 按预算主体和期间类型获取期间

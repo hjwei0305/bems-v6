@@ -12,17 +12,17 @@ import javax.persistence.Table;
 import java.io.Serializable;
 
 /**
- * 预算主体科目(SubjectItem)实体类
+ * 执行策略(SubjectItem)实体类
  * 预算管控/执行策略:强控,弱控
  *
  * @author sei
  * @since 2021-04-22 12:54:29
  */
 @Entity
-@Table(name = "subject_item")
+@Table(name = "strategy_item")
 @DynamicInsert
 @DynamicUpdate
-public class SubjectItem extends BaseAuditableEntity implements ITenant, IFrozen, Serializable {
+public class StrategyItem extends BaseAuditableEntity implements ITenant, IFrozen, Serializable {
     private static final long serialVersionUID = -57036484686343107L;
     public static final String FIELD_SUBJECT_ID = "subjectId";
     public static final String FIELD_CODE = "code";

@@ -1,12 +1,12 @@
 package com.changhong.bems.service;
 
 import com.changhong.bems.commons.Constants;
-import com.changhong.bems.dao.SubjectDimensionDao;
+import com.changhong.bems.dao.StrategyDimensionDao;
 import com.changhong.bems.dto.Classification;
 import com.changhong.bems.dto.DimensionDto;
 import com.changhong.bems.entity.Dimension;
 import com.changhong.bems.entity.Subject;
-import com.changhong.bems.entity.SubjectDimension;
+import com.changhong.bems.entity.StrategyDimension;
 import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.Search;
@@ -31,10 +31,10 @@ import java.util.Objects;
  * @version 1.0.00  2021-11-02 14:57
  */
 @Service
-@CacheConfig(cacheNames = Constants.DIMENSION_SUBJECT_CACHE_KEY_PREFIX)
-public class SubjectDimensionService {
+@CacheConfig(cacheNames = Constants.STRATEGY_DIMENSION_CACHE_KEY_PREFIX)
+public class StrategyDimensionService {
     @Autowired
-    private SubjectDimensionDao dao;
+    private StrategyDimensionDao dao;
     @Autowired
     private DimensionService dimensionService;
     @Autowired
@@ -94,9 +94,9 @@ public class SubjectDimensionService {
         if (Objects.nonNull(subject)) {
             List<DimensionDto> dimensionList = this.getDimensionsByClassification(subject.getClassification());
             if (CollectionUtils.isNotEmpty(dimensionList)) {
-                List<SubjectDimension> subjectDimensions = dao.findListByProperty(SubjectDimension.FIELD_SUBJECT_ID, subjectId);
+                List<StrategyDimension> subjectDimensions = dao.findListByProperty(StrategyDimension.FIELD_SUBJECT_ID, subjectId);
                 if (CollectionUtils.isNotEmpty(subjectDimensions)) {
-                    for (SubjectDimension sd : subjectDimensions) {
+                    for (StrategyDimension sd : subjectDimensions) {
                         for (DimensionDto dimension : dimensionList) {
                             if (StringUtils.equals(dimension.getCode(), sd.getCode())) {
                                 dimension.setId(sd.getId());
@@ -127,9 +127,9 @@ public class SubjectDimensionService {
             dto.setRank(dimension.getRank());
 
             Search search = Search.createSearch();
-            search.addFilter(new SearchFilter(SubjectDimension.FIELD_SUBJECT_ID, subjectId));
-            search.addFilter(new SearchFilter(SubjectDimension.FIELD_CODE, code));
-            SubjectDimension subjectDimension = dao.findOneByFilters(search);
+            search.addFilter(new SearchFilter(StrategyDimension.FIELD_SUBJECT_ID, subjectId));
+            search.addFilter(new SearchFilter(StrategyDimension.FIELD_CODE, code));
+            StrategyDimension subjectDimension = dao.findOneByFilters(search);
             if (Objects.nonNull(subjectDimension) && StringUtils.equals(dto.getCode(), subjectDimension.getCode())) {
                 dto.setId(subjectDimension.getId());
                 dto.setStrategyId(subjectDimension.getStrategyId());
@@ -151,9 +151,9 @@ public class SubjectDimensionService {
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> setSubjectDimension(String subjectId, String code, boolean isPrivate) {
         Search search = Search.createSearch();
-        search.addFilter(new SearchFilter(SubjectDimension.FIELD_SUBJECT_ID, subjectId));
-        search.addFilter(new SearchFilter(SubjectDimension.FIELD_CODE, code));
-        SubjectDimension subjectDimension = dao.findOneByFilters(search);
+        search.addFilter(new SearchFilter(StrategyDimension.FIELD_SUBJECT_ID, subjectId));
+        search.addFilter(new SearchFilter(StrategyDimension.FIELD_CODE, code));
+        StrategyDimension subjectDimension = dao.findOneByFilters(search);
         if (isPrivate) {
             // 如果存在直接返回
             if (Objects.isNull(subjectDimension)) {
@@ -162,7 +162,7 @@ public class SubjectDimensionService {
                     // 维度[{0}]不存在!
                     return ResultData.fail(ContextUtil.getMessage("dimension_00002", code));
                 }
-                subjectDimension = new SubjectDimension();
+                subjectDimension = new StrategyDimension();
                 subjectDimension.setTenantCode(ContextUtil.getTenantCode());
                 subjectDimension.setSubjectId(subjectId);
                 subjectDimension.setCode(code);
@@ -188,7 +188,7 @@ public class SubjectDimensionService {
     @CacheEvict(allEntries = true)
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> setDimensionStrategy(String id, String strategyId) {
-        SubjectDimension subjectDimension = dao.findOne(id);
+        StrategyDimension subjectDimension = dao.findOne(id);
         if (Objects.nonNull(subjectDimension)) {
             subjectDimension.setStrategyId(strategyId);
             dao.save(subjectDimension);
