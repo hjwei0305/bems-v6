@@ -12,6 +12,7 @@ import com.changhong.sei.core.dao.BaseEntityDao;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
+import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.log.LogUtil;
 import com.changhong.sei.core.service.BaseEntityService;
 import com.changhong.sei.core.service.bo.OperateResult;
@@ -142,6 +143,8 @@ public class ItemService extends BaseEntityService<Item> {
         } else {
             // 通用科目禁用启用操作
             dao.disabledGeneral(ids, disabled);
+            // 移除公司配置科目
+            itemCorporationDao.deleteByItemIdIn(ids);
         }
 
         // 清空缓存
@@ -151,6 +154,7 @@ public class ItemService extends BaseEntityService<Item> {
 
     /**
      * 分页查询公司预算科目
+     * 预算科目公司私有功能分页查询
      *
      * @return 查询结果
      */
@@ -186,6 +190,38 @@ public class ItemService extends BaseEntityService<Item> {
         return pageResult;
     }
 
+
+    /**
+     * 分页查询公司可用的预算科目
+     * 预算策略执行策略分页查询
+     *
+     * @return 查询结果
+     */
+    public PageResult<Item> findPageUsableByCorp(Search search, String corpCode) {
+        if (Objects.isNull(search)) {
+            search = Search.createSearch();
+        }
+        // 公司禁用的科目id清单
+        Set<String> itemIds = null;
+
+        Search corpSearch = Search.createSearch();
+        corpSearch.addFilter(new SearchFilter(ItemCorporation.FIELD_CORP_CODE, corpCode));
+        // 公司禁用的科目
+        corpSearch.addFilter(new SearchFilter(ItemCorporation.FROZEN, Boolean.TRUE));
+        List<ItemCorporation> itemCorporations = itemCorporationDao.findByFilters(corpSearch);
+        if (CollectionUtils.isNotEmpty(itemCorporations)) {
+            itemIds = itemCorporations.stream().map(ItemCorporation::getItemId).collect(Collectors.toSet());
+        }
+        if (CollectionUtils.isNotEmpty(itemIds)) {
+            search.addFilter(new SearchFilter(Item.ID, itemIds, SearchFilter.Operator.NOTIN));
+        }
+        // 可用的预算科目
+        search.addFilter(new SearchFilter(Item.FROZEN, Boolean.FALSE));
+
+        // 分页获取通用科目清单
+        return this.findByPage(search);
+    }
+
     /**
      * 根据code获取预算科目
      */
@@ -217,6 +253,10 @@ public class ItemService extends BaseEntityService<Item> {
                     ItemCorporation itemCorp;
                     Map<String, ItemCorporation> itemMap = itemCorporations.stream().collect(Collectors.toMap(ItemCorporation::getItemId, item -> item));
                     for (Item item : itemList) {
+                        // 通用科目被禁用,同步标示禁用公司科目
+                        if (Boolean.TRUE.equals(item.getFrozen())) {
+                            continue;
+                        }
                         itemCorp = itemMap.get(item.getId());
                         if (Objects.nonNull(itemCorp)) {
                             item.setFrozen(itemCorp.getFrozen());
@@ -240,7 +280,7 @@ public class ItemService extends BaseEntityService<Item> {
     private void cleanItemCache() {
         CompletableFuture.runAsync(() -> {
             try {
-                Set<String> keys = redisTemplate.keys(Constants.STRATEGY_CACHE_KEY_PREFIX.concat(":*"));
+                Set<String> keys = redisTemplate.keys(Constants.ITEM_CACHE_KEY_PREFIX.concat(":*"));
                 if (CollectionUtils.isNotEmpty(keys)) {
                     redisTemplate.delete(keys);
                 }

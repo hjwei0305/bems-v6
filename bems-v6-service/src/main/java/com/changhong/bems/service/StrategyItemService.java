@@ -116,7 +116,8 @@ public class StrategyItemService {
         PageResult<StrategyItem> pageResult;
         Subject subject = subjectService.getSubject(subjectId);
         if (Objects.nonNull(subject)) {
-            PageResult<Item> itemPageResult = itemService.findPageByCorp(search, subject.getCorporationCode());
+            // 公司可用的预算科目
+            PageResult<Item> itemPageResult = itemService.findPageUsableByCorp(search, subject.getCorporationCode());
             pageResult = new PageResult<>(itemPageResult);
             if (itemPageResult.getRecords() > 0) {
                 Map<String, StrategyItem> strategyItemMap;
