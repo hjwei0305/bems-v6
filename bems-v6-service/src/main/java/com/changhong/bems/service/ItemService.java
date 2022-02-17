@@ -202,6 +202,9 @@ public class ItemService extends BaseEntityService<Item> {
                 return this.findPageUsableByCorp(corpCode, search);
             }
         } else {
+            // 可用的通用科目
+            search.addFilter(new SearchFilter(ItemCorporation.FROZEN, Boolean.FALSE));
+
             // 分页获取通用科目清单
             PageResult<Item> pageResult = this.findByPage(search);
             if (pageResult.getRecords() > 0) {
@@ -216,11 +219,6 @@ public class ItemService extends BaseEntityService<Item> {
                 }
                 ItemCorporation itemCorp;
                 for (Item item : itemList) {
-                    // 通用科目被禁用,同步标示禁用公司科目
-                    if (Boolean.TRUE.equals(item.getFrozen())) {
-                        continue;
-                    }
-
                     itemCorp = itemMap.get(item.getId());
                     if (Objects.nonNull(itemCorp) && itemCorp.getFrozen()) {
                         // 设置公司科目禁用状态
@@ -231,7 +229,6 @@ public class ItemService extends BaseEntityService<Item> {
             return pageResult;
         }
     }
-
 
     /**
      * 分页查询公司可用的预算科目
@@ -255,6 +252,7 @@ public class ItemService extends BaseEntityService<Item> {
             itemIds = itemCorporations.stream().map(ItemCorporation::getItemId).collect(Collectors.toSet());
         }
         if (CollectionUtils.isNotEmpty(itemIds)) {
+            // 排除公司禁用的科目id
             search.addFilter(new SearchFilter(Item.ID, itemIds, SearchFilter.Operator.NOTIN));
         }
         // 可用的预算科目
