@@ -1,6 +1,6 @@
 package com.changhong.bems.controller;
 
-import com.changhong.bems.api.SubjectItemApi;
+import com.changhong.bems.api.StrategyItemApi;
 import com.changhong.bems.dto.StrategyItemDto;
 import com.changhong.bems.dto.SubjectItemSearch;
 import com.changhong.bems.entity.StrategyItem;
@@ -24,9 +24,9 @@ import java.util.stream.Collectors;
  * @since 2021-04-22 12:54:30
  */
 @RestController
-@Api(value = "SubjectItemApi", tags = "预算主体科目服务")
-@RequestMapping(path = SubjectItemApi.PATH, produces = MediaType.APPLICATION_JSON_VALUE)
-public class SubjectItemController implements SubjectItemApi {
+@Api(value = "StrategyItemApi", tags = "科目执行策略服务")
+@RequestMapping(path = StrategyItemApi.PATH, produces = MediaType.APPLICATION_JSON_VALUE)
+public class StrategyItemController implements StrategyItemApi {
     /**
      * 预算科目服务对象
      */

@@ -21,9 +21,9 @@ import javax.validation.Valid;
  * @since 2021-04-22 12:54:30
  */
 @Valid
-@FeignClient(name = "bems-v6", path = SubjectItemApi.PATH)
-public interface SubjectItemApi {
-    String PATH = "subjectItem";
+@FeignClient(name = "bems-v6", path = StrategyItemApi.PATH)
+public interface StrategyItemApi {
+    String PATH = "strategyItem";
 
     /**
      * 按主体获取预算科目执行策略(预算策略菜单功能使用)
