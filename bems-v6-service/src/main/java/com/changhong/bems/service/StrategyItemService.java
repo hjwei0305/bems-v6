@@ -126,6 +126,7 @@ public class StrategyItemService {
                     strategyItem.setName(item.getName());
                     StrategyItem si = strategyItemMap.get(item.getCode());
                     if (Objects.nonNull(si)) {
+                        strategyItem.setId(si.getId());
                         strategyItem.setStrategyId(si.getStrategyId());
                         strategyItem.setStrategyName(si.getStrategyName());
                     }

@@ -128,10 +128,11 @@ public class OrderService extends BaseEntityService<Order> {
             data.put("head", head);
             List<OrderDetail> details = orderDetailService.getOrderItems(orderId);
             details = details.stream().sorted(
-                    Comparator.comparing(OrderDetail::getPeriodName)
-                            .thenComparing(OrderDetail::getOrg)
+                    // 按组织、项目、成本中心、期间、科目排序
+                    Comparator.comparing(OrderDetail::getOrg)
                             .thenComparing(OrderDetail::getProject)
                             .thenComparing(OrderDetail::getCostCenter)
+                            .thenComparing(OrderDetail::getPeriodName)
                             .thenComparing(OrderDetail::getItem)).collect(Collectors.toList());
             data.put("data", details);
             return ResultData.success(data);
