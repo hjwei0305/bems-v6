@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -97,9 +98,7 @@ public class ItemController extends BaseEntityController<Item, BudgetItemDto> im
      */
     @Override
     public ResultData<Void> importItem(List<BudgetItemDto> itemDtos) {
-        List<Item> itemList = convertToEntities(itemDtos);
-        service.save(itemList);
-        return ResultData.success();
+        return service.importItem(convertToEntities(itemDtos));
     }
 
     /**
@@ -112,7 +111,8 @@ public class ItemController extends BaseEntityController<Item, BudgetItemDto> im
         List<BudgetItemExport> list;
         List<Item> itemList = service.findAll();
         if (CollectionUtils.isNotEmpty(itemList)) {
-            list = itemList.stream().map(item -> modelMapper.map(item, BudgetItemExport.class)).collect(Collectors.toList());
+            list = itemList.stream().map(item -> modelMapper.map(item, BudgetItemExport.class))
+                    .sorted(Comparator.comparing(BudgetItemExport::getCode)).collect(Collectors.toList());
         } else {
             list = new ArrayList<>();
         }

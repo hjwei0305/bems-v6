@@ -57,6 +57,11 @@ public class StrategyItemService {
         if (isPrivate) {
             // 如果存在直接返回
             if (Objects.isNull(strategyItem)) {
+                Subject subject = subjectService.getSubject(subjectId);
+                if (Objects.isNull(subject)) {
+                    // 主体[{0}]不存在!
+                    return ResultData.fail(ContextUtil.getMessage("subject_00003", subjectId));
+                }
                 Item item = itemService.findByCode(itemCode);
                 if (Objects.isNull(item)) {
                     // 科目[{0}]不存在!
@@ -67,6 +72,9 @@ public class StrategyItemService {
                 strategyItem.setSubjectId(subjectId);
                 strategyItem.setCode(itemCode);
                 strategyItem.setName(item.getName());
+                // 默认使用当前主体的策略进行初始化
+                strategyItem.setStrategyId(subject.getStrategyId());
+                strategyItem.setStrategyName(subject.getStrategyName());
                 dao.save(strategyItem);
             }
         } else {

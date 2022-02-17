@@ -158,6 +158,7 @@ public class ItemService extends BaseEntityService<Item> {
         if (Objects.isNull(search)) {
             search = Search.createSearch();
         }
+        // 分页获取通用科目清单
         PageResult<Item> pageResult = this.findByPage(search);
         if (pageResult.getRecords() > 0) {
             Map<String, ItemCorporation> itemMap;
@@ -171,8 +172,13 @@ public class ItemService extends BaseEntityService<Item> {
             }
             ItemCorporation itemCorp;
             for (Item item : itemList) {
+                // 通用科目被禁用,同步标示禁用公司科目
+                if (Boolean.TRUE.equals(item.getFrozen())) {
+                    continue;
+                }
                 itemCorp = itemMap.get(item.getId());
                 if (Objects.nonNull(itemCorp)) {
+                    // 设置公司科目禁用状态
                     item.setFrozen(itemCorp.getFrozen());
                 }
             }
