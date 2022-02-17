@@ -3,7 +3,6 @@ package com.changhong.bems.service;
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.ItemCorporationDao;
 import com.changhong.bems.dao.ItemDao;
-import com.changhong.bems.dto.BudgetItemDto;
 import com.changhong.bems.dto.CategoryType;
 import com.changhong.bems.entity.DimensionAttribute;
 import com.changhong.bems.entity.Item;
@@ -130,11 +129,18 @@ public class ItemService extends BaseEntityService<Item> {
             } else {
                 itemMap = itemList.stream().collect(Collectors.toMap(ItemCorporation::getItemId, obj -> obj));
             }
+            List<Item> items = dao.findAllById(ids);
+            Map<String, Item> mapData = items.stream().collect(Collectors.toMap(Item::getId, item -> item));
             List<ItemCorporation> itemCorporations = ids.stream().map(id -> {
                 ItemCorporation itemCorporation = itemMap.get(id);
                 if (Objects.isNull(itemCorporation)) {
                     itemCorporation = new ItemCorporation();
                     itemCorporation.setItemId(id);
+                    Item item = mapData.get(id);
+                    if (Objects.nonNull(item)) {
+                        itemCorporation.setCode(item.getCode());
+                        itemCorporation.setName(item.getName());
+                    }
                     itemCorporation.setCorpCode(corpCode);
                 }
                 itemCorporation.setFrozen(disabled);
@@ -159,49 +165,71 @@ public class ItemService extends BaseEntityService<Item> {
      *
      * @return 查询结果
      */
-    public PageResult<BudgetItemDto> findPageByCorp(String corpCode, Search search) {
+    public PageResult<Item> findPageByCorp(String corpCode, Search search) {
         if (Objects.isNull(search)) {
             search = Search.createSearch();
         }
-
-        // 分页获取通用科目清单
-        PageResult<Item> pageResult = this.findByPage(search);
-        PageResult<BudgetItemDto> result = new PageResult<>(pageResult);
-        if (pageResult.getRecords() > 0) {
-            List<BudgetItemDto> itemDtos = new ArrayList<>();
-            Map<String, ItemCorporation> itemMap;
-            List<Item> itemList = pageResult.getRows();
-            // 公司科目
-            List<ItemCorporation> itemCorporations = itemCorporationDao.findListByProperty(ItemCorporation.FIELD_CORP_CODE, corpCode);
-            if (CollectionUtils.isNotEmpty(itemCorporations)) {
-                itemMap = itemCorporations.stream().collect(Collectors.toMap(ItemCorporation::getItemId, item -> item));
-            } else {
-                itemMap = new HashMap<>();
-            }
-            BudgetItemDto itemDto;
-            ItemCorporation itemCorp;
-            for (Item item : itemList) {
-                // 通用科目被禁用,同步标示禁用公司科目
-                if (Boolean.TRUE.equals(item.getFrozen())) {
-                    continue;
-                }
-                itemDto = new BudgetItemDto();
-                itemDto.setId(item.getId());
-                itemDto.setCode(item.getCode());
-                itemDto.setName(item.getName());
-                itemDto.setFrozen(item.getFrozen());
-                itemDtos.add(itemDto);
-
-                itemCorp = itemMap.get(item.getId());
-                if (Objects.nonNull(itemCorp) && itemCorp.getFrozen()) {
-                    // 设置公司科目禁用状态
-                    itemDto.setFrozen(itemCorp.getFrozen());
-                    itemDto.setCorpFrozen(Boolean.TRUE);
+        Boolean disabled = null;
+        List<SearchFilter> filters = search.getFilters();
+        if (CollectionUtils.isNotEmpty(filters)) {
+            for (SearchFilter filter : filters) {
+                if (Item.FROZEN.equals(filter.getFieldName())) {
+                    disabled = Boolean.parseBoolean("" + filter.getValue());
+                    break;
                 }
             }
-            result.setRows(itemDtos);
         }
-        return result;
+
+        if (Objects.nonNull(disabled)) {
+            if (Boolean.TRUE.equals(disabled)) {
+                // 公司禁用的
+                PageResult<ItemCorporation> pageResult = itemCorporationDao.findByPage(search);
+                PageResult<Item> result = new PageResult<>(pageResult);
+                if (pageResult.getRecords() > 0) {
+                    List<Item> itemList = pageResult.getRows().stream().map(ci -> {
+                        Item item = new Item();
+                        item.setId(ci.getItemId());
+                        item.setCode(ci.getCode());
+                        item.setName(ci.getName());
+                        item.setFrozen(ci.getFrozen());
+                        return item;
+                    }).collect(Collectors.toList());
+                    result.setRows(itemList);
+                }
+                return result;
+            } else {
+                // 公司可用的
+                return this.findPageUsableByCorp(corpCode, search);
+            }
+        } else {
+            // 分页获取通用科目清单
+            PageResult<Item> pageResult = this.findByPage(search);
+            if (pageResult.getRecords() > 0) {
+                Map<String, ItemCorporation> itemMap;
+                List<Item> itemList = pageResult.getRows();
+                // 公司科目
+                List<ItemCorporation> itemCorporations = itemCorporationDao.findListByProperty(ItemCorporation.FIELD_CORP_CODE, corpCode);
+                if (CollectionUtils.isNotEmpty(itemCorporations)) {
+                    itemMap = itemCorporations.stream().collect(Collectors.toMap(ItemCorporation::getItemId, item -> item));
+                } else {
+                    itemMap = new HashMap<>();
+                }
+                ItemCorporation itemCorp;
+                for (Item item : itemList) {
+                    // 通用科目被禁用,同步标示禁用公司科目
+                    if (Boolean.TRUE.equals(item.getFrozen())) {
+                        continue;
+                    }
+
+                    itemCorp = itemMap.get(item.getId());
+                    if (Objects.nonNull(itemCorp) && itemCorp.getFrozen()) {
+                        // 设置公司科目禁用状态
+                        item.setFrozen(itemCorp.getFrozen());
+                    }
+                }
+            }
+            return pageResult;
+        }
     }
 
 
@@ -211,7 +239,7 @@ public class ItemService extends BaseEntityService<Item> {
      *
      * @return 查询结果
      */
-    public PageResult<Item> findPageUsableByCorp(Search search, String corpCode) {
+    public PageResult<Item> findPageUsableByCorp(String corpCode, Search search) {
         if (Objects.isNull(search)) {
             search = Search.createSearch();
         }

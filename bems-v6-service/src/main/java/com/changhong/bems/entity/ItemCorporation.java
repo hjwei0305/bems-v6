@@ -31,6 +31,16 @@ public class ItemCorporation extends BaseAuditableEntity implements ITenant, IFr
     @Column(name = "item_id", updatable = false)
     private String itemId;
     /**
+     * 代码
+     */
+    @Column(name = "code")
+    private String code;
+    /**
+     * 名称
+     */
+    @Column(name = "name")
+    private String name;
+    /**
      * 公司代码
      */
     @Column(name = "corporation_code", updatable = false)
@@ -53,6 +63,22 @@ public class ItemCorporation extends BaseAuditableEntity implements ITenant, IFr
 
     public void setItemId(String itemId) {
         this.itemId = itemId;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getCorpCode() {
