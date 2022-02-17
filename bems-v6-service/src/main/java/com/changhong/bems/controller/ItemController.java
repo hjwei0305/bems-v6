@@ -76,7 +76,7 @@ public class ItemController extends BaseEntityController<Item, BudgetItemDto> im
      */
     @Override
     public ResultData<PageResult<BudgetItemDto>> findByCorp(BudgetItemSearch search) {
-        return convertToDtoPageResult(service.findPageByCorp(search, search.getCorpCode()));
+        return ResultData.success(service.findPageByCorp(search.getCorpCode(), search));
     }
 
     /**

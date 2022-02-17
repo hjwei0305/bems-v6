@@ -18,6 +18,8 @@ public class BudgetItemSearch extends Search implements Serializable {
 
     @ApiModelProperty(value = "公司代码")
     private String corpCode;
+    @ApiModelProperty(value = "禁用标示")
+    private Boolean disabled;
 
     public String getCorpCode() {
         return corpCode;
@@ -25,5 +27,13 @@ public class BudgetItemSearch extends Search implements Serializable {
 
     public void setCorpCode(String corpCode) {
         this.corpCode = corpCode;
+    }
+
+    public Boolean getDisabled() {
+        return disabled;
+    }
+
+    public void setDisabled(Boolean disabled) {
+        this.disabled = disabled;
     }
 }

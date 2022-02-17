@@ -31,6 +31,11 @@ public class BudgetItemDto extends BaseEntityDto {
     @ApiModelProperty(value = "名称", required = true)
     private String name;
     /**
+     * 公司禁用科目
+     */
+    @ApiModelProperty(value = "是公司禁用科目")
+    private Boolean corpFrozen = Boolean.FALSE;
+    /**
      * 是否禁用
      */
     @ApiModelProperty(value = "是否禁用.为true时禁用,反之启用")
@@ -55,6 +60,14 @@ public class BudgetItemDto extends BaseEntityDto {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Boolean getCorpFrozen() {
+        return corpFrozen;
+    }
+
+    public void setCorpFrozen(Boolean corpFrozen) {
+        this.corpFrozen = corpFrozen;
     }
 
     public Boolean getFrozen() {

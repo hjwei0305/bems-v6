@@ -3,6 +3,7 @@ package com.changhong.bems.service;
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.ItemCorporationDao;
 import com.changhong.bems.dao.ItemDao;
+import com.changhong.bems.dto.BudgetItemDto;
 import com.changhong.bems.dto.CategoryType;
 import com.changhong.bems.entity.DimensionAttribute;
 import com.changhong.bems.entity.Item;
@@ -158,13 +159,16 @@ public class ItemService extends BaseEntityService<Item> {
      *
      * @return 查询结果
      */
-    public PageResult<Item> findPageByCorp(Search search, String corpCode) {
+    public PageResult<BudgetItemDto> findPageByCorp(String corpCode, Search search) {
         if (Objects.isNull(search)) {
             search = Search.createSearch();
         }
+
         // 分页获取通用科目清单
         PageResult<Item> pageResult = this.findByPage(search);
+        PageResult<BudgetItemDto> result = new PageResult<>(pageResult);
         if (pageResult.getRecords() > 0) {
+            List<BudgetItemDto> itemDtos = new ArrayList<>();
             Map<String, ItemCorporation> itemMap;
             List<Item> itemList = pageResult.getRows();
             // 公司科目
@@ -174,20 +178,30 @@ public class ItemService extends BaseEntityService<Item> {
             } else {
                 itemMap = new HashMap<>();
             }
+            BudgetItemDto itemDto;
             ItemCorporation itemCorp;
             for (Item item : itemList) {
                 // 通用科目被禁用,同步标示禁用公司科目
                 if (Boolean.TRUE.equals(item.getFrozen())) {
                     continue;
                 }
+                itemDto = new BudgetItemDto();
+                itemDto.setId(item.getId());
+                itemDto.setCode(item.getCode());
+                itemDto.setName(item.getName());
+                itemDto.setFrozen(item.getFrozen());
+                itemDtos.add(itemDto);
+
                 itemCorp = itemMap.get(item.getId());
-                if (Objects.nonNull(itemCorp)) {
+                if (Objects.nonNull(itemCorp) && itemCorp.getFrozen()) {
                     // 设置公司科目禁用状态
-                    item.setFrozen(itemCorp.getFrozen());
+                    itemDto.setFrozen(itemCorp.getFrozen());
+                    itemDto.setCorpFrozen(Boolean.TRUE);
                 }
             }
+            result.setRows(itemDtos);
         }
-        return pageResult;
+        return result;
     }
 
 
