@@ -80,16 +80,16 @@ public class ItemController extends BaseEntityController<Item, BudgetItemDto> im
      */
     @Override
     public ResultData<PageResult<BudgetItemDto>> findByCorp(BudgetItemSearch search) {
-        Boolean disabled = null;
-        List<SearchFilter> filters = search.getFilters();
-        if (CollectionUtils.isNotEmpty(filters)) {
-            for (SearchFilter filter : filters) {
-                if (Item.FROZEN.equals(filter.getFieldName())) {
-                    disabled = Boolean.parseBoolean("" + filter.getValue());
-                    break;
-                }
-            }
-        }
+        Boolean disabled = search.getDisabled();
+        // List<SearchFilter> filters = search.getFilters();
+        // if (CollectionUtils.isNotEmpty(filters)) {
+        //     for (SearchFilter filter : filters) {
+        //         if (Item.FROZEN.equals(filter.getFieldName())) {
+        //             disabled = Boolean.parseBoolean("" + filter.getValue());
+        //             break;
+        //         }
+        //     }
+        // }
         return convertToDtoPageResult(service.findPageByCorp(search.getCorpCode(), disabled, search));
     }
 
@@ -103,7 +103,7 @@ public class ItemController extends BaseEntityController<Item, BudgetItemDto> im
         Subject subject = subjectService.getSubject(search.getSubjectId());
         if (Objects.nonNull(subject)) {
             // 可用的,未禁用的科目
-            return convertToDtoPageResult(service.findPageByCorp(subject.getCorporationCode(), Boolean.FALSE, search));
+            return convertToDtoPageResult(service.findPageUsableByCorp(subject.getCorporationCode(), search));
         } else {
             return ResultData.fail(ContextUtil.getMessage("subject_00003", search.getSubjectId()));
         }
