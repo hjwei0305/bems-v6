@@ -69,7 +69,11 @@ public class ItemController extends BaseEntityController<Item, BudgetItemDto> im
      * @return 查询结果
      */
     @Override
-    public ResultData<PageResult<BudgetItemDto>> findByGeneral(Search search) {
+    public ResultData<PageResult<BudgetItemDto>> findByGeneral(BudgetItemSearch search) {
+        Boolean disable = search.getDisabled();
+        if (Objects.nonNull(disable)) {
+            search.addFilter(new SearchFilter(Item.FROZEN, disable));
+        }
         return convertToDtoPageResult(service.findByPage(search));
     }
 

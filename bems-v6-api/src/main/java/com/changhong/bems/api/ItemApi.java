@@ -33,7 +33,7 @@ public interface ItemApi extends BaseEntityApi<BudgetItemDto> {
      */
     @PostMapping(path = "findByGeneral", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "分页查询通用预算科目", notes = "分页查询通用预算科目")
-    ResultData<PageResult<BudgetItemDto>> findByGeneral(@RequestBody Search search);
+    ResultData<PageResult<BudgetItemDto>> findByGeneral(@RequestBody BudgetItemSearch search);
 
     /**
      * 分页查询公司预算科目
