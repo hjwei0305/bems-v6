@@ -274,26 +274,25 @@ public class ItemService extends BaseEntityService<Item> {
             Subject subject = subjectService.getSubject(subjectId);
             if (Objects.nonNull(subject)) {
                 // 按公司代码获取科目
+                Set<String> itemIds = null;
 
-                // 获取所有可用科目
-                itemList = dao.findAllUnfrozen();
-                // 公司科目
-                List<ItemCorporation> itemCorporations = itemCorporationDao.findListByProperty(ItemCorporation.FIELD_CORP_CODE, subject.getCorporationCode());
+                Search search = Search.createSearch();
+                search.addFilter(new SearchFilter(ItemCorporation.FIELD_CORP_CODE, subject.getCorporationCode()));
+                // 公司禁用的科目
+                search.addFilter(new SearchFilter(ItemCorporation.FROZEN, Boolean.TRUE));
+                List<ItemCorporation> itemCorporations = itemCorporationDao.findByFilters(search);
                 if (CollectionUtils.isNotEmpty(itemCorporations)) {
-                    ItemCorporation itemCorp;
-                    Map<String, ItemCorporation> itemMap = itemCorporations.stream().collect(Collectors.toMap(ItemCorporation::getItemId, item -> item));
-                    for (Item item : itemList) {
-                        // 通用科目被禁用,同步标示禁用公司科目
-                        if (Boolean.TRUE.equals(item.getFrozen())) {
-                            continue;
-                        }
-                        itemCorp = itemMap.get(item.getId());
-                        if (Objects.nonNull(itemCorp)) {
-                            item.setFrozen(itemCorp.getFrozen());
-                        }
-                    }
+                    itemIds = itemCorporations.stream().map(ItemCorporation::getItemId).collect(Collectors.toSet());
                 }
-                itemList = itemList.stream().filter(item -> Boolean.FALSE.equals(item.getFrozen())).collect(Collectors.toList());
+
+                search.clearAll();
+                if (CollectionUtils.isNotEmpty(itemIds)) {
+                    // 排除公司禁用的科目id
+                    search.addFilter(new SearchFilter(Item.ID, itemIds, SearchFilter.Operator.NOTIN));
+                }
+                // 可用的预算科目
+                search.addFilter(new SearchFilter(Item.FROZEN, Boolean.FALSE));
+                itemList = dao.findByFilters(search);
 
                 // 写入缓存
                 operations.set(itemList, 3, TimeUnit.DAYS);
