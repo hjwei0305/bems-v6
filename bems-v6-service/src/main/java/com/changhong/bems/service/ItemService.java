@@ -165,19 +165,9 @@ public class ItemService extends BaseEntityService<Item> {
      *
      * @return 查询结果
      */
-    public PageResult<Item> findPageByCorp(String corpCode, Search search) {
+    public PageResult<Item> findPageByCorp(String corpCode, Boolean disabled, Search search) {
         if (Objects.isNull(search)) {
             search = Search.createSearch();
-        }
-        Boolean disabled = null;
-        List<SearchFilter> filters = search.getFilters();
-        if (CollectionUtils.isNotEmpty(filters)) {
-            for (SearchFilter filter : filters) {
-                if (Item.FROZEN.equals(filter.getFieldName())) {
-                    disabled = Boolean.parseBoolean("" + filter.getValue());
-                    break;
-                }
-            }
         }
 
         if (Objects.nonNull(disabled)) {

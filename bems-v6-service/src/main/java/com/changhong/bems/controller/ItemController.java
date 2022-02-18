@@ -1,16 +1,17 @@
 package com.changhong.bems.controller;
 
 import com.changhong.bems.api.ItemApi;
-import com.changhong.bems.dto.BudgetItemDisableRequest;
-import com.changhong.bems.dto.BudgetItemDto;
-import com.changhong.bems.dto.BudgetItemExport;
-import com.changhong.bems.dto.BudgetItemSearch;
+import com.changhong.bems.dto.*;
 import com.changhong.bems.entity.Item;
+import com.changhong.bems.entity.Subject;
 import com.changhong.bems.service.ItemService;
+import com.changhong.bems.service.SubjectService;
+import com.changhong.sei.core.context.ContextUtil;
 import com.changhong.sei.core.controller.BaseEntityController;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
 import com.changhong.sei.core.dto.serach.Search;
+import com.changhong.sei.core.dto.serach.SearchFilter;
 import com.changhong.sei.core.service.BaseEntityService;
 import io.swagger.annotations.Api;
 import org.apache.commons.collections.CollectionUtils;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -40,6 +42,8 @@ public class ItemController extends BaseEntityController<Item, BudgetItemDto> im
      */
     @Autowired
     private ItemService service;
+    @Autowired
+    private SubjectService subjectService;
     @Autowired
     private ModelMapper modelMapper;
 
@@ -76,7 +80,33 @@ public class ItemController extends BaseEntityController<Item, BudgetItemDto> im
      */
     @Override
     public ResultData<PageResult<BudgetItemDto>> findByCorp(BudgetItemSearch search) {
-        return convertToDtoPageResult(service.findPageByCorp(search.getCorpCode(), search));
+        Boolean disabled = null;
+        List<SearchFilter> filters = search.getFilters();
+        if (CollectionUtils.isNotEmpty(filters)) {
+            for (SearchFilter filter : filters) {
+                if (Item.FROZEN.equals(filter.getFieldName())) {
+                    disabled = Boolean.parseBoolean("" + filter.getValue());
+                    break;
+                }
+            }
+        }
+        return convertToDtoPageResult(service.findPageByCorp(search.getCorpCode(), disabled, search));
+    }
+
+    /**
+     * 分页查询主体预算科目
+     *
+     * @return 查询结果
+     */
+    @Override
+    public ResultData<PageResult<BudgetItemDto>> findBySubject(SubjectItemSearch search) {
+        Subject subject = subjectService.getSubject(search.getSubjectId());
+        if (Objects.nonNull(subject)) {
+            // 可用的,未禁用的科目
+            return convertToDtoPageResult(service.findPageByCorp(subject.getCorporationCode(), Boolean.FALSE, search));
+        } else {
+            return ResultData.fail(ContextUtil.getMessage("subject_00003", search.getSubjectId()));
+        }
     }
 
     /**

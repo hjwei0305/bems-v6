@@ -1,9 +1,6 @@
 package com.changhong.bems.api;
 
-import com.changhong.bems.dto.BudgetItemDisableRequest;
-import com.changhong.bems.dto.BudgetItemDto;
-import com.changhong.bems.dto.BudgetItemExport;
-import com.changhong.bems.dto.BudgetItemSearch;
+import com.changhong.bems.dto.*;
 import com.changhong.sei.core.api.BaseEntityApi;
 import com.changhong.sei.core.dto.ResultData;
 import com.changhong.sei.core.dto.serach.PageResult;
@@ -46,6 +43,15 @@ public interface ItemApi extends BaseEntityApi<BudgetItemDto> {
     @PostMapping(path = "findByCorp", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "分页查询公司预算科目", notes = "分页查询公司预算科目")
     ResultData<PageResult<BudgetItemDto>> findByCorp(@RequestBody BudgetItemSearch search);
+
+    /**
+     * 分页查询主体预算科目
+     *
+     * @return 查询结果
+     */
+    @PostMapping(path = "findBySubject", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "分页查询主体预算科目", notes = "分页查询主体预算科目")
+    ResultData<PageResult<BudgetItemDto>> findBySubject(@RequestBody SubjectItemSearch search);
 
     /**
      * 分页获取预算科目(外部系统集成专用)
