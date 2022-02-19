@@ -7,8 +7,10 @@ import com.changhong.sei.core.api.FindByPageApi;
 import com.changhong.sei.core.dto.ResultData;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
@@ -82,4 +84,24 @@ public interface SubjectApi extends BaseEntityApi<SubjectDto>, FindByPageApi<Sub
     @GetMapping(path = "getSubjectOrganizations")
     @ApiOperation(value = "按组织级主体id获取分配的组织机构", notes = "按组织级主体id获取分配的组织机构")
     ResultData<List<SubjectOrganizationDto>> getSubjectOrganizations(@RequestParam("id") String id);
+
+    /**
+     * 批量维护时公司列表
+     * 用户有权限的公司,且未配置相应类型主体的公司
+     *
+     * @return 当前用户有权限的公司
+     */
+    @GetMapping(path = "findCorporations")
+    @ApiOperation(value = "批量维护时公司列表", notes = "用户有权限的公司,且未配置相应类型主体的公司")
+    ResultData<List<CorporationDto>> findCorporations(@RequestParam("classification") Classification classification);
+
+    /**
+     * 批量创建预算主体
+     *
+     * @param request 业务实体DTO
+     * @return 操作结果
+     */
+    @PostMapping(path = "batchCreate", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "批量创建预算主体", notes = "批量创建预算主体")
+    ResultData<Void> batchCreate(@RequestBody @Valid SubjectBatchCreate request);
 }

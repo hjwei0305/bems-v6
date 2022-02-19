@@ -60,6 +60,10 @@ public class ItemController extends BaseEntityController<Item, BudgetItemDto> im
      */
     @Override
     public ResultData<PageResult<BudgetItemDto>> getBudgetItems(Search search) {
+        if (Objects.isNull(search)) {
+            search = Search.createSearch();
+        }
+        search.addFilter(new SearchFilter(Item.FROZEN, Boolean.FALSE));
         return convertToDtoPageResult(service.findByPage(search));
     }
 

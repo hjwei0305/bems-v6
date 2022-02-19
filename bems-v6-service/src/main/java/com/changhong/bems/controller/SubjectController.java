@@ -159,4 +159,26 @@ public class SubjectController extends BaseEntityController<Subject, SubjectDto>
         }
         return ResultData.success(list);
     }
+
+    /**
+     * 批量维护时公司列表
+     * 用户有权限的公司,且未配置相应类型主体的公司
+     *
+     * @return 当前用户有权限的公司
+     */
+    @Override
+    public ResultData<List<CorporationDto>> findCorporations(Classification classification) {
+        return service.findCorporations(classification);
+    }
+
+    /**
+     * 批量创建预算主体
+     *
+     * @param request 业务实体DTO
+     * @return 操作结果
+     */
+    @Override
+    public ResultData<Void> batchCreate(SubjectBatchCreate request) {
+        return service.batchCreate(request.getCorpCodes(), request.getClassification(), request.getStrategyId());
+    }
 }

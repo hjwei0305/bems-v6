@@ -58,6 +58,8 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
     @Autowired
     private SubjectOrganizationDao subjectOrganizationDao;
     @Autowired
+    private StrategyService strategyService;
+    @Autowired
     private UserAuthorizeManager userAuthorizeManager;
     @Autowired
     private CurrencyManager currencyManager;
@@ -103,6 +105,65 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
      */
     public ResultData<List<CorporationDto>> findUserAuthorizedCorporations() {
         return corporationManager.findUserAuthorizedCorporations();
+    }
+
+    /**
+     * 批量维护时公司列表
+     * 用户有权限的公司,且未配置相应类型主体的公司
+     *
+     * @return 当前用户有权限的公司
+     */
+    public ResultData<List<CorporationDto>> findCorporations(Classification classification) {
+        ResultData<List<CorporationDto>> resultData = this.findUserAuthorizedCorporations();
+        if (resultData.successful()) {
+            // 用户当前有权限的公司清单
+            List<CorporationDto> corporations = resultData.getData();
+
+            List<Subject> subjectList = dao.findListByProperty(Subject.FIELD_CLASSIFICATION, classification);
+            if (CollectionUtils.isNotEmpty(subjectList)) {
+                // 已配置主体的公司代码清单
+                Set<String> subjectCorpSet = subjectList.stream().map(Subject::getCorporationCode).collect(Collectors.toSet());
+                // 排除已配置主体的公司
+                List<CorporationDto> corpList = corporations.stream().filter(corp -> !subjectCorpSet.contains(corp.getCode())).collect(Collectors.toList());
+                return ResultData.success(corpList);
+            }
+        }
+        return resultData;
+    }
+
+    /**
+     * 批量创建预算主体
+     *
+     * @return 操作结果
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ResultData<Void> batchCreate(Set<String> corpCodes, Classification classification, String strategyId) {
+        Subject subject;
+        ResultData<List<CorporationDto>> resultData = this.findUserAuthorizedCorporations();
+        if (resultData.successful()) {
+            List<CorporationDto> corporations = resultData.getData();
+            Map<String, String> corpMap = corporations.stream().collect(Collectors.toMap(CorporationDto::getCode, CorporationDto::getName));
+            for (String corpCode : corpCodes) {
+                subject = new Subject();
+                subject.setCorporationCode(corpCode);
+                subject.setCorporationName(corpMap.get(corpCode));
+                subject.setName(subject.getCorporationName());
+                subject.setClassification(classification);
+                subject.setStrategyId(strategyId);
+                subject.setStrategyName(strategyService.getNameByCode(strategyId));
+                try {
+                    OperateResultWithData<Subject> result = this.save(subject);
+                    if (result.notSuccessful()) {
+                        LogUtil.error(result.getMessage());
+                    }
+                } catch (Exception e) {
+                    LogUtil.error("公司[" + corpCode + "]在批量创建预算主体时异常", e.getMessage());
+                }
+            }
+            return ResultData.success();
+        } else {
+            return ResultData.fail(resultData.getMessage());
+        }
     }
 
     /**
@@ -361,7 +422,7 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
                         }
                     }
                 }
-                entity = this.findOne(entity.getId());
+                //entity = this.findOne(entity.getId());
             }
         } else {
             // 编辑后处理
