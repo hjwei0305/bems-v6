@@ -309,7 +309,7 @@ public class ItemService extends BaseEntityService<Item> {
     private void cleanItemCache() {
         CompletableFuture.runAsync(() -> {
             try {
-                Set<String> keys = redisTemplate.keys(Constants.ITEM_CACHE_KEY_PREFIX.concat(":*"));
+                Set<String> keys = redisTemplate.keys(Constants.ITEM_CACHE_KEY_PREFIX.concat("*"));
                 if (CollectionUtils.isNotEmpty(keys)) {
                     redisTemplate.delete(keys);
                 }
