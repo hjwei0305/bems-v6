@@ -141,12 +141,19 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
         Subject subject;
         ResultData<List<CorporationDto>> resultData = this.findUserAuthorizedCorporations();
         if (resultData.successful()) {
+            CorporationDto corporationDto;
             List<CorporationDto> corporations = resultData.getData();
-            Map<String, String> corpMap = corporations.stream().collect(Collectors.toMap(CorporationDto::getCode, CorporationDto::getName));
+            Map<String, CorporationDto> corpMap = corporations.stream().collect(Collectors.toMap(CorporationDto::getCode, corp->corp));
             for (String corpCode : corpCodes) {
+                corporationDto = corpMap.get(corpCode);
+                if (Objects.isNull(corporationDto)) {
+                    continue;
+                }
                 subject = new Subject();
                 subject.setCorporationCode(corpCode);
-                subject.setCorporationName(corpMap.get(corpCode));
+                subject.setCorporationName(corporationDto.getName());
+                subject.setCurrencyCode(corporationDto.getBaseCurrencyCode());
+                subject.setCurrencyName(corporationDto.getBaseCurrencyName());
                 subject.setName(subject.getCorporationName());
                 subject.setClassification(classification);
                 subject.setStrategyId(strategyId);
