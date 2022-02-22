@@ -60,6 +60,8 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
     @Autowired
     private StrategyService strategyService;
     @Autowired
+    private StrategyPeriodService strategyPeriodService;
+    @Autowired
     private UserAuthorizeManager userAuthorizeManager;
     @Autowired
     private CurrencyManager currencyManager;
@@ -396,7 +398,9 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
         dao.save(entity);
 
         if (Boolean.TRUE == isNew) {
-            // 新增后处理
+            // 新增后处理.初始化预算主体科目策略
+            strategyPeriodService.initStrategyPeriod(entity.getId());
+
             // 保存组织级主体关联的组织机构
             if (Objects.equals(Classification.DEPARTMENT, entity.getClassification())) {
                 List<OrganizationDto> orgDtoList;

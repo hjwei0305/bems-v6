@@ -459,16 +459,28 @@ public class PoolService {
         PageResult<PoolAttributeDto> pageResult = dao.queryPoolPaging(param);
         if (pageResult.getTotal() > 0) {
             StrategyDto strategy;
+            StrategyPeriod strategyPeriod;
             ResultData<StrategyDto> resultData;
             List<PoolAttributeDto> list = pageResult.getRows();
+            Map<String, StrategyPeriod> strategyPeriodMap = new HashMap<>();
             Map<String, StrategyDto> strategyMap = new HashMap<>();
             for (PoolAttributeDto pool : list) {
-                strategy = strategyMap.get(pool.getSubjectId() + pool.getItem());
+                String subjectId = pool.getSubjectId();
+                strategyPeriod = strategyPeriodMap.get(subjectId + pool.getPeriodType().name());
+                if (Objects.isNull(strategyPeriod)) {
+                    strategyPeriod = strategyPeriodService.getSubjectPeriod(subjectId, pool.getPeriodType());
+                    strategyPeriodMap.put(subjectId + pool.getPeriodType().name(), strategyPeriod);
+                }
+                if (Objects.nonNull(strategyPeriod)) {
+                    pool.setRoll(strategyPeriod.getRoll());
+                    pool.setUse(strategyPeriod.getUse());
+                }
+                strategy = strategyMap.get(subjectId + pool.getItem());
                 if (Objects.isNull(strategy)) {
-                    resultData = strategyItemService.getStrategy(pool.getSubjectId(), pool.getItem());
+                    resultData = strategyItemService.getStrategy(subjectId, pool.getItem());
                     if (resultData.successful()) {
                         strategy = resultData.getData();
-                        strategyMap.put(pool.getSubjectId() + pool.getItem(), strategy);
+                        strategyMap.put(subjectId + pool.getItem(), strategy);
                     }
                 }
                 if (Objects.nonNull(strategy)) {
@@ -476,6 +488,7 @@ public class PoolService {
                     pool.setStrategyName(strategy.getName());
                 }
             }
+            strategyMap.clear();
         }
         return pageResult;
     }

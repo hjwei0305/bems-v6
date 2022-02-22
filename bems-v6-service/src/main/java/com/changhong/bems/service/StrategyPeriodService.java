@@ -19,7 +19,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -65,67 +64,56 @@ public class StrategyPeriodService extends BaseEntityService<StrategyPeriod> {
     }
 
     /**
+     * 创建预算主体时,初始化预算主体科目
+     *
+     * @param subjectId 预算主体id
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void initStrategyPeriod(String subjectId) {
+        PeriodType[] periodTypes = PeriodType.values();
+        List<StrategyPeriod> list = new ArrayList<>(periodTypes.length);
+        StrategyPeriod subjectPeriod;
+        for (PeriodType periodType : periodTypes) {
+            subjectPeriod = new StrategyPeriod();
+            subjectPeriod.setSubjectId(subjectId);
+            subjectPeriod.setPeriodType(periodType);
+            boolean use;
+            boolean roll;
+            switch (periodType) {
+                case ANNUAL:
+                    // 默认年度期间,不允许结转,不允许业务直接使用
+                    use = Boolean.FALSE;
+                    roll = Boolean.FALSE;
+                    break;
+                case CUSTOMIZE:
+                    // 默认自定义期间,不允许结转,允许业务直接使用
+                    use = Boolean.TRUE;
+                    roll = Boolean.FALSE;
+                    break;
+                default:
+                    // 允许结转,允许业务直接使用
+                    use = Boolean.TRUE;
+                    roll = Boolean.TRUE;
+            }
+            subjectPeriod.setRoll(roll);
+            subjectPeriod.setUse(use);
+            list.add(subjectPeriod);
+        }
+        this.save(list);
+    }
+
+    /**
      * 根据预算主体查询私有预算主体科目
      *
      * @param subjectId 预算主体id
      * @return 分页查询结果
      */
-    @Transactional(rollbackFor = Exception.class)
     public List<StrategyPeriod> findBySubject(String subjectId) {
         List<StrategyPeriod> list = dao.findListByProperty(StrategyItem.FIELD_SUBJECT_ID, subjectId);
-        if (CollectionUtils.isEmpty(list)) {
-            PeriodType[] periodTypes = PeriodType.values();
-            list = new ArrayList<>(periodTypes.length);
-            StrategyPeriod subjectPeriod;
-            for (PeriodType periodType : periodTypes) {
-                subjectPeriod = new StrategyPeriod();
-                subjectPeriod.setSubjectId(subjectId);
-                subjectPeriod.setPeriodType(periodType);
-                boolean use;
-                boolean roll;
-                switch (periodType) {
-                    case ANNUAL:
-                        // 默认年度期间,不允许结转,不允许业务直接使用
-                        use = Boolean.FALSE;
-                        roll = Boolean.FALSE;
-                        break;
-                    case CUSTOMIZE:
-                        // 默认自定义期间,不允许结转,允许业务直接使用
-                        use = Boolean.TRUE;
-                        roll = Boolean.FALSE;
-                        break;
-                    default:
-                        // 允许结转,允许业务直接使用
-                        use = Boolean.TRUE;
-                        roll = Boolean.TRUE;
-                }
-                subjectPeriod.setRoll(roll);
-                subjectPeriod.setUse(use);
-                list.add(subjectPeriod);
-            }
-            try {
-                this.save(list);
-            } catch (Exception e) {
-                // 回滚事务
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            }
+        if (CollectionUtils.isNotEmpty(list)) {
+            return list.stream().sorted(Comparator.comparingInt(o -> o.getPeriodType().ordinal())).collect(Collectors.toList());
         }
-        return list.stream().sorted(Comparator.comparingInt(o -> o.getPeriodType().ordinal())).collect(Collectors.toList());
-    }
-
-    /**
-     * 根据预算主体查询私有预算主体科目(不包含冻结状态的)
-     *
-     * @param subjectId 预算主体id
-     * @return 分页查询结果
-     */
-    @Cacheable(key = "#subjectId")
-    public List<StrategyPeriod> findBySubjectUnfrozen(String subjectId) {
-        Search search = Search.createSearch();
-        search.addFilter(new SearchFilter(StrategyPeriod.FIELD_SUBJECT_ID, subjectId));
-        search.addFilter(new SearchFilter(StrategyPeriod.FROZEN, Boolean.FALSE));
-        search.addSortOrder(SearchOrder.asc(StrategyPeriod.FIELD_PERIOD_TYPE));
-        return findByFilters(search);
+        return list;
     }
 
     /**
