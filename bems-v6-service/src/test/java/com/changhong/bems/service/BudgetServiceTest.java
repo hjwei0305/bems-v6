@@ -99,7 +99,7 @@ class BudgetServiceTest extends BaseUnit5Test {
         // use.setOrg("435B09B6-D0E1-11EA-93C3-0242C0A8460D");
         // useList.add(use);
         // request.setUseList(useList);
-        String s = "{\"useList\":[{\"classification\":\"DEPARTMENT\",\"corpCode\":\"Q000\",\"amount\":1500.00,\"eventCode\":\"APPLICATION_USE\",\"bizId\":\"7B6101DE-7D85-11EC-A697-0242C0A8440F\",\"bizCode\":\"A000000024-1\",\"bizRemark\":\"申请单A000000024-国内差旅费报销【伏锐】启动流程\",\"date\":\"2022-01-25\",\"item\":\"6600010000\",\"org\":\"D94C2527-5CB3-11EC-BFAE-0242C0A8440A\",\"project\":null,\"costCenter\":null,\"udf1\":null,\"udf2\":null,\"udf3\":null,\"udf4\":null,\"udf5\":null,\"bizName\":\"国内差旅费报销【伏锐】(预算科目：6600010000-费用-差旅费)预算占用\",\"application\":true}],\"freeList\":[]}";
+        String s = "{\"useList\":[{\"classification\":\"DEPARTMENT\",\"corpCode\":\"Q600\",\"amount\":11362.71,\"eventCode\":\"REIMBURSEMENT_USE\",\"bizId\":\"F37D2223-8F07-11EC-8C72-0242C0A84418\",\"bizCode\":\"R000000003-1\",\"bizRemark\":\"报销单R000000003-办公费【代微】启动流程\",\"date\":\"2022-02-22\",\"item\":\"55034100\",\"org\":\"05633D2E-8D5C-11EC-8905-0242C0A84419\",\"project\":null,\"costCenter\":null,\"udf1\":null,\"udf2\":null,\"udf3\":null,\"udf4\":null,\"udf5\":null,\"bizName\":\"办公费【代微】(预算科目：55034100-办公费)预算占用\",\"application\":false}],\"freeList\":[]}";
         BudgetRequest request = JsonUtils.fromJson(s, BudgetRequest.class);
         ResultData<List<BudgetResponse>> resultData = service.use(request);
         System.out.println(resultData);

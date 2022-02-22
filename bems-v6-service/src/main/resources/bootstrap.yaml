@@ -1,7 +1,7 @@
 # 应用全局配置
 sei:
   application:
-    env: DEV
+    env: PROD
     code: bems-v6
     version: '@project_version@'
     description: '@project_description@'

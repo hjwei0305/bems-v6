@@ -594,7 +594,9 @@ public class PoolService {
 
         // 按预算主体和维度查询满足要求的预算维度属性
         List<DimensionAttribute> attributeList = dimensionAttributeService.getAttributes(poolAttribute.getSubjectId(), attribute);
-        return this.getPoolAttributes(poolAttribute.getSubjectId(), useDate, attributeList, Optional.of(poolAttribute.getPeriodType()));
+        List<PoolAttributeDto> list = this.getPoolAttributes(poolAttribute.getSubjectId(), useDate, attributeList, Optional.of(poolAttribute.getPeriodType()));
+        // 按期间截止时间排序,期间截止时间越近越优先使用
+        return list.stream().sorted(Comparator.comparing(PoolAttributeDto::getEndDate)).collect(Collectors.toList());
     }
 
     private List<PoolAttributeDto> getPoolAttributes(String subjectId, LocalDate useDate, List<DimensionAttribute> attributeList, Optional<PeriodType> periodType) {
@@ -633,24 +635,24 @@ public class PoolService {
         // 按条件查询满足的预算池
         List<Pool> poolList = dao.findByFilters(search);
         if (CollectionUtils.isNotEmpty(poolList)) {
-            Map<PeriodType, StrategyPeriod> periodMap;
             // 按预算主体获取预算期间类型控制策略
-            List<StrategyPeriod> subjectPeriods = strategyPeriodService.findBySubject(subjectId);
-            if (CollectionUtils.isNotEmpty(subjectPeriods)) {
-                periodMap = subjectPeriods.stream().collect(Collectors.toMap(StrategyPeriod::getPeriodType, p -> p));
-            } else {
-                periodMap = new HashMap<>();
-            }
+            Map<String, StrategyPeriod> periodMap = new HashMap<>();
             PoolAttributeDto dto;
             StrategyDto strategy;
             ResultData<StrategyDto> resultData;
             DimensionAttribute dimensionAttribute;
             StrategyPeriod subjectPeriod;
             for (Pool pool : poolList) {
-                subjectPeriod = periodMap.get(pool.getPeriodType());
+                subjectPeriod = periodMap.get(pool.getSubjectId() + pool.getPeriodType());
                 // 检查期间类型控制策略,是否允许使用
-                if (Objects.isNull(subjectPeriod) || Boolean.FALSE.equals(subjectPeriod.getUse())) {
-                    continue;
+                if (Objects.isNull(subjectPeriod)) {
+                    subjectPeriod = strategyPeriodService.getSubjectPeriod(pool.getSubjectId(), pool.getPeriodType());
+                    if (Objects.nonNull(subjectPeriod)) {
+                        periodMap.put(pool.getSubjectId() + pool.getPeriodType(), subjectPeriod);
+                    }
+                    if (Objects.isNull(subjectPeriod) || Boolean.FALSE.equals(subjectPeriod.getUse())) {
+                        continue;
+                    }
                 }
                 dto = this.constructPoolAttribute(pool, Optional.of(subjectPeriod));
 

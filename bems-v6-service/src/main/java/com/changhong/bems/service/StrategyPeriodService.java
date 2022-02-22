@@ -109,7 +109,6 @@ public class StrategyPeriodService {
         List<StrategyPeriod> list = dao.findListByProperty(StrategyItem.FIELD_SUBJECT_ID, subjectId);
         if (CollectionUtils.isNotEmpty(list)) {
             Set<Object> enabledPeriodTypes = periodDao.getEnabledPeriodType(subjectId, LocalDate.now().getYear());
-            System.out.println(enabledPeriodTypes);
             return list.stream().filter(sp -> enabledPeriodTypes.contains(sp.getPeriodType())).sorted(Comparator.comparingInt(o -> o.getPeriodType().ordinal())).collect(Collectors.toList());
         }
         return list;
