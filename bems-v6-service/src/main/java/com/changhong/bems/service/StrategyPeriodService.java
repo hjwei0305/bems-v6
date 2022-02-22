@@ -122,7 +122,7 @@ public class StrategyPeriodService {
      * @param periodType 科目代码
      * @return 返回科目
      */
-    @Cacheable(key = "#subjectId + ':' + #periodType.name")
+    @Cacheable(key = "#subjectId + ':' + #periodType")
     public StrategyPeriod getSubjectPeriod(String subjectId, PeriodType periodType) {
         Search search = Search.createSearch();
         search.addFilter(new SearchFilter(StrategyPeriod.FIELD_SUBJECT_ID, subjectId));
