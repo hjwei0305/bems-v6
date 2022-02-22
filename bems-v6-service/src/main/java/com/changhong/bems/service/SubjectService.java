@@ -143,7 +143,7 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
         if (resultData.successful()) {
             CorporationDto corporationDto;
             List<CorporationDto> corporations = resultData.getData();
-            Map<String, CorporationDto> corpMap = corporations.stream().collect(Collectors.toMap(CorporationDto::getCode, corp->corp));
+            Map<String, CorporationDto> corpMap = corporations.stream().collect(Collectors.toMap(CorporationDto::getCode, corp -> corp));
             for (String corpCode : corpCodes) {
                 corporationDto = corpMap.get(corpCode);
                 if (Objects.isNull(corporationDto)) {
@@ -151,7 +151,15 @@ public class SubjectService extends BaseEntityService<Subject> implements DataAu
                 }
                 subject = new Subject();
                 subject.setCorporationCode(corpCode);
-                subject.setCorporationName(corporationDto.getName());
+                if (Classification.DEPARTMENT == classification) {
+                    subject.setCorporationName(corporationDto.getName() + ContextUtil.getMessage("subject_org"));
+                } else if (Classification.PROJECT == classification) {
+                    subject.setCorporationName(corporationDto.getName() + ContextUtil.getMessage("subject_project"));
+                } else if (Classification.COST_CENTER == classification) {
+                    subject.setCorporationName(corporationDto.getName() + ContextUtil.getMessage("subject_cost"));
+                } else {
+                    subject.setCorporationName(corporationDto.getName());
+                }
                 subject.setCurrencyCode(corporationDto.getBaseCurrencyCode());
                 subject.setCurrencyName(corporationDto.getBaseCurrencyName());
                 subject.setName(subject.getCorporationName());

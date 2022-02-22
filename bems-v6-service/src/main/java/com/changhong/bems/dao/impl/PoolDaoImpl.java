@@ -136,6 +136,10 @@ order by p.code
             paramMap.put("udf5s", queryParam.getUdf5s());
         }
         fromAndWhere.append("where p.subjectId = :subjectId and p.year = :year ");
+        if (!queryParam.isIncludeZero()) {
+            // 不包含余额为0的
+            fromAndWhere.append(" and p.balance <> 0 ");
+        }
         if (Objects.nonNull(queryParam.getPeriodType())) {
             fromAndWhere.append("and p.periodType = :periodType ");
             paramMap.put("periodType", queryParam.getPeriodType());

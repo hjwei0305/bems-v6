@@ -33,6 +33,11 @@ public class PoolQuickQueryParam implements Serializable {
     @ApiModelProperty(value = "预算主体id")
     private Integer year;
     /**
+     * 包含余额为0的
+     */
+    @ApiModelProperty(value = "包含余额为0的.默认false")
+    private boolean includeZero = Boolean.FALSE;
+    /**
      * 期间类型
      */
     @ApiModelProperty(value = "期间类型")
@@ -107,6 +112,14 @@ public class PoolQuickQueryParam implements Serializable {
 
     public void setYear(Integer year) {
         this.year = year;
+    }
+
+    public boolean isIncludeZero() {
+        return includeZero;
+    }
+
+    public void setIncludeZero(boolean includeZero) {
+        this.includeZero = includeZero;
     }
 
     public PeriodType getPeriodType() {
