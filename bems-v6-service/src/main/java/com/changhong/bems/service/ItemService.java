@@ -3,7 +3,6 @@ package com.changhong.bems.service;
 import com.changhong.bems.commons.Constants;
 import com.changhong.bems.dao.ItemCorporationDao;
 import com.changhong.bems.dao.ItemDao;
-import com.changhong.bems.dto.CategoryType;
 import com.changhong.bems.entity.DimensionAttribute;
 import com.changhong.bems.entity.Item;
 import com.changhong.bems.entity.ItemCorporation;
@@ -120,33 +119,39 @@ public class ItemService extends BaseEntityService<Item> {
      */
     @Transactional(rollbackFor = Exception.class)
     public ResultData<Void> disabled(String corpCode, Set<String> ids, boolean disabled) {
-        if (StringUtils.isNotBlank(corpCode) && !StringUtils.equalsIgnoreCase(CategoryType.GENERAL.name(), corpCode)) {
-            final Map<String, ItemCorporation> itemMap;
-            // 公司科目禁用启用操作
-            List<ItemCorporation> itemList = itemCorporationDao.findListByProperty(ItemCorporation.FIELD_CORP_CODE, corpCode);
-            if (CollectionUtils.isEmpty(itemList)) {
-                itemMap = new HashMap<>();
-            } else {
-                itemMap = itemList.stream().collect(Collectors.toMap(ItemCorporation::getItemId, obj -> obj));
-            }
-            List<Item> items = dao.findAllById(ids);
-            Map<String, Item> mapData = items.stream().collect(Collectors.toMap(Item::getId, item -> item));
-            List<ItemCorporation> itemCorporations = ids.stream().map(id -> {
-                ItemCorporation itemCorporation = itemMap.get(id);
-                if (Objects.isNull(itemCorporation)) {
-                    itemCorporation = new ItemCorporation();
-                    itemCorporation.setItemId(id);
-                    Item item = mapData.get(id);
-                    if (Objects.nonNull(item)) {
-                        itemCorporation.setCode(item.getCode());
-                        itemCorporation.setName(item.getName());
-                    }
-                    itemCorporation.setCorpCode(corpCode);
+        if (StringUtils.isNotBlank(corpCode)) {
+            if (disabled) {
+                // 禁用公司科目
+                final Map<String, ItemCorporation> itemMap;
+                // 公司科目禁用启用操作
+                List<ItemCorporation> itemList = itemCorporationDao.findListByProperty(ItemCorporation.FIELD_CORP_CODE, corpCode);
+                if (CollectionUtils.isEmpty(itemList)) {
+                    itemMap = new HashMap<>();
+                } else {
+                    itemMap = itemList.stream().collect(Collectors.toMap(ItemCorporation::getItemId, obj -> obj));
                 }
-                itemCorporation.setFrozen(disabled);
-                return itemCorporation;
-            }).collect(Collectors.toList());
-            itemCorporationDao.save(itemCorporations);
+                List<Item> items = dao.findAllById(ids);
+                Map<String, Item> mapData = items.stream().collect(Collectors.toMap(Item::getId, item -> item));
+                List<ItemCorporation> itemCorporations = ids.stream().map(id -> {
+                    ItemCorporation itemCorporation = itemMap.get(id);
+                    if (Objects.isNull(itemCorporation)) {
+                        itemCorporation = new ItemCorporation();
+                        itemCorporation.setItemId(id);
+                        Item item = mapData.get(id);
+                        if (Objects.nonNull(item)) {
+                            itemCorporation.setCode(item.getCode());
+                            itemCorporation.setName(item.getName());
+                        }
+                        itemCorporation.setCorpCode(corpCode);
+                    }
+                    itemCorporation.setFrozen(disabled);
+                    return itemCorporation;
+                }).collect(Collectors.toList());
+                itemCorporationDao.save(itemCorporations);
+            } else {
+                // 启用公司科目.删除公司下科目
+                itemCorporationDao.deleteByCorpCodeAndItemIdIn(corpCode, ids);
+            }
         } else {
             // 通用科目禁用启用操作
             dao.disabledGeneral(ids, disabled);
