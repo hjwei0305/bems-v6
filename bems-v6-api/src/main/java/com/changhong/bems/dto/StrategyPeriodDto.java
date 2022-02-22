@@ -42,11 +42,6 @@ public class StrategyPeriodDto extends BaseEntityDto {
      */
     @ApiModelProperty(value = "允许结转")
     private Boolean roll = Boolean.FALSE;
-    /**
-     * 冻结
-     */
-    @ApiModelProperty(value = "是否冻结")
-    private Boolean frozen = Boolean.FALSE;
 
     public String getSubjectId() {
         return subjectId;
@@ -78,14 +73,6 @@ public class StrategyPeriodDto extends BaseEntityDto {
 
     public void setRoll(Boolean roll) {
         this.roll = roll;
-    }
-
-    public Boolean getFrozen() {
-        return frozen;
-    }
-
-    public void setFrozen(Boolean frozen) {
-        this.frozen = frozen;
     }
 
 }

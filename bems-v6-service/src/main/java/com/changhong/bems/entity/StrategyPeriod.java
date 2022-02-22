@@ -2,7 +2,6 @@ package com.changhong.bems.entity;
 
 import com.changhong.bems.dto.PeriodType;
 import com.changhong.sei.core.entity.BaseAuditableEntity;
-import com.changhong.sei.core.entity.IFrozen;
 import com.changhong.sei.core.entity.ITenant;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -21,7 +20,7 @@ import java.io.Serializable;
 @Table(name = "strategy_period")
 @DynamicInsert
 @DynamicUpdate
-public class StrategyPeriod extends BaseAuditableEntity implements ITenant, IFrozen, Serializable {
+public class StrategyPeriod extends BaseAuditableEntity implements ITenant, Serializable {
     private static final long serialVersionUID = -802675961919146775L;
     public static final String FIELD_SUBJECT_ID = "subjectId";
     public static final String FIELD_PERIOD_TYPE = "periodType";
@@ -87,16 +86,6 @@ public class StrategyPeriod extends BaseAuditableEntity implements ITenant, IFro
 
     public void setRoll(Boolean roll) {
         this.roll = roll;
-    }
-
-    @Override
-    public Boolean getFrozen() {
-        return frozen;
-    }
-
-    @Override
-    public void setFrozen(Boolean frozen) {
-        this.frozen = frozen;
     }
 
     @Override

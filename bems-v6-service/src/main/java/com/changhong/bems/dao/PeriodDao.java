@@ -8,6 +8,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Set;
 
 /**
  * 预算期间(Period)数据库访问类
@@ -36,4 +38,7 @@ public interface PeriodDao extends BaseEntityDao<Period> {
     @Modifying
     @Query("update Period p set p.closed = true where p.closed = false and p.endDate < :endDate")
     int closingOverduePeriod(@Param("endDate") LocalDate endDate);
+
+    @Query("select distinct p.type from Period p where p.subjectId = :subjectId and p.year = :year and p.closed = false ")
+    Set<Object> getEnabledPeriodType(@Param("subjectId") String subjectId, @Param("year") int year);
 }
