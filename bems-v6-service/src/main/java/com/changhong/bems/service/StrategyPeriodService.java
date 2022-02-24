@@ -41,7 +41,7 @@ public class StrategyPeriodService {
     /**
      * 数据保存操作
      */
-    @CacheEvict(key = "#entity.subjectId")
+    @CacheEvict(key = "#entity.subjectId + ':*'")
     @Transactional(rollbackFor = Exception.class)
     public void save(StrategyPeriod entity) {
         dao.save(entity);
