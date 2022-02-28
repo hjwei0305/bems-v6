@@ -628,7 +628,7 @@ public class OrderService extends BaseEntityService<Order> {
                 // 更新状态为生效中
                 order.setStatus(OrderStatus.EFFECTING);
                 // 更新订单为手动生效标示
-                order.setManuallyEffective(Boolean.TRUE);
+                order.setManuallyEffective(Boolean.FALSE);
                 // 更新订单处理状态
                 order.setProcessing(Boolean.TRUE);
                 // 更新订单总金额
