@@ -7,8 +7,6 @@ import com.changhong.bems.dto.PeriodType;
 import com.changhong.bems.entity.StrategyItem;
 import com.changhong.bems.entity.StrategyPeriod;
 import com.changhong.sei.core.context.ContextUtil;
-import com.changhong.sei.core.dto.serach.Search;
-import com.changhong.sei.core.dto.serach.SearchFilter;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
@@ -18,10 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -117,15 +112,18 @@ public class StrategyPeriodService {
     /**
      * 按预算主体id和科目代码获取科目
      *
-     * @param subjectId  预算主体id
-     * @param periodType 科目代码
+     * @param subjectId 预算主体id
      * @return 返回科目
      */
-    @Cacheable(key = "#subjectId + ':' + #periodType")
-    public StrategyPeriod getSubjectPeriod(String subjectId, PeriodType periodType) {
-        Search search = Search.createSearch();
-        search.addFilter(new SearchFilter(StrategyPeriod.FIELD_SUBJECT_ID, subjectId));
-        search.addFilter(new SearchFilter(StrategyPeriod.FIELD_PERIOD_TYPE, periodType));
-        return dao.findFirstByFilters(search);
+    @Cacheable(key = "#subjectId", unless = "#result.empty")
+    public Map<PeriodType, StrategyPeriod> getSubjectPeriod(String subjectId) {
+        Map<PeriodType, StrategyPeriod> data;
+        List<StrategyPeriod> list = dao.findListByProperty(StrategyItem.FIELD_SUBJECT_ID, subjectId);
+        if (CollectionUtils.isNotEmpty(list)) {
+            data = list.stream().collect(Collectors.toMap(StrategyPeriod::getPeriodType, sp -> sp));
+        } else {
+            data = new HashMap<>();
+        }
+        return data;
     }
 }

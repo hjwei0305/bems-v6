@@ -393,9 +393,10 @@ public class PoolService {
             return ResultData.fail(ContextUtil.getMessage("pool_00037", pool.getCode()));
         }
         redisTemplate.opsForValue().set(key, "true", 10, TimeUnit.MINUTES);
+        Map<PeriodType, StrategyPeriod> strategyPeriodMap = strategyPeriodService.getSubjectPeriod(pool.getSubjectId());
         try {
             // 检查预算期间类型控制策略,是否可结转
-            StrategyPeriod subjectPeriod = strategyPeriodService.getSubjectPeriod(pool.getSubjectId(), pool.getPeriodType());
+            StrategyPeriod subjectPeriod = strategyPeriodMap.get(pool.getPeriodType());
             if (Objects.isNull(subjectPeriod)) {
                 // 预算池[{0}]对应的预算主体未配置期间类型[{1}]的控制策略!
                 return ResultData.fail(ContextUtil.getMessage("pool_00019", pool.getCode(), pool.getPeriodType()));
@@ -408,7 +409,7 @@ public class PoolService {
             boolean isAcrossYear = false;
             if (12 == pool.getEndDate().getMonthValue()) {
                 // 检查年度期间配置是否允许跨年
-                subjectPeriod = strategyPeriodService.getSubjectPeriod(pool.getSubjectId(), PeriodType.ANNUAL);
+                subjectPeriod = strategyPeriodMap.get(PeriodType.ANNUAL);
                 if (Objects.nonNull(subjectPeriod) && subjectPeriod.getRoll()) {
                     isAcrossYear = true;
                 }
@@ -462,15 +463,11 @@ public class PoolService {
             StrategyPeriod strategyPeriod;
             ResultData<StrategyDto> resultData;
             List<PoolAttributeDto> list = pageResult.getRows();
-            Map<String, StrategyPeriod> strategyPeriodMap = new HashMap<>();
+            Map<PeriodType, StrategyPeriod> strategyPeriodMap = strategyPeriodService.getSubjectPeriod(param.getSubjectId());
             Map<String, StrategyDto> strategyMap = new HashMap<>();
             for (PoolAttributeDto pool : list) {
                 String subjectId = pool.getSubjectId();
-                strategyPeriod = strategyPeriodMap.get(subjectId + pool.getPeriodType().name());
-                if (Objects.isNull(strategyPeriod)) {
-                    strategyPeriod = strategyPeriodService.getSubjectPeriod(subjectId, pool.getPeriodType());
-                    strategyPeriodMap.put(subjectId + pool.getPeriodType().name(), strategyPeriod);
-                }
+                strategyPeriod = strategyPeriodMap.get(pool.getPeriodType());
                 if (Objects.nonNull(strategyPeriod)) {
                     pool.setRoll(strategyPeriod.getRoll());
                     pool.setUse(strategyPeriod.getUse());
@@ -636,23 +633,17 @@ public class PoolService {
         List<Pool> poolList = dao.findByFilters(search);
         if (CollectionUtils.isNotEmpty(poolList)) {
             // 按预算主体获取预算期间类型控制策略
-            Map<String, StrategyPeriod> periodMap = new HashMap<>();
+            Map<PeriodType, StrategyPeriod> strategyPeriodMap = strategyPeriodService.getSubjectPeriod(subjectId);
             PoolAttributeDto dto;
             StrategyDto strategy;
             ResultData<StrategyDto> resultData;
             DimensionAttribute dimensionAttribute;
             StrategyPeriod subjectPeriod;
             for (Pool pool : poolList) {
-                subjectPeriod = periodMap.get(pool.getSubjectId() + pool.getPeriodType());
+                subjectPeriod = strategyPeriodMap.get(pool.getPeriodType());
                 // 检查期间类型控制策略,是否允许使用
-                if (Objects.isNull(subjectPeriod)) {
-                    subjectPeriod = strategyPeriodService.getSubjectPeriod(pool.getSubjectId(), pool.getPeriodType());
-                    if (Objects.nonNull(subjectPeriod)) {
-                        periodMap.put(pool.getSubjectId() + pool.getPeriodType(), subjectPeriod);
-                    }
-                    if (Objects.isNull(subjectPeriod) || Boolean.FALSE.equals(subjectPeriod.getUse())) {
-                        continue;
-                    }
+                if (Objects.isNull(subjectPeriod) || Boolean.FALSE.equals(subjectPeriod.getUse())) {
+                    continue;
                 }
                 dto = this.constructPoolAttribute(pool, Optional.of(subjectPeriod));
 
@@ -845,7 +836,7 @@ public class PoolService {
             // 未找到预算池
             return ResultData.fail(ContextUtil.getMessage("pool_00001"));
         }
-        StrategyPeriod subjectPeriod = strategyPeriodService.getSubjectPeriod(pool.getSubjectId(), pool.getPeriodType());
+        StrategyPeriod subjectPeriod = strategyPeriodService.getSubjectPeriod(pool.getSubjectId()).get(pool.getPeriodType());
         PoolAttributeDto dto = this.constructPoolAttribute(pool, Optional.ofNullable(subjectPeriod));
 
         DimensionAttribute attribute = dimensionAttributeService.getAttribute(pool.getSubjectId(), pool.getAttributeCode());
