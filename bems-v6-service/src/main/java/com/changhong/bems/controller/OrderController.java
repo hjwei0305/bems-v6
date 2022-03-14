@@ -97,12 +97,11 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      * @return 分页查询结果
      */
     @Override
-    public ResultData<PageResult<OrderDto>> findInjectionByPage(Search search) {
-        if (Objects.isNull(search)) {
-            search = Search.createSearch();
+    public ResultData<PageResult<OrderDto>> findInjectionByPage(OrderSearch search) {
+        if (search.isIncludeOther()) {
+            // 只允许查看本人单据
+            search.addFilter(new SearchFilter(Order.FIELD_CREATOR_ID, ContextUtil.getUserId()));
         }
-        // 只允许查看本人单据
-        search.addFilter(new SearchFilter(Order.FIELD_CREATOR_ID, ContextUtil.getUserId()));
         // 排除预制状态单据
         search.addFilter(new SearchFilter(Order.FIELD_STATUS, OrderStatus.PREFAB, SearchFilter.Operator.NE));
         search.addFilter(new SearchFilter(Order.FIELD_ORDER_CATEGORY, OrderCategory.INJECTION));
@@ -116,12 +115,11 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      * @return 分页查询结果
      */
     @Override
-    public ResultData<PageResult<OrderDto>> findAdjustmentByPage(Search search) {
-        if (Objects.isNull(search)) {
-            search = Search.createSearch();
+    public ResultData<PageResult<OrderDto>> findAdjustmentByPage(OrderSearch search) {
+        if (search.isIncludeOther()) {
+            // 只允许查看本人单据
+            search.addFilter(new SearchFilter(Order.FIELD_CREATOR_ID, ContextUtil.getUserId()));
         }
-        // 只允许查看本人单据
-        search.addFilter(new SearchFilter(Order.FIELD_CREATOR_ID, ContextUtil.getUserId()));
         // 排除预制状态单据
         search.addFilter(new SearchFilter(Order.FIELD_STATUS, OrderStatus.PREFAB, SearchFilter.Operator.NE));
         search.addFilter(new SearchFilter(Order.FIELD_ORDER_CATEGORY, OrderCategory.ADJUSTMENT));
@@ -135,12 +133,11 @@ public class OrderController extends BaseEntityController<Order, OrderDto> imple
      * @return 分页查询结果
      */
     @Override
-    public ResultData<PageResult<OrderDto>> findSplitByPage(Search search) {
-        if (Objects.isNull(search)) {
-            search = Search.createSearch();
+    public ResultData<PageResult<OrderDto>> findSplitByPage(OrderSearch search) {
+        if (search.isIncludeOther()) {
+            // 只允许查看本人单据
+            search.addFilter(new SearchFilter(Order.FIELD_CREATOR_ID, ContextUtil.getUserId()));
         }
-        // 只允许查看本人单据
-        search.addFilter(new SearchFilter(Order.FIELD_CREATOR_ID, ContextUtil.getUserId()));
         // 排除预制状态单据
         search.addFilter(new SearchFilter(Order.FIELD_STATUS, OrderStatus.PREFAB, SearchFilter.Operator.NE));
         search.addFilter(new SearchFilter(Order.FIELD_ORDER_CATEGORY, OrderCategory.SPLIT));

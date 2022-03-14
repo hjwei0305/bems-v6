@@ -44,7 +44,7 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
      */
     @PostMapping(path = "findInjectionByPage", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "分页查询下达注入订单", notes = "分页查询下达注入订单")
-    ResultData<PageResult<OrderDto>> findInjectionByPage(@RequestBody Search search);
+    ResultData<PageResult<OrderDto>> findInjectionByPage(@RequestBody OrderSearch search);
 
     /**
      * 分页查询下达调整订单
@@ -54,7 +54,7 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
      */
     @PostMapping(path = "findAdjustmentByPage", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "分页查询下达调整订单", notes = "分页查询下达调整订单")
-    ResultData<PageResult<OrderDto>> findAdjustmentByPage(@RequestBody Search search);
+    ResultData<PageResult<OrderDto>> findAdjustmentByPage(@RequestBody OrderSearch search);
 
     /**
      * 分页查询分解调整订单
@@ -64,7 +64,7 @@ public interface OrderApi extends BaseEntityApi<OrderDto> {
      */
     @PostMapping(path = "findSplitByPage", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "分页查询分解调整订单", notes = "分页查询分解调整订单")
-    ResultData<PageResult<OrderDto>> findSplitByPage(@RequestBody Search search);
+    ResultData<PageResult<OrderDto>> findSplitByPage(@RequestBody OrderSearch search);
 
     /**
      * 通过单据Id获取单据行项
